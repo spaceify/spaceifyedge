@@ -206,7 +206,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 var connect = fibrous( function()
 	{
 	secureConnection = new WebSocketRpcConnection();
-	secureConnection.sync.connect({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
+	secureConnection.sync.connect({hostname: "localhost", port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
 	});
 
 }

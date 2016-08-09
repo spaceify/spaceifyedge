@@ -55,7 +55,7 @@
   "CUSTOM_DOCKER_IMAGE": "custom_",
 
   "EDGE_IP": "10.0.0.1",
-  "EDGE_HOSTNAME": "edge.spaceify.net",
+  "EDGE_HOSTNAME": "10.0.0.1",
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",

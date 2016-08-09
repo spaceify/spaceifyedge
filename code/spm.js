@@ -241,14 +241,14 @@ var connect = fibrous( function(openMessaging)
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
-		appManConnection.sync.connect({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
+		appManConnection.sync.connect({hostname: "localhost", port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
 
 		// Messaging (Setup by ApplicationManager)
 		if(openMessaging)
 			{
 			appManMessageConnection = new WebSocketConnection();
 			appManMessageConnection.setEventListener(self);
-			appManMessageConnection.sync.connect({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
+			appManMessageConnection.sync.connect({hostname: "localhost", port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
 
 			messageId = appManConnection.sync.callRpc("requestMessages", [sessionId], self);								// Request a messageId
 			appManMessageConnection.send(JSON.stringify({type: messaging.MESSAGE_CONFIRM, messageId: messageId}));			// Confirm that we are listening

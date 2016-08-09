@@ -1,3 +1,0 @@
-Tests: squid
-Depends: squid, squidclient, python-unit, elinks, netcat, pygopherd, apparmor-utils, vsftpd
-Restrictions: needs-root

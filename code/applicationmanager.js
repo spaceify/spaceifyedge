@@ -138,7 +138,7 @@ self.close = fibrous( function()
 var connectToCore = fibrous( function()
 	{ // Establishes a connection to cores server
 	try {
-		coreConnection.sync.connect({hostname: config.ALL_IPV4_LOCAL, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
+		coreConnection.sync.connect({hostname: "localhost", port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
 		}
 	catch(err)
 		{

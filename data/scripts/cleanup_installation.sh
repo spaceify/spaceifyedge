@@ -139,17 +139,17 @@ if [ "$1" = "purge" ]; then
 
 	printf "\n\e[4mRemoving files.\e[0m\n"
 
-	rm /etc/init/spaceify.conf > /dev/null 2>&1 || true
-	rm /etc/init/spaceifydns.conf > /dev/null 2>&1 || true
-	rm /etc/init/spaceifyipt.conf > /dev/null 2>&1 || true
-	rm /etc/init/spaceifyhttp.conf > /dev/null 2>&1 || true
-	rm /etc/init/spaceifyappman.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceify.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifydns.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyipt.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyhttp.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyappman.conf > /dev/null 2>&1 || true
 
-	rm /etc/init.d/spaceify > /dev/null 2>&1 || true
-	rm /etc/init.d/spaceifydns > /dev/null 2>&1 || true
-	rm /etc/init.d/spaceifyipt > /dev/null 2>&1 || true
-	rm /etc/init.d/spaceifyhttp > /dev/null 2>&1 || true
-	rm /etc/init.d/spaceifyappman > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceify > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifydns > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyipt > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyhttp > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyappman > /dev/null 2>&1 || true
 
 	#find . -maxdepth 1 -type f -exec rm -f {} \; 2>&1 || true		# Files not directories
 	#rm -r */														# Directories not files
@@ -179,20 +179,20 @@ sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/rc.local
 #/sbin/iptables -t filter -D FORWARD -m mark --mark 99 -j DROP > /dev/null 2>&1 || true
 
 	# - HTTP filter chain, NAT chain and redirect chain - #
-/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
 /sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
 /sbin/iptables -t nat -F Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
 /sbin/iptables -t nat -X Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
 
 	# - HTTPS filter chain, NAT chain and redirect chain - #
-/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
 /sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
 /sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
 /sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
+#/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
 
 	# - Docker container connection chains - #
 iptables-save | grep -v -- '-j Spaceify-Nat-Connections' | iptables-restore

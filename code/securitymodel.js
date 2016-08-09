@@ -313,7 +313,7 @@ self.isAdminLoggedIn = fibrous( function(sessionId, throws)
 
 	try {
 		coreRPC = new WebSocketRpcConnection();
-		coreRPC.sync.connect({hostname: config.ALL_IPV4_LOCAL, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+		coreRPC.sync.connect({hostname: "localhost", port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
 

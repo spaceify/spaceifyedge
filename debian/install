@@ -16,12 +16,11 @@ data/manifest/manifest.rules var/lib/spaceify/data/manifest
 data/docker/Dockerfile var/lib/spaceify/data/docker
 data/docker/image_versions var/lib/spaceify/data/docker
 data/logs/readme.txt var/lib/spaceify/data/logs
+debian/spaceifyappman.service lib/systemd/system 
+debian/spaceifydns.service lib/systemd/system  
+debian/spaceifyhttp.service lib/systemd/system  
+debian/spaceifyipt.service lib/systemd/system
 
-upstart/* var/lib/spaceify/data/upstart
-
-monit/spaceify.conf etc/monit/conf.d
-
-LICENSE var/lib/spaceify
 versions var/lib/spaceify
 CHANGELOG var/lib/spaceify
 README.md var/lib/spaceify

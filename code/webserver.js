@@ -258,7 +258,7 @@ var loadContent = fibrous( function(request, response, body)
 					location += urlObj.search;
 				if(urlObj.hash)
 					location += urlObj.hash;
-				status = redirect(request, response, 301, location, []);
+				status = redirect(request, response, 302, location, []);
 				}
 			}
 
@@ -350,7 +350,7 @@ var renderOperationPage = fibrous( function(request, response, GET, POST, cookie
 		var sessiontoken = manageSessions(cookies, request.connection.remoteAddress, "/");
 
 		// HEADERS
-		headers.push["Set-Cookie", sessions[sessiontoken].cookie];
+		headers.push(["Set-Cookie", sessions[sessiontoken].cookie]);
 
 		// OPERATION
 		operation = utility.parseJSON(POST["data"].body, true);
@@ -389,22 +389,24 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 
 	// HEADER -- -- -- -- -- -- -- -- -- -- //
 	var headers = [];
-	headers.push(["Set-Cookie", "locale=" + locale]);
+	headers.push(["Set-Cookie", "locale=" + locale+";"]);
 	headers.push(["Set-Cookie", sessions[sessiontoken].cookie]);
 
 	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
 	if(!options.isSecure && isSecurePage)												// Redirect secure pages to secure server
-		return redirect(request, response, 301, utility.parseURLFromURLObject(urlObj, config.EDGE_HOSTNAME, "https", urlObj.port), headers);
+		return redirect(request, response, 302, utility.parseURLFromURLObject(urlObj, config.EDGE_HOSTNAME, "https", urlObj.port), headers);
 	else if(options.isSecure && isSecurePage)
 		{
 		var operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, sessions[sessiontoken].userData, options.isSecure);
+		console.log(JSON.stringify(sessions[sessiontoken]));		
+		console.log(JSON.stringify(operationData));
 
 		if(operationData.error)															// Internal Server Error
 			return redirect(request, response, 500, "", headers);
 		else if(!operationData.isLoggedIn && !isLogInPage)								// Redirect to log in if not logged in
-			return redirect(request, response, 301, config.ADMIN_LOGIN_URL, headers);
+			return redirect(request, response, 302, config.ADMIN_LOGIN_URL, headers);
 		else if(operationData.isLoggedIn && isLogInPage)								// Redirect to index if already logged in
-			return redirect(request, response, 301, config.ADMIN_INDEX_URL, headers);
+			return redirect(request, response, 302, config.ADMIN_INDEX_URL, headers);
 		}
 
 	var section = pathname.replace(/\.[^.]*$/, "");
@@ -448,9 +450,28 @@ var redirect = function(request, response, responseCode, location, headers)
 	else if(responseCode == 404 || responseCode == 500)
 		content = fs.sync.readFile(options.wwwErrorsPath + responseCode + ".html");
 
+		
 	return write(content, "html", request, response, responseCode, location, headers);
 	}
 
+var mergeHeaders = function(headers)
+	{
+	var ret = new Object();
+	
+	 for (var i=0; i < headers.length; i++) 
+                {
+                if (ret.hasOwnProperty(headers[i][0]))
+                	{
+                	ret[headers[i][0]].push(headers[i][1]);
+                	}
+                else
+                	{
+                	ret[headers[i][0]] = [headers[i][1]];
+                	}	
+                }
+                
+	return ret;
+	};
 var write = function(content, contentType, request, response, responseCode, location, headers)
 	{
 	var now = new Date();
@@ -465,6 +486,16 @@ var write = function(content, contentType, request, response, responseCode, loca
 	if(responseCode == 301 || responseCode == 302)
 		headers.push(["Location", location]);
 
+	/*	
+	var mergedHeaders = mergeHeaders(headers);
+	
+	for (var i in mergedHeaders) 
+		{
+		console.log(i+" : "+mergedHeaders[i]);
+		response.setHeader(i, mergedHeaders[i]);
+		}
+	*/
+	
 	response.writeHead(responseCode || 200, headers);
 	response.end(content);
 
@@ -532,9 +563,9 @@ var createSession = function(Domain, Path)
 	shasum.update(result);
 	var sessiontoken = shasum.digest("hex").toString();
 
-	var cookie = SESSIONTOKEN + "=" + sessiontoken + "; Path=" + Path + "; Domain=" + Domain + "; HttpOnly; session";
-	if(options.isSecure)
-		cookie += "; Secure";
+	var cookie = SESSIONTOKEN + "=" + sessiontoken; //+ "; Path=" + Path + "; Domain=" + Domain + "; HttpOnly; session";
+	//if(options.isSecure)
+	//	cookie += "; Secure";
 
 	sessions[sessiontoken] = {userData: {}, timestamp: Date.now(), "cookie": cookie}
 

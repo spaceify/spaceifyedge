@@ -4,7 +4,7 @@
 
 #################################################################################
 # Copy necessary files
-cd /etc/squid3/certs/
+cd /var/lib/spaceify/data/scripts
 
 cp ca.cnf server.cnf spaceifyCA
 

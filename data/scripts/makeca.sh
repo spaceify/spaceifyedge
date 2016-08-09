@@ -5,7 +5,7 @@
 #################################################################################
 # Specify certificate authority diretory, files and database
 
-cd /etc/squid3/certs/
+cd /var/lib/spaceify/data/scripts
 
 ca_root="spaceifyCA";
 

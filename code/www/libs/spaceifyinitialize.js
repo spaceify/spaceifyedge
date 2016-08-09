@@ -13,7 +13,7 @@ function SpaceifyInitalize()
 var self = this;
 
 var rows = [];
-var edgeURL = window.location.protocol + "//edge.spaceify.net/";
+var edgeURL = window.location.protocol + "//10.0.0.1/";
 
 self.start = function(getjQuery)
 	{
