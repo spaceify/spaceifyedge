@@ -108,13 +108,13 @@ sudo service danted restart
 #### 4. Configure the Socks Proxy Settings of Your Web Browser
 
 In order to see the web the way Spaceify clients see it, you need to configure your web browser to use the socks proxy server of the Spaceify virtual machine. Configure your web browser to use sock proxy at `192.168.56.2` port `1080`. In the screenshot below you can see how this is done in the Firefox. Read more about DNS lookup from [here](http://www.commandlineisking.com/2008/09/firefox-have-your-proxy-do-dns-lookups.htm).
-![Configure Firefox SOCKS proxy](https://spaceify.org/wiki/lib/exe/detail.php?id=tutorials%3Arunning_spaceify_in_virtualbox&media=screen_shot_2014-07-12_at_09.49.19.png)
+![Configure Firefox SOCKS proxy](https://spaceify.org/wiki/lib/exe/fetch.php?cache=&media=screen_shot_2014-07-12_at_09.49.19.png)
 
 
 #### 5. You are All Set!
 
 You can now browse to [http://edge.spaceify.net](http://edge.spaceify.net) with your web browser to see the main menu that the Spaceify clients would see. It should look something like this:
-![Screenshot of your browser view](https://spaceify.org/wiki/lib/exe/detail.php?id=tutorials%3Arunning_spaceify_in_virtualbox&media=screen_shot_2014-07-12_at_10.30.57.png)
+![Screenshot of your browser view](https://spaceify.org/wiki/lib/exe/fetch.php?cache=&media=screen_shot_2014-07-12_at_10.30.57.png)
 
 
 ## The Team
