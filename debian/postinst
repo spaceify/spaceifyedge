@@ -254,12 +254,12 @@ fi
 	# ----- Update node.js to the latest stable release ----- #
 printf "\n\e[4mUpdating Node.js\e[0m\n\n"
 cd /var/lib/spaceify/code
-npm uninstall bufferutil
-npm install -g bufferutil
 npm install npm -g
 npm cache clear -f
 npm install -g n
 n 5.10.1
+npm uninstall bufferutil
+npm install -g bufferutil
 
 	# ----- Spaceify's DNS server must be on and other DNS mechanisms off ----- #
 		# - remove Spaceify's previous entries - #
