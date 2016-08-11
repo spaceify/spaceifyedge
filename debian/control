@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 8.0.0), dh-systemd
 Standards-Version: 3.9.4
 
 Package: spaceify
-Architecture: amd64
+Architecture: all
 Pre-Depends: debconf (>= 0.5)
 Depends: debconf (>= 0.5), libc6 (>= 2.1), ${misc:Depends}, perl, python-software-properties, python, g++, make, nodejs (>= 0.10.18), npm, libkrb5-dev, docker-engine, hostapd, curl, openssl, libssl-dev, sqlite3, libsqlite3-dev, libzip-dev, zip, unzip, git, udhcpd
 Description: Spaceify is a smart access point platform.
