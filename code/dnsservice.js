@@ -31,7 +31,7 @@ external_ip = external_ip.replace(/[^0-9\.]/g, "");
 try {
 	var dnsserver = new DNSServer();
 	dnsserver.connect({	port: config.DNS_PORT,											// The port and address to listen
-						v4_address: config.EDGE_IP,
+						v4_address: config.ALL_IPV4_LOCAL,
 						v6_address: config.DNS_IP_V6,
 						external_dns: { address: external_ip, port: 53, type: "udp" },	// The questions are passed to the external DNS server
 						ttl: 10,														// Time To Live period the clients should cache the returned answers

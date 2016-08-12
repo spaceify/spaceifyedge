@@ -4,43 +4,64 @@
 
 eth=$(< /var/lib/spaceify/data/interfaces/ethernet)
 
-lease=""																					# Get the leases for the user selected network adapter connected to the internet
-find="option domain-name-servers "
-if [ -s "/var/lib/dhcp/dhclient.${eth}.leases" ]; then										# Try different locations (FILE exists and has a size greater than zero)
-	lease="/var/lib/dhcp/dhclient.${eth}.leases"
-elif [ -s /var/lib/dhcp/dhclient.leases ]; then
-	lease="/var/lib/dhcp/dhclient.leases"
-elif [ -s "/var/lib/dhcp3/dhclient.${eth}.leases"  ]; then
-	lease="/var/lib/dhcp3/dhclient.${eth}.leases"
-elif [ -s /var/lib/dhcp3/dhclient.leases ]; then
-	lease="/var/lib/dhcp3/dhclient.leases"
-else
-	find="nameserver"
-	lease="/etc/resolv.conf"
+if ! type "nmcli" > /dev/null 2>&1; then									# Ubuntu Server
+
+	lease=""																	# Get the leases for the user selected network adapter connected to the internet
+	find="option domain-name-servers "
+	if [ -s "/var/lib/dhcp/dhclient.${eth}.leases" ]; then						# Try different locations (FILE exists and has a size greater than zero)
+		lease="/var/lib/dhcp/dhclient.${eth}.leases"
+	elif [ -s /var/lib/dhcp/dhclient.leases ]; then
+		lease="/var/lib/dhcp/dhclient.leases"
+	elif [ -s "/var/lib/dhcp3/dhclient.${eth}.leases"  ]; then
+		lease="/var/lib/dhcp3/dhclient.${eth}.leases"
+	elif [ -s /var/lib/dhcp3/dhclient.leases ]; then
+		lease="/var/lib/dhcp3/dhclient.leases"
+	else
+		find="nameserver"
+		lease="/etc/resolv.conf"
+	fi
+
+	ips=$(grep "$find" "$lease" | tail -1)											# Find last occurance = latest lease
+
+	ips=${ips//$find/}																# Replace
+	ips=${ips//;/,}
+	ips=${ips// /}
+
+else																			# Ubuntu Desktop
+
+	dns=$(nmcli device show ${eth} | grep -i 'IP4.DNS')				# Try 16.04
+
+	#if [ "$dns" == "" ]; then														# Try 14.04
+	#	dns=$(nmcli dev list | grep -i 'ip4.dns')
+	#fi
+
+	IFS=' ' read -r -a dns_ips <<< $dns
+
+	ips=""																			# Every second element is an IP
+	for dns_ips_pos in "${!dns_ips[@]}"; do
+		if [ $((dns_ips_pos%2)) -eq 1 ]; then
+			ips="$ips${dns_ips[$dns_ips_pos]},";
+		fi
+	done
+
 fi
 
-ips=$(grep "$find" "$lease" | tail -1)														# Find last occurance = latest lease
+IFS="," read -a ips <<< "$ips"													# Split into an array of IPs
 
-ips=${ips//$find/}																			# Replace
-ips=${ips//;/,}
-ips=${ips// /}
-
-IFS="," read -a ips <<< "$ips"																# Split into an array of IPs
-
-dip=""
+selected_ip=""
 for ip in "${ips[@]}"; do
 	ip=${ip//,/}
 
 	if [[ "$ip" != "127.0.0.1" && "$ip" != "10.0.0.1" ]]; then
-		dip=$ip
+		selected_ip=$ip
 		break;
 	fi
 done
 
-mkdir -p /var/lib/spaceify/data/dns > /dev/null 2>&1 || true								# Save the IP to Spaceify's directory for its DNS server to find
+mkdir -p /var/lib/spaceify/data/dns > /dev/null 2>&1 || true					# Save the IP to Spaceify's directory for its DNS server to find
 
-if [ ! -z "$dip" ]; then																		# IP was found
-	printf $dip > /var/lib/spaceify/data/dns/ip
-else																							# Use Google's server if IP wasn't found
+if [ ! -z "$selected_ip" ]; then												# IP found
+	printf $selected_ip > /var/lib/spaceify/data/dns/ip
+else																			# Use Google's server if IP wasn't found
 	printf "8.8.8.8" > /var/lib/spaceify/data/dns/ip
 fi

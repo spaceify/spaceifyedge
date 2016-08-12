@@ -17,4 +17,4 @@ ExecStopPost=/bin/bash -c 'rm -f /var/lib/spaceify/data/dev/iptpiper'
 Restart=always
 
 [Install]
-WantedBy=network-online.target
+WantedBy=multi-user.target
