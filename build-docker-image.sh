@@ -21,7 +21,7 @@ select yn in "Yes" "No"; do
 done
 
 # --------- DO --------- #
-cd data/docker
+cd data/docker/ubuntu
 
 docker build --no-cache --rm -t spaceifyubuntu2 .												# Build the image from the Dockerfile
 

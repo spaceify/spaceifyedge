@@ -21,7 +21,7 @@ select yn in "Yes" "No"; do
 done
 
 # --------- DO --------- #
-cd data/docker-raspberry
+cd data/docker/raspbian
 
 docker build --no-cache --rm -t spaceifyraspbian .												# Build the image from the Dockerfile
 

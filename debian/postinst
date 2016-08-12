@@ -261,70 +261,10 @@ npm cache clear -f
 npm install -g n
 n 5.10.1
 
-	# ----- Spaceify's DNS server must be on and other DNS mechanisms off ----- #
-		# - remove Spaceify's previous entries - #
-if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-	sed -i -e "s/${comm_out_spaceify}//g" /etc/NetworkManager/NetworkManager.conf > /dev/null 2>&1 || true
-fi
 
-if [ -f /etc/dhcp/dhclient.conf ]; then
-	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/dhcp/dhclient.conf > /dev/null 2>&1 || true
-fi
 
-sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/resolvconf/resolv.conf.d/base > /dev/null 2>&1 || true
 
-		# - disable dnsmasq - #
-if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-	netm=$( sed -i -e "/dns/ s/^/${comm_out_spaceify}/" /etc/NetworkManager/NetworkManager.conf )
-fi
-
-		# - keep localhost - #
-if [ -f /etc/dhcp/dhclient.conf ]; then
-	hdh=$(grep "prepend domain-name-servers" /etc/dhcp/dhclient.conf)
-
-	if [ -n "$hdh" ]; then
-		dhcl=$( sed -e "/prepend domain-name-servers/ s/^/${comm_out_spaceify}/" /etc/dhcp/dhclient.conf )
-		dhcl=$( echo "$dhcl" | sed "/prepend domain-name-servers/a ${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}" )
-	else
-		dhcl=$(< /etc/dhcp/dhclient.conf)
-		dhcl="${dhcl}\n${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}"
-	fi
-
-	printf "$dhcl" > /etc/dhcp/dhclient.conf
-fi
-
-		# - direct to localhost - #
-base=$( sed -e "s/^/${comm_out_spaceify}/" /etc/resolvconf/resolv.conf.d/base )
-base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
-printf "$base" > /etc/resolvconf/resolv.conf.d/base
-
-		# - try to apply the changes - #
-if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
-
-	ifdown $eth > /dev/null 2>&1 || true
-	ifup $eth > /dev/null 2>&1 || true
-
-elif [[ -n $(service network-manager status |& grep running) ]]; then
-
-	service network-manager restart > /dev/null 2>&1 || true
-
-	resolvconf -u
-
-fi
-
-. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
-
-if [ $? -ne 0 ]; then
-	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-	exit 1
-else
-	printf "The network is restarted. Continuing the installation.\n"
-fi
-
-		# - Start Spaceify's DNS server - #
-service spaceifydns restart > /dev/null 2>&1 || true
-
-	# ----- Add custom iptables chains for Spaceify - To avoid duplicates, delete existing chains first ----- #
+# ----- Add custom iptables chains for Spaceify - To avoid duplicates, delete existing chains first ----- #
 
 		# - -- Delete mangle chain -- - #
 #/sbin/iptables -t mangle -D PREROUTING -j Spaceify-mangle > /dev/null 2>&1 || true
@@ -474,24 +414,34 @@ npm install
 # ----------
 # ----------
 # ----------
-# ---------- Docker image - At this point the spaceify docker image doesn't exist and can be created safely ---------- #
-printf "\n\e[4mSearching for spaceify Docker image\e[0m\n"
+# ---------- Docker image for different distributions ---------- #
+printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
 
-if_path="/var/lib/spaceify/data/docker"
+distro=$(uname -a)
+if [[ -n $(uname -a |& grep -i "ubun") ]]; then
+	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+elif [[ -n $(uname -a |& grep -i "rasp") ]]; then
+	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+fi
+$(sqlite3 $dbpath "UPDATE information SET distribution='$distro'")
+
+if_path="/var/lib/spaceify/data/docker/$distro"
 if_version="$if_path/image_version"
 if_list="$if_path/image_versions"																# Latest image version list is supplied with the package
 
-release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")			# Get the version this package requires
+release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")					# Get the version this package requires
 
-new_row=$(grep "^${release_version}:.*$" $if_list)					# The filename of the new image file
+new_row=$(grep "^${release_version}:.*$" $if_list)												# The filename of the new image file
 new_image=$(echo $new_row | awk -F : '{print $2}')
 new_version=$(echo $new_row | awk -F : '{print $1}')
 
-if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi		# Image filename of (possibly) existing image file
+if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi			# Image filename of (possibly) existing image file
 old_row=$(grep "^${image_version}:.*$" $if_list)
 old_image=$(echo $old_row | awk -F : '{print $2}')
 
-if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=0; fi		# Check that the file really exists
+if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=0; fi			# Check that the file really exists
 
 #if [ $old_image_exists == 0 ] && [ "$new_image" == "" ]; then
 #
@@ -503,10 +453,10 @@ if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=
 #	image_name=$(echo $new_image | awk -F "." '{print $1}')
 #
 #	printf "\n\e[32mExisting image was not found and can not be downloaded. A new image is now being build.\e[0m\n\n"
-#	docker build --no-cache --rm -t spaceifyubuntu . # > /dev/null 2>&1 || true
+#	docker build --no-cache --rm -t $distro_image_name . # > /dev/null 2>&1 || true
 #
 #	printf "\n\n\e[32mExporting the image.\e[0m\n"
-#	ID=$(docker run -d spaceifyubuntu /bin/bash) > /dev/null 2>&1 || true
+#	ID=$(docker run -d $distro_image_name /bin/bash) > /dev/null 2>&1 || true
 #	sudo docker export $ID > "$if_path/$image_name.tar" > /dev/null 2>&1 || true
 #	sudo docker stop $ID > /dev/null 2>&1 || true
 #	sudo docker rm -f $ID > /dev/null 2>&1 || true
@@ -521,28 +471,28 @@ if [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
 	# # # Use existing image
 
 	printf "\n\e[32mExisting, compatible image was found. Importing the image.\e[0m\n"
-	cat "$if_path/$new_image" | sudo docker import - spaceifyubuntu > /dev/null
+	cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
 
 else
 
 	# # # Load and import
 	# # # The image must be loaded from spaceify.org before it can be imported
 
-	rm "$if_path"/spaceifyubuntu* > /dev/null 2>&1 || true
+	rm "$if_path/$distro_image_name"* > /dev/null 2>&1 || true
 
-	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from a remote server.\e[0m\n"
+	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from remote server.\e[0m\n"
 	curl -o "$if_path/$new_image" "https://spaceify.org/downloads/$new_image"
 
 	if [ -f "$if_path/$new_image" ]; then
 		printf "\n\e[32mImporting the image.\e[0m\n"
-		cat "$if_path/$new_image" | sudo docker import - spaceifyubuntu > /dev/null
+		cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
 	fi
 
 fi
 
-ubun=$( echo $(docker images) | sed -n '/spaceifyubuntu/{p;q;}' )
+ubun=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
 if [ -z "$ubun" ]; then
-	printf "\n\e[41mThe installation is aborted because the required spaceify Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+	printf "\n\e[41mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
 	exit 1
 else
 	printf $new_version > $if_version															# Update the version file
@@ -649,14 +599,91 @@ fi
 #/sbin/iptables -t nat -X DOCKER > /dev/null 2>&1 || true
 #service docker restart > /dev/null 2>&1 || true
 
-printf "\nRestarting the services.\n"
-service spaceifydns restart > /dev/null 2>&1 || true
-service spaceifyipt restart > /dev/null 2>&1 || true
-service spaceify restart > /dev/null 2>&1 || true
-service spaceifyappman restart > /dev/null 2>&1 || true
-service spaceifyhttp restart > /dev/null 2>&1 || true
+
+#The debhelper-generated stuff should appaear in place of the following comment
+
+#DEBHELPER#
+
+#printf "\nRestarting the services.\n"
+#service spaceifydns restart > /dev/null 2>&1 || true
+#service spaceifyipt restart > /dev/null 2>&1 || true
+#service spaceify restart > /dev/null 2>&1 || true
+#service spaceifyappman restart > /dev/null 2>&1 || true
+#service spaceifyhttp restart > /dev/null 2>&1 || true
 
 #service monit restart > /dev/null 2>&1 || true
+
+
+
+
+################## DNS CONFIGURATION #########################################
+
+# ----- Spaceify's DNS server must be on and other DNS mechanisms off ----- #
+		# - remove Spaceify's previous entries - #
+if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+	sed -i -e "s/${comm_out_spaceify}//g" /etc/NetworkManager/NetworkManager.conf > /dev/null 2>&1 || true
+fi
+
+if [ -f /etc/dhcp/dhclient.conf ]; then
+	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/dhcp/dhclient.conf > /dev/null 2>&1 || true
+fi
+
+sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/resolvconf/resolv.conf.d/base > /dev/null 2>&1 || true
+
+		# - disable dnsmasq - #
+if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+	netm=$( sed -i -e "/dns/ s/^/${comm_out_spaceify}/" /etc/NetworkManager/NetworkManager.conf )
+fi
+
+		# - keep localhost - #
+if [ -f /etc/dhcp/dhclient.conf ]; then
+	hdh=$(grep "prepend domain-name-servers" /etc/dhcp/dhclient.conf)
+
+	if [ -n "$hdh" ]; then
+		dhcl=$( sed -e "/prepend domain-name-servers/ s/^/${comm_out_spaceify}/" /etc/dhcp/dhclient.conf )
+		dhcl=$( echo "$dhcl" | sed "/prepend domain-name-servers/a ${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}" )
+	else
+		dhcl=$(< /etc/dhcp/dhclient.conf)
+		dhcl="${dhcl}\n${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}"
+	fi
+
+	printf "$dhcl" > /etc/dhcp/dhclient.conf
+fi
+
+		# - direct to localhost - #
+base=$( sed -e "s/^/${comm_out_spaceify}/" /etc/resolvconf/resolv.conf.d/base )
+base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
+printf "$base" > /etc/resolvconf/resolv.conf.d/base
+
+		# - try to apply the changes - #
+if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+
+	ifdown $eth > /dev/null 2>&1 || true
+	ifup $eth > /dev/null 2>&1 || true
+
+elif [[ -n $(service network-manager status |& grep running) ]]; then
+
+	service network-manager restart > /dev/null 2>&1 || true
+
+	resolvconf -u
+
+fi
+
+. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+
+if [ $? -ne 0 ]; then
+	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+	exit 1
+else
+	printf "The network is restarted. Continuing the installation.\n"
+fi
+
+# - Start Spaceify's DNS server - #
+#service spaceifydns restart > /dev/null 2>&1 || true
+
+################## DNS CONFIGURATION ENDS #########################################
+
+
 
 # ----------
 # ----------
@@ -678,6 +705,4 @@ printf "\n\e[42mSpaceify version $vs is now installed\e[0m\n\n"
 # Script is found here after installation, if testing is required (eg. finding where the script fails): /var/lib/dpkg/info/spaceify.postinst
 # After changing the script run dpkg-reconfigure spaceify
 
-#The debhelper-generated stuff should appaear in place of the following coment
 
-#DEBHELPER#
