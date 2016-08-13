@@ -220,48 +220,47 @@ printf "$dhcpd" > /etc/default/udhcpd
 	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 	# Old installation packages might not get network up. Try to restart it here.
 	# This is for updating edge below 0.5.0 to 0.5.0 or above. Remove this after couple of updates.
-#pvs="/var/lib/spaceify/data/db/previous_edge_version"
-#if [ -f $pvs ]; then pv=$(< $pvs); else pv="00000.00000.00000"; fi
-#rm $pvs > /dev/null 2>&1
-#ping -c 1 8.8.8.8 > /dev/null 2>&1
-#if [ $? != 0 ] || [[ "$pv" < "00000.00005.00000" ]]; then
-#
-#	if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
-#
-#		ifdown $eth > /dev/null 2>&1 || true
-#		ifup $eth > /dev/null 2>&1 || true
-#
-#	elif [[ -n $(service network-manager status |& grep running) ]]; then
-#
-#		service network-manager restart > /dev/null 2>&1 || true
-#
-#		resolvconf -u
-#
-#	fi
-#
-#	. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
-#
-#	if [ $? -ne 0 ]; then
-#		printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-#		exit 1
-#	else
-#		printf "The network is restarted. Continuing the installation.\n"
-#	fi
-#
-#fi
+pvs="/var/lib/spaceify/data/db/previous_edge_version"
+if [ -f $pvs ]; then pv=$(< $pvs); else pv="00000.00000.00000"; fi
+rm $pvs > /dev/null 2>&1
+ping -c 1 8.8.8.8 > /dev/null 2>&1
+if [ $? != 0 ] || [[ "$pv" < "00000.00005.00000" ]]; then
+
+	if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+
+		ifdown $eth > /dev/null 2>&1 || true
+		ifup $eth > /dev/null 2>&1 || true
+
+	elif [[ -n $(service network-manager status |& grep running) ]]; then
+
+		service network-manager restart > /dev/null 2>&1 || true
+
+		resolvconf -u
+
+	fi
+
+	. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+
+	if [ $? -ne 0 ]; then
+		printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+		exit 1
+	else
+		printf "The network is restarted. Continuing the installation.\n"
+	fi
+
+fi
 	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
 	# ----- Update node.js to the latest stable release ----- #
-
 printf "\n\e[4mUpdating Node.js\e[0m\n\n"
-
 cd /var/lib/spaceify/code
+npm uninstall bufferutil
+npm install -g bufferutil
 npm install npm -g
 npm cache clear -f
 npm install -g n
 n 5.10.1
-npm uninstall bufferutil
-npm install -g bufferutil
+
 
 
 
@@ -415,10 +414,19 @@ npm install
 # ----------
 # ----------
 # ----------
-# ---------- Docker image - At this point the spaceifyubuntu image doesn't exist and can be created safely ---------- #
-printf "\n\e[4mSearching for spaceifyubuntu Docker image\e[0m\n"
+# ---------- Docker image for different distributions ---------- #
+printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
 
-if_path="/var/lib/spaceify/data/docker"
+if [[ -n $(uname -a |& grep -i "ubun") ]]; then
+	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+elif [[ -n $(uname -a |& grep -i "rasp") ]]; then
+	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+fi
+$(sqlite3 $dbpath "UPDATE information SET distribution='$distro'")
+
+if_path="/var/lib/spaceify/data/docker/$distro"
 if_version="$if_path/image_version"
 if_list="$if_path/image_versions"																# Latest image version list is supplied with the package
 
@@ -444,10 +452,10 @@ if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=
 #	image_name=$(echo $new_image | awk -F "." '{print $1}')
 #
 #	printf "\n\e[32mExisting image was not found and can not be downloaded. A new image is now being build.\e[0m\n\n"
-#	docker build --no-cache --rm -t spaceifyubuntu . # > /dev/null 2>&1 || true
+#	docker build --no-cache --rm -t $distro_image_name . # > /dev/null 2>&1 || true
 #
 #	printf "\n\n\e[32mExporting the image.\e[0m\n"
-#	ID=$(docker run -d spaceifyubuntu /bin/bash) > /dev/null 2>&1 || true
+#	ID=$(docker run -d $distro_image_name /bin/bash) > /dev/null 2>&1 || true
 #	sudo docker export $ID > "$if_path/$image_name.tar" > /dev/null 2>&1 || true
 #	sudo docker stop $ID > /dev/null 2>&1 || true
 #	sudo docker rm -f $ID > /dev/null 2>&1 || true
@@ -462,28 +470,28 @@ if [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
 	# # # Use existing image
 
 	printf "\n\e[32mExisting, compatible image was found. Importing the image.\e[0m\n"
-	cat "$if_path/$new_image" | sudo docker import - spaceifyubuntu > /dev/null
+	cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
 
 else
 
 	# # # Load and import
 	# # # The image must be loaded from spaceify.org before it can be imported
 
-	rm "$if_path"/spaceifyubuntu* > /dev/null 2>&1 || true
+	rm "$if_path/$distro_image_name"* > /dev/null 2>&1 || true
 
-	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from a remote server.\e[0m\n"
+	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from remote server.\e[0m\n"
 	curl -o "$if_path/$new_image" "https://spaceify.org/downloads/$new_image"
 
 	if [ -f "$if_path/$new_image" ]; then
 		printf "\n\e[32mImporting the image.\e[0m\n"
-		cat "$if_path/$new_image" | sudo docker import - spaceifyubuntu > /dev/null
+		cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
 	fi
 
 fi
 
-ubun=$( echo $(docker images) | sed -n '/spaceifyubuntu/{p;q;}' )
+ubun=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
 if [ -z "$ubun" ]; then
-	printf "\n\e[41mThe installation is aborted because the required spaceifyubuntu Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+	printf "\n\e[41mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
 	exit 1
 else
 	printf $new_version > $if_version															# Update the version file
@@ -564,20 +572,20 @@ printf "\n\e[4mRestarting edge nodes network and Spaceify's services\e[0m\n"
 
 #service udhcpd restart
 
-#printf "\nTrying to restart network. If the network does not restart, please do it manually or reboot the computer.\n"
-#if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+printf "\nTrying to restart network. If the network does not restart, please do it manually or reboot the computer.\n"
+if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
 
-#	ifdown $eth > /dev/null 2>&1 || true
-#	ifup $eth > /dev/null 2>&1 || true
+	ifdown $eth > /dev/null 2>&1 || true
+	ifup $eth > /dev/null 2>&1 || true
 
-#else
-	#service network-manager restart > /dev/null 2>&1 || true
+else
+	service network-manager restart > /dev/null 2>&1 || true
 
-	#resolvconf -u
+	resolvconf -u
 
 	ifconfig ${wlan} down
 	ifconfig ${wlan} 10.0.0.1 netmask 255.255.255.0 up
-#fi
+fi
 
 if [[ "$is_internal" -eq "1" ]]; then
 	service hostapd restart > /dev/null 2>&1 || true
@@ -591,7 +599,9 @@ fi
 #service docker restart > /dev/null 2>&1 || true
 
 
+#The debhelper-generated stuff should appaear in place of the following comment
 
+#DEBHELPER#
 
 #printf "\nRestarting the services.\n"
 #service spaceifydns restart > /dev/null 2>&1 || true
@@ -645,24 +655,20 @@ base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
 printf "$base" > /etc/resolvconf/resolv.conf.d/base
 
 		# - try to apply the changes - #
-#if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
 
-#	ifdown $eth > /dev/null 2>&1 || true
-#	ifup $eth > /dev/null 2>&1 || true
+	ifdown $eth > /dev/null 2>&1 || true
+	ifup $eth > /dev/null 2>&1 || true
 
-#elif [[ -n $(service network-manager status |& grep running) ]]; then
+elif [[ -n $(service network-manager status |& grep running) ]]; then
 
-	#service network-manager restart > /dev/null 2>&1 || true
+	service network-manager restart > /dev/null 2>&1 || true
 
-	#resolvconf -u
-	pkill dnsmasq	
-#fi
+	resolvconf -u
 
-#The debhelper-generated stuff should appaear in place of the following comment
+fi
 
-#DEBHELPER#
-
-/var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
 
 if [ $? -ne 0 ]; then
 	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"

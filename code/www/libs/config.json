@@ -51,7 +51,10 @@
   "TLS_PATH": "/tls/",
   "TLS_SQUID_PATH": "/etc/squid3/certs/",
 
-  "SPACEIFY_DOCKER_IMAGE": "spaceifyubuntu",
+  "UBUNTU_DISTRO_NAME": "ubuntu",
+  "RASPBIAN_DISTRO_NAME": "raspbian",
+  "UBUNTU_DOCKER_IMAGE": "spaceifyubuntu",
+  "RASPBIAN_DOCKER_IMAGE": "spaceifyraspbian",
   "CUSTOM_DOCKER_IMAGE": "custom_",
 
   "EDGE_IP": "10.0.0.1",

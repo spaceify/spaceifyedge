@@ -96,3 +96,9 @@ if [[ $current_version < 7 ]]; then
 
 	sqlite3 $dbs "$createTable; $insertValues;"											# Create
 fi
+
+if [[ $current_version < 8 ]]; then
+
+	sqlite3 $dbs "ALTER TABLE information ADD COLUMN distribution TEXT;"
+
+fi
