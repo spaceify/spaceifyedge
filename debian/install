@@ -17,7 +17,6 @@ data/docker/Dockerfile var/lib/spaceify/data/docker
 data/docker/image_versions var/lib/spaceify/data/docker
 data/logs/readme.txt var/lib/spaceify/data/logs
 debian/spaceifyappman.service lib/systemd/system 
-debian/spaceifydns.service lib/systemd/system  
 debian/spaceifyhttp.service lib/systemd/system  
 debian/spaceifyipt.service lib/systemd/system
 
