@@ -36,7 +36,7 @@ dbpath="/var/lib/spaceify/data/db/spaceify.db"
 # ----------
 # ---------- MODIFY CONFIGURATION SCRIPTS ---------- #
 
-	# ----- /etc/network/interfaces - give ip to wlan0 (or what adapter names user selected) ----- #
+# ----- /etc/network/interfaces - give ip to wlan0 (or what adapter names user selected) ----- #
 
 sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/network/interfaces > /dev/null 2>&1 || true	# remove Spaceify's previous comments/entries
 
@@ -178,7 +178,22 @@ core_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "CORE_PORT" |
 core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 #sed -i "s/%1/${core_port}/" /etc/monit/conf.d/spaceify.conf									# change the monitored port to the configuration
 
-	# ----- /etc/udhcpd.conf, /etc/default/udhcpd ----- #
+
+################## DNS CONFIGURATION #########################################
+
+dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\n"
+
+#If NetworkManager is installed, configure the dnsmasq that shipped with it
+
+if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+
+        printf "$dnsmasqconf" > /etc/NetworkManager/dnsmasq.d/spaceify.conf
+fi
+
+################## DNS CONFIGURATION ENDS ####################################
+
+
+# ----- /etc/udhcpd.conf, /etc/default/udhcpd ----- #
 
 mv /etc/udhcpd.conf /etc/udhcpd.conf.original > /dev/null 2>&1 || true						# store existing configuration
 mv /etc/default/udhcpd /etc/default/udhcpd.original > /dev/null 2>&1 || true
@@ -220,35 +235,35 @@ printf "$dhcpd" > /etc/default/udhcpd
 	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 	# Old installation packages might not get network up. Try to restart it here.
 	# This is for updating edge below 0.5.0 to 0.5.0 or above. Remove this after couple of updates.
-pvs="/var/lib/spaceify/data/db/previous_edge_version"
-if [ -f $pvs ]; then pv=$(< $pvs); else pv="00000.00000.00000"; fi
-rm $pvs > /dev/null 2>&1
-ping -c 1 8.8.8.8 > /dev/null 2>&1
-if [ $? != 0 ] || [[ "$pv" < "00000.00005.00000" ]]; then
+#pvs="/var/lib/spaceify/data/db/previous_edge_version"
+#if [ -f $pvs ]; then pv=$(< $pvs); else pv="00000.00000.00000"; fi
+#rm $pvs > /dev/null 2>&1
+#ping -c 1 8.8.8.8 > /dev/null 2>&1
+#if [ $? != 0 ] || [[ "$pv" < "00000.00005.00000" ]]; then
 
-	if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+#	if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
 
-		ifdown $eth > /dev/null 2>&1 || true
-		ifup $eth > /dev/null 2>&1 || true
+#		ifdown $eth > /dev/null 2>&1 || true
+#		ifup $eth > /dev/null 2>&1 || true
 
-	elif [[ -n $(service network-manager status |& grep running) ]]; then
+#	elif [[ -n $(service network-manager status |& grep running) ]]; then
 
-		service network-manager restart > /dev/null 2>&1 || true
+#		service network-manager restart > /dev/null 2>&1 || true
 
-		resolvconf -u
+#		resolvconf -u
 
-	fi
+#	fi
 
-	. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+#	. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
 
-	if [ $? -ne 0 ]; then
-		printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-		exit 1
-	else
-		printf "The network is restarted. Continuing the installation.\n"
-	fi
+#	if [ $? -ne 0 ]; then
+#		printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+#		exit 1
+#	else
+#		printf "The network is restarted. Continuing the installation.\n"
+#	fi
 
-fi
+#fi
 	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
 	# ----- Update node.js to the latest stable release ----- #
@@ -260,7 +275,6 @@ npm install npm -g
 npm cache clear -f
 npm install -g n
 n 5.10.1
-
 
 
 
@@ -404,6 +418,7 @@ chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check l
 # ----------
 # ----------
 # ---------- Install the required node.js modules (versions are defined in the package.json) ---------- #
+
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 
 npm install -g node-gyp
@@ -415,6 +430,7 @@ npm install
 # ----------
 # ----------
 # ---------- Docker image for different distributions ---------- #
+
 printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
 
 if [[ -n $(uname -a |& grep -i "ubun") ]]; then
@@ -464,6 +480,7 @@ if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=
 #	mv "$if_path/$image_name.tar.gz" "$if_path/$image_name.tgz" > /dev/null 2>&1 || true
 #
 #elif [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
+
 if [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
 
 	# # # Import
@@ -502,6 +519,7 @@ fi
 # ----------
 # ----------
 # ---------- Register edge to Spaceify - Create user name and password for edge when necessary ---------- #
+
 printf "\n\e[4mRegistering this edge node\e[0m\n"
 
 edge_uuid=$(sqlite3 $dbpath "SELECT edge_id FROM user;")
@@ -573,19 +591,27 @@ printf "\n\e[4mRestarting edge nodes network and Spaceify's services\e[0m\n"
 #service udhcpd restart
 
 printf "\nTrying to restart network. If the network does not restart, please do it manually or reboot the computer.\n"
-if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
 
-	ifdown $eth > /dev/null 2>&1 || true
-	ifup $eth > /dev/null 2>&1 || true
+# Bring the 10.0.0.1 interface down and up
 
-else
+ifconfig ${wlan} down
+ifconfig ${wlan} up
+
+if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
 	service network-manager restart > /dev/null 2>&1 || true
-
-	resolvconf -u
-
-	ifconfig ${wlan} down
-	ifconfig ${wlan} 10.0.0.1 netmask 255.255.255.0 up
+else
+	service dnsmasq restart > /dev/null 2>&1 || true
 fi
+
+. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+
+if [ $? -ne 0 ]; then
+       printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. "
+       exit 1
+else
+       printf "The network is restarted. Continuing the installation.\n"
+fi
+
 
 if [[ "$is_internal" -eq "1" ]]; then
 	service hostapd restart > /dev/null 2>&1 || true
@@ -615,67 +641,65 @@ fi
 
 
 
-################## DNS CONFIGURATION #########################################
-
 # ----- Spaceify's DNS server must be on and other DNS mechanisms off ----- #
 		# - remove Spaceify's previous entries - #
-if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-	sed -i -e "s/${comm_out_spaceify}//g" /etc/NetworkManager/NetworkManager.conf > /dev/null 2>&1 || true
-fi
+#if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+#	sed -i -e "s/${comm_out_spaceify}//g" /etc/NetworkManager/NetworkManager.conf > /dev/null 2>&1 || true
+#fi
 
-if [ -f /etc/dhcp/dhclient.conf ]; then
-	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/dhcp/dhclient.conf > /dev/null 2>&1 || true
-fi
+#if [ -f /etc/dhcp/dhclient.conf ]; then
+#	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/dhcp/dhclient.conf > /dev/null 2>&1 || true
+#fi
 
-sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/resolvconf/resolv.conf.d/base > /dev/null 2>&1 || true
+#sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/resolvconf/resolv.conf.d/base > /dev/null 2>&1 || true
 
 		# - disable dnsmasq - #
-if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-	netm=$( sed -i -e "/dns/ s/^/${comm_out_spaceify}/" /etc/NetworkManager/NetworkManager.conf )
-fi
+#if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+#	netm=$( sed -i -e "/dns/ s/^/${comm_out_spaceify}/" /etc/NetworkManager/NetworkManager.conf )
+#fi
 
 		# - keep localhost - #
-if [ -f /etc/dhcp/dhclient.conf ]; then
-	hdh=$(grep "prepend domain-name-servers" /etc/dhcp/dhclient.conf)
+#if [ -f /etc/dhcp/dhclient.conf ]; then
+#	hdh=$(grep "prepend domain-name-servers" /etc/dhcp/dhclient.conf)
 
-	if [ -n "$hdh" ]; then
-		dhcl=$( sed -e "/prepend domain-name-servers/ s/^/${comm_out_spaceify}/" /etc/dhcp/dhclient.conf )
-		dhcl=$( echo "$dhcl" | sed "/prepend domain-name-servers/a ${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}" )
-	else
-		dhcl=$(< /etc/dhcp/dhclient.conf)
-		dhcl="${dhcl}\n${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}"
-	fi
+#	if [ -n "$hdh" ]; then
+#		dhcl=$( sed -e "/prepend domain-name-servers/ s/^/${comm_out_spaceify}/" /etc/dhcp/dhclient.conf )
+#		dhcl=$( echo "$dhcl" | sed "/prepend domain-name-servers/a ${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}" )
+#	else
+#		dhcl=$(< /etc/dhcp/dhclient.conf)
+#		dhcl="${dhcl}\n${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}"
+#	fi
 
-	printf "$dhcl" > /etc/dhcp/dhclient.conf
-fi
+#	printf "$dhcl" > /etc/dhcp/dhclient.conf
+#fi
 
 		# - direct to localhost - #
-base=$( sed -e "s/^/${comm_out_spaceify}/" /etc/resolvconf/resolv.conf.d/base )
-base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
-printf "$base" > /etc/resolvconf/resolv.conf.d/base
+#base=$( sed -e "s/^/${comm_out_spaceify}/" /etc/resolvconf/resolv.conf.d/base )
+#base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
+#printf "$base" > /etc/resolvconf/resolv.conf.d/base
 
 		# - try to apply the changes - #
-if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
+#if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
 
-	ifdown $eth > /dev/null 2>&1 || true
-	ifup $eth > /dev/null 2>&1 || true
+#	ifdown $eth > /dev/null 2>&1 || true
+#	ifup $eth > /dev/null 2>&1 || true
 
-elif [[ -n $(service network-manager status |& grep running) ]]; then
+#elif [[ -n $(service network-manager status |& grep running) ]]; then
 
-	service network-manager restart > /dev/null 2>&1 || true
+#	service network-manager restart > /dev/null 2>&1 || true
 
-	resolvconf -u
+#	resolvconf -u
 
-fi
+#fi
 
-. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
+#. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
 
-if [ $? -ne 0 ]; then
-	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-	exit 1
-else
-	printf "The network is restarted. Continuing the installation.\n"
-fi
+#if [ $? -ne 0 ]; then
+#	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+#	exit 1
+#else
+#	printf "The network is restarted. Continuing the installation.\n"
+#fi
 
 # - Start Spaceify's DNS server - #
 #service spaceifydns restart > /dev/null 2>&1 || true

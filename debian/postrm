@@ -5,6 +5,11 @@ if [ -e /usr/share/debconf/confmodule ]; then
 	db_purge
 fi
 
+if [ -f /etc/NetworkManager/dnsmasq.d/spaceify.conf ]; then
+
+        rm /etc/NetworkManager/dnsmasq.d/spaceify.conf
+fi
+
 #The debhelper-generated stuff should appaear in place of the following comment
 
 #DEBHELPER#
