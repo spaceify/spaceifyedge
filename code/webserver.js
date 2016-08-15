@@ -389,8 +389,8 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 
 	// HEADER -- -- -- -- -- -- -- -- -- -- //
 	var headers = [];
-	headers.push(["Set-Cookie", "locale=" + locale+";"]);
-	headers.push(["Set-Cookie", sessions[sessiontoken].cookie]);
+	headers.push(["Set-Cookie", "locale=" + locale+";Path=/"]);
+	headers.push(["Set-Cookie", sessions[sessiontoken].cookie+";Path=/"]);
 
 	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
 	if(!options.isSecure && isSecurePage)												// Redirect secure pages to secure server

@@ -58,7 +58,7 @@
   "CUSTOM_DOCKER_IMAGE": "custom_",
 
   "EDGE_IP": "10.0.0.1",
-  "EDGE_HOSTNAME": "10.0.0.1",
+  "EDGE_HOSTNAME": "edge.spaceify.net",
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",
@@ -80,9 +80,9 @@
   "APPMAN_MESSAGE_PORT": 2950,
   "APPMAN_MESSAGE_PORT_SECURE": 4950,
 
-  "OPERATION_URL": "https://10.0.0.1/templates/operation.html",
-  "ADMIN_LOGIN_URL": "https://10.0.0.1/admin/login.html",
-  "ADMIN_INDEX_URL": "https://10.0.0.1/admin/",
+  "OPERATION_URL": "https://edge.spaceify.net/templates/operation.html",
+  "ADMIN_LOGIN_URL": "https://edge.spaceify.net/admin/login.html",
+  "ADMIN_INDEX_URL": "https://edge.spaceify.net/admin/",
   "REGISTRY_HOSTNAME": "spaceify.org",
   "REGISTRY_URL": "https://spaceify.org",
   "REGISTRY_PUBLISH_URL": "https://spaceify.org/ajax/upload.php?type=package&id=package",
