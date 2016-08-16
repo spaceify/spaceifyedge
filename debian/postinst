@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ---------- CREATE NON-ROOT USER -----------
+
+useradd --create-home --user-group --shell /bin/bash _spaceify > /dev/null 2>&1 || true
+
 # ----------
 # ----------
 # ----------
@@ -271,13 +275,13 @@ printf "$dhcpd" > /etc/default/udhcpd
 	# ----- Update node.js to the latest stable release ----- #
 printf "\n\e[4mUpdating Node.js\e[0m\n\n"
 cd /var/lib/spaceify/code
-npm uninstall bufferutil
-npm install -g bufferutil
+
 npm install npm -g
 npm cache clear -f
 npm install -g n
-n 5.10.1
-
+n 6.2.2
+npm uninstall bufferutil
+npm install -g bufferutil
 
 
 # ----- Add custom iptables chains for Spaceify - To avoid duplicates, delete existing chains first ----- #
@@ -423,8 +427,11 @@ chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check l
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 
 npm install -g node-gyp
+chown -R _spaceify:_spaceify /var/lib/spaceify/code 
 cd /var/lib/spaceify/code
-npm install
+sudo -u _spaceify npm install
+
+chown -R root:root /var/lib/spaceify/code 
 
 # ----------
 # ----------
@@ -447,17 +454,19 @@ if_path="/var/lib/spaceify/data/docker/$distro"
 if_version="$if_path/image_version"
 if_list="$if_path/image_versions"																# Latest image version list is supplied with the package
 
-release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")					# Get the version this package requires
+release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")			# Get the version this package requires
 
 new_row=$(grep "^${release_version}:.*$" $if_list)												# The filename of the new image file
 new_image=$(echo $new_row | awk -F : '{print $2}')
+new_image_tar=$(echo $new_image | awk -F "." '{print $1}').tar
 new_version=$(echo $new_row | awk -F : '{print $1}')
 
-if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi			# Image filename of (possibly) existing image file
+if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi		# Image filename of (possibly) existing image file
 old_row=$(grep "^${image_version}:.*$" $if_list)
 old_image=$(echo $old_row | awk -F : '{print $2}')
+old_image_tar=$(echo $old_image | awk -F "." '{print $1}').tar
 
-if [ -f "$if_path/$old_image" ]; then old_image_exists=1; else old_image_exists=0; fi			# Check that the file really exists
+if [ -f "$if_path/$old_image_tar" ]; then old_image_exists=1; else old_image_exists=0; fi	# Check that the file really exists
 
 #if [ $old_image_exists == 0 ] && [ "$new_image" == "" ]; then
 #
@@ -488,7 +497,7 @@ if [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
 	# # # Use existing image
 
 	printf "\n\e[32mExisting, compatible image was found. Importing the image.\e[0m\n"
-	cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
+	cat "$if_path/$new_image_tar" | sudo docker import - $distro_image_name > /dev/null
 
 else
 
@@ -499,10 +508,11 @@ else
 
 	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from remote server.\e[0m\n"
 	curl -o "$if_path/$new_image" "https://spaceify.org/downloads/$new_image"
+	gunzip "$if_path/$new_image"
 
-	if [ -f "$if_path/$new_image" ]; then
+	if [ -f "$if_path/$new_image_tar" ]; then
 		printf "\n\e[32mImporting the image.\e[0m\n"
-		cat "$if_path/$new_image" | sudo docker import - $distro_image_name > /dev/null
+		cat "$if_path/$new_image_tar" | sudo docker import - $distro_image_name > /dev/null
 	fi
 
 fi
@@ -572,7 +582,7 @@ elif [ $registration_attempt -gt 0 ] && [ $registration_attempt -lt 5 ]; then
 	printf "The registration file edge_id.uuid can be found from /var/lib/spaceify/data/db\n"
 	printf "Consider storing this file in a secure location for possible future use.\n"
 	printf "The registration file can be used to set or change registration when Spaceify is installed or updated.\n"
-	pritnf "By placing the file to /tmp, before updating or installing, Spaceify uses it to register itself instead\n"
+	printf "By placing the file to /tmp, before updating or installing, Spaceify uses it to register itself instead\n"
 	printf "of using its previous registration or creating a new registration.\n"
 	printf "Notice! Do not use the same registration on multiple edge nodes.\n"
 
