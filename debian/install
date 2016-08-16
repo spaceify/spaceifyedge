@@ -18,6 +18,7 @@ data/docker/raspbian/Dockerfile var/lib/spaceify/data/docker/raspbian
 data/docker/ubuntu/image_versions var/lib/spaceify/data/docker/ubuntu
 data/docker/raspbian/image_versions var/lib/spaceify/data/docker/raspbian
 data/logs/readme.txt var/lib/spaceify/data/logs
+debian/spaceify.service lib/systemd/system 
 debian/spaceifyappman.service lib/systemd/system 
 debian/spaceifyhttp.service lib/systemd/system  
 debian/spaceifyipt.service lib/systemd/system

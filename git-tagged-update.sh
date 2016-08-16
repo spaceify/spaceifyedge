@@ -1,24 +1,34 @@
 #!/bin/bash
 
 # Push the latest changes to GitHub tagging it as a new version.
+# Spaceify Oy 2014
 
-printf "\n\nPushing changes as a new tagged version to GitHub\n\n"
+printf "\n\e[4mPushing changes as a new tagged version to GitHub\e[0m\n"
 
-############
-# VERSIONS #
-############
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- VERSIONS ---------- #
+
 versions=$(< versions)
-vs=$(echo $versions | awk -F : '{print $2}')
+edge=$(echo $versions | awk -F : '{print $2}')
+edgeVersion=$(echo $edge | awk -F , '{print $1}')
 
-./data/scripts/version_updater.sh
+. data/scripts/version_updater.sh
 
-##########
-# GitHub #
-##########
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- GitHub ---------- #
+printf "\n\n"
+
+
 git add --all .													# Add changes
 
-git commit -m "version ${vs}"									# Commit the changes
+git commit -m "version ${edgeVersion}"							# Commit the changes
 
-git tag -a v${vs} -m "version ${vs}"							# Tag the commit
+git tag -a v${edgeVersion} -m "version ${edgeVersion}"			# Tag the commit
 
 git push														# Push to GitHub
