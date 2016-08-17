@@ -377,9 +377,9 @@ var version = fibrous( function()
 	{
 	var versionFile = fs.sync.readFile(config.VERSION_FILE, {encoding: "utf8"});
 	var spmParts = versionFile.split(":");
-	var core = spmParts[1].split(",");
+	var edge = spmParts[1].split(",");
 
-	logger.force(spmParts[0] + ":", "v" + core[0], core[1]);
+	logger.force(spmParts[0] + ":", "v" + edge[0], edge[1]);
 	logger.force(spmParts[2] + ":", "v" + spmParts[3]);
 	logger.force(spmParts[4] + ":", "v" + spmParts[5], "\n");
 	});

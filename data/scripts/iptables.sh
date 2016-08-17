@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# iptables related commands collected from postinst in one script
+# Spaceify Oy 16.8.2016
+
 # ----------
 # ----------
 # ----------

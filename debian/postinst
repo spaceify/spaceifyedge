@@ -723,10 +723,9 @@ fi
 # ---------- Spaceify is now installed ---------- #
 versions=$(< /var/lib/spaceify/versions)													# Get the current version string
 vs=$(echo $versions | awk -F : '{print $2}')
+vs=${vs/,/ }
 
 printf "\n\e[42mSpaceify version $vs is now installed\e[0m\n\n"
 
 # Script is found here after installation, if testing is required (eg. finding where the script fails): /var/lib/dpkg/info/spaceify.postinst
 # After changing the script run dpkg-reconfigure spaceify
-
-

@@ -70,17 +70,20 @@ sed -i -e "s/_release_/ubuntu/g" data/db/create.sql > /dev/null 2>&1 || true
 distributions=$(ls -d data/docker/*)
 while read -r distribution;
 do
-	imageDirectory=$(echo $distribution | awk -F / '{print $3}')
+	imageVersions=$(< $distribution/image_versions)
 
-	ordinal=$(< "data/docker/$imageDirectory/image_version_ordinal")
+	topmostLine=$(< "$distribution/image_versions")							# Remove line with same version number
+	topmostLine=$(echo $topmostLine | awk -F " " '{print $1}')				# because every version can have only one image
+	topmostVersion=$(echo $topmostLine | awk -F : '{print $1}')
 
-	topmostLine=$(< "$distribution/image_versions")
-	topmostLine=$(echo $topmostLine | awk -F " " '{print $1}')
-
-	newImageLine="$edgeVersion:spaceify$imageDirectory$ordinal.tgz"
-
-	if [ "$newImageLine" != "$topmostLine" ]; then
-		echo $newImageLine | cat - "$distribution/image_versions" > temp && mv temp "$distribution/image_versions"
+	if [ "$topmostVersion" == "$edgeVersion" ]; then
+		imageVersions=$(echo $imageVersions | sed "s/^$topmostLine//" | sed "s/^[ ]//")
+		imageVersions=${imageVersions// /\\n}
 	fi
+
+	name=$(echo $distribution | awk -F / '{print $3}')						# Write new image version line
+	ordinal=$(< "$distribution/image_version_ordinal")
+	newImageLine="$edgeVersion:spaceify$name$ordinal.tgz\n"
+	printf "$newImageLine$imageVersions" > "$distribution/image_versions"
 
 done <<< "$distributions"
