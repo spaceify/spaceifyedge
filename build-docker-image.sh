@@ -8,7 +8,7 @@ directories=$(ls -d data/docker/*)
 while read -r line;
 do
 	imagename=$(echo $line | awk -F / '{print $3}')
-	if [ "$imagename" == $1 ]; then hasDirectory=1; fi
+	if [ "$imagename" == "$1" ]; then hasDirectory=1; fi
 	imageNames="${imageNames}${imagename}\n"
 done <<< "$directories"
 
