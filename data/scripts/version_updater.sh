@@ -1,41 +1,89 @@
 #!/bin/bash
 
-# Update version in debian/changelog and the README.md files.
+# Update version in files
 # Tagegd GitHub update and building debian package executes this script and it must not be executed singly.
+# Spaceify Oy 2014
 
-echo "Updating versions in debian/changelog and README.md..."
+printf "\n : Updating version information to files"
 
 versions=$(< versions)
-vs=$(echo $versions | awk -F : '{print $2}')
-ts=$(echo $versions | awk -F : '{print $3}')
+edge=$(echo $versions | awk -F : '{print $2}')
+edgeVersion=$(echo $edge | awk -F , '{print $1}')
+edgeTag=$(echo $edge | awk -F , '{print $2}')
+databaseVersion=$(echo $versions | awk -F : '{print $6}')
 
-####################
-# debian/changelog #
-####################
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- debian/changelog ---------- #
 
-vsp=$( grep -Po "(?<=\()\b$vs\b(?=\))" debian/changelog )
+#previousEdgeVersion=$( grep -Po "(?<=\()\b$edgeVersion\b(?=\))" debian/changelog )
+previousEdgeVersion=$( grep -m 1 "(\(.*\))" debian/changelog | sed 's/.*(//g' | sed 's/).*//g')
 
-if [ "$vs" = "$vsp" ]; then
-	echo "Version remains the same and debian/changelog is not updated"
+if [ "$edgeVersion" = "$previousEdgeVersion" ]; then
+	printf " > Version $previousEdgeVersion remains the same"
 else
-	echo "Version ${vs} added to the debian/changelog"
+	printf " > Version $previousEdgeVersion updated to $edgeVersion"
 
-	vsdate=$( LANG=EN_US date +"%a, %d %b %Y %H:%M:%S %z" )
+	versionInfo=$( LANG=EN_US date +"%a, %d %b %Y %H:%M:%S %z" )
 
-	vss="spaceify (${vs}) unstable; urgency=low\n\n  * Release ${vs} ${ts}\n\n -- Spaceify Oy <admin@spaceify.net>  ${vsdate}\n\n"
+	versionRow="spaceify ($edgeVersion) unstable; urgency=low\n\n  * Release $edgeVersion $edgeTag\n\n -- Spaceify Oy <admin@spaceify.net>  $versionInfo\n\n"
 
 	changelog=$(< debian/changelog)
-	changelog="${vss}${changelog}"
+	changelog="${versionRow}${changelog}"
 
 	printf "$changelog" > debian/changelog
 fi
 
-#############
-# README.md #
-#############
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- README.md ---------- #
 
 readme=$(< documentation/README.template)
-readme=${readme/_version_/$vs}
-readme=${readme/_tag_/$ts}
+readme=${readme/_version_/$edgeVersion}
+readme=${readme/_tag_/$edgeTag}
 
 printf "$readme" > README.md
+
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- data/db/create.template ---------- #
+
+rm data/db/create.sql > /dev/null 2>&1 || true
+cp data/db/create.template data/db/create.sql > /dev/null 2>&1 || true
+sed -i -e "s/_version_/$edgeVersion/g" data/db/create.sql > /dev/null 2>&1 || true
+sed -i -e "s/_tag_/$edgeTag/g" data/db/create.sql > /dev/null 2>&1 || true
+sed -i -e "s/_database_/$databaseVersion/g" data/db/create.sql > /dev/null 2>&1 || true
+sed -i -e "s/_release_/ubuntu/g" data/db/create.sql > /dev/null 2>&1 || true
+
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- data/docker/<distributions>/image_versions ---------- #
+
+distributions=$(ls -d data/docker/*)
+while read -r distribution;
+do
+	imageVersions=$(< $distribution/image_versions)
+
+	topmostLine=$(< "$distribution/image_versions")							# Remove line with same version number
+	topmostLine=$(echo $topmostLine | awk -F " " '{print $1}')				# because every version can have only one image
+	topmostVersion=$(echo $topmostLine | awk -F : '{print $1}')
+
+	if [ "$topmostVersion" == "$edgeVersion" ]; then
+		imageVersions=$(echo $imageVersions | sed "s/^$topmostLine//" | sed "s/^[ ]//")
+		imageVersions=${imageVersions// /\\n}
+	fi
+
+	name=$(echo $distribution | awk -F / '{print $3}')						# Write new image version line
+	ordinal=$(< "$distribution/image_version_ordinal")
+	newImageLine="$edgeVersion:spaceify$name$ordinal.tgz\n"
+	printf "$newImageLine$imageVersions" > "$distribution/image_versions"
+
+done <<< "$distributions"

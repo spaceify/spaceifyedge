@@ -21,19 +21,10 @@ chmod 0764 spaceify.db > /dev/null 2>&1 || true											# spm must be able to 
 
 # Set release name, release version and database version // // // // // // // // // //
 versions=$(< /var/lib/spaceify/versions)
-release_version=$(echo $versions | awk -F : '{print $2}')
-release_name=$(echo $versions | awk -F : '{print $3}')
-db_version=$(echo $versions | awk -F : '{print $7}')
-
-	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-	# Store previous version (canonical form). This is for updating edge below 0.5.0 to 0.5.0 or above. Remove this after couple of updates.
-previous_version=$(sqlite3 $dbs "SELECT release_version FROM information;" || false)
-if [[ $? != 0 ]]; then previous_version=$(sqlite3 $dbs "SELECT release_version FROM settings;" || false); fi
-IFS='.' read -r -a previous_version <<< $previous_version
-printf -v previous_version "%05d.%05d.%05d" ${previous_version[0]} ${previous_version[1]} ${previous_version[2]}
-printf $previous_version > /var/lib/spaceify/data/db/previous_edge_version
-	# See debian/postinst to see how this is used.
-	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
+edge=$(echo $versions | awk -F : '{print $2}')
+release_version=$(echo $edge | awk -F , '{print $1}')
+release_name=$(echo $edge | awk -F , '{print $2}')
+db_version=$(echo $versions | awk -F : '{print $6}')
 
 current_version=$(sqlite3 $dbs "SELECT db_version FROM information;" || false)
 if [[ $? != 0 ]]; then																	# Settings contain version if information doesn't exist yet
@@ -95,4 +86,10 @@ if [[ $current_version < 7 ]]; then
 	insertValues="INSERT INTO information VALUES('$db_version', '$release_name', '$release_version')"	# Insert the latest values
 
 	sqlite3 $dbs "$createTable; $insertValues;"											# Create
+fi
+
+if [[ $current_version < 8 ]]; then
+
+	sqlite3 $dbs "ALTER TABLE information ADD COLUMN distribution TEXT;"
+
 fi

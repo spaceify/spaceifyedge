@@ -937,10 +937,11 @@ var getLocalPublishDirectory = fibrous( function(applicationPackage)
 
 var install = fibrous( function(manifest, sessionId)
 	{
+	var information;
+	var dockerImageName;
 	var application, dbApp, appPath;
 	var dockerImage = new DockerImage();
 	var customDockerImage = (typeof manifest.docker_image != "undefined" && manifest.docker_image == true ? true : false);
-	var dockerImageName = (customDockerImage ? config.CUSTOM_DOCKER_IMAGE + manifest.unique_name : config.SPACEIFY_DOCKER_IMAGE);
 
 	try {
 		application = new Application(manifest);
@@ -951,6 +952,14 @@ var install = fibrous( function(manifest, sessionId)
 			appPath = config.SANDBOXED_PATH;
 		/*else if(manifest.type == config.NATIVE)
 			appPath = config.NATIVE_PATH;*/
+
+		information = database.sync.getInformation();
+		if(customDockerImage)
+			dockerImageName = config.CUSTOM_DOCKER_IMAGE + manifest.unique_name;
+		else if(information.distribution == config.UBUNTU_DISTRO_NAME)
+			dockerImageName = config.UBUNTU_DOCKER_IMAGE;
+		else if(information.distribution == config.RASPBIAN_DISTRO_NAME)
+			dockerImageName = config.RASPBIAN_DOCKER_IMAGE;
 
 		dbApp = database.sync.getApplication(manifest.unique_name);
 

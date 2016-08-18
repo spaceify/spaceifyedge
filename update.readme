@@ -11,38 +11,20 @@ git-tagged-update.sh
 
   - /var/lib/spaceify/versions
 
-    core:<core version>:<core name (tag)>:spm:<spm version>:database:<database version>:injector:<injector version>:
+    edge:<edge version>,<edge name (tag)>:spm:<spm version>:database:<database version>:
 
     The angle brackets above denote placeholders and should not be in the version file. Update the values in
     the version file with the latest values.
 
-    - Core version is a string with three dot separated sequences of valid integers between 0 - 99999, e.g. 0.5.0, 1.2.7.
-    - Core name tag is a string indicating architecture of the Spaceify edge.
+    - edge version is a string with three dot separated sequences of valid integers between 0 - 99999, e.g. 0.5.0, 1.2.7.
+    - edge name tag - separated from edge version with comma - is a string indicating architecture of the Spaceify edge.
     - Spaceify package manager (spm) version is a string with three dot separated sequences of valid integers between 0 - 99999, e.g. 0.5.0, 1.2.7.
     - Database version is an ordinal starting from the initial release version number 1.
-    - Injector version is the Spaceify ecap injector version and is a string with three dot separated sequences of valid integers between 0 - 99999, e.g. 1.0.0, 1.4.0.
  
-  - /var/lib/spaceify/data/docker/image_versions
-
-    Add new line to beginnig of the file.
-
-      <core version>:[?].tgz
-
-      Where <core version> is the core release version from /var/lib/spaceify/versions file and [?].tgz is the Docker
-      image filename the version uses. The filename should start with spaceifyubuntu and have ordinal at the end,
-      e.g. spaceifyubuntu2.tgz, spaceifyubuntu3.tgz, etc. See more about this from below in the build-docker-image.sh section.
-      (As a sidenote, due to the version update history the first filename is spaceifyubuntu.tgz).
-
-  - /var/lib/spaceify/data/db/create.sql
-
-      INSERT INTO information VALUES(<database version>, '<core name (tag)>', '<core version>');
-
-      Where <database version>, <core name (tag)> are '<core version> values are from /var/lib/spaceify/versions.
-
   - /var/lib/spaceify/CHANGELOG
 
-    This log file should naturally be updated as the edge is developed. Make sure the latest <core version> and
-    <core name (tag)> reflect the values from the /var/lib/spaceify/versions file.
+    This log file should naturally be updated as the edge is developed. Make sure the latest <edge version> and
+    <edge name (tag)> reflect the values from the /var/lib/spaceify/versions file.
 
 - Copy everything from /var/lib/spaceify/code to code/, minify JavaScript API and CSS files etc.
 

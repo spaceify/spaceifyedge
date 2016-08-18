@@ -4,3 +4,20 @@ if [ -e /usr/share/debconf/confmodule ]; then
 	. /usr/share/debconf/confmodule
 	db_purge
 fi
+
+if [ -f /etc/NetworkManager/dnsmasq.d/spaceify.conf ]; then
+
+        rm /etc/NetworkManager/dnsmasq.d/spaceify.conf
+	service network-manager restart
+fi
+
+if [ -f /etc/dnsmasq.d/spaceify.conf ]; then
+
+        rm /etc/dnsmasq.d/spaceify.conf
+	service dnsmasq restart
+fi
+
+
+#The debhelper-generated stuff should appaear in place of the following comment
+
+#DEBHELPER#

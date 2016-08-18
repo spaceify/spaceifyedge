@@ -4,20 +4,23 @@ The non-created directories/content must also be in the GitHub project because i
 used as the template for creating installation packages.
 
 directory	content				note
---------- 	-------				----
+---------	-------				----
 db			create.sql
-dev								created by debian/postinst
-dhcp-data						created by debian/postinst
-dns								created by data/scripts/get_dns.sh
-docker		Dockerfile, image_versions
+dev								Created by debian/postinst
+dhcp-data						Created by debian/postinst
+dns								Created by data/scripts/get_dns.sh
+docker/*						Own subdirectories for different distributions
+			Dockerfile,			Subdirectories contain these files
+			image_versions,
+			image_version_ordinal
 docs		spm.help
 installed	readme.txt
-interfaces						created by debian/postinst->/var/lib/spaceify/data/scripts/input.sh
-ipt-data						created by debian/postinst
+interfaces						Created by debian/postinst->/var/lib/spaceify/data/scripts/input.sh
+ipt-data						Created by debian/postinst
 logs		readme.txt
 manifest	manifest.rules
 native		readme.txt
 sandboxed	readme.txt
 scripts		*
 spacelets	readme.txt
-tls								created by debian/postinst
+tls								Created by debian/postinst

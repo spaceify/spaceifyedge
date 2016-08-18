@@ -161,7 +161,7 @@ self.start = fibrous( function()
 			throw language.E_SPM_ARGUMENTS_ONE.preFmt("ApplicationManager::start", {"~command": command});
 
 		// PRINT TITLE
-		logger.force("Spaceify Package Manager v" + versions[4] + " - " + (command != EMPTY ? command : HELP) + "\n");
+		logger.force("Spaceify Package Manager v" + versions[3] + " - " + (command != EMPTY ? command : HELP) + "\n");
 
 		// OPTIONS
 		if((authenticate && (command == INSTALL || command == SOURCE)) || command == PUBLISH)	// Authenticate to Spaceify registry
@@ -377,13 +377,13 @@ var version = fibrous( function()
 	{
 	var versionFile = fs.sync.readFile(config.VERSION_FILE, {encoding: "utf8"});
 	var spmParts = versionFile.split(":");
+	var edge = spmParts[1].split(",");
 
-	logger.force(spmParts[0] + ":", "v" + spmParts[1], spmParts[2]);
-	logger.force(spmParts[3] + ":", "v" + spmParts[4]);
-	logger.force(spmParts[5] + ":", "v" + spmParts[6]);
-	logger.force(spmParts[7] + ":", "v" + spmParts[8], "\n");
+	logger.force(spmParts[0] + ":", "v" + edge[0], edge[1]);
+	logger.force(spmParts[2] + ":", "v" + spmParts[3]);
+	logger.force(spmParts[4] + ":", "v" + spmParts[5], "\n");
 	});
-	
+
 var install = fibrous( function(applicationPackage, username, password, cwd, force)
 	{
 	var result = appManConnection.sync.callRpc("installApplication", [applicationPackage, username, password, cwd, force, sessionId], self);

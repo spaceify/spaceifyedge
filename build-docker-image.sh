@@ -1,53 +1,89 @@
 #!/bin/bash
-# Builds a new spceifyubuntu Docker image
-# Spaceify Inc. 21.4.2015
+# Builds a new Docker image for a distribution
+# Spaceify Inc. 16.8.2016
 
-printf "\nYou are now creating a new spaceifyubuntu image. After the image is created it will uploaded to spaceify.org.\n"
-printf "This script uses the existing 'ubuntu' base image if it is already pulled or pulls it from Docker's registry otherwise.\n"
-printf "The existing spaceifyubuntu image or the application/spacelet images on the local machine are not updated or recreated.\n"
+imageNames=""																		# The image name (directory) must exist
+hasDirectory=0
+directories=$(ls -d data/docker/*)
+while read -r line;
+do
+	imagename=$(echo $line | awk -F / '{print $3}')
+	if [ "$imagename" == "$1" ]; then hasDirectory=1; fi
+	imageNames="${imageNames}${imagename}\n"
+done <<< "$directories"
 
-current_version=$(< ./image_version_ordinal)
-new_version=$(expr $current_version + 1)
-current_image="spaceifyubuntu$current_version"
-new_image="spaceifyubuntu$new_version"
+if [ $hasDirectory == 0 ]; then
+	echo -e "\nUndefined distribution $1. This script expects as its first parameter one of the following distribution names:\n\n${imageNames}"
+	exit 0
+fi
 
-printf "\nBased on the ./image_version_ordinal file the current image file is \e[42m$current_image.tgz\e[0m and the new image file will be \e[43m$new_image.tgz.\e[0m"
-printf "\n\e[41mDo you want to continue and create the new image file and upload it to spaceify.org?\e[0m\n";
-select yn in "Yes" "No"; do
+printf "\nYou are now creating a new spaceify$1 image.\n"
+printf "The existing spaceify$1 image or the application and spacelet images on the local machine are not updated or recreated.\n"
+
+currentVersion=$(< ./data/docker/$1/image_version_ordinal)
+currentImage="spaceify$1$currentVersion"
+newVersion=$(($currentVersion + 1))
+newImage="spaceify${1}${newVersion}"
+
+printf "\nBased on the ./data/docker/$1/image_version_ordinal file the current image file name is \e[42m$currentImage.tgz\e[0m."
+printf "\nThe new image file will be named \e[43m$newImage.tgz\e[0m if a new image is build. Othwerwise, if the current image is rebuild, the current image file name will be reused."
+
+printf "\n\nSelect an operation.\n";
+
+build="Build a new image and upload it to spaceify.org"
+buildNo="Build a new image but do not upload it to spaceify.org"
+rebuild="Rebuild the current image and upload it to spaceify.org"
+rebuildNo="Rebuild the current image but do not upload it to spaceify.org"
+cancel="Cancel"
+select yn in "$build" "$buildNo" "$rebuild" "$rebuildNo" "$cancel"; do
 	case $yn in
-		Yes ) break;;
-		No ) exit 0;;
+		"$build" ) selection=1; versionIncrement=1; break;;
+		"$buildNo" ) selection=2; versionIncrement=1; break;;
+		"$rebuild" ) selection=3; versionIncrement=0; break;;
+		"$rebuildNo" ) selection=4; versionIncrement=0; break;;
+		"$cancel" ) exit 0;;
 	esac
 done
 
+newVersion=$(($currentVersion + $versionIncrement))
+newImage="spaceify${1}${newVersion}"
+
+echo $selection
+echo $versionIncrement
+echo $newVersion
+echo $newImage
+
 # --------- DO --------- #
-cd data/docker
+cd "data/docker/$1"
 
-docker build --no-cache --rm -t spaceifyubuntu2 .												# Build the image from the Dockerfile
+docker build --no-cache --rm -t "spaceify${1}temp" .											# Build the image from the Dockerfile
 
-ID=$(docker run -d spaceifyubuntu2 /bin/bash)													# Run container and get its ID
+ID=$(docker run -d "spaceify${1}temp" /bin/bash)												# Run container and get its ID
 
-sudo docker export $ID > "$new_image.tar"														# Export the container
+sudo docker export $ID > "$newImage.tar"														# Export the container
 
-gzip "$new_image.tar"																			# Compress the image
-mv "$new_image.tar.gz" "$new_image.tgz"
+gzip "$newImage.tar"																			# Compress the image
+mv "$newImage.tar.gz" "$newImage.tgz"
 
-echo "Uploading the file $new_image.tgz to spaceify.org:/home/<user>"							# Upload the new image files to spaceify.org:/home/<user>
+if [ $selection == 1 ] || [ $selection == 3 ]; then
+	printf "\nEnter ssh username, to upload the $newImage.tgz to spaceify.org:"
+	read username
 
-printf "Enter ssh username: "
-read username
+	echo "Uploading the file $newImage.tgz to spaceify.org:/home/$username"							# Upload the new image file to spaceify.org:/home/<user>
 
-scp spaceifyubuntu.tgz "$username@spaceify.org:/home/$username" 2>/tmp/Error 1>/dev/null
+	scp "$newImage.tgz" "$username@spaceify.org:/home/$username" 2>/tmp/Error 1>/dev/null
 
-if [[ $? -eq 0 ]]; then
-	printf $new_version > image_version_ordinal													# Increase version number
+	if [[ $? -eq 0 ]]; then
+		printf $newVersion > image_version_ordinal													# Increase version number
 
-	echo "The spaceifyubuntu image is now uploaded to $username@spaceify.org:/home/$username. Remember to manually move the files to spaceify.org/downloads."
-else
-	echo "Failed to copy the image to $username@spaceify.org:/home/$username."
+		echo "The $newImage.tgz file is now copied to $username@spaceify.org:/home/$username. Remember to manually move the image file to spaceify.org/downloads."
+	else
+		echo "Failed to upload the image to $username@spaceify.org:/home/$username."
+	fi
 fi
 
 docker stop $ID	> /dev/null 2>&1 || true														# Cleanup
 docker rm -f $ID > /dev/null 2>&1 || true
-docker rmi spaceifyubuntu2 > /dev/null 2>&1 || true
-rm "$new_image.tgz" > /dev/null 2>&1 || true
+docker rmi "spaceify${1}temp" > /dev/null 2>&1 || true
+rm "$newImage.tgz" > /dev/null 2>&1 || true
+

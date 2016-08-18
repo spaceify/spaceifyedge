@@ -17,4 +17,4 @@ ExecStopPost=/bin/bash -c '/var/lib/spaceify/data/scripts/remove_containers.sh'
 Restart=always
 
 [Install]
-WantedBy=network-online.target
+WantedBy=multi-user.target
