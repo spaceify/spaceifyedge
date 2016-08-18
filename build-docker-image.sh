@@ -13,7 +13,7 @@ do
 done <<< "$directories"
 
 if [ $hasDirectory == 0 ]; then
-	echo -e "\nThe $1 image can not be build. Below is a list of valid distribution names\n\n${imageNames}"
+	echo -e "\nUndefined distribution $1. This script expects as its first parameter one of the following distribution names:\n\n${imageNames}"
 	exit 0
 fi
 
