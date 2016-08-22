@@ -77,15 +77,15 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 			//"WorkingDir": config.APPLICATION_PATH,
 			//"Cmd": ["/usr/sbin/sshd", "-D"],
 			"Cmd": ["/bin/bash"],
-			//"Dns": ["8.8.8.8", "8.8.4.4"],
-			"Dns": [config.EDGE_IP, null],
 			"Image": imageNameOrId,
 			"Volumes": (volumes ? volumes : {}),
 			"HostConfig": {
 				"VolumesFrom": null,
 				"PublishAllPorts": true,
 				"PortBindings": bindings,
-				"Binds": (binds ? binds : [])
+				"Binds": (binds ? binds : []),
+				//"Dns": ["8.8.8.8", "8.8.4.4"],
+				"Dns": [config.EDGE_IP]
 				},
 			"ExposedPorts": exposed
 			//"PortSpecs": PortSpecs

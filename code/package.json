@@ -1,46 +1,47 @@
 {
-  "name": "spaceify-core",
-  "version": "0.5.0",
-  "description": "Spaceify edge.",
+  "name": "spaceifyedge",
+  "version": "0.5.1",
+  "description": "The New Generation (lightweight) Spaceify Edge Platform.",
   "author": {
     "name": "Spaceify Oy",
     "email": "admin@spaceify.net",
-    "url": "http://spaceify.org/"
+    "url": "https://spaceify.org/"
   },
+  "homepage": "https://spaceify.org/",
+  "bugs": {
+    "url": "https://github.com/spaceify/spaceifyedge/issues",
+    "email": "admin@spaceify.net"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spaceify/spaceifyedge.git"
+  },
+  "keywords": ["spaceify", "edge", "node", "core"],
+  "license": "MIT",
 
   "main": "main.js",
 
   "engines": {
-    "node": ">=0.10.17",
-    "npm": ">=1.3.8"
-  },
-
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/spaceify/spaceifyedge.git"
+    "node": ">=5.10.1",
+    "npm": ">=3.8.3"
   },
 
   "dependencies": {
     "adm-zip": "0.4.7",
     "async": "2.0.0-rc.2",
     "clone": "1.0.2",
-    "dockerode": "2.2.10",
-    "fibers": "1.0.10",
+    "dockerode": "2.3.0",
+    "fibers": "1.0.13",
     "fibrous": "0.4.0",
     "github": "0.2.4",
     "mkdirp": "0.5.1",
-    "mmmagic": "0.4.1",
+    "mmmagic": "0.4.5",
     "range_check": "1.2.0",
     "read": "1.0.7",
-    "request": "2.70.0",
-    "socket.io": "0.9.16",
+    "request": "2.74.0",
     "sqlite3": "3.1.4",
     "websocket": "1.0.23",
     "winston": "2.2.0",
     "ypatterns": "0.2.4"
-  },
-
-  "readme": "The Spaceify core.",
-  "readmeFilename": "README.md",
-  "license": "MIT"
+  }
 }
