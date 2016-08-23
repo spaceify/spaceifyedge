@@ -185,7 +185,7 @@ core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 
 ################## DNS CONFIGURATION #########################################
 
-dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\n"
+dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\ndhcp-range=10.0.0.2,10.0.0.254,4h\ndhcp-option=3,10.0.0.1\ndhcp-option=6,10.0.0.1\ndhcp-option=15,edge.spaceify.net\ndhcp-authoritative"
 
 #If NetworkManager is installed, configure the dnsmasq that shipped with it
 
@@ -201,24 +201,24 @@ fi
 
 # ----- /etc/udhcpd.conf, /etc/default/udhcpd ----- #
 
-mv /etc/udhcpd.conf /etc/udhcpd.conf.original > /dev/null 2>&1 || true						# store existing configuration
-mv /etc/default/udhcpd /etc/default/udhcpd.original > /dev/null 2>&1 || true
+#mv /etc/udhcpd.conf /etc/udhcpd.conf.original > /dev/null 2>&1 || true						# store existing configuration
+#mv /etc/default/udhcpd /etc/default/udhcpd.original > /dev/null 2>&1 || true
 
-dhcpd="start 10.0.0.2\n"
-dhcpd="${dhcpd}end 10.0.0.254\n"
-dhcpd="${dhcpd}interface ${wlan}\n"
-dhcpd="${dhcpd}opt dns 10.0.0.1 10.0.0.1\n"
-dhcpd="${dhcpd}option dns 10.0.0.1\n"
-dhcpd="${dhcpd}opt router 10.0.0.1\n"
-dhcpd="${dhcpd}option subnet 255.255.255.0\n"
-dhcpd="${dhcpd}option lease 7200\n"
-dhcpd="${dhcpd}option domain spaceify.net\n"
-dhcpd="${dhcpd}opt broadcast 10.0.0.255\n\n"
-printf "$dhcpd" > /etc/udhcpd.conf
+#dhcpd="start 10.0.0.2\n"
+#dhcpd="${dhcpd}end 10.0.0.254\n"
+#dhcpd="${dhcpd}interface ${wlan}\n"
+#dhcpd="${dhcpd}opt dns 10.0.0.1 10.0.0.1\n"
+#dhcpd="${dhcpd}option dns 10.0.0.1\n"
+#dhcpd="${dhcpd}opt router 10.0.0.1\n"
+#dhcpd="${dhcpd}option subnet 255.255.255.0\n"
+#dhcpd="${dhcpd}option lease 7200\n"
+#dhcpd="${dhcpd}option domain spaceify.net\n"
+#dhcpd="${dhcpd}opt broadcast 10.0.0.255\n\n"
+#printf "$dhcpd" > /etc/udhcpd.conf
 
-dhcpd="DHCPD_ENABLED=\"yes\"\n"
-dhcpd="${dhcpd}DHCPD_OPTS=\"-S\"\n\n"
-printf "$dhcpd" > /etc/default/udhcpd
+#dhcpd="DHCPD_ENABLED=\"yes\"\n"
+#dhcpd="${dhcpd}DHCPD_OPTS=\"-S\"\n\n"
+#printf "$dhcpd" > /etc/default/udhcpd
 
 	# ----- /etc/init/spaceify.conf, /etc/init/spaceifydns.conf, /etc/init/spaceifyipt.conf ----- #
 #cp /var/lib/spaceify/data/upstart/* /etc/init/ > /dev/null 2>&1 || true						# Copy upstart scripts to /etc/init/
@@ -395,8 +395,8 @@ cp /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.crt /var/lib/spaceify/code
 
 	# ----- File permissions etc. ----- #
 
-mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true							# dhcp server directories/files
-chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
+#mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true					# dhcp server directories/files
+#chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 # chown - R root:spaceify /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 
 mkdir -p /var/lib/spaceify/data/ipt-data > /dev/null 2>&1 || true							# iptables directories/files
