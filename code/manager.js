@@ -167,7 +167,7 @@ self.run = fibrous( function(application)
 			{
 			var matches = /;;(.+)::/.exec(response[0]);							// extract error string from the output
 			application.setInitialized(false, matches[1]);
-			self.stop(application.getUniqueName());
+			self.sync.stop(application.getUniqueName());
 			}
 		else
 			application.setInitialized(true, "");

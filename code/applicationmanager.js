@@ -1083,7 +1083,7 @@ var createClientCertificate = fibrous( function(appPath, manifest)
 
 	try {
 		// Create an unique configuration for every certificate by using/modifying the openssl configurations.
-		utility.execute.sync("./makeserver.sh", [tlsPath, manifest.unique_name], {cwd: config.TLS_SQUID_PATH}, null);
+		utility.execute.sync("./makeserver.sh", [tlsPath, manifest.unique_name], {cwd: config.TLS_SCRIPTS_PATH}, null);
 		}
 	catch(err)
 		{
