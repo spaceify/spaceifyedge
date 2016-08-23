@@ -25,7 +25,8 @@ edgeVersion=$(echo $edge | awk -F , '{print $1}')
 
 printf "\n : Creating directories"
 
-dst="/tmp/build/spaceify-$edgeVersion"
+dstBase="/tmp/build"
+dst="$dstBase/spaceify-$edgeVersion"
 
 rm -r /tmp/build/ > /dev/null 2>&1 || true
 
@@ -67,7 +68,7 @@ chown -R root:root debian/
 dpkg-buildpackage -i.svn -us -uc
 
 if [ $? == 0 ]; then
-	printf "\n\e[42mPackage build. Files are in directory $dst\e[0m\n\n"
+	printf "\n\e[42mPackage build. Files are in directory $dstBase\e[0m\n\n"
 else
 	printf "\n\e[41mBuilding package failed\e[0m\n\n"
 fi

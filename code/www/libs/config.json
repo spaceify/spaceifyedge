@@ -49,7 +49,7 @@
 
   "TLS_DIRECTORY": "tls/",
   "TLS_PATH": "/tls/",
-  "TLS_SQUID_PATH": "/etc/squid3/certs/",
+  "TLS_SCRIPTS_PATH": "/var/lib/spaceify/data/scripts/",
 
   "UBUNTU_DISTRO_NAME": "ubuntu",
   "RASPBIAN_DISTRO_NAME": "raspbian",
