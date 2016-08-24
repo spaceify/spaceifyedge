@@ -13,8 +13,8 @@ db_subst spaceify/ethernet ADAPTERS "$ADAPTERS"										# replace names in debc
 db_subst spaceify/wlan ADAPTERS "$ADAPTERS"
 
 # Get existing edge name
-if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid > /tmp/edge.id; fi			# edge_id.uuid -> edge.id
-if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /tmp/edge_id.uuid > /var/lib/spaceify/data/db/edge.id; fi
+if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid  /tmp/edge.id; fi			# edge_id.uuid -> edge.id
+if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /tmp/edge_id.uuid  /var/lib/spaceify/data/db/edge.id; fi
 
 if [ -e /tmp/edge.id ]; then
 	edge_name=$(echo $(< /tmp/edge.id) | awk -F ',' '{print $2}')

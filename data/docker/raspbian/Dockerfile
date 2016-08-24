@@ -4,9 +4,9 @@ MAINTAINER Spaceify Oy
 
 RUN apt-get update
 
-RUN apt-get upgrade -y
-
 RUN apt-get install apt-utils
+
+RUN apt-get upgrade -y
 
 RUN apt-get install -y openssh-server screen unzip netcat nano dnsutils
 
