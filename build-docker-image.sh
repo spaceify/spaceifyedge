@@ -76,7 +76,7 @@ if [ $selection == 1 ] || [ $selection == 3 ]; then
 	if [[ $? -eq 0 ]]; then
 		printf $newVersion > image_version_ordinal													# Increase version number
 
-		echo "The $newImage.tgz file is now copied to $username@spaceify.org:/home/$username. Remember to manually move the image file to spaceify.org/downloads."
+		echo "The $newImage.tgz file is now copied to $username@spaceify.org:/home/$username. Remember to manually move the image file to /var/www/spaceify.org/web/downloads."
 	else
 		echo "Failed to upload the image to $username@spaceify.org:/home/$username."
 	fi

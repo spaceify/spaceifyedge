@@ -1,23 +1,56 @@
 #!/bin/bash
 
 if [ -e /usr/share/debconf/confmodule ]; then
+
 	. /usr/share/debconf/confmodule
 	db_purge
+
+fi
+
+if [ "$1" == "purge" ]; then
+
+	printf "\n\e[4mRemoving files.\e[0m\n"
+
+	#rm /etc/init/spaceify.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifydns.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyipt.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyhttp.conf > /dev/null 2>&1 || true
+	#rm /etc/init/spaceifyappman.conf > /dev/null 2>&1 || true
+
+	#rm /etc/init.d/spaceify > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifydns > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyipt > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyhttp > /dev/null 2>&1 || true
+	#rm /etc/init.d/spaceifyappman > /dev/null 2>&1 || true
+
+	#distro=$(sqlite3 /var/lib/spaceify/data/db/spaceify.db "SELECT distribution FROM information;")
+	#rm "/var/lib/spaceify/data/docker/spaceify$distro"* > /dev/null 2>&1 || true
+
+	#find . -maxdepth 1 -type f -exec rm -f {} \; 2>&1 || true		# Files not directories
+	#rm -r */														# Directories not files
+
+	rm -r /var/lib/spaceify
+
+	printf "\nOK\n\n"
+
 fi
 
 if [ -f /etc/NetworkManager/dnsmasq.d/spaceify.conf ]; then
 
-        rm /etc/NetworkManager/dnsmasq.d/spaceify.conf
+	rm /etc/NetworkManager/dnsmasq.d/spaceify.conf
 	service network-manager restart
+
 fi
 
 if [ -f /etc/dnsmasq.d/spaceify.conf ]; then
 
-        rm /etc/dnsmasq.d/spaceify.conf
+	rm /etc/dnsmasq.d/spaceify.conf
 	service dnsmasq restart
-fi
 
+fi
 
 #The debhelper-generated stuff should appaear in place of the following comment
 
 #DEBHELPER#
+
+systemctl restart docker

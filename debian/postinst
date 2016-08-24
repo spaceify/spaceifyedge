@@ -9,6 +9,7 @@ useradd --create-home --user-group --shell /bin/bash _spaceify > /dev/null 2>&1 
 # ----------
 # ----------
 # ---------- CONSTANTS ---------- #
+
 start_spaceify="# Added by Spaceify"
 end_spaceify="# Added by Spaceify ends"
 comm_out_spaceify="# Commented out by Spaceify: "
@@ -72,66 +73,7 @@ printf "$docker_conf" > /etc/default/docker
 
 	# ----- /etc/rc.local ----- #
 
-		# - Remove Spaceify's previous iptables entries -#
-sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/rc.local
-
-# Create mangle chain
-#rclocal1="\/sbin\/iptables -t mangle -N Spaceify-mangle"
-#rclocal2="\/sbin\/iptables -t mangle -A PREROUTING -j Spaceify-mangle"
-#rclocal3="\/sbin\/iptables -t mangle -A Spaceify-mangle -i docker0 -j RETURN"
-#rclocal4="\/sbin\/iptables -t mangle -A Spaceify-mangle -j MARK --set-mark 99"
-#rclocal5="\/sbin\/iptables -t nat -A PREROUTING -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10\.0\.0\.1"
-#rclocal6="\/sbin\/iptables -t nat -A PREROUTING -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10\.0\.0\.1"
-#rclocal7="\/sbin\/iptables -t filter -A FORWARD -m mark --mark 99 -j DROP"
-
-#mangle_chain="$rclocal1\n$rclocal2\n$rclocal3\n$rclocal4\n$rclocal5\n$rclocal6\n$rclocal7\n"
-mangle_chain=""
-
-		# - create HTTP filter chain, NAT chain and redirect chain - #
-#rclocal1="\/sbin\/iptables -t nat -N Spaceify-HTTP-Nat-Redir"
-#rclocal2="\/sbin\/iptables -t nat -A PREROUTING -j Spaceify-HTTP-Nat-Redir"
-#rclocal3="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Redir -d 10\.0\.0\.1\/32 -j ACCEPT"
-#rclocal4="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Redir -s 10\.0\.0\.0\/24 -p tcp --dport 80 -j REDIRECT --to-port 8888"
-
-rclocal5="\/sbin\/iptables -t nat -N Spaceify-HTTP-Nat-Masq"
-rclocal6="\/sbin\/iptables -t nat -A POSTROUTING -j Spaceify-HTTP-Nat-Masq"
-rclocal7="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE" 
-
-http_chain="$rclocal5\n$rclocal6\n$rclocal7\n"
-
-		# - create HTTPS filter chain, NAT chain and redirect chain - #
-#rclocal1="\/sbin\/iptables -t nat -N Spaceify-HTTPS-Nat-Redir"
-#rclocal2="\/sbin\/iptables -t nat -A PREROUTING -j Spaceify-HTTPS-Nat-Redir"
-#rclocal3="\/sbin\/iptables -t nat -A Spaceify-HTTPS-Nat-Redir -d 10\.0\.0\.1\/32 -j ACCEPT"
-#rclocal4="\/sbin\/iptables -t nat -A Spaceify-HTTPS-Nat-Redir -s 10\.0\.0\.0\/24 -p tcp --dport 443 -j REDIRECT --to-port 8889"
-
-rclocal5="\/sbin\/iptables -t nat -N Spaceify-HTTPS-Nat-Masq"
-rclocal6="\/sbin\/iptables -t nat -A POSTROUTING -j Spaceify-HTTPS-Nat-Masq"
-rclocal7="\/sbin\/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o "${eth}" -j MASQUERADE"
-
-https_chain="$rclocal5\n$rclocal6\n$rclocal7\n"
-
-		# - Docker container connection chains - #
-rclocal1="\/sbin\/iptables -t nat -N Spaceify-Nat-Connections"
-rclocal2="\/sbin\/iptables -t nat -A PREROUTING -j Spaceify-Nat-Connections"
-rclocal3="\/sbin\/iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j Spaceify-Nat-Connections"
-rclocal4="\/sbin\/iptables -t nat -A OUTPUT ! -d 127.0.0.0\/8 -m addrtype --dst-type LOCAL -j Spaceify-Nat-Connections"
-rclocal5="\/sbin\/iptables -t nat -A POSTROUTING -s 172\.17\.0\.0\/16 ! -o docker0 -j MASQUERADE"
-
-rclocal6="\/sbin\/iptables -t filter -N Spaceify-Filter-Connections"
-rclocal7="\/sbin\/iptables -t filter -A FORWARD -j Spaceify-Filter-Connections"
-
-docker_chain="$rclocal1\n$rclocal2\n$rclocal3\n$rclocal4\n$rclocal5\n$rclocal6\n$rclocal7\n"
-
-		# - Appication Manager rules - accept connections only from localhost - #
-#appman_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
-#rclocal1="\/sbin\/iptables -A INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT"
-#rclocal2="\/sbin\/iptables -A INPUT -p tcp --dport $appman_port -j DROP"
-
-appman_rules="" #"$rclocal1\n$rclocal2\n"
-
-		# - append spaceify specific lines in rc.local before "exit 0" - #
-sed -i "s/^exit.*/$start_spaceify\n$mangle_chain\n$http_chain\n$https_chain\n$docker_chain\n$appman_rules\n$end_spaceify\nexit 0/" /etc/rc.local
+. /var/lib/spaceify/data/scripts/iptables.sh "rclocal"										# iptables rules
 
 	# ----- /etc/sysctl.conf - enable forwarding (for nat) ----- #
 
@@ -191,13 +133,15 @@ dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0
 
 if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
 
-        printf "$dnsmasqconf" > /etc/NetworkManager/dnsmasq.d/spaceify.conf
+	printf "$dnsmasqconf" > /etc/NetworkManager/dnsmasq.d/spaceify.conf
+
 else
+
 	printf "$dnsmasqconf" > /etc/dnsmasq.d/spaceify.conf
+
 fi
 
 ################## DNS CONFIGURATION ENDS ####################################
-
 
 # ----- /etc/udhcpd.conf, /etc/default/udhcpd ----- #
 
@@ -238,40 +182,6 @@ fi
 # ----------
 # ---------- EXECUTE COMMANDS ---------- #
 
-	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-	# Old installation packages might not get network up. Try to restart it here.
-	# This is for updating edge below 0.5.0 to 0.5.0 or above. Remove this after couple of updates.
-#pvs="/var/lib/spaceify/data/db/previous_edge_version"
-#if [ -f $pvs ]; then pv=$(< $pvs); else pv="00000.00000.00000"; fi
-#rm $pvs > /dev/null 2>&1
-#ping -c 1 8.8.8.8 > /dev/null 2>&1
-#if [ $? != 0 ] || [[ "$pv" < "00000.00005.00000" ]]; then
-
-#	if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
-
-#		ifdown $eth > /dev/null 2>&1 || true
-#		ifup $eth > /dev/null 2>&1 || true
-
-#	elif [[ -n $(service network-manager status |& grep running) ]]; then
-
-#		service network-manager restart > /dev/null 2>&1 || true
-
-#		resolvconf -u
-
-#	fi
-
-#	. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
-
-#	if [ $? -ne 0 ]; then
-#		printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-#		exit 1
-#	else
-#		printf "The network is restarted. Continuing the installation.\n"
-#	fi
-
-#fi
-	# ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-
 	# ----- Update node.js to the latest stable release ----- #
 printf "\n\e[4mUpdating Node.js\e[0m\n\n"
 cd /var/lib/spaceify/code
@@ -285,89 +195,11 @@ npm install -g node-gyp
 npm uninstall bufferutil
 npm install -g bufferutil
 
+	# ----- Add custom iptables chains for Spaceify ----- #
 
-# ----- Add custom iptables chains for Spaceify - To avoid duplicates, delete existing chains first ----- #
+. /var/lib/spaceify/data/scripts/iptables.sh "delete"										# Delete existing rules first to avoid duplicates
 
-		# - -- Delete mangle chain -- - #
-#/sbin/iptables -t mangle -D PREROUTING -j Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t mangle -F Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t mangle -X Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -D PREROUTING -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.1 > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -D PREROUTING -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1 > /dev/null 2>&1 || true
-#/sbin/iptables -t filter -D FORWARD -m mark --mark 99 -j DROP > /dev/null 2>&1 || true
-
-		# - -- Delete HTTP filter chain, NAT chain and redirect chain -- - #
-#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-
-		# - -- Delete HTTPS filter chain, NAT chain and redirect chain -- - #
-#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-
-		# - -- Delete Docker container connection chains -- - #
-iptables-save | grep -v -- '-j Spaceify-Nat-Connections' | iptables-restore
-/sbin/iptables -t nat -F Spaceify-Nat-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-Nat-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -s 172\.17\.0\.0\/16 ! -o docker0 -j MASQUERADE > /dev/null 2>&1 || true
-
-/sbin/iptables -t filter -D FORWARD -j Spaceify-Filter-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t filter -F Spaceify-Filter-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t filter -X Spaceify-Filter-Connections > /dev/null 2>&1 || true
-
-		# - -- Delete Application Manager rules -- - #
-#/sbin/iptables -D INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT > /dev/null 2>&1 || true
-#/sbin/iptables -D INPUT -p tcp --dport $appman_port -j DROP > /dev/null 2>&1 || true
-
-		# - ++ Add mangle chain ++ - #
-#/sbin/iptables -t mangle -N Spaceify-mangle
-#/sbin/iptables -t mangle -A PREROUTING -j Spaceify-mangle
-#/sbin/iptables -t mangle -A Spaceify-mangle -i docker0 -j RETURN
-#/sbin/iptables -t mangle -A Spaceify-mangle -j MARK --set-mark 99
-#/sbin/iptables -t nat -A PREROUTING -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.1
-#/sbin/iptables -t nat -A PREROUTING -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1
-#/sbin/iptables -t filter -A FORWARD -m mark --mark 99 -j DROP
-
-		# - ++ Add HTTP filter chain, NAT chain and redirect chain ++ - #
-#/sbin/iptables -t nat -N Spaceify-HTTP-Nat-Redir
-#/sbin/iptables -t nat -A PREROUTING -j Spaceify-HTTP-Nat-Redir
-#/sbin/iptables -t nat -A Spaceify-HTTP-Nat-Redir -d 10.0.0.1/32 -j ACCEPT
-#/sbin/iptables -t nat -A Spaceify-HTTP-Nat-Redir -s 10.0.0.0/24 -p tcp --dport 80 -j REDIRECT --to-port 8888
-
-/sbin/iptables -t nat -N Spaceify-HTTP-Nat-Masq
-/sbin/iptables -t nat -A POSTROUTING -j Spaceify-HTTP-Nat-Masq
-/sbin/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE 
-
-		# - ++ Add HTTPS filter chain, NAT chain and redirect chain ++ - #
-#/sbin/iptables -t nat -N Spaceify-HTTPS-Nat-Redir
-#/sbin/iptables -t nat -A PREROUTING -j Spaceify-HTTPS-Nat-Redir
-#/sbin/iptables -t nat -A Spaceify-HTTPS-Nat-Redir -d 10.0.0.1/32 -j ACCEPT
-#/sbin/iptables -t nat -A Spaceify-HTTPS-Nat-Redir -s 10.0.0.0/24 -p tcp --dport 443 -j REDIRECT --to-port 8889
-
-/sbin/iptables -t nat -N Spaceify-HTTPS-Nat-Masq
-/sbin/iptables -t nat -A POSTROUTING -j Spaceify-HTTPS-Nat-Masq
-/sbin/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o "${eth}" -j MASQUERADE 
-
-		# - ++ Add Docker container connection chains ++ - #
-/sbin/iptables -t nat -N Spaceify-Nat-Connections
-/sbin/iptables -t nat -A PREROUTING -j Spaceify-Nat-Connections
-/sbin/iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j Spaceify-Nat-Connections
-/sbin/iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j Spaceify-Nat-Connections
-/sbin/iptables -t nat -A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE
-
-/sbin/iptables -t filter -N Spaceify-Filter-Connections
-/sbin/iptables -t filter -A FORWARD -j Spaceify-Filter-Connections
-
-		# - ++ Add Application Manager rules ++ - #
-#/sbin/iptables -A INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT
-#/sbin/iptables -A INPUT -p tcp --dport $appman_port -j DROP
+. /var/lib/spaceify/data/scripts/iptables.sh "add"											# Add the rules
 
 	# ----- Enable IP forwarding ----- #
 
@@ -378,24 +210,29 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 mkdir /var/lib/spaceify/code/www/ > /dev/null 2>&1 || true
 mkdir /var/lib/spaceify/data/tls/ > /dev/null 2>&1 || true
 
-#cp /etc/squid3/certs/spaceifyCA/spaceify.crt /var/lib/spaceify/code/www/ > /dev/null 2>&1 || true	# Copy the CA certificate to the www directory
+if [ ! -f /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.crt ] ||						# Setup CA if doesn't exists
+   [ ! -f /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.key ]; then
+
+	printf "\n\e[4mSetting up certificate authority for this edge node\e[0m\n\n"
+
+	. /var/lib/spaceify/data/scripts/makeca.sh
+
+fi
 
 if [ ! -f /var/lib/spaceify/data/tls/server.crt ] ||										# Remake server key and certificate if necessary
    [ ! -f /var/lib/spaceify/data/tls/server.key ]; then
 
-	printf "\n\e[4mCreating server key for the edge node\e[0m\n\n"
-        . /var/lib/spaceify/data/scripts/makeca.sh
+	printf "\n\e[4mCreating server certificate and key for this edge node\e[0m\n\n"
+
 	. /var/lib/spaceify/data/scripts/makeserver.sh "/var/lib/spaceify/data/tls/" "Edge server"
 
 fi
 
 cp /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.crt /var/lib/spaceify/code/www/ > /dev/null 2>&1 || true       # Copy the CA certificate to the www directory
 
-
-
 	# ----- File permissions etc. ----- #
 
-#mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true					# dhcp server directories/files
+#mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true							# dhcp server directories/files
 #chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 # chown - R root:spaceify /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 
@@ -455,19 +292,19 @@ if_path="/var/lib/spaceify/data/docker/$distro"
 if_version="$if_path/image_version"
 if_list="$if_path/image_versions"																# Latest image version list is supplied with the package
 
-release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")			# Get the version this package requires
+release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")					# Get the version this package requires
 
 new_row=$(grep "^${release_version}:.*$" $if_list)												# The filename of the new image file
 new_image=$(echo $new_row | awk -F : '{print $2}')
 new_image_tar=$(echo $new_image | awk -F "." '{print $1}').tar
 new_version=$(echo $new_row | awk -F : '{print $1}')
 
-if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi		# Image filename of (possibly) existing image file
+if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi			# Image filename of (possibly) existing image file
 old_row=$(grep "^${image_version}:.*$" $if_list)
 old_image=$(echo $old_row | awk -F : '{print $2}')
 old_image_tar=$(echo $old_image | awk -F "." '{print $1}').tar
 
-if [ -f "$if_path/$old_image_tar" ]; then old_image_exists=1; else old_image_exists=0; fi	# Check that the file really exists
+if [ -f "$if_path/$old_image_tar" ]; then old_image_exists=1; else old_image_exists=0; fi		# Check that the file really exists
 
 #if [ $old_image_exists == 0 ] && [ "$new_image" == "" ]; then
 #
@@ -518,8 +355,8 @@ else
 
 fi
 
-ubun=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
-if [ -z "$ubun" ]; then
+hasImage=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
+if [ -z "$hasImage" ]; then
 	printf "\n\e[41mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
 	exit 1
 else
@@ -530,74 +367,20 @@ fi
 # ----------
 # ----------
 # ----------
-# ---------- Register edge to Spaceify - Create user name and password for edge when necessary ---------- #
+# ---------- Registration - use existing information or create new. ---------- #
 
-printf "\n\e[4mRegistering this edge node\e[0m\n"
+printf "\n\e[4mCreating registration information for this edge node\e[0m\n"
 
-edge_uuid=$(sqlite3 $dbpath "SELECT edge_id FROM user;")
-edge_password=$(sqlite3 $dbpath "SELECT edge_password FROM user;")
+result=$(node /var/lib/spaceify/code/edgespaceifynet.js "createEdgeId")
 
-registration_result=""
-registration_attempt=0
-registration_url=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "EDGE_REGISTRATION_URL" | sed 's/[",_]*//g' | sed 's/EDGEREGISTRATIONURL: //g')
-
-if [[ "$edge_uuid" == "" ]]; then
-	printf "\nExisting registration was not found. Creating a new edge id and trying to register it to spaceify.net.\n"
-
-	# Try five times to register a new edge_id
-	while [ $registration_attempt -lt 5 ]; do
-		let registration_attempt+=1
-
-		printf "\nAttempt ${registration_attempt} of 5\n"
-
-		data1=$(openssl rand -hex 4)
-		data2=$(openssl rand -hex 2)
-		data3=$(openssl rand -hex 2)
-		data4i=$(openssl rand -hex 2)
-		data4r=$(openssl rand -hex 6)
-		edge_uuid="${data1}-${data2}-${data3}-${data4i}-${data4r}"
-
-		edge_password=$(openssl rand -hex 16)
-
-		registration_result=$(curl -d "eid=${edge_uuid}&epw=${edge_password}" --location $registration_url)
-		if [[ "$registration_result" == "" ]]; then
-			echo "${edge_uuid},${edge_password}" > /var/lib/spaceify/data/db/edge_id.uuid
-			break;
-		else
-			printf "\nRegistration result: ${registration_result}\n"
-		fi
-	done
-fi
-
-	# -- update the created/restored edge_id and password to the database -- #
-sqlite3 $dbpath "UPDATE user SET edge_id='$edge_uuid', edge_password='$edge_password';"
-
-	# -- Check/print registration status -- #
-if [ $registration_attempt -eq 5 ]; then
-
-	printf "\nRegistering this edge node failed: ${registration_result}. The registration is required for some operations of the Spaceify core and it is highly recommended to finish the registration. Try to finish the registration manually by running command: spm register\n"
-
-elif [ $registration_attempt -gt 0 ] && [ $registration_attempt -lt 5 ]; then
-
-	printf "\nThis edge node was registered successfully with the edge id ${edge_uuid}.\n"
-	printf "The registration file edge_id.uuid can be found from /var/lib/spaceify/data/db\n"
-	printf "Consider storing this file in a secure location for possible future use.\n"
-	printf "The registration file can be used to set or change registration when Spaceify is installed or updated.\n"
-	printf "By placing the file to /tmp, before updating or installing, Spaceify uses it to register itself instead\n"
-	printf "of using its previous registration or creating a new registration.\n"
-	printf "Notice! Do not use the same registration on multiple edge nodes.\n"
-
-else
-
-	printf "\nExisting registration file, containing edge id ${edge_uuid}, was found and is used to identify this edge node.\n"
-
-fi
+printf "\n$result\n"
 
 # ----------
 # ----------
 # ----------
 # ----------
 # ---------- Start services ---------- #
+
 printf "\n\e[4mRestarting edge nodes network and Spaceify's services\e[0m\n"
 
 #service udhcpd restart
@@ -605,7 +388,6 @@ printf "\n\e[4mRestarting edge nodes network and Spaceify's services\e[0m\n"
 printf "\nTrying to restart network. If the network does not restart, please do it manually or reboot the computer.\n"
 
 # Bring the 10.0.0.1 interface down and up
-
 
 if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
 	service network-manager restart > /dev/null 2>&1 || true
@@ -624,7 +406,6 @@ else
        printf "The network is restarted. Continuing the installation.\n"
 fi
 
-
 if [[ "$is_internal" -eq "1" ]]; then
 	service hostapd restart > /dev/null 2>&1 || true
 fi
@@ -637,7 +418,7 @@ fi
 #service docker restart > /dev/null 2>&1 || true
 
 
-#The debhelper-generated stuff should appaear in place of the following comment
+#The debhelper-generated stuff should appear in place of the following comment
 
 #DEBHELPER#
 
@@ -650,81 +431,14 @@ fi
 
 #service monit restart > /dev/null 2>&1 || true
 
-
-
-
-# ----- Spaceify's DNS server must be on and other DNS mechanisms off ----- #
-		# - remove Spaceify's previous entries - #
-#if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-#	sed -i -e "s/${comm_out_spaceify}//g" /etc/NetworkManager/NetworkManager.conf > /dev/null 2>&1 || true
-#fi
-
-#if [ -f /etc/dhcp/dhclient.conf ]; then
-#	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/dhcp/dhclient.conf > /dev/null 2>&1 || true
-#fi
-
-#sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/resolvconf/resolv.conf.d/base > /dev/null 2>&1 || true
-
-		# - disable dnsmasq - #
-#if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-#	netm=$( sed -i -e "/dns/ s/^/${comm_out_spaceify}/" /etc/NetworkManager/NetworkManager.conf )
-#fi
-
-		# - keep localhost - #
-#if [ -f /etc/dhcp/dhclient.conf ]; then
-#	hdh=$(grep "prepend domain-name-servers" /etc/dhcp/dhclient.conf)
-
-#	if [ -n "$hdh" ]; then
-#		dhcl=$( sed -e "/prepend domain-name-servers/ s/^/${comm_out_spaceify}/" /etc/dhcp/dhclient.conf )
-#		dhcl=$( echo "$dhcl" | sed "/prepend domain-name-servers/a ${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}" )
-#	else
-#		dhcl=$(< /etc/dhcp/dhclient.conf)
-#		dhcl="${dhcl}\n${start_spaceify}\nprepend domain-name-servers 127.0.0.1;\n${end_spaceify}"
-#	fi
-
-#	printf "$dhcl" > /etc/dhcp/dhclient.conf
-#fi
-
-		# - direct to localhost - #
-#base=$( sed -e "s/^/${comm_out_spaceify}/" /etc/resolvconf/resolv.conf.d/base )
-#base="${base}\n${start_spaceify}\nnameserver 127.0.0.1\n${end_spaceify}"
-#printf "$base" > /etc/resolvconf/resolv.conf.d/base
-
-		# - try to apply the changes - #
-#if [[ -n $(service network-manager status |& grep unrecognized) ]]; then
-
-#	ifdown $eth > /dev/null 2>&1 || true
-#	ifup $eth > /dev/null 2>&1 || true
-
-#elif [[ -n $(service network-manager status |& grep running) ]]; then
-
-#	service network-manager restart > /dev/null 2>&1 || true
-
-#	resolvconf -u
-
-#fi
-
-#. /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
-
-#if [ $? -ne 0 ]; then
-#	printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
-#	exit 1
-#else
-#	printf "The network is restarted. Continuing the installation.\n"
-#fi
-
-# - Start Spaceify's DNS server - #
-#service spaceifydns restart > /dev/null 2>&1 || true
-
 ################## DNS CONFIGURATION ENDS #########################################
-
-
 
 # ----------
 # ----------
 # ----------
 # ----------
 # ---------- Reinstall packages from Spaceify's previous installation ---------- #
+
 . /var/lib/spaceify/data/scripts/install_packages.sh
 
 # ----------
@@ -732,6 +446,7 @@ fi
 # ----------
 # ----------
 # ---------- Spaceify is now installed ---------- #
+
 versions=$(< /var/lib/spaceify/versions)													# Get the current version string
 vs=$(echo $versions | awk -F : '{print $2}')
 vs=${vs/,/ }

@@ -26,7 +26,7 @@ RUN npm cache clear -f
 
 RUN npm install -g n
 
-RUN n 5.10.1
+RUN n 6.2.2
 
 RUN mkdir -p /var/run/sshd
 
