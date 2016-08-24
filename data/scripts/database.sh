@@ -57,7 +57,7 @@ if [[ $current_version < 6 ]]; then
 
 fi
 
-if [[ $current_version < 7 ]]; then
+if [[ $current_version <= 7 ]]; then
 
 	IFS=";" read -a tables <<< $(< $dbc)
 
@@ -73,7 +73,7 @@ if [[ $current_version < 7 ]]; then
 	columns=$(echo $createTable | awk -F "[()]" '{ print $2 }')							# Extract the new column names from the table
 	columns=$(node /var/lib/spaceify/code/installhelper.js "dbGetColumns" "$columns")
 
-	sqlite3 $dbs "DROP TABLE user; $createTable;"										# Drop the old table and create the new table
+	sqlite3 $dbs "DROP TABLE IF EXISTS user; $createTable;"								# Drop the old table and create the new table
 	sqlite3 $dbs "INSERT INTO user $columns VALUES $values;"							# Fill the table with the existing values
 
 	# SETTINGS TABLE
@@ -87,7 +87,7 @@ if [[ $current_version < 7 ]]; then
 	columns=$(echo $createTable | awk -F "[()]" '{ print $2 }')							# Extract the new column names from the table
 	columns=$(node /var/lib/spaceify/code/installhelper.js "dbGetColumns" "$columns")
 
-	sqlite3 $dbs "DROP TABLE settings; $createTable;"									# Drop the old table and create the new table
+	sqlite3 $dbs "DROP TABLE IF EXISTS settings; $createTable;"							# Drop the old table and create the new table
 	sqlite3 $dbs "INSERT INTO settings $columns VALUES $values;"						# Fill the table with the existing values
 
 	# INFORMATION TABLE
@@ -96,7 +96,7 @@ if [[ $current_version < 7 ]]; then
 
 	insertValues="INSERT INTO information VALUES('$db_version', '$release_name', '$release_version')"	# Insert the latest values
 
-	sqlite3 $dbs "$createTable; $insertValues"
+	sqlite3 $dbs "DROP TABLE IF EXISTS information; $createTable; $insertValues"
 
 fi
 
