@@ -8,7 +8,7 @@ default_ca              = local_ca
 # Default location of directories and files needed to generate certificates.
 [ local_ca ]
 dir                     = ./
-certs                 	= $dir/certs
+certs                   = $dir/certs
 new_certs_dir           = $dir/certs
 database                = $dir/index.txt
 certificate             = $dir/spaceify.crt.pem

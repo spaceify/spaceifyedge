@@ -8,17 +8,6 @@ printf "\n\e[42mRemoving Spaceify's installation\e[0m\n"
 # ----------
 # ----------
 # ----------
-# ---------- DEBCONF ---------- #
-
-#if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
-#	. /usr/share/debconf/confmodule
-#	db_purge
-#fi
-
-# ----------
-# ----------
-# ----------
-# ----------
 # ---------- Constants ---------- #
 
 start_spaceify="# Added by Spaceify"
@@ -126,41 +115,7 @@ printf "If the network did not restart, please do it manually.\n"
 # ---------- Stop and remove docker container and images ---------- #
 . /var/lib/spaceify/data/scripts/remove_images.sh
 
-distro=$(sqlite3 /var/lib/spaceify/data/db/spaceify.db "SELECT distribution FROM information;")
-
-rm "/var/lib/spaceify/data/docker/spaceify$distro"* > /dev/null 2>&1 || true
-
 printf "\nOK\n"
-
-# ----------
-# ----------
-# ----------
-# ----------
-# ---------- Remove files ---------- #
-if [ "$1" = "purge" ]; then
-
-	printf "\n\e[4mRemoving files.\e[0m\n"
-
-	#rm /etc/init/spaceify.conf > /dev/null 2>&1 || true
-	#rm /etc/init/spaceifydns.conf > /dev/null 2>&1 || true
-	#rm /etc/init/spaceifyipt.conf > /dev/null 2>&1 || true
-	#rm /etc/init/spaceifyhttp.conf > /dev/null 2>&1 || true
-	#rm /etc/init/spaceifyappman.conf > /dev/null 2>&1 || true
-
-	#rm /etc/init.d/spaceify > /dev/null 2>&1 || true
-	#rm /etc/init.d/spaceifydns > /dev/null 2>&1 || true
-	#rm /etc/init.d/spaceifyipt > /dev/null 2>&1 || true
-	#rm /etc/init.d/spaceifyhttp > /dev/null 2>&1 || true
-	#rm /etc/init.d/spaceifyappman > /dev/null 2>&1 || true
-
-	#find . -maxdepth 1 -type f -exec rm -f {} \; 2>&1 || true		# Files not directories
-	#rm -r */														# Directories not files
-	cd /var/lib/spaceify
-	rm -r *
-
-	printf "\nOK\n"
-
-fi
 
 # ----------
 # ----------
@@ -172,42 +127,13 @@ printf "\n\e[4mRemoving iptables chains\e[0m\n"
 
 sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/rc.local
 
-	# - Mangle chain - #
-#/sbin/iptables -t mangle -D PREROUTING -j Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t mangle -F Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t mangle -X Spaceify-mangle > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -D PREROUTING -m mark --mark 99 -p tcp --dport 80 -j DNAT --to-destination 10.0.0.1 > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -D PREROUTING -m mark --mark 99 -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1 > /dev/null 2>&1 || true
-#/sbin/iptables -t filter -D FORWARD -m mark --mark 99 -j DROP > /dev/null 2>&1 || true
-
-	# - HTTP filter chain, NAT chain and redirect chain - #
-#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Masq > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -F Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -X Spaceify-HTTP-Nat-Redir > /dev/null 2>&1 || true
-
-	# - HTTPS filter chain, NAT chain and redirect chain - #
-#/sbin/iptables -t nat -D PREROUTING -j Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -j Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Masq > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -F Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-#/sbin/iptables -t nat -X Spaceify-HTTPS-Nat-Redir > /dev/null 2>&1 || true
-
-	# - Docker container connection chains - #
-iptables-save | grep -v -- '-j Spaceify-Nat-Connections' | iptables-restore
-/sbin/iptables -t nat -F Spaceify-Nat-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t nat -X Spaceify-Nat-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t nat -D POSTROUTING -s 172\.17\.0\.0\/16 ! -o docker0 -j MASQUERADE > /dev/null 2>&1 || true
-
-/sbin/iptables -t filter -D FORWARD -j Spaceify-Filter-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t filter -F Spaceify-Filter-Connections > /dev/null 2>&1 || true
-/sbin/iptables -t filter -X Spaceify-Filter-Connections > /dev/null 2>&1 || true
-
-	# - Application Manager rules - #
-#/sbin/iptables -D INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT > /dev/null 2>&1 || true
-#/sbin/iptables -D INPUT -p tcp --dport $appman_port -j DROP > /dev/null 2>&1 || true
+. /var/lib/spaceify/data/scripts/iptables.sh "delete"
 
 printf "\nOK\n\n"
+
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- Remove files on purge ---------- #
+# See: debian/postrm
