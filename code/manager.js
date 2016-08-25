@@ -136,7 +136,7 @@ self.run = fibrous( function(application)
 		application.createRuntimeServices(dockerContainer.getPublicPorts(), dockerContainer.getIpAddress());
 
 		response = dockerContainer.sync.runApplication(application);			// [0] = output from the app, [1] = initialization status
-console.log("RESPONSE -----------------------", response);
+
 		if(response[1] == config.APPLICATION_UNINITIALIZED)
 			{
 			matches = /;;(.+)::/.exec(response[0]);								// extract error string from the output

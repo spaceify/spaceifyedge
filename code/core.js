@@ -321,6 +321,7 @@ var startSpacelet = fibrous( function(unique_name)
 var installApplication = fibrous( function(unique_name, type, sessionId, throws)
 	{ // Install (insert) application or spacelet to cores list of applications or spacelets
 	var event;
+	var isInstalled = true;
 
 	try {
 		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
@@ -341,11 +342,13 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws)
 		}
 	catch(err)
 		{
+		isInstalled = false;
+
 		if(throws)
 			throw err;
 		}
 
-	return true;
+	return isInstalled;
 	});
 
 var removeApplication = fibrous( function(unique_name, sessionId, throws)
@@ -353,6 +356,7 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws)
 	var event;
 	var manifest;
 	var application;
+	var isRemoved = true;
 
 	try {
 		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
@@ -379,11 +383,13 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws)
 		}
 	catch(err)
 		{
+		isRemoved = false;
+
 		if(throws)
 			throw err;
 		}
 
-	return true;
+	return isRemoved;
 	});
 
 var startApplication = fibrous( function(unique_name, sessionId, throws)
@@ -391,6 +397,7 @@ var startApplication = fibrous( function(unique_name, sessionId, throws)
 	var event;
 	var application;
 	var startObject = {};
+	var isStarted = true;
 
 	try {
 		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
@@ -422,11 +429,13 @@ var startApplication = fibrous( function(unique_name, sessionId, throws)
 		}
 	catch(err)
 		{
+		isStarted = false;
+
 		if(throws)
 			throw err;
 		}
 
-	return true;
+	return isStarted;
 	});
 
 var stopApplication = fibrous( function(unique_name, sessionId, throws)
@@ -434,6 +443,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws)
 	var event;
 	var manifest;
 	var application;
+	var isStopped = true;
 
 	try {
 		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
@@ -460,11 +470,13 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws)
 		}
 	catch(err)
 		{
+		isStopped = false;
+
 		if(throws)
 			throw err;
 		}
 
-	return true;
+	return isStopped;
 	});
 
 var isApplicationRunning = fibrous( function(unique_name)

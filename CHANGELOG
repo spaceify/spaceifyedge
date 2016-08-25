@@ -1,3 +1,15 @@
+0.6.0  Alpha Centauri (developer-pre-alpha)
+    * Added support for Raspberry Pi 3 / Raspbian Jessie.
+    * Running Spaceify on Ubuntu requires version 16.04.
+    * Spaceify requires systemd to work.
+    * Migrated to Node.js 6.2.2.
+    * Short URLs for the forthcoming remote operating system.
+    * Spaceifys installation asks to input a name for the edge node. The name is used in the remote operating system.
+    * Spaceifys installation asks now to confirm the password created for the edges administrator.
+    * New appstore_description field added to the spaceify.manifest. The field is mandatory.
+    * New event listener system added for application and spacelet related events.
+    * Fixes and improvements to found issues in core, application manager, webserver and spm.
+
 0.5.1  Alpha Centauri (developer-pre-alpha)
     * Docker image support for different distributions.
 
