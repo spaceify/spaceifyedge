@@ -99,7 +99,7 @@ sudo apt-get install -f
 
 3.2. Danted SOCKS proxy is still missing from this version so it needs to be installed separately
 ```
-sudo apt-get install danted
+sudo apt-get install dante-server
 sudo cp data/scripts/danted.conf /etc/danted.conf
 sudo service danted restart
 ```
