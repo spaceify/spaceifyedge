@@ -357,7 +357,7 @@ fi
 
 hasImage=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
 if [ -z "$hasImage" ]; then
-	printf "\n\e[41mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
+	printf "\n\e[101mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
 	exit 1
 else
 	printf $new_version > $if_version															# Update the version file
@@ -400,7 +400,7 @@ ifup ${wlan}
 . /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting network."
 
 if [ $? -ne 0 ]; then
-       printf "\e[41mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. "
+       printf "\e[101mThe installation is aborted because restarting the network failed. Run 'apt-get purge spaceify' to remove the incomplete installation. "
        exit 1
 else
        printf "The network is restarted. Continuing the installation.\n"
