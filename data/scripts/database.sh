@@ -57,7 +57,7 @@ if [[ $current_version < 6 ]]; then
 
 fi
 
-if [[ $current_version <= 7 ]]; then
+if (( $current_version <= 7 )); then
 
 	IFS=";" read -a tables <<< $(< $dbc)
 
