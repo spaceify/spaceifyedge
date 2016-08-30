@@ -51,7 +51,7 @@ rm /var/lib/spaceify/data/db/admin_password > /dev/null 2>&1 || true
 # ----------
 # ---------- Changes between database versions ---------- #
 
-if [[ $current_version < 6 ]]; then
+if (( $current_version < 6 )); then
 
 	sqlite3 $dbs "ALTER TABLE applications ADD COLUMN position INTEGER DEFAULT 0;"
 
@@ -100,7 +100,7 @@ if (( $current_version <= 7 )); then
 
 fi
 
-if [[ $current_version < 8 ]]; then
+if (( $current_version < 8 )); then
 
 	sqlite3 $dbs "ALTER TABLE information ADD COLUMN distribution TEXT;"
 
