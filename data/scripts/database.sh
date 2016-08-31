@@ -35,7 +35,7 @@ release_name=$(echo $edge | awk -F , '{print $2}')
 db_version=$(echo $versions | awk -F : '{print $6}')
 
 current_version=$(sqlite3 $dbs "SELECT db_version FROM information;" || false)
-if [ $? -ne 0 ]; then																	# Settings contains version if information table doesn't exist yet
+if [[ $? != 0 ]]; then																	# Settings contains version if information table doesn't exist yet
 	current_version=$(sqlite3 $dbs "SELECT db_version FROM settings;" || false)
 fi
 
@@ -51,13 +51,13 @@ rm /var/lib/spaceify/data/db/admin_password > /dev/null 2>&1 || true
 # ----------
 # ---------- Changes between database versions ---------- #
 
-if [ $current_version -lt 6 ]; then
+if (( $current_version < 6 )); then
 
 	sqlite3 $dbs "ALTER TABLE applications ADD COLUMN position INTEGER DEFAULT 0;"
 
 fi
 
-if [ $current_version -le 7 ]; then
+if (( $current_version <= 7 )); then
 
 	IFS=";" read -a tables <<< $(< $dbc)
 
@@ -100,7 +100,7 @@ if [ $current_version -le 7 ]; then
 
 fi
 
-if [ $current_version -lt 8 ]; then
+if (( $current_version < 8 )); then
 
 	sqlite3 $dbs "ALTER TABLE information ADD COLUMN distribution TEXT;"
 
