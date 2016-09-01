@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # Source debconf library
 . /usr/share/debconf/confmodule
@@ -13,8 +13,8 @@ db_subst spaceify/ethernet ADAPTERS "$ADAPTERS"										# replace names in debc
 db_subst spaceify/wlan ADAPTERS "$ADAPTERS"
 
 # Get existing edge name
-if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid  /tmp/edge.id; fi			# edge_id.uuid -> edge.id
-if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /var/lib/spaceify/data/db/edge_id.uuid  /var/lib/spaceify/data/db/edge.id; fi
+if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid /tmp/edge.id; fi				# edge_id.uuid -> edge.id
+if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /var/lib/spaceify/data/db/edge_id.uuid /var/lib/spaceify/data/db/edge.id; fi
 
 if [ -e /tmp/edge.id ]; then
 	edge_name=$(echo $(< /tmp/edge.id) | awk -F ',' '{print $2}')
@@ -63,34 +63,51 @@ do
 	6)
 		db_input critical spaceify/admin_password || true
 		db_input critical spaceify/admin_confirm_password || true
-		if db_go; then dbStatus=0; else dbStatus=30; fi
 
-		db_get spaceify/admin_password
-		admin_password="$RET"
+		if db_go; then
 
-		db_get spaceify/admin_confirm_password
-		admin_confirm_password="$RET"
-
-		if [ "$admin_password" != "$admin_confirm_password" ]; then
-			STATE=0
 			dbStatus=0
-			db_reset spaceify/admin_password
-			db_reset spaceify/admin_confirm_password
+
+			db_get spaceify/admin_password
+			admin_password="$RET"
+
+			db_get spaceify/admin_confirm_password
+			admin_confirm_password="$RET"
+
+			if [ "$admin_password" != "$admin_confirm_password" ]; then
+				STATE=0
+				db_reset spaceify/admin_password
+				db_reset spaceify/admin_confirm_password
+			fi
+
+		else
+
+			dbStatus=30
+
 		fi
+
 	;;
 
 	7)
 		db_input critical spaceify/edge_name || true
-		if db_go; then dbStatus=0; else dbStatus=30; fi
 
-		db_get spaceify/edge_name
-		edge_name="$RET"
+		if db_go; then
 
-		if [[ ! $edge_name =~ ^[a-zA-Z0-9]{4,32}$ ]]; then
-			STATE=1
 			dbStatus=0
-			db_set spaceify/edge_name $edge_name
+
+			db_get spaceify/edge_name
+			edge_name="$RET"
+
+			if [[ ! $edge_name =~ ^[a-zA-Z0-9]{4,32}$ ]]; then
+				STATE=1
+			fi
+
+		else
+
+			dbStatus=30
+
 		fi
+
 	;;
 	esac
 
@@ -103,6 +120,5 @@ do
 		if [[ $STATE -le 2 ]]; then
 			STATE=3
 		fi
-
 	fi
 done

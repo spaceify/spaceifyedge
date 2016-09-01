@@ -12,7 +12,7 @@ var self = this;
 
 if(typeof exports !== "undefined")
 	{
-	var i, file = require("fs").readFileSync((process.env.IS_REAL_SPACEIFY ? "/api/www/libs/" : "www/libs/") + "config.json", "utf8");
+	var i, file = require("fs").readFileSync((process.env.IS_REAL_SPACEIFY ? "/api/www/libs/" : "/var/lib/spaceify/code/www/libs/") + "config.json", "utf8");
 
 	var config = JSON.parse(file);
 	for(i in config)

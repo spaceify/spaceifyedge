@@ -58,7 +58,7 @@ cp -r data/minify/ "$dst/data"
 # ---------- UGLIFYING/MINIFYING  FILES ---------- #
 
 node "$dst/data/minify/minify.js" $dst
-gme=$?
+uglifyMinifyError=$?
 
 # ----------
 # ----------
@@ -88,9 +88,12 @@ cd $dst
 
 chown -R root:root debian/
 dpkg-buildpackage -i.svn -us -uc
+dpkgBuildpackageError=$?
 
-if [ $? == 0 ] && [ $gme == 0 ]; then
+if [ $dpkgBuildpackageError == 0 ] && [ $uglifyMinifyError == 0 ]; then
 	printf "\n\e[42mPackage build. Files are in directory $dstBase\e[0m\n\n"
 else
-	printf "\n\e[41mBuilding package failed\e[0m\n\n"
+	printf "\n\e[101mBuilding package failed: uglifyMinifyError=$uglifyMinifyError, dpkgBuildpackageError=$dpkgBuildpackageError\e[0m\n\n"
+
+	rm -r /tmp/build/ > /dev/null 2>&1 || true
 fi
