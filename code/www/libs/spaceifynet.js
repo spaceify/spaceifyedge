@@ -14,6 +14,7 @@ var self = this;
 
 var ordinal = 0;
 var showLoadingInstances = 0;
+var applications = { spacelet: {}, sandboxed: {}, native: {}, spaceletCount: 0, sandboxedCount: 0, nativeCount: 0 };
 
 var core = new SpaceifyCore();
 var config = new SpaceifyConfig();
@@ -134,24 +135,24 @@ self.showInstalledApplications = function(callback)
 			return (typeof callback == "function" ? callback() : false);
 
 		for(j = 0; j < apps.spacelet.length; j++)
-			methods.push({object: self, method: renderTile, params: [apps.spacelet[j], null], type: "async"});
+			methods.push({object: self, method: self.renderTile, params: [apps.spacelet[j], null], type: "async"});
 
 		for(j = 0; j < apps.sandboxed.length; j++)
-			methods.push({object: self, method: renderTile, params: [apps.sandboxed[j], null], type: "async"});
+			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed[j], null], type: "async"});
 
 		for(j = 0; j < apps.native.length; j++)
-			methods.push({object: self, method: renderTile, params: [apps.native[j], null], type: "async"});
+			methods.push({object: self, method: self.renderTile, params: [apps.native[j], null], type: "async"});
 
 		new SpaceifySynchronous().waterFall(methods, function()
 			{
 			if(typeof callback == "function")
-				callback(apps.spacelet.length, apps.sandboxed.length, apps.native.length);
+				callback();
 			});
 		});
 
 	}
 
-var renderTile = function(manifest, callback)
+self.renderTile = function(manifest, callback)
 	{
 	var src, evt, i;
 
@@ -188,6 +189,42 @@ var renderTile = function(manifest, callback)
 		evt = new CustomEvent("addTile", {detail: {type: "tile", container: manifest.type, manifest: manifest, src: src, callback: callback}, bubbles: true, cancelable: true});
 		document.body.dispatchEvent(evt);
 		}
+
+	addApplication(manifest);
+	}
+
+self.removeTile = function(manifest)
+	{
+	var i, length = 0, id = manifest.unique_name.replace(/\//, "_");
+
+	$("#" + id).remove();
+
+	removeApplication(manifest);
+	}
+
+var addApplication = function(manifest)
+	{
+	if(manifest.type == config.SPACELET)
+		{ applications.spacelet[manifest.unique_name] = manifest; applications.spaceletCount++; }
+	else if(manifest.type == config.SANDBOXED)
+		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxedCount++; }
+	else if(manifest.type == config.NATIVE)
+		{ applications.native[manifest.unique_name] = manifest; applications.nativeCount++; }
+	}
+
+var removeApplication = function(manifest)
+	{
+	if(manifest.type == config.SPACELET)
+		{ delete applications.spacelet[manifest.unique_name]; applications.spaceletCount--; }
+	else if(manifest.type == config.SANDBOXED)
+		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxedCount--; }
+	else if(manifest.type == config.NATIVE)
+		{ delete applications.native[manifest.unique_name]; applications.nativeCount--; }
+	}
+
+self.getApplications = function()
+	{
+	return applications;
 	}
 
 self.externalResourceURL = function(unique_name, file)

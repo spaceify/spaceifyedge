@@ -113,7 +113,7 @@ var connectToCore = fibrous( function()
 	try {
 		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
 
-		sessionId = securityModel.sync.createTemporarySession("127.0.0.1");
+		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");
 
 		edgeSettings = coreConnection.sync.callRpc("getEdgeSettings", [sessionId], self);
 
@@ -152,7 +152,7 @@ var connectToCore = fibrous( function()
 		}
 	finally
 		{
-		securityModel.sync.destroyTemporarySession();
+		securityModel.sync.destroyTemporaryAdminSession();
 		}
 	});
 
@@ -201,7 +201,7 @@ var coreDisconnectionListener = function(id)
 			}, config.RECONNECT_WAIT);
 	}
 
-	// EXPOSED METHODS / EVENT LISTENERS -- -- -- -- -- -- -- -- -- --
+	// EXPOSED METHODS / EVENT LISTENERS -- -- -- -- -- -- -- -- -- -- //
 var applicationInstalled = function(result) { addApp(result.manifest); }
 var applicationRemoved = function(result) { remApp(result.manifest.unique_name); }
 var applicationStarted = function(startObject) { setAppRunningState(startObject.manifest.unique_name, true); }
@@ -229,7 +229,7 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 	var part = pathparts.shift() || "";
 	var responseCode, contentType, port, location, content;
 
-	// Redirection request to apps internal web server "service/" or get apps service object "service/object/" -- -- -- -- -- -- -- -- -- --
+	// Redirection request to apps internal web server "service/" or get apps service object "service/object/" -- -- -- -- -- -- -- -- -- -- //
 	if(part == "service")
 		{
 		part = "service/" + (pathparts.length > 0 && pathparts[0] == "object" ? "object/" : "");
@@ -254,7 +254,7 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 
 		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
 		}
-	// Path points to apps resource -- -- -- -- -- -- -- -- -- --
+	// Path points to apps resource -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
 		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
@@ -285,7 +285,7 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 		}
 	}
 
-	// UTILITY -- -- -- -- -- -- -- -- -- --
+	// UTILITY -- -- -- -- -- -- -- -- -- -- //
 var addApp = function(manifest)
 	{
 	var length;

@@ -245,7 +245,7 @@ var connect = fibrous( function(openMessaging)
 	{
 	try {
 		// Create temporary log in session
-		sessionId = securityModel.sync.createTemporarySession("127.0.0.1");												// Remember to destory the id
+		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");											// Remember to destory the id
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
@@ -276,7 +276,7 @@ var disconnect = function()
 	if(appManMessageConnection)
 		appManMessageConnection.close();
 
-	securityModel.sync.destroyTemporarySession();
+	securityModel.sync.destroyTemporaryAdminSession();
 
 	appManConnection = null;
 	appManMessageConnection = null;

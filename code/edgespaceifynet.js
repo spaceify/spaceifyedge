@@ -41,7 +41,7 @@ self.createEdgeId = fibrous( function(throws)
 	var edge_id, edge_name, edge_password, edge_salt, edge_enable_remote, edge_require_password;
 
 	try {
-		// File or Database -- -- -- -- -- -- -- -- -- --
+		// File or Database -- -- -- -- -- -- -- -- -- -- //
 		newEdgeId = createNewId("array");
 
 		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE_TMP, "file"))		// Use existing registration file

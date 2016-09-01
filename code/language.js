@@ -40,12 +40,13 @@ var language =
 	"E_GET_SERVICE_UNKNOWN_SERVICE": new SpaceifyError({"code": 2000, "message": "Get service failed because service ~name was not found."}),
 	"E_GET_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2001, "message": "Get service failed because callers remote address is unknown."}),
 
-	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2005, "message": "Get manifest failed because application ~name was not found."}),
+	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2002, "message": "Get manifest failed because application ~name was not found."}),
+	"E_GET_EXTENDED_MANIFEST_FAILED": new SpaceifyError({"code": 2003, "message": "Get manifest failed because getting extended fields was unsuccessful."}),
 
-	"E_REGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2006, "message": "Register service failed because callers remote address ~address is unknown."}),
-	"E_REGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2007, "message": "Failed to register service because service name ~name is unknown (not introduced in manifest)."}),
-	"E_UNREGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2008, "message": "Unregistering service failed because callers remote address ~address is unknown."}),
-	"E_UNREGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2009, "message": "Failed to unregister service because service name ~name is unknown (not introduced in manifest)."}),
+	"E_REGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2004, "message": "Register service failed because callers remote address ~address is unknown."}),
+	"E_REGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2005, "message": "Failed to register service because service name ~name is unknown (not introduced in manifest)."}),
+	"E_UNREGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2006, "message": "Unregistering service failed because callers remote address ~address is unknown."}),
+	"E_UNREGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2007, "message": "Failed to unregister service because service name ~name is unknown (not introduced in manifest)."}),
 
 	"E_INVALID_SESSION": new SpaceifyError({"code": 2018, "message": "Invalid session identifier or session IP and caller IP do not match."}),
 
@@ -69,7 +70,7 @@ var language =
 
 	"E_REGISTER_EDGE_FAILED": new SpaceifyError({"code": 2034, "message": "Edge registration failed: ~result ~httpStatus."}),
 
-	"E_GET_SERVICE_RUNTIME_STATES_FAILED": new SpaceifyError({"code": 2034, "message": "Failed to get service runtime states."}),
+	"E_GET_SERVICE_RUNTIME_STATES_FAILED": new SpaceifyError({"code": 2035, "message": "Failed to get service runtime states."}),
 
 	// DockerContainer
 	"E_START_CONTAINER_CREATE_CONTAINER_FAILED": new SpaceifyError({"code": 4000, "message": "Creating the docker container failed."}),
@@ -160,9 +161,9 @@ var language =
 	"E_GET_SERVICE_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Get service failed because service ~name is forbidden to caller."}),
 	"E_GET_SERVICE_APPLICATION_NOT_FOUND": new SpaceifyError({"code": 16002, "message": "Get service failed because application or spacelet was not found."}),
 	"E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Get service failed because application or spacelet ~unique_name does not have required services defined."}),
-	"E_ADMIN_LOGIN_EDGE_SETTING": new SpaceifyError({"code": 16004, "message": "Failed to get edge settings."}),
 	"E_ADMIN_LOG_IN_FAILED": new SpaceifyError({"code": 16005, "message": "Admin log in failed."}),
 	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge are forbidden."}),
+	"E_REMOTE_LOG_IN_FAILED": new SpaceifyError({"code": 16007, "message": "Remote log in failed."}),
 
 	/* ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 	** TEXTS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

@@ -247,9 +247,9 @@ var adminLogOut = fibrous( function(sessionId)
 
 var isAdminLoggedIn = fibrous( function(sessionId)
 	{
-	securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, null, true/*throws*/);
+	securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, null, true/*throws*/);
 
-	var session = securityModel.sync.findSession(sessionId);
+	var session = securityModel.sync.findAdminSession(sessionId);
 
 	return (session ? true : false);
 	});
@@ -295,7 +295,7 @@ var startSpacelet = fibrous( function(unique_name)
 		if(securityModel.isApplicationIP(arguments[arguments.length-1].remoteAddress))
 			throw language.E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS.pre("Core::startSpacelet");
 
-		if(!securityModel.sameOriginPolicyStartSpacelet(getManifest.sync(unique_name), arguments[arguments.length-1].origin))
+		if(!securityModel.sameOriginPolicyStartSpacelet(getManifest.sync(unique_name, false, false), arguments[arguments.length-1].origin))
 			throw language.E_START_SPACELET_SSOP.pre("Core::startSpacelet");
 
 		spaceletManager.sync.install(unique_name, true);
@@ -304,7 +304,7 @@ var startSpacelet = fibrous( function(unique_name)
 		openRuntimeServices = securityModel.getOpenServices(startObject.providesServices);
 
 		// Events
-		startObject.manifest = getManifest.sync(unique_name, false);
+		startObject.manifest = getManifest.sync(unique_name, true, false);
 		startObject.openRuntimeServices = openRuntimeServices;
 		delete startObject.providesServices;
 
@@ -324,9 +324,9 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws)
 	var isInstalled = true;
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		getManager(type).sync.install(unique_name, true);
 
@@ -338,7 +338,7 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws)
 		else if(type == config.NATIVE)
 			event = config.EVENT_NATIVE_APPLICATION_INSTALLED;
 
-		callEvent(event, { manifest: getManifest.sync(unique_name, false) });
+		callEvent(event, { manifest: getManifest.sync(unique_name, true, false) });
 		}
 	catch(err)
 		{
@@ -359,15 +359,15 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws)
 	var isRemoved = true;
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		// REMOVE APPLICATION
 		if(!(application = get("getApplication", unique_name)))
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
 
-		manifest = getManifest.sync(unique_name, false);
+		manifest = getManifest.sync(unique_name, false, false);
 
 		getManager(application.getType()).sync.remove(unique_name);
 
@@ -400,9 +400,9 @@ var startApplication = fibrous( function(unique_name, sessionId, throws)
 	var isStarted = true;
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		// START APPLICATION
 		if(!(application = get("getApplication", unique_name)))
@@ -421,7 +421,7 @@ var startApplication = fibrous( function(unique_name, sessionId, throws)
 		else if(application.getType() == config.NATIVE)
 			event = config.EVENT_NATIVE_APPLICATION_STARTED;
 
-		startObject.manifest = getManifest.sync(unique_name, false);
+		startObject.manifest = getManifest.sync(unique_name, true, false);
 		startObject.openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, arguments[arguments.length-1].remoteAddress);
 		delete startObject.providesServices;
 
@@ -446,9 +446,9 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws)
 	var isStopped = true;
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		// STOP APPLICATION
 		if(!(application = get("getApplication", unique_name)))
@@ -457,7 +457,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws)
 		getManager(application.getType()).sync.stop(unique_name);
 
 		// Events
-		manifest = getManifest.sync(unique_name, false);
+		manifest = getManifest.sync(unique_name, true, false);
 
 		if(manifest.type == config.SPACELET)
 			event = config.EVENT_SPACELET_STOPPED;
@@ -499,41 +499,20 @@ var getApplicationData = fibrous( function()
 
 	for(i = 0; i < dbSpacelet.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSpacelet[i].unique_name, false)))
-			{
-			appDir = config.SPACELETS_PATH + dbSpacelet[i].unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
-
-			manifest.hasTile = utility.sync.isLocal(appDir + config.WWW_DIRECTORY + config.TILEFILE, "file");
-			manifest.isRunning = spaceletManager.isRunning(manifest.unique_name);
-
+		if((manifest = getManifest.sync(dbSpacelet[i].unique_name, dbSpacelet[i].unique_directory, false)))
 			appData.spacelet.push(manifest);
-			}
 		}
 
 	for(i = 0; i < dbSandboxed.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSandboxed[i].unique_name, false)))
-			{
-			appDir = config.SANDBOXED_PATH + dbSandboxed[i].unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
-
-			manifest.hasTile = utility.sync.isLocal(appDir + config.WWW_DIRECTORY + config.TILEFILE, "file");
-			manifest.isRunning = sandboxedManager.isRunning(manifest.unique_name);
-
+		if((manifest = getManifest.sync(dbSandboxed[i].unique_name, dbSandboxed[i].unique_directory, false)))
 			appData.sandboxed.push(manifest);
-			}
 		}
 
 	for(i = 0; i < dbNative.length; i++)
 		{
-		if((manifest = getManifest.sync(dbNative[i].unique_name, false)))
-			{
-			appDir = config.NATIVE_PATH + dbNative[i].unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
-
-			manifest.hasTile = utility.sync.isLocal(appDir + config.WWW_DIRECTORY + config.TILEFILE, "file");
-			manifest.isRunning = nativeManager.isRunning();
-
+		if((manifest = getManifest.sync(dbNative[i].unique_name, dbNative[i].unique_directory, false)))
 			appData.native.push(utility.parseJSON(manifest), true);
-			}
 		}
 
 	return appData;
@@ -574,13 +553,36 @@ var getApplicationURL = fibrous( function(unique_name)
 			};
 	});
 
-var getManifest = fibrous( function(unique_name, throws)
-	{ // Get application or spacelet manifest
-	// TRY TO GET THE MANIFEST
-	var manifest = get("getManifest", unique_name);
+var getManifest = fibrous( function(unique_name, unique_directory, throws)
+	{ // Get application or spacelet manifest, get extended information if it is requested
+	var tileFile, manifest = get("getManifest", unique_name);
 
 	if(!manifest && throws)
 		throw language.E_GET_MANIFEST_FAILED.preFmt("Core::getManifest", {"~name": unique_name});
+
+	if( manifest && ( (typeof unique_directory == "boolean" && unique_directory) || typeof unique_directory == "string") )
+		{
+		if(typeof unique_directory == "boolean")
+			{
+			try { unique_directory = (database.sync.getApplication(unique_name)).unique_directory; }
+			catch(err) { unique_directory = ""; }
+			database.close();
+			}
+
+		if(!unique_directory)
+			throw language.E_GET_EXTENDED_MANIFEST_FAILED.pre("Core::getManifest");
+
+		if(manifest.type == config.SPACELET)
+			tileFile = config.SPACELETS_PATH;
+		else if(manifest.type == config.SANDBOXED)
+			tileFile = config.SANDBOXED_PATH;
+		else if(manifest.type == config.NATIVE)
+			tileFile = config.NATIVE_PATH;
+		tileFile += unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + config.TILEFILE;
+
+		manifest.hasTile = utility.sync.isLocal(tileFile, "file");
+		manifest.isRunning = getManager(manifest.type).isRunning(unique_name);	
+		}
 
 	return manifest;
 	});
@@ -594,9 +596,9 @@ var getServiceRuntimeStates = fibrous( function(sessionId)
 	var status = {spacelet: {}, sandboxed: {}, native: {}};
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		// GET SERVICE RUNTIME STATES
 		status.spacelet = spaceletManager.getServiceRuntimeStates();
@@ -618,9 +620,9 @@ var getCoreSettings = fibrous( function(sessionId)
 	var settings = {};
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		settings = database.sync.getCoreSettings();
 		}
@@ -639,9 +641,9 @@ var getCoreSettings = fibrous( function(sessionId)
 var saveCoreSettings = fibrous( function(settings, sessionId)
 	{
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		database.sync.saveCoreSettings(settings);								// Save to database and update to security model
 		securityModel.setCoreSettings(settings);
@@ -665,9 +667,9 @@ var getEdgeSettings = fibrous( function(sessionId)
 	var settings = {};
 
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		settings = database.sync.getEdgeSettings();
 		}
@@ -690,9 +692,9 @@ var getEdgeSettings = fibrous( function(sessionId)
 var saveEdgeSettings = fibrous( function(settings, sessionId)
 	{
 	try {
-		securityModel.sync.isLocalSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
+		securityModel.sync.isAdminSession(arguments[arguments.length-1].remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshLogInSession(sessionId);
+		securityModel.refreshAdminLogInSession(sessionId);
 
 		delete settings.edge_password;
 		delete settings.edge_salt;
@@ -764,13 +766,13 @@ var setEventListeners = fibrous( function(events, sessionId)
 	{
 	var connObj = arguments[arguments.length-1];								// This connection exposes some event listeners
 
-	var isLocalSession = securityModel.sync.isLocalSession(connObj.remoteAddress, sessionId, false/*!throws*/);
+	var isAdminSession = securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, false/*!throws*/);
 
 	for(var i = 0; i < events.length; i++)										// Set the event listeners for the connection
 		{
-		if(events[i] == config.EVENT_EDGE_SETTINGS_CHANGED && isLocalSession)
+		if(events[i] == config.EVENT_EDGE_SETTINGS_CHANGED && isAdminSession)
 			connections[connObj.connectionId].events.push(events[i]);
-		else if(events[i] == config.EVENT_CORE_SETTINGS_CHANGED && isLocalSession)
+		else if(events[i] == config.EVENT_CORE_SETTINGS_CHANGED && isAdminSession)
 			connections[connObj.connectionId].events.push(events[i]);
 		else if(events[i] == config.EVENT_APPLICATION_INSTALLED ||
 				events[i] == config.EVENT_APPLICATION_REMOVED ||
@@ -795,7 +797,7 @@ var setEventListeners = fibrous( function(events, sessionId)
 	var dbApp;
 	var volume;
 	var optionsOk = false;
-	var session = securityModel.findSession(sessionId);
+	var session = securityModel.findAdminSession(sessionId);
 
 	try {
 		if(!session || session.ip != arguments[arguments.length-1].remoteAddress)		// Accept only from the same ip (= logged in device)
@@ -841,7 +843,7 @@ var loadOptions = fibrous( function(sessionId, unique_name, directory, file)
 	var dbApp;
 	var volume;
 	var data = null;
-	var session = securityModel.findSession(sessionId);
+	var session = securityModel.findAdminSession(sessionId);
 
 	try {
 		if(!session || session.ip != arguments[arguments.length-1].remoteAddress)		// Accept only from the same ip (= logged in device)

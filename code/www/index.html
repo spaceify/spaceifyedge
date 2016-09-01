@@ -6,13 +6,19 @@
 		<script src="app/spaceify.js"></script>
 
 		<script>
+		var net = null;
+		var core = null;
+		var config = null;
+		var sync = null;
+
 		function pageReady()
 			{
 			window["spaceifyCache"] = new SpaceifyCache();
 
-			var net = new SpaceifyNet();
-			var core = new SpaceifyCore();
-			var sync = new SpaceifySynchronous();
+			net = new SpaceifyNet();
+			core = new SpaceifyCore();
+			config = new SpaceifyConfig();
+			sync = new SpaceifySynchronous();
 
 			sync.waterFall(
 				[
@@ -22,14 +28,81 @@
 				],
 				function()												// finally
 					{
-					var appCount = sync.getResult(3);
-					$("#spacelet, #spaceletHeader").css("display", (appCount[0] > 0 ? "block" : "none"));
-					$("#sandboxed, #sandboxedHeader").css("display", (appCount[1] > 0 ? "block" : "none"));
-					$("#native, #nativeHeader").css("display", (appCount[2] > 0 ? "block" : "none"));
+					var apps = net.getApplications();
+
+					$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+					$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+					$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
 
 					jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader").css("display", "block");					
+
+					core.setEventListeners(	[
+						config.EVENT_SPACELET_INSTALLED,
+						config.EVENT_SPACELET_REMOVED,
+						config.EVENT_APPLICATION_INSTALLED,
+						config.EVENT_APPLICATION_REMOVED,
+						config.EVENT_NATIVE_APPLICATION_INSTALLED,
+						config.EVENT_NATIVE_APPLICATION_REMOVED
+						],
+						[
+						spaceletInstalled,
+						spaceletRemoved,
+						applicationInstalled,
+						applicationRemoved,
+						nativeApplicationInstalled,
+						nativeApplicationRemoved
+						],
+						this, null, function(err, data, id, ms) { });
 					});
 			}
+
+		function spaceletInstalled(result)
+			{
+			renderTile(result.manifest);
+			$("#spacelet, #spaceletHeader").css("display", "block");
+			}
+
+		function spaceletRemoved(result)
+			{
+			var apps = removeTile(result.manifest);
+			$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+			}
+
+		function applicationInstalled(result)
+			{
+			renderTile(result.manifest);
+			$("#sandboxed, #sandboxedHeader").css("display", "block");
+			}
+
+		function applicationRemoved(result)
+			{
+			var apps = removeTile(result.manifest);
+			$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+			}
+
+		function nativeApplicationInstalled(result)
+			{
+			renderTile(result.manifest);
+			$("#native, #nativeHeader").css("display", "block");
+			}
+
+		function nativeApplicationRemoved(result)
+			{
+			var apps = removeTile(result.manifest);
+			$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+			}
+
+		function renderTile(manifest)
+			{
+			net.renderTile(manifest, function(){ });
+			}
+
+		function removeTile(manifest)
+			{
+			net.removeTile(manifest);
+			return net.getApplications();
+			}
+
 		</script>
 	</head>
 

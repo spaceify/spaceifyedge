@@ -26,7 +26,8 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 
-var sessions = {};
+var adminSessions = {};
+var remoteSessions = {};
 var coreSettings = null;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
@@ -63,36 +64,35 @@ self.getApplicationURL = function(isSecure)
 	return (isSecure ? "http://" : "https://") + config.EDGE_HOSTNAME + ":" + (isSecure ? "80" : "443");
 	}
 
-	// AUTHENTICATION -- -- -- -- -- -- -- -- -- -- //
+	// ADMIN -- -- -- -- -- -- -- -- -- -- //
 self.adminLogIn = fibrous( function(password, remoteAddress)
 	{
-	checkSessionTTL();
+	checkSessionsTTL();
 
-	var user;
 	var shasum;
 	var result;
 	var timestamp;
-	var adminLastLogin;
-        var passwordHashed;
+	var edgeSettings;
+	var passwordHashed;
 	var sessionId = null;
 	var database = new Database();
 
 	try {
-		self.sync.isLocalSession(remoteAddress, null, true);
+		self.sync.isAdminSession(remoteAddress, null, true);
 
 		// CHECK THE PASSWORD - UPDATE DATABASE
-		user = database.sync.getEdgeSettings();
+		edgeSettings = database.sync.getEdgeSettings();
 
-		if(typeof user == "undefined")
-			throw language.E_ADMIN_LOGIN_EDGE_SETTING.pre("SecurityModel::adminLogIn");
+		if(typeof edgeSettings == "undefined")
+			throw language.E_GET_EDGE_SETTINGS_FAILED.pre("SecurityModel::adminLogIn");
 
-		adminLastLogin = user.admin_last_login
+		adminLastLogin = edgeSettings.admin_last_login;
 
 		shasum = crypto.createHash("sha512");
-		shasum.update(password + user.admin_salt);
+		shasum.update(password + edgeSettings.admin_salt);
 		passwordHashed = shasum.digest("hex").toString();
 
-		if(passwordHashed != user.admin_password)
+		if(passwordHashed != edgeSettings.admin_password)
 			throw language.E_ADMIN_LOG_IN_FAILED.pre("SecurityModel::adminLogIn");
 
 		timestamp = Date.now();
@@ -105,7 +105,7 @@ self.adminLogIn = fibrous( function(password, remoteAddress)
 		shasum.update(result);
 		sessionId = shasum.digest("hex").toString();
 
-		sessions[sessionId] = {timestamp: timestamp, remoteAddress: remoteAddress};
+		adminSessions[sessionId] = {timestamp: timestamp, remoteAddress: remoteAddress};
 		}
 	catch(err)
 		{
@@ -121,27 +121,24 @@ self.adminLogIn = fibrous( function(password, remoteAddress)
 
 self.adminLogOut = fibrous( function(sessionId, remoteAddress)
 	{
-	self.sync.isLocalSession(remoteAddress, null, true);
+	self.sync.isAdminSession(remoteAddress, null, true);
 
-	if(sessionId in sessions)
-		delete sessions[sessionId];
+	if(sessionId in adminSessions)
+		delete adminSessions[sessionId];
 
-	checkSessionTTL();
+	checkSessionsTTL();
 	});
 
 self.getAdminLastLogin = function()
 	{
-	var user;
-	var adminLastLogin_ = null;
+	var edgeSettings;
 	var database = new Database();
 
 	try {
-		if(adminLastLogin)
-			adminLastLogin_ = adminLastLogin;
-		else
+		if(!adminLastLogin)
 			{
-			if((user = database.sync.getEdgeSettings()))
-				adminLastLogin = adminLastLogin_ = user.admin_last_login;
+			if((edgeSettings = database.sync.getEdgeSettings()))
+				adminLastLogin = edgeSettings.admin_last_login;
 			}
 		}
 	catch(err)
@@ -152,10 +149,10 @@ self.getAdminLastLogin = function()
 		database.close();
 		}
 
-	return adminLastLogin_;
+	return adminLastLogin;
 	}
 	
-self.findSession = fibrous( function(sessionId)
+self.findAdminSession = fibrous( function(sessionId)
 	{
 	var session;
 
@@ -170,16 +167,16 @@ self.findSession = fibrous( function(sessionId)
 			return session;
 		}
 
-	// Check log in sessions
-	checkSessionTTL();
+	// Check log in adminSessions
+	checkSessionsTTL();
 
-	if(sessionId in sessions)
-		return sessions[sessionId];
+	if(sessionId in adminSessions)
+		return adminSessions[sessionId];
 
 	return null;
 	});
 
-self.createTemporarySession = fibrous( function(remoteAddress)
+self.createTemporaryAdminSession = fibrous( function(remoteAddress)
 	{
 	var session	=	{
 					remoteAddress: remoteAddress,
@@ -192,22 +189,22 @@ self.createTemporarySession = fibrous( function(remoteAddress)
 	return session.sessionId;
 	});
 
-self.destroyTemporarySession = fibrous( function()
+self.destroyTemporaryAdminSession = fibrous( function()
 	{
 	if(utility.sync.isLocal(config.SPACEIFY_TEMP_SESSIONID, "file"))
 		fs.sync.unlink(config.SPACEIFY_TEMP_SESSIONID);
 	});
 
-self.isLocalSession = fibrous( function(remoteAddress, sessionId, throws)
+self.isAdminSession = fibrous( function(remoteAddress, sessionId, throws)
 	{
 	var isLocSes = false;
 
 	try {
 		if(!self.isLocalIP(remoteAddress))
-			throw language.E_IS_LOCAL_SESSION_NON_EDGE_CALLER.pre("SecurityModel::isLocalSession");	
+			throw language.E_IS_LOCAL_SESSION_NON_EDGE_CALLER.pre("SecurityModel::isAdminSession");	
 
-		if(sessionId && !self.sync.findSession(sessionId))
-			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isLocalSession");
+		if(sessionId && !self.sync.findAdminSession(sessionId))
+			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminSession");
 
 		isLocSes = true;
 		}
@@ -220,22 +217,128 @@ self.isLocalSession = fibrous( function(remoteAddress, sessionId, throws)
 	return isLocSes;
 	});
 
-var checkSessionTTL = function()
-	{ // Remove expired sessions (= garbage collection)
-	var now = Date.now();
-
-	for(var i in sessions)
-		{
-		if((now - sessions[i].timestamp) > coreSettings.log_in_session_ttl)
-			delete sessions[i];
-		}
-	}
-
-self.refreshLogInSession = function(sessionId)
+self.refreshAdminLogInSession = function(sessionId)
 	{
-	if(sessionId in sessions)
-		sessions[sessionId].timestamp = Date.now();
+	if(sessionId in adminSessions)
+		adminSessions[sessionId].timestamp = Date.now();
 	}
+
+self.isAdminLoggedIn = fibrous( function(sessionId, throws)
+	{
+	var coreRPC = null;
+	var isLoggedIn = false;
+
+	try {
+		coreRPC = new WebSocketRpcConnection();
+		coreRPC.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+
+		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
+
+		if(!isLoggedIn && throws)
+			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");
+		}
+	catch(err)
+		{
+		throw err;
+		}
+	finally
+		{
+		if(coreRPC)
+			coreRPC.close();
+		}
+
+	return isLoggedIn;
+	});
+
+	// REMOTE OPERATING -- -- -- -- -- -- -- -- -- -- //
+self.remoteClientLogIn = fibrous( function(password, remoteAddress)
+	{
+	checkSessionsTTL();
+
+	var shasum;
+	var result;
+	var timestamp;
+	var edgeSettings;
+	var passwordHashed;
+	var sessionId = null;
+	var database = new Database();
+
+	try {
+		//self.sync.isAdminSession(remoteAddress, null, true);
+
+		// CHECK THE PASSWORD - UPDATE DATABASE
+		edgeSettings = database.sync.getEdgeSettings();
+
+		if(typeof edgeSettings == "undefined")
+			throw language.E_GET_EDGE_SETTINGS_FAILED.pre("SecurityModel::remoteLogIn");
+
+		shasum = crypto.createHash("sha512");
+		shasum.update(password + edgeSettings.edge_salt);
+		passwordHashed = shasum.digest("hex").toString();
+
+		if(passwordHashed != edgeSettings.edge_password)
+			throw language.E_REMOTE_LOG_IN_FAILED.pre("SecurityModel::remoteLogIn");
+
+		timestamp = Date.now();
+
+		//database.sync.adminLoggedIn([timestamp]);
+
+		// START A NEW SESSION
+		shasum = crypto.createHash("sha512");
+		result = utility.bytesToHexString(crypto.randomBytes(32));
+		shasum.update(result);
+		sessionId = shasum.digest("hex").toString();
+
+		remoteSessions[sessionId] = {timestamp: timestamp, remoteAddress: remoteAddress};
+		}
+	catch(err)
+		{
+		throw errorc.make(err);
+		}
+	finally
+		{
+		database.close();
+		}
+
+	return sessionId;
+	});
+
+self.remoteClientLogOut = fibrous( function(sessionId, remoteAddress)
+	{
+	//self.sync.isAdminSession(remoteAddress, null, true);
+
+	if(sessionId in remoteSessions)
+		delete remoteSessions[sessionId];
+
+	checkSessionsTTL();
+	});
+
+self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
+	{
+	var coreRPC = null;
+	var isLoggedIn = false;
+
+	try {
+		/*coreRPC = new WebSocketRpcConnection();
+		coreRPC.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+
+		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
+
+		if(!isLoggedIn && throws)
+			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");*/
+		}
+	catch(err)
+		{
+		throw err;
+		}
+	finally
+		{
+		if(coreRPC)
+			coreRPC.close();
+		}
+
+	return isLoggedIn;
+	});
 
 	// SAME ORIGIN POLICY -- -- -- -- -- -- -- -- -- -- //
 self.sameOriginPolicyStartSpacelet = function(manifest, URL)
@@ -362,33 +465,23 @@ self.makePublicService = function(service)
 	return publicService;
 	}
 
-	// ADMIN SESSION MANAGEMENT HELPERS -- -- -- -- -- -- -- -- -- -- //
-self.isAdminLoggedIn = fibrous( function(sessionId, throws)
-	{
-	var coreRPC = null;
-	var isLoggedIn = false;
+	// COMMON -- -- -- -- -- -- -- -- -- -- //
+var checkSessionsTTL = function()
+	{ // Remove expired sessions (= garbage collection)
+	var now = Date.now();
 
-	try {
-		coreRPC = new WebSocketRpcConnection();
-		coreRPC.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
-
-		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
-
-		if(!isLoggedIn && throws)
-			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");
-		}
-	catch(err)
+	for(var i in adminSessions)
 		{
-		throw err;
-		}
-	finally
-		{
-		if(coreRPC)
-			coreRPC.close();
+		if((now - adminSessions[i].timestamp) > coreSettings.log_in_session_ttl)
+			delete adminSessions[i];
 		}
 
-	return isLoggedIn;
-	});
+	for(var i in remoteSessions)
+		{
+		if((now - remoteSessions[i].timestamp) > coreSettings.log_in_session_ttl)
+			delete remoteSessions[i];
+		}
+	}
 
 	// CORE SETTINGS -- -- -- -- -- -- -- -- -- -- //
 self.setCoreSettings = function(settings)
