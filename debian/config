@@ -21,15 +21,16 @@ if [ -e /tmp/edge.id ]; then
 elif [ -e /var/lib/spaceify/data/db/edge.id ]; then
 	edge_name=$(echo $(< /var/lib/spaceify/data/db/edge.id) | awk -F ',' '{print $2}')
 else
-	edge_name=""
+	db_get spaceify/edge_name
+	edge_name="$RET"
 fi
-db_set spaceify/edge_name $edge_name
 
 # Show questions in order and provide user the ability to back up
 STATE=3
 dbStatus=0
 while [ $STATE -gt 0 -a $STATE -lt 8 ];
 do
+
 	case "$STATE" in
 	# Errors
 	1)
@@ -89,6 +90,8 @@ do
 	;;
 
 	7)
+		db_set spaceify/edge_name $edge_name
+
 		db_input critical spaceify/edge_name || true
 
 		if db_go; then
