@@ -25,7 +25,7 @@ There's an assumption that three network interfaces has been configured:
 
 * `NAT` for Internet access
 * Host-only `vbox0` for communication between host machine (192.168.56.1)
-* Host-only `vbox1` for communication to Spaceify users). (192.168.56.2)
+* Host-only `vbox1` for communication to Spaceify users). (192.168.57.1)
 
 For the network setup details in VirtualBox, see this [guide](https://spaceify.org/wiki/doku.php?id=tutorials:running_spaceify_in_virtualbox).
 

@@ -56,8 +56,11 @@ cp -r data/minify/ "$dst/data"
 # ----------
 # ----------
 # ---------- UGLIFYING/MINIFYING  FILES ---------- #
-
-node "$dst/data/minify/minify.js" $dst
+nodecmd="node"
+if type nodejs >/dev/null 2>&1; then
+	nodecmd="nodejs"
+fi
+$nodecmd "$dst/data/minify/minify.js" $dst
 uglifyMinifyError=$?
 
 # ----------
