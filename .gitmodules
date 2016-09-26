@@ -1,0 +1,3 @@
+[submodule "code/www/appstore"]
+	path = code/www/appstore
+	url = http://github.com/spaceify/SpaceifyAppstore.git
