@@ -59,7 +59,7 @@ self.connect = function(service_name, isSecure, callback)
 	// connection to the them fails helps to avoid problems. For example clients can call the getRequiredService
 	// method and a null reference is never returned. Clients can always call the getIsOpen method of the service
 	// object to find out is the service connected.
-		
+
 	if(service_name == config.HTTP)
 		return callback(errobj, null);
 

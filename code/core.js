@@ -217,7 +217,7 @@ var getService = fibrous( function(service_name, unique_name)
 var getOpenServices = fibrous( function(unique_names)
 	{ // Get all the open and allowed open_local runtime services from all the unique applications in the list
 	var application;
-	var runtimeServices = [];
+	var getRuntimeServices, runtimeServices = [];
 
 	for(var i = 0; i < unique_names.length; i++)
 		{
@@ -225,9 +225,9 @@ var getOpenServices = fibrous( function(unique_names)
 		if(!application)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
-		runtimeServices = get("getRuntimeServices", unique_names[i]);
+		getRuntimeServices = get("getRuntimeServices", unique_names[i]);
 
-		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(runtimeServices, arguments[arguments.length-1].remoteAddress) );
+		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(getRuntimeServices, arguments[arguments.length-1].remoteAddress) );
 		}
 
 	return runtimeServices;

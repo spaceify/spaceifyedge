@@ -76,7 +76,16 @@ self.getService = function(service_name, unique_name, callback)
 
 self.getOpenServices = function(unique_names, callback)
 	{
-	call("getOpenServices", [unique_names], useSecure, callback);
+	call("getOpenServices", [unique_names], useSecure, function(err, services)
+		{
+		if(!err && isCache())
+			{
+			for(var i = 0; i < services.length; i++)
+				getCache().setService(services[i], services[i].unique_name);
+			}
+
+		callback(err, services)
+		});
 	}
 
 self.getManifest = function(unique_name, callback)

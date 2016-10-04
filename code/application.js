@@ -168,8 +168,8 @@ self.createRuntimeServices = function(ports, ip)
 		runtimeServices.push(	{
 								service_name: gps[i].service_name,
 								service_type: gps[i].service_type,
-								port: ports[i],
-								securePort: ports[i + 1],
+								port: ports[i * 2],
+								securePort: ports[i * 2 + 1],
 								containerPort: fp + i,
 								secureContainerPort: fps + i,
 								ip: ip,
