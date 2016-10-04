@@ -18,6 +18,7 @@ var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/")
 
 var classes = 	{
 				Service: (isNodeJs ? require(apiPath + "service") : Service),
+				SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
 				SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
 				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
 				SpaceifyNetwork: (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork),
@@ -31,6 +32,7 @@ var fibrous = (isNodeJs ? require("fibrous") : function(fn) { return fn; });
 var self = this;
 
 var core = new classes.SpaceifyCore();
+var errorc = new classes.SpaceifyError();
 var config = new classes.SpaceifyConfig();
 var network = new classes.SpaceifyNetwork();
 
@@ -48,16 +50,38 @@ var caCrt = apiPath + config.SPACEIFY_CRT_WWW;
 var key = config.APPLICATION_TLS_PATH + config.SERVER_KEY;
 var crt = config.APPLICATION_TLS_PATH + config.SERVER_CRT;
 
-	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
-self.connect = function(service_name, callback)
-	{
-	if(service_name == config.HTTP)
-		return callback(null, true);
+var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
 
+	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
+self.connect = function(service_name, isSecure, callback)
+	{
 	// Create the service objects and set their listener only once. Creating service objects even if making
 	// connection to the them fails helps to avoid problems. For example clients can call the getRequiredService
 	// method and a null reference is never returned. Clients can always call the getIsOpen method of the service
 	// object to find out is the service connected.
+		
+	if(service_name == config.HTTP)
+		return callback(errobj, null);
+
+	if(typeof isSecure === "function")										// From web page or not defined
+		{
+		callback = isSecure;
+		isSecure = (isNodeJs ? false : network.isSecure());
+		}
+	else																	// Web page always checks the protocol
+		{
+		isSecure = (isNodeJs ? isSecure : network.isSecure());
+		}
+
+	if(!isSecure)
+		openUnsecure(service_name, callback);
+	else
+		openSecure(service_name, callback);
+	}
+
+
+function openUnsecure(service_name, callback)
+	{
 	if(!required[service_name])
 		{
 		required[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
@@ -65,6 +89,25 @@ self.connect = function(service_name, callback)
 		required[service_name].setDisconnectionListener(disconnectionListener);
 		}
 
+	core.getService(service_name, "", function(err, service)
+		{
+		if(!service || err)																	// Failed to get the required service
+			{
+			if(!required[service_name].getIsOpen())											// Let the automaton try to get the connections up
+				disconnectionListener(-1, service_name, false);
+
+			return callback(errobj, null);
+			}
+
+		connect(required[service.service_name], service.port, false, function()				// Try to open the connection
+			{
+			callback(null, required[service_name]);
+			});
+		});
+	}
+
+function openSecure(service_name, callback)
+	{
 	if(!requiredSecure[service_name])
 		{
 		requiredSecure[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
@@ -74,37 +117,24 @@ self.connect = function(service_name, callback)
 
 	core.getService(service_name, "", function(err, service)
 		{
-		if(!service || err)																// Failed to get the required service
+		if(!service || err)																	// Failed to get the required service
 			{
-			if(!required[service_name].getIsOpen())										// Let the automaton try to get the connections up
-				disconnectionListener(-1, service_name, false);
-
-			if(!requiredSecure[service_name].getIsOpen())
+			if(!requiredSecure[service_name].getIsOpen())									// Let the automaton try to get the connections up
 				disconnectionListener(-1, service_name, true);
 
-			return callback(null, true);
+			return callback(errobj, null);
 			}
 
-		connect(required[service.service_name], service.port, false, function()			// Try to open connections to the services
+		connect(requiredSecure[service.service_name], service.securePort, true, function()	// Try to open the connection to the services
 			{
-			var hasSecure = (isNodeJs ? true : network.isSecure());
-
-			if(hasSecure)																// Unencrypted web pages can't open secure connections
-				{
-				connect(requiredSecure[service.service_name], service.securePort, true, function()
-					{
-					callback(null, {insecure: required[service_name], secure: requiredSecure[service_name]});
-					});
-				}
-			else
-				callback(null, {insecure: required[service_name], secure: requiredSecure[service_name]});
+			callback(null, requiredSecure[service_name]);
 			});
 		});
 	}
 
 var connect = function(service, port, isSecure, callback)
 	{
-	if(service.getIsOpen())																// Don't reopen connections!
+	if(service.getIsOpen())																	// Don't reopen connections!
 		return callback();
 
 	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt, debug: true }, callback);
@@ -114,9 +144,9 @@ self.disconnect = function(service_names, callback)
 	{ // Disconnect one service, listed services or all services
 	var keys;
 
-	if(!service_names)																	// All the services
+	if(!service_names)																		// All the services
 		keys = Object.keys(required);
-	else if(service_name.constructor !== Array)											// One service (string)
+	else if(service_name.constructor !== Array)												// One service (string)
 		keys = [service_names];
 
 	for(var i = 0; i<keys.length; i++)
@@ -138,8 +168,8 @@ var disconnectionListener = function(id, service_name, isSecure)
 	if(!keepConnectionUp)
 		return;
 
-	var timerIdName = service_name + (!isSecure ? "F" : "T");							// Services have their own timers and
-	if(timerIdName in keepConnectionUpTimerIds)											// only one timer can be running at a time
+	var timerIdName = service_name + (!isSecure ? "F" : "T");								// Services have their own timers and
+	if(timerIdName in keepConnectionUpTimerIds)												// only one timer can be running at a time
 		return;
 
 	var service = (!isSecure ? required[service_name] : requiredSecure[service_name]);
@@ -151,7 +181,7 @@ var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, se
 	{
 	core.getService(service_name, "", function(err, serviceObj)
 		{
-		delete keepConnectionUpTimerIds[timerIdName];									// Timer can now be retriggered
+		delete keepConnectionUpTimerIds[timerIdName];										// Timer can now be retriggered
 
 		if(serviceObj)
 			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
@@ -178,7 +208,7 @@ self.keepConnectionUp = function(val)
 	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
 self.listen = fibrous( function(service_name, port, securePort)
 	{
-	if(!provided[service_name])															// Create the connection objects
+	if(!provided[service_name])																// Create the connection objects
 		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
 
 	if(!providedSecure[service_name])
@@ -201,9 +231,9 @@ self.close = function(service_name)
 	{ // Close one service, listed services or all services
 	var keys;
 
-	if(!service_names)																	// All the services
+	if(!service_names)																		// All the services
 		keys = Object.keys(required);
-	else if(service_name.constructor !== Array)											// One service (string)
+	else if(service_name.constructor !== Array)												// One service (string)
 		keys = [service_names];
 
 	for(var i = 0; i < keys.length; i++)
