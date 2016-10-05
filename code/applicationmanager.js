@@ -226,16 +226,6 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 			manifest = validator.sync.validatePackage(config.WORK_PATH, config.WORK_PATH + config.APPLICATION_DIRECTORY);
 			sendMessage.sync("");
 
-			// Application must not have same service names with already installed applications
-			errors = database.sync.checkProvidedServices(manifest);
-			if(errors)
-				{
-				for(var j = 0; j < errors.length; j++)
-					sendMessage.sync(utility.replace(language.SERVICE_ALREADY_REGISTERED, {"~service_name": errors[j]["service_name"], "~unique_name": errors[j]["unique_name"]}));
-
-				throw language.E_INSTALL_APPLICATION_SERVICE_ALREADY_REGISTERED.pre("ApplicationManager::installApplication");
-				}
-
 			// Ask can the application or spacelet use the required service. If force is used no questions are asked.
 			if(manifest.requires_services && !force)
 				{

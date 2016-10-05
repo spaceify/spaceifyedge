@@ -205,17 +205,21 @@ self.getRuntimeServicesCount = function()
 
 self.getRuntimeService = function(service_name, unique_name)
 	{
-	var uniqueName;
-	var serviceName;
+	var UNIQUE_NAME;
+	var SERVICE_NAME;
 
 	for(var s = 0; s < runtimeServices.length; s++)
 		{
-		uniqueName = runtimeServices[s].unique_name;
-		serviceName = runtimeServices[s].service_name;
+		UNIQUE_NAME = runtimeServices[s].unique_name;
+		SERVICE_NAME = runtimeServices[s].service_name;
 
-		// First condition; all apps have http service and without unique_name finding the service would be ambiguous.
-		if( (!unique_name && serviceName == service_name && service_name != config.HTTP) ||
-			(unique_name && unique_name == uniqueName && service_name == serviceName) )
+		// 1:
+		// Multiple applications can have the same service name. Return the first matching service.
+		// All applications have the HTTP service. Without the unique_name the first service on the list would always be returned.
+		// 2:
+		// The service belongs to the requested unique application
+		if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||
+			/*2*/ (unique_name && unique_name == UNIQUE_NAME && service_name == SERVICE_NAME) )
 			{
 			runtimeServices[s].isRunning = self.isRunning();
 			return runtimeServices[s];

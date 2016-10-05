@@ -51,17 +51,20 @@ self.setService = function(service, unique_name)
 
 self.getService = function(service_name, unique_name)
 	{ // Get service either by service name (when unique_name is not set) or by service name and unique_name.
-	for(var aun in applications)														// Iterate all applications
+	for(var UNIQUE_NAME in applications)														// Iterate all applications
 		{
-		var services = (applications[aun].services ? applications[aun].services : []);	// Find from the services they have
+		var services = (applications[UNIQUE_NAME].services ? applications[UNIQUE_NAME].services : []);	// Find from the services they have
 		for(var s = 0; s < services.length; s++)
 			{
-			var asn = services[s].service_name;
+			var SERVICE_NAME = services[s].service_name;
 
-			// First condition = all applications have http services and they can be requested only by defining unique name. Otherwise return the requested service.
-			// Second condition = only this rule can return http service. otherwise this rule is not relevant, because service names are unique in appliciations.
-			if( (!unique_name && service_name == asn && service_name != config.HTTP) ||
-			    (unique_name && unique_name == aun && service_name == asn) )
+			// 1:
+			// Multiple applications can have the same service name. Return the first matching service.
+			// All applications have the HTTP service. Without the unique_name the first service on the list would always be returned.
+			// 2:
+			// The service belongs to the requested unique application
+			if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||
+			    /*2*/ (unique_name && unique_name == UNIQUE_NAME && service_name == SERVICE_NAME) )
 				return services[s];
 			}
 		}

@@ -239,7 +239,7 @@ self.getType = function(unique_name)
 	}
 
 self.getRuntimeService = function(search)
-	{ // Manifests provided services are the runtime services
+	{
 	var service = null;
 
 	for(var unique_name in applications)
@@ -249,6 +249,20 @@ self.getRuntimeService = function(search)
 		}
 
 	return service;
+	}
+
+self.getRuntimeServicesByName = function(service_name)
+	{
+	var service;
+	var services = {};
+
+	for(var unique_name in applications)
+		{
+		if((service = applications[unique_name].getRuntimeService(service_name, null)))
+			services[service.unique_name] = service;
+		}
+
+	return (Object.keys(services).length > 0 ? services : null);
 	}
 
 self.getRuntimeServices = function(unique_name)

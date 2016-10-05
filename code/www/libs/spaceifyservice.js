@@ -53,12 +53,9 @@ var crt = config.APPLICATION_TLS_PATH + config.SERVER_CRT;
 var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
 
 	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
-self.connect = function(service_name, isSecure, callback)
-	{
-	// Create the service objects and set their listener only once. Creating service objects even if making
-	// connection to the them fails helps to avoid problems. For example clients can call the getRequiredService
-	// method and a null reference is never returned. Clients can always call the getIsOpen method of the service
-	// object to find out is the service connected.
+self.connect = function(serviceObj, isSecure, callback)
+	{ // serviceObj = object (service object) or string (service name)
+	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
 
 	if(service_name == config.HTTP)
 		return callback(errobj, null);
@@ -73,63 +70,45 @@ self.connect = function(service_name, isSecure, callback)
 		isSecure = (isNodeJs ? isSecure : network.isSecure());
 		}
 
-	if(!isSecure)
-		openUnsecure(service_name, callback);
+	open(serviceObj, (!isSecure ? required : requiredSecure), isSecure, callback);
+	}
+
+function open(serviceObj, service, isSecure, callback)
+	{
+	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
+
+	if(!service[service_name])
+		{
+		service[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
+		service[service_name].setConnectionListener(connectionListener);
+		service[service_name].setDisconnectionListener(disconnectionListener);
+		}
+
+	if(typeof serviceObj === "object")
+		{
+		connect(service[service_name], serviceObj.port, isSecure, function()
+			{
+			callback(null, service[service_name]);
+			});
+		}
 	else
-		openSecure(service_name, callback);
-	}
-
-
-function openUnsecure(service_name, callback)
-	{
-	if(!required[service_name])
 		{
-		required[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
-		required[service_name].setConnectionListener(connectionListener);
-		required[service_name].setDisconnectionListener(disconnectionListener);
-		}
-
-	core.getService(service_name, "", function(err, service)
-		{
-		if(!service || err)																	// Failed to get the required service
+		core.getService(service_name, "", function(err, serviceObj)
 			{
-			if(!required[service_name].getIsOpen())											// Let the automaton try to get the connections up
-				disconnectionListener(-1, service_name, false);
+			if(!serviceObj || err)
+				{
+				if(!service[service_name].getIsOpen())											// Let the automaton get the connection up
+					disconnectionListener(-1, service_name, isSecure);
 
-			return callback(errobj, null);
-			}
+				return callback(errobj, null);
+				}
 
-		connect(required[service.service_name], service.port, false, function()				// Try to open the connection
-			{
-			callback(null, required[service_name]);
+			connect(service[service_name], serviceObj.port, isSecure, function()
+				{
+				callback(null, service[service_name]);
+				});
 			});
-		});
-	}
-
-function openSecure(service_name, callback)
-	{
-	if(!requiredSecure[service_name])
-		{
-		requiredSecure[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
-		requiredSecure[service_name].setConnectionListener(connectionListener);
-		requiredSecure[service_name].setDisconnectionListener(disconnectionListener);
 		}
-
-	core.getService(service_name, "", function(err, service)
-		{
-		if(!service || err)																	// Failed to get the required service
-			{
-			if(!requiredSecure[service_name].getIsOpen())									// Let the automaton try to get the connections up
-				disconnectionListener(-1, service_name, true);
-
-			return callback(errobj, null);
-			}
-
-		connect(requiredSecure[service.service_name], service.securePort, true, function()	// Try to open the connection to the services
-			{
-			callback(null, requiredSecure[service_name]);
-			});
-		});
 	}
 
 var connect = function(service, port, isSecure, callback)

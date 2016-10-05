@@ -65,6 +65,7 @@ self.connect = fibrous( function()
 		// Expose RPC nethods
 		webSocketRpcServer.exposeRpcMethod("startSpacelet", self, startSpacelet);
 		webSocketRpcServer.exposeRpcMethod("getService", self, getService);
+		webSocketRpcServer.exposeRpcMethod("getServices", self, getServices);
 		webSocketRpcServer.exposeRpcMethod("getOpenServices", self, getOpenServices);
 		webSocketRpcServer.exposeRpcMethod("registerService", self, registerService);
 		webSocketRpcServer.exposeRpcMethod("unregisterService", self, unregisterService);
@@ -72,7 +73,6 @@ self.connect = fibrous( function()
 		webSocketRpcServer.exposeRpcMethod("getApplicationData", self, getApplicationData);
 		webSocketRpcServer.exposeRpcMethod("getApplicationURL", self, getApplicationURL);
 		webSocketRpcServer.exposeRpcMethod("getManifest", self, getManifest);
-		//webSocketRpcServer.exposeRpcMethod("connectTo", self, connectTo);
 		webSocketRpcServer.exposeRpcMethod("setSplashAccepted", self, setSplashAccepted);
 		webSocketRpcServer.exposeRpcMethod("setEventListeners", self, setEventListeners);
 
@@ -192,11 +192,10 @@ var unregisterService = fibrous( function(service_name)
 	});
 
 var getService = fibrous( function(service_name, unique_name)
-	{ // Get either by service name or service name and unique_name
+	{ // Get service either by service name or service name and unique_name
 	var application;
 	var applicationIp;
 	var runtimeService;
-	var service = null;
 
 	if(unique_name)
 		{
@@ -212,6 +211,33 @@ var getService = fibrous( function(service_name, unique_name)
 		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getService", {"~name": service_name});
 
 	return securityModel.getService(runtimeService, applicationIp, arguments[arguments.length-1].remoteAddress);
+	});
+
+var getServices = fibrous( function(service_name)
+	{ // Get all services with the requested service name
+	var service;
+	var applicationIp;
+	var runtimeServices;
+	var preparedRuntimeServices = {};
+	var remoteAddress = arguments[arguments.length-1].remoteAddress;
+
+	applicationIp = get("getApplicationByIp", remoteAddress);
+	runtimeServices = get("getRuntimeServicesByName", service_name);
+
+	if(Object.keys(runtimeServices).length == 0)
+		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getServices", {"~name": service_name});
+
+	for(var unique_name in runtimeServices)
+		{
+		try {
+			service = securityModel.getService(runtimeServices[unique_name], applicationIp, remoteAddress);
+			preparedRuntimeServices[unique_name] = service;
+			}
+		catch(err)
+			{}
+		}
+
+	return preparedRuntimeServices;
 	});
 
 var getOpenServices = fibrous( function(unique_names)
@@ -586,10 +612,6 @@ var getManifest = fibrous( function(unique_name, unique_directory, throws)
 
 	return manifest;
 	});
-
-/*var connectTo = fibrous( function(service_name, isSecure)
-	{
-	});*/
 
 var getServiceRuntimeStates = fibrous( function(sessionId)
 	{ // Get application or spacelet runtime services

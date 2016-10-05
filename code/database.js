@@ -318,34 +318,6 @@ var addInjectFiles = fibrous( function(manifest)
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 // SERVICES  - spaceify.db // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-self.checkProvidedServices = fibrous( function(manifest)
-	{ // Checks if applications manifest has provided services which are already registered by some other application.
-	var row;
-	var errors = [];
-
-	try {
-		if(!manifest.provides_services)
-			return null;
-
-		if(!isOpen())
-			openDB();
-
-		errors = [];
-		for(var i = 0; i < manifest.provides_services.length; i++)
-			{
-			row = db.sync.get("SELECT * FROM provided_services WHERE service_name=? AND unique_name<>?", [manifest.provides_services[i].service_name, manifest.unique_name]);
-			if(row)
-				errors.push({service_name: row.service_name, unique_name: row.unique_name});
-			}
-		}
-	catch(err)
-		{
-		throw err;	//language.E_DATABASE_CHECK_PROVIDED_SERVICES.pre("Database::checkProvidedServices", err);
-		}
-
-	return (errors.length > 0 ? errors : null);
-	});
-
 self.getService = fibrous( function(service_name)
 	{
 	try {

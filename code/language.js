@@ -87,7 +87,6 @@ var language =
 	"E_INSTALL_APPLICATION_FAILED": new SpaceifyError({"code": 7000, "message": "Failed to install application."}),
 	"E_FAILED_TO_RESOLVE_PACKAGE": new SpaceifyError({"code": 7001, "message": "~package does not resolve to any known package."}),
 	"E_LOCKED": new SpaceifyError({"code": 7007, "message": "Another process has locked the application manager."}),
-	"E_INSTALL_APPLICATION_SERVICE_ALREADY_REGISTERED": new SpaceifyError({"code": 7008, "message": "Applications with same service names can not be installed at the same time."}),
 	"E_GET_APPLICATIONS_FAILED_TO_GET_APPLICATIONS": new SpaceifyError({"code": 7009, "message": "Failed to list applications."}),
 	"E_CREATE_CLIENT_CERTIFICATE_FAILED_TO_CREATE": new SpaceifyError({"code": 7010, "message": "Failed to create certificate for the application."}),
 	"E_GIT_FAILED_TO_GET_GITHUB_DATA": new SpaceifyError({"code": 7011, "message": "Failed to get data from GitHub."}),
@@ -136,7 +135,6 @@ var language =
 	"E_DATABASE_ADD_PROVIDED_SERVICES": new SpaceifyError({"code": 12015, "message": "Failed to add provided services."}),
 	"E_DATABASE_ADD_INJECT_HOSTNAMES": new SpaceifyError({"code": 12016, "message": "Failed to add inject hostnames."}),
 	"E_DATABASE_ADD_INJECT_FILENAMES": new SpaceifyError({"code": 12017, "message": "Failed to add inject filenames."}),
-	"E_DATABASE_CHECK_PROVIDED_SERVICES": new SpaceifyError({"code": 12018, "message": "Failed to check provided services."}),
 	"E_DATABASE_GET_SERVICE": new SpaceifyError({"code": 12019, "message": "Failed to get service."}),
 	"E_DATABASE_TEST": new SpaceifyError({"code": 12020, "message": "Failed to execute database test."}),
 
@@ -251,8 +249,6 @@ var language =
 	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to the edge. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
 	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
 	"INSTALL_SUGGESTED_SAME_PACKAGES": "The installed ~installing_type requires '~suggested_unique_name, version: ~suggested_version' to be installed for the service '~required_service_name'. However, '~existing_unique_name, version: ~existing_version' is already installed and will not be reinstalled or updated.",
-	
-	"SERVICE_ALREADY_REGISTERED": "Service name ~service_name is already registered by application ~unique_name",
 
 	"GET_SOURCES_OK": "Source codes are now loaded and are in the directory ~directory.",
 

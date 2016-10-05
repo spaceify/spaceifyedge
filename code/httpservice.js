@@ -274,9 +274,9 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
 
 					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part, responseCode: null});
-					}
 
-				break;
+					return;
+					}
 				}
 			}
 

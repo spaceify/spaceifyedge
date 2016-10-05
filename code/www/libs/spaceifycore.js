@@ -59,33 +59,18 @@ self.unregisterService = function(service_name, callback)
 	}
 
 self.getService = function(service_name, unique_name, callback)
-	{ // Gets provided service
-	var service = (isCache() ? getCache().getService(service_name, unique_name) : null);
+	{
+	call("getService", [service_name, unique_name], useSecure, callback);
+	}
 
-	if(service)
-		callback(null, service, -1, 0);
-	else
-		call("getService", [service_name, unique_name], useSecure, function(err, data, id, ms)
-			{
-			if(!err && isCache())
-				getCache().setService(data, unique_name);
-
-			callback(err, data, id, ms);
-			});
+self.getServices = function(service_name, callback)
+	{
+	call("getServices", [service_name], useSecure, callback);
 	}
 
 self.getOpenServices = function(unique_names, callback)
 	{
-	call("getOpenServices", [unique_names], useSecure, function(err, services)
-		{
-		if(!err && isCache())
-			{
-			for(var i = 0; i < services.length; i++)
-				getCache().setService(services[i], services[i].unique_name);
-			}
-
-		callback(err, services)
-		});
+	call("getOpenServices", [unique_names], useSecure, callback);
 	}
 
 self.getManifest = function(unique_name, callback)
