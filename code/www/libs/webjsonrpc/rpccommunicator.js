@@ -295,6 +295,18 @@ var handleRPCCall = function(requests, isBatch, connectionId)
 		try	{
 			var rpcMethod = exposedRpcMethods[requests[r].method];
 
+			/*var got = rpcParams.length;
+			var expected = rpcMethod.method.length;
+
+			if(expected < got)																// Check parameter count
+				rpcParams.splice(expected - got, got - expected);
+			else if(expected > got)
+				{
+				expected = expected - got;
+				while(expected--)
+					rpcParams.push(null);
+				}*/
+
 			rpcParams.push(	{																// Add the connection object as the last parameter
 							requestId: requestId,
 							connectionId: connectionId,
@@ -305,9 +317,9 @@ var handleRPCCall = function(requests, isBatch, connectionId)
 							});
 
 			if(isNodeJs && isApplication)
-				result = rpcMethod.method.sync.apply(rpcMethod.object, rpcParams);
+				result = rpcMethod.method.sync(...rpcParams);
 			else
-				result = rpcMethod.method.apply(rpcMethod.object, rpcParams);
+				result = rpcMethod.method(...rpcParams, null);
 
 			if(requestId != null)															// Notifications don't and can't send responses
 				responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});

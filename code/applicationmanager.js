@@ -197,7 +197,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::installApplication");
 
 		removeTemporaryFiles.sync();
@@ -367,7 +367,7 @@ var removeApplication = fibrous( function(unique_name, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::removeApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -401,7 +401,7 @@ var startApplication = fibrous( function(unique_name, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::startApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -435,7 +435,7 @@ var stopApplication = fibrous( function(unique_name, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::stopApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -467,7 +467,7 @@ var restartApplication = fibrous( function(unique_name, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::restartApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -563,7 +563,7 @@ var requestMessages = fibrous( function(sessionId)
 	var messageId = null;
 
 	try {
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::requestMessages");
 
 		messageId = messaging.messageIdRequested();
@@ -610,7 +610,7 @@ var getServiceRuntimeStates = fibrous( function(sessionId)
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getServiceRuntimeStates");
 
 		status = coreConnection.sync.callRpc("getServiceRuntimeStates", [sessionId], self);
@@ -633,7 +633,7 @@ var getCoreSettings = fibrous( function(sessionId)
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getCoreSettings");
 
 		coreSettings = coreConnection.sync.callRpc("getCoreSettings", [sessionId], self);
@@ -654,7 +654,7 @@ var saveCoreSettings = fibrous( function(settings, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::saveCoreSettings");
 
 		coreConnection.sync.callRpc("saveCoreSettings", [settings, sessionId], self);
@@ -679,7 +679,7 @@ var getEdgeSettings = fibrous( function(sessionId)
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getEdgeSettings");
 
 		edgeSettings = coreConnection.sync.callRpc("getEdgeSettings", [sessionId], self);
@@ -700,7 +700,7 @@ var saveEdgeSettings = fibrous( function(settings, sessionId)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-1].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::saveEdgeSettings");
 
 		coreConnection.sync.callRpc("saveEdgeSettings", [settings, sessionId], self);
