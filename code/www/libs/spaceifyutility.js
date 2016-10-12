@@ -8,6 +8,15 @@
 
 function SpaceifyUtility()
 {
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+var Language = (isNodeJs ? require(apiPath + "language") : {});
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+
 if (typeof exports !== "undefined")
 	{
 	global.os = require("os");
@@ -15,31 +24,18 @@ if (typeof exports !== "undefined")
 	global.path = require("path");
 	global.mkdirp = require("mkdirp");
 	global.AdmZip = require("adm-zip");
-	global.fibrous = require("fibrous");
 	global.request = require("request");
 	global.spawn = require("child_process").spawn;
+	global.fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
 	}
 
-// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes = 	{
-				Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-				Language: (isNodeJs ? require(apiPath + "language") : {}),
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-				};
-
-var fibrous = (isNodeJs ? require("fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var language = classes.Language;//new classes.Language();
-
-var config = new classes.SpaceifyConfig();
+var logger = new Logger();
+var language = Language;//new Language();
+var config = new SpaceifyConfig();
 
 	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
 self.loadRemoteFile = fibrous( function(fileUrl)

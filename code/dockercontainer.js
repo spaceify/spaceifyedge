@@ -9,10 +9,10 @@
 //Includes
 
 var events = require("events");
-var fibrous = require("fibrous");
+var Logger = require("./logger");
 var Docker = require("dockerode");
 var language = require("./language");
-var Logger = require("./logger");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var DockerHelper = require("./dockerhelper");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");

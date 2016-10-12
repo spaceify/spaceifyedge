@@ -8,17 +8,15 @@ function WebRtcConnection(rtcConfig)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-				};
+var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
+var logger = new Logger();
 
 var id = null;
 var ownStream = null;

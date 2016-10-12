@@ -13,28 +13,25 @@ function SpaceifyService()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				Service: (isNodeJs ? require(apiPath + "service") : Service),
-				SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-				SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-				SpaceifyNetwork: (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork),
-				WebSocketRpcServer: (isNodeJs ? require(apiPath + "websocketrpcserver") : null),
-				WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-				};
-
-var fibrous = (isNodeJs ? require("fibrous") : function(fn) { return fn; });
+var Service = (isNodeJs ? require(apiPath + "service") : Service);
+var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+var WebSocketRpcServer = (isNodeJs ? require(apiPath + "websocketrpcserver") : null);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var SpaceifyNetwork = (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection);
+var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var core = new classes.SpaceifyCore();
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var core = new SpaceifyCore();
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
 
 var required = {};									// <= Clients (required services)
 var requiredSecure = {};
@@ -79,7 +76,7 @@ function open(serviceObj, service, isSecure, callback)
 
 	if(!service[service_name])
 		{
-		service[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
+		service[service_name] = new Service(service_name, false, new WebSocketRpcConnection());
 		service[service_name].setConnectionListener(connectionListener);
 		service[service_name].setDisconnectionListener(disconnectionListener);
 		}
@@ -188,10 +185,10 @@ self.keepConnectionUp = function(val)
 self.listen = fibrous( function(service_name, port, securePort)
 	{
 	if(!provided[service_name])																// Create the connection objects
-		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		provided[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	if(!providedSecure[service_name])
-		providedSecure[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		providedSecure[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	listen.sync(provided[service_name], port, false);
 	listen.sync(providedSecure[service_name], securePort, true);

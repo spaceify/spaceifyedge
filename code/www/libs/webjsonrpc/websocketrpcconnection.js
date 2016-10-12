@@ -10,23 +10,21 @@ function WebSocketRpcConnection()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-				SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-				RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-				WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-				};
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var communicator = new classes.RpcCommunicator();
-var connection = new classes.WebSocketConnection();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var communicator = new RpcCommunicator();
+var connection = new WebSocketConnection();
 
 self.connect = function(options, callback)
 	{
@@ -68,6 +66,11 @@ self.getConnection = function()
 self.exposeRpcMethod = function(name, object, method)
 	{
 	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
 	}
 
 self.callRpc = function(method, params, object, listener)

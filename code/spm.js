@@ -13,10 +13,10 @@ var read = require("read");
 var http = require("http");
 var crypto = require("crypto");
 var qs = require("querystring");
-var fibrous = require("fibrous");
 var Logger = require("./logger");
 var language = require("./language");
 var Messaging = require("./messaging");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyError = require("./spaceifyerror");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -98,7 +98,6 @@ var tee = "┬";                  // tee
 var left = "─";                 // left
 var angle = "└";                // angle
 var middle = "├";               // middle
-
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
@@ -170,7 +169,7 @@ self.start = fibrous( function()
 			throw language.E_SPM_ARGUMENTS_ONE.preFmt("ApplicationManager::start", {"~command": command});
 
 		// PRINT TITLE
-		logger.force("Spaceify Package Manager v" + versions[4] + " - " + (command != EMPTY ? command : HELP) + "\n");
+		logger.force("Spaceify Package Manager v" + versions[3] + " - " + (command != EMPTY ? command : HELP) + "\n");
 
 		// OPTIONS
 		if((authenticate && (command == INSTALL || command == SOURCE)) || command == PUBLISH)	// Authenticate to Spaceify registry

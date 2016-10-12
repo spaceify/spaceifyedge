@@ -10,19 +10,17 @@ function SpaceifyNetwork()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-				SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-				};
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
 
 // Get the URL to the Spaceify Core
 self.getEdgeURL = function(forceSecure, withPort, withSlash)

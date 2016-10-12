@@ -14,26 +14,22 @@ function RpcCommunicator()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
-var isApplication = (typeof process !== "undefined" && process.env.IS_REAL_SPACEIFY ? false : true);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-				SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-				SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-				CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer)
-				};
-
-var fibrous = (isNodeJs ? require("fibrous") : function(fn) { return fn; });
+var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer);
+var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var callbackBuffer = new classes.CallbackBuffer();
+var logger = new Logger();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var callbackBuffer = new CallbackBuffer();
 
 var callSequence = 1;
 var exposedRpcMethods = {};
@@ -48,12 +44,26 @@ var latestConnectionId = null;
 
 var options = { debug: true };
 
+var EXPOSE_SYNC = 0;
+var EXPOSE_TRADITIONAL = 1;
+
 //** Upwards interface towards business logic
 
 self.exposeRpcMethod = function(name, object, method)
 	{
 	try	{
-		exposedRpcMethods[name] = {object: object, method: method};
+		exposedRpcMethods[name] = {type: EXPOSE_TRADITIONAL, method: method};
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	try	{
+		exposedRpcMethods[name] = {type: EXPOSE_SYNC, method: method};
 		}
 	catch(err)
 		{
@@ -242,10 +252,12 @@ var handleMessage = function(requestsOrResponses, connectionId)
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
 			if(isNodeJs)
-				fibrous.run( function()
 				{
-				handleRPCCall.sync(requestsOrResponses, isBatch, connectionId);
-				}, function(err, data) { } );
+				fibrous.run( function()
+					{
+					handleRPCCall.sync(requestsOrResponses, isBatch, connectionId);
+					}, function(err, data) { } );
+				}
 			else
 				handleRPCCall(requestsOrResponses, isBatch, connectionId);
 			}
@@ -295,34 +307,42 @@ var handleRPCCall = function(requests, isBatch, connectionId)
 		try	{
 			var rpcMethod = exposedRpcMethods[requests[r].method];
 
-			/*var got = rpcParams.length;
-			var expected = rpcMethod.method.length;
-
-			if(expected < got)																// Check parameter count
+			var got = rpcParams.length;														// Check parameter count
+			var expected = (rpcMethod.type == EXPOSE_SYNC ? rpcMethod.method.getLength() - 1 : rpcMethod.method.length - 2);
+																							// Synchronous: ..., connObj
+			if(expected < got)																// Traditional: ..., connObj, callback
 				rpcParams.splice(expected - got, got - expected);
 			else if(expected > got)
 				{
 				expected = expected - got;
 				while(expected--)
 					rpcParams.push(null);
-				}*/
+				}
 
-			rpcParams.push(	{																// Add the connection object as the last parameter
+			var connObj =	{
 							requestId: requestId,
 							connectionId: connectionId,
 							origin: connections[connectionId].getOrigin(),
 							isSecure: connections[connectionId].getIsSecure(),
 							remotePort: connections[connectionId].getRemotePort(),
 							remoteAddress: connections[connectionId].getRemoteAddress()
-							});
+							};
 
-			if(isNodeJs && isApplication)
-				result = rpcMethod.method.sync(...rpcParams);
+			if(rpcMethod.type == EXPOSE_SYNC)
+				{
+				result = rpcMethod.method.sync(...rpcParams, connObj);
+				addResponse(requestId, result, responses);
+				}
 			else
-				result = rpcMethod.method(...rpcParams, null);
-
-			if(requestId != null)															// Notifications don't and can't send responses
-				responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+				{
+				rpcMethod.method(...rpcParams, connObj, function(err, data)
+					{
+					if(err)
+						throw(err);
+					else
+						addResponse(requestId, data, responses);
+					});
+				}
 			}
 		catch(err)
 			{
@@ -344,6 +364,12 @@ var handleRPCCall = function(requests, isBatch, connectionId)
 	if(responses.length > 0)														// Batch -> [response objects] || Single -> response object
 		sendMessage((isBatch ? responses : responses[0]), connectionId);
 	};
+
+var addResponse = function(requestId, result, responses)
+	{
+	if(requestId != null)															// Notifications don't and can't send responses
+		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+	}
 
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)

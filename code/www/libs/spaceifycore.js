@@ -10,20 +10,18 @@ function SpaceifyCore()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				SpaceifyNetwork: (isNodeJs ? function() {} : SpaceifyNetwork),
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-				WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-				};
+var SpaceifyNetwork = (isNodeJs ? function() {} : SpaceifyNetwork);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
 
 var connection = null;
 var secureConnection = null;
@@ -207,7 +205,7 @@ var connect = function(isSecure, callback)
 	{
 	var port = !isSecure ? config.CORE_PORT : config.CORE_PORT_SECURE;
 
-	var wsRpcConnection = new classes.WebSocketRpcConnection();
+	var wsRpcConnection = new WebSocketRpcConnection();
 	!isSecure ? connection = wsRpcConnection : secureConnection = wsRpcConnection;
 
 	var hostname = (isNodeJs ? config.EDGE_IP : config.EDGE_HOSTNAME);

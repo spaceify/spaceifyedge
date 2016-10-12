@@ -56,42 +56,50 @@
 					});
 			}
 
-		function spaceletInstalled(result)
+			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
+		function spaceletInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
 			$("#spacelet, #spaceletHeader").css("display", "block");
+			callback(null, true);
 			}
 
-		function spaceletRemoved(result)
+		function spaceletRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
 			$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+			callback(null, true);
 			}
 
-		function applicationInstalled(result)
+		function applicationInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
 			$("#sandboxed, #sandboxedHeader").css("display", "block");
+			callback(null, true);
 			}
 
-		function applicationRemoved(result)
+		function applicationRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
 			$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+			callback(null, true);
 			}
 
-		function nativeApplicationInstalled(result)
+		function nativeApplicationInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
 			$("#native, #nativeHeader").css("display", "block");
+			callback(null, true);
 			}
 
-		function nativeApplicationRemoved(result)
+		function nativeApplicationRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
 			$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+			callback(null, true);
 			}
 
+			// -- -- -- -- -- -- -- -- -- -- //
 		function renderTile(manifest)
 			{
 			net.renderTile(manifest, function(){ });

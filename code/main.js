@@ -6,10 +6,10 @@
  * @class Main
  */
 
-var fibrous = require("fibrous");
 var Core = require("./core");
-var Iptables = require("./iptables");
 var Logger = require("./logger");
+var Iptables = require("./iptables");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
 
 function Main()

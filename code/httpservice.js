@@ -7,10 +7,10 @@
  */
 
 var url = require("url");
-var fibrous = require("fibrous");
 var Logger = require("./logger");
 var language = require("./language");
 var WebServer = require("./webserver");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -59,19 +59,19 @@ self.start = fibrous( function()
 		// Setup a connection to the core
 		coreConnection.setDisconnectionListener(coreDisconnectionListener);
 
-		coreConnection.exposeRpcMethod(config.EVENT_APPLICATION_INSTALLED, self, applicationInstalled);
-		coreConnection.exposeRpcMethod(config.EVENT_APPLICATION_REMOVED, self, applicationRemoved);
-		coreConnection.exposeRpcMethod(config.EVENT_APPLICATION_STARTED, self, applicationStarted);
-		coreConnection.exposeRpcMethod(config.EVENT_APPLICATION_STOPPED, self, applicationStopped);
-		coreConnection.exposeRpcMethod(config.EVENT_SPACELET_INSTALLED, self, spaceletInstalled);
-		coreConnection.exposeRpcMethod(config.EVENT_SPACELET_REMOVED, self, spaceletRemoved);
-		coreConnection.exposeRpcMethod(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
-		coreConnection.exposeRpcMethod(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
-		coreConnection.exposeRpcMethod(config.EVENT_NATIVE_APPLICATION_INSTALLED, self, nativeApplicationInstalled);
-		coreConnection.exposeRpcMethod(config.EVENT_NATIVE_APPLICATION_REMOVED, self, nativeApplicationRemoved);
-		coreConnection.exposeRpcMethod(config.EVENT_NATIVE_APPLICATION_STARTED, self, nativeApplicationStarted);
-		coreConnection.exposeRpcMethod(config.EVENT_NATIVE_APPLICATION_STOPPED, self, nativeApplicationStopped);
-		coreConnection.exposeRpcMethod(config.EVENT_EDGE_SETTINGS_CHANGED, self, edgeSettingsChanged);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_INSTALLED, self, spaceletInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_REMOVED, self, spaceletRemoved);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_INSTALLED, self, applicationInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_REMOVED, self, applicationRemoved);
+		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STARTED, self, applicationStarted);
+		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STOPPED, self, applicationStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_INSTALLED, self, nativeApplicationInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_REMOVED, self, nativeApplicationRemoved);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STARTED, self, nativeApplicationStarted);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STOPPED, self, nativeApplicationStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_EDGE_SETTINGS_CHANGED, self, edgeSettingsChanged);
 
 		connectToCore.sync();
 
@@ -202,22 +202,22 @@ var coreDisconnectionListener = function(id)
 	}
 
 	// EXPOSED METHODS / EVENT LISTENERS -- -- -- -- -- -- -- -- -- -- //
-var applicationInstalled = function(result) { addApp(result.manifest); }
-var applicationRemoved = function(result) { remApp(result.manifest.unique_name); }
-var applicationStarted = function(startObject) { setAppRunningState(startObject.manifest.unique_name, true); }
-var applicationStopped = function(result) { setAppRunningState(result.manifest.unique_name, false); }
+var spaceletInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var spaceletRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+var spaceletStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+var spaceletStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var spaceletInstalled = function(result) { addApp(result.manifest); }
-var spaceletRemoved = function(result) { remApp(result.manifest.unique_name); }
-var spaceletStarted = function(startObject) { setAppRunningState(startObject.manifest.unique_name, true); }
-var spaceletStopped = function(result) { setAppRunningState(result.manifest.unique_name, false); }
+var applicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var applicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+var applicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+var applicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var nativeApplicationInstalled = function(result) { addApp(result.manifest); }
-var nativeApplicationRemoved = function(result) { remApp(result.manifest.unique_name); }
-var nativeApplicationStarted = function(startObject) { setAppRunningState(startObject.manifest.unique_name, true); }
-var nativeApplicationStopped = function(result) { setAppRunningState(result.manifest.unique_name, false); }
+var nativeApplicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var nativeApplicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+var nativeApplicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+var nativeApplicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var edgeSettingsChanged = function(settings) { edgeSettings = settings; }
+var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = settings; });
 
 var requestListener = function(request, body, urlObj, isSecure, callback)
 	{

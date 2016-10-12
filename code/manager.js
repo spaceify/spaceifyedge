@@ -8,10 +8,10 @@
  * @class Manager
  */
 
-var fibrous = require("fibrous");
 var Logger = require("./logger");
 var Database = require("./database");
 var language = require("./language");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var Application = require("./application");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");

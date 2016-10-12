@@ -5,8 +5,8 @@
  * 
  */
 
-var fibrous = require("fibrous");
 var Logger = require("./logger");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var ApplicationManager = require("./applicationmanager");
 
 var logger = new Logger();

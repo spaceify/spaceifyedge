@@ -14,8 +14,8 @@
 
 var fs = require("fs");
 var crypto = require("crypto");
-var fibrous = require("fibrous");
 var Database = require("./database");
+var fibrous = require("./lib/fibrous");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");

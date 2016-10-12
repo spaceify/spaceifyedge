@@ -9,8 +9,8 @@
  */
 
 var mmm = require("mmmagic");
-var fibrous = require("fibrous");
 var language  = require("./language");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");

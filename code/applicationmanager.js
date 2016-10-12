@@ -12,11 +12,11 @@ var crypto = require("crypto");
 var mkdirp = require("mkdirp");
 var Github = require("github");
 var AdmZip = require("adm-zip");
-var fibrous = require("fibrous");
+var Logger = require("./logger");
 var language = require("./language");
 var Database = require("./database");
+var fibrous = require("./lib/fibrous/lib/fibrous");
 var Messaging = require("./messaging");
-var Logger = require("./logger");
 var httpStatus = require("./httpstatus");
 var Application = require("./application");
 var SecurityModel = require("./securitymodel");
@@ -94,23 +94,23 @@ iptables -D INPUT -p tcp --dport 4949 -j DROP
 */
 
 	// Expose RPC nethods
-	appManServer.exposeRpcMethod("installApplication", self, installApplication);
-	appManServer.exposeRpcMethod("removeApplication", self, removeApplication);
-	appManServer.exposeRpcMethod("startApplication", self, startApplication);
-	appManServer.exposeRpcMethod("stopApplication", self, stopApplication);
-	appManServer.exposeRpcMethod("restartApplication", self, restartApplication);
-	appManServer.exposeRpcMethod("getApplications", self, getApplications);
-	appManServer.exposeRpcMethod("sourceCode", self, sourceCode);
-	appManServer.exposeRpcMethod("requestMessages", self, requestMessages);
-	appManServer.exposeRpcMethod("adminLogIn", self, adminLogIn);
-	appManServer.exposeRpcMethod("adminLogOut", self, adminLogOut);
-	appManServer.exposeRpcMethod("getServiceRuntimeStates", self, getServiceRuntimeStates);
-	appManServer.exposeRpcMethod("getCoreSettings", self, getCoreSettings);
-	appManServer.exposeRpcMethod("saveCoreSettings", self, saveCoreSettings);
-	appManServer.exposeRpcMethod("getEdgeSettings", self, getEdgeSettings);
-	appManServer.exposeRpcMethod("saveEdgeSettings", self, saveEdgeSettings);
-	appManServer.exposeRpcMethod("systemStatus", self, systemStatus);
-	//appManServer.exposeRpcMethod("publishPackage", self, publishPackage);
+	appManServer.exposeRpcMethodSync("installApplication", self, installApplication);
+	appManServer.exposeRpcMethodSync("removeApplication", self, removeApplication);
+	appManServer.exposeRpcMethodSync("startApplication", self, startApplication);
+	appManServer.exposeRpcMethodSync("stopApplication", self, stopApplication);
+	appManServer.exposeRpcMethodSync("restartApplication", self, restartApplication);
+	appManServer.exposeRpcMethodSync("getApplications", self, getApplications);
+	appManServer.exposeRpcMethodSync("sourceCode", self, sourceCode);
+	appManServer.exposeRpcMethodSync("requestMessages", self, requestMessages);
+	appManServer.exposeRpcMethodSync("adminLogIn", self, adminLogIn);
+	appManServer.exposeRpcMethodSync("adminLogOut", self, adminLogOut);
+	appManServer.exposeRpcMethodSync("getServiceRuntimeStates", self, getServiceRuntimeStates);
+	appManServer.exposeRpcMethodSync("getCoreSettings", self, getCoreSettings);
+	appManServer.exposeRpcMethodSync("saveCoreSettings", self, saveCoreSettings);
+	appManServer.exposeRpcMethodSync("getEdgeSettings", self, getEdgeSettings);
+	appManServer.exposeRpcMethodSync("saveEdgeSettings", self, saveEdgeSettings);
+	appManServer.exposeRpcMethodSync("systemStatus", self, systemStatus);
+	//appManServer.exposeRpcMethodSync("publishPackage", self, publishPackage);
 
 	// Listen - secure server only!!!
 	appManServer.listen.sync({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true, debug: true});
@@ -174,7 +174,7 @@ var messageListener = function(message)
 	}
 
 	// EXPOSED JSON-RPC -- -- -- -- -- -- -- -- -- -- //
-var installApplication = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, force, sessionId)
+var installApplication = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, force, sessionId, connObj)
 	{
 	var start;
 	var answer;
@@ -197,7 +197,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::installApplication");
 
 		removeTemporaryFiles.sync();
@@ -363,11 +363,11 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	return installationStatus;
 });
 
-var removeApplication = fibrous( function(unique_name, sessionId)
+var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::removeApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -397,11 +397,11 @@ var removeApplication = fibrous( function(unique_name, sessionId)
 	return true;
 	});
 
-var startApplication = fibrous( function(unique_name, sessionId)
+var startApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::startApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -431,11 +431,11 @@ var startApplication = fibrous( function(unique_name, sessionId)
 	return true;
 	});
 
-var stopApplication = fibrous( function(unique_name, sessionId)
+var stopApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::stopApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -463,11 +463,11 @@ var stopApplication = fibrous( function(unique_name, sessionId)
 		}
 	});
 
-var restartApplication = fibrous( function(unique_name, sessionId)
+var restartApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::restartApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
@@ -495,7 +495,7 @@ var restartApplication = fibrous( function(unique_name, sessionId)
 	return true;
 	});
 
-var getApplications = fibrous( function(types)
+var getApplications = fibrous( function(types, connObj)
 	{
 	var applications;
 
@@ -519,7 +519,7 @@ var getApplications = fibrous( function(types)
 	return applications;
 	});
 
-var sourceCode = fibrous( function(applicationPackage, username, password, currentWorkingDirectory)
+var sourceCode = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, connObj)
 	{
 	var dest;
 	var information;
@@ -558,12 +558,12 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 		}
 	});
 
-var requestMessages = fibrous( function(sessionId)
+var requestMessages = fibrous( function(sessionId, connObj)
 	{ // Only logged in users can connect to the messaging service
 	var messageId = null;
 
 	try {
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::requestMessages");
 
 		messageId = messaging.messageIdRequested();
@@ -576,7 +576,7 @@ var requestMessages = fibrous( function(sessionId)
 	return messageId;
 	});
 
-var adminLogIn = fibrous( function(password)
+var adminLogIn = fibrous( function(password, connObj)
 	{
 	var sessionId = null;
 
@@ -591,7 +591,7 @@ var adminLogIn = fibrous( function(password)
 	return sessionId;
 	});
 
-var adminLogOut = fibrous( function(sessionId)
+var adminLogOut = fibrous( function(sessionId, connObj)
 	{
 	try {
 		coreConnection.sync.callRpc("adminLogOut", [sessionId], self);
@@ -604,13 +604,13 @@ var adminLogOut = fibrous( function(sessionId)
 	return true;
 	});
 
-var getServiceRuntimeStates = fibrous( function(sessionId)
+var getServiceRuntimeStates = fibrous( function(sessionId, connObj)
 	{
 	var status = {};
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getServiceRuntimeStates");
 
 		status = coreConnection.sync.callRpc("getServiceRuntimeStates", [sessionId], self);
@@ -627,13 +627,13 @@ var getServiceRuntimeStates = fibrous( function(sessionId)
 	return status;
 	});
 
-var getCoreSettings = fibrous( function(sessionId)
+var getCoreSettings = fibrous( function(sessionId, connObj)
 	{
 	var coreSettings = {};
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getCoreSettings");
 
 		coreSettings = coreConnection.sync.callRpc("getCoreSettings", [sessionId], self);
@@ -650,11 +650,11 @@ var getCoreSettings = fibrous( function(sessionId)
 	return coreSettings;
 	});
 
-var saveCoreSettings = fibrous( function(settings, sessionId)
+var saveCoreSettings = fibrous( function(settings, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::saveCoreSettings");
 
 		coreConnection.sync.callRpc("saveCoreSettings", [settings, sessionId], self);
@@ -673,13 +673,13 @@ var saveCoreSettings = fibrous( function(settings, sessionId)
 	return true;
 	});
 
-var getEdgeSettings = fibrous( function(sessionId)
+var getEdgeSettings = fibrous( function(sessionId, connObj)
 	{
 	var edgeSettings = {};
 
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getEdgeSettings");
 
 		edgeSettings = coreConnection.sync.callRpc("getEdgeSettings", [sessionId], self);
@@ -696,11 +696,11 @@ var getEdgeSettings = fibrous( function(sessionId)
 	return edgeSettings;
 	});
 
-var saveEdgeSettings = fibrous( function(settings, sessionId)
+var saveEdgeSettings = fibrous( function(settings, sessionId, connObj)
 	{
 	try {
 		// Preconditions for performing this operation
-		if(!checkAuthentication.sync(arguments[arguments.length-2].remoteAddress, sessionId))
+		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::saveEdgeSettings");
 
 		coreConnection.sync.callRpc("saveEdgeSettings", [settings, sessionId], self);
@@ -719,7 +719,7 @@ var saveEdgeSettings = fibrous( function(settings, sessionId)
 	return true;
 	});
 
-var systemStatus = fibrous( function()
+var systemStatus = fibrous( function(connObj)
 	{
 	var states = {};
 

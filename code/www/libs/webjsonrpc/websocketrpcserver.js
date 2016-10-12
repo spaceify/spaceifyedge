@@ -10,21 +10,19 @@ function WebSocketRpcServer()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-				RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-				WebSocketServer: (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer)
-				};
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
+var WebSocketServer = (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var communicator = new classes.RpcCommunicator();
-var webSocketServer = new classes.WebSocketServer();
+var config = new SpaceifyConfig();
+var communicator = new RpcCommunicator();
+var webSocketServer = new WebSocketServer();
 
 webSocketServer.setEventListener(communicator);
 
@@ -85,6 +83,11 @@ self.getId = function()
 self.exposeRpcMethod = function(name, object, method)
 	{
 	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
 	}
 
 self.nofifyAll = function(method, params)

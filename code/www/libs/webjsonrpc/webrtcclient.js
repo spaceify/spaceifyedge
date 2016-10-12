@@ -9,22 +9,20 @@ function WebRtcClient(rtcConfig)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (typeof process !== "undefined" ? process.env.IS_REAL_SPACEIFY : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = 	{
-				Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-				SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-				RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-				WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-				};
+var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
-var logger = new classes.Logger();
-var config = new classes.SpaceifyConfig();
-var communicator = new classes.RpcCommunicator();
-var connection = new classes.WebSocketConnection();
+var logger = new Logger();
+var config = new SpaceifyConfig();
+var communicator = new RpcCommunicator();
+var connection = new WebSocketConnection();
 
 var ownStream = null;
 var connectionListener = null;
