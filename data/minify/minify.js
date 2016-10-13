@@ -10,6 +10,7 @@ try {
 	var spaceifyCSV;
 	var cssFile = "";
 	var jsFiles = [];
+	var jsAsIsFiles = [];
 	var cssFiles = [];
 	var path = process.argv[2];
 
@@ -31,7 +32,12 @@ try {
 			continue;
 
 		if(tokens[0] == "javascript")
-			jsFiles.push(path + "/code/www/" + tokens[1]);
+{
+if(tokens[1] == "libs/webjsonrpc/binaryrpccommunicator.js" || tokens[1] == "libs/webjsonrpc/rpccommunicator.js")
+	jsAsIsFiles.push(path + "/code/www/" + tokens[1]);
+else
+	jsFiles.push(path + "/code/www/" + tokens[1]);
+}
 		else if(tokens[0] == "css")
 			cssFiles.push(path + "/code/www/" + tokens[1]);
 		}
@@ -39,9 +45,15 @@ try {
 		// Uglify JavaScript -- -- -- -- -- -- -- -- -- --
 	console.log("\n : Uglifying JavaScript")
 
-	result = UglifyJS.minify(jsFiles).code;
+	result = UglifyJS.minify(jsFiles, { mangle: { except: ["..."] } }).code;
 	result = result.replace(/"use strict";/g, "");
 	fs.writeFileSync(path + "/code/www/js/spaceify.min.js", "\"use strict\";" + result, "utf8");
+
+for(var i = 0; i < jsAsIsFiles.length; i++)
+{
+	result = fs.readFileSync(jsAsIsFiles[i], "utf8");
+	fs.appendFileSync(path + "/code/www/js/spaceify.min.js", result, "utf8");
+}
 
 		// Minify CSS -- -- -- -- -- -- -- -- -- --
 	console.log(" : Minifying CSS")
