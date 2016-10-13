@@ -13,14 +13,15 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var classes = {};
+classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 var self = this;
 
-var config = new SpaceifyConfig();
-var utility = new SpaceifyUtility();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
 
 // Get the URL to the Spaceify Core
 self.getEdgeURL = function(forceSecure, withPort, withSlash)

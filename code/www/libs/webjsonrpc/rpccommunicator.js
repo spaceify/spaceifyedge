@@ -17,19 +17,20 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
-var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
-var CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer);
+var classes = {};
+classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+classes.SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+classes.CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer);
 var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new Logger();
-var errorc = new SpaceifyError();
-var utility = new SpaceifyUtility();
-var callbackBuffer = new CallbackBuffer();
+var logger = new classes.Logger();
+var errorc = new classes.SpaceifyError();
+var utility = new classes.SpaceifyUtility();
+var callbackBuffer = new classes.CallbackBuffer();
 
 var callSequence = 1;
 var exposedRpcMethods = {};

@@ -22,17 +22,18 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility);
-var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
+var classes = {};
+classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility);
+classes.WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new Logger();
-var config = new SpaceifyConfig();
-var utility = new SpaceifyUtility();
+var logger = new classes.Logger();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
 
 var options = {};
 var manuallyClosed = false;
@@ -132,7 +133,7 @@ self.listen = function(opts, callback)
 			{
 			try
 				{
-				var connection = new WebSocketConnection();
+				var connection = new classes.WebSocketConnection();
 				connection.setSocket(request.accept(options.subprotocol, request.origin));
 				connection.setRemoteAddress(request.remoteAddress);
 				connection.setRemotePort(request.remotePort);

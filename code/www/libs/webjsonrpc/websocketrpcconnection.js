@@ -13,18 +13,19 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
-var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
-var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
-var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
+var classes = {};
+classes.SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+classes.RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
+classes.WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var errorc = new SpaceifyError();
-var utility = new SpaceifyUtility();
-var communicator = new RpcCommunicator();
-var connection = new WebSocketConnection();
+var errorc = new classes.SpaceifyError();
+var utility = new classes.SpaceifyUtility();
+var communicator = new classes.RpcCommunicator();
+var connection = new classes.WebSocketConnection();
 
 self.connect = function(options, callback)
 	{

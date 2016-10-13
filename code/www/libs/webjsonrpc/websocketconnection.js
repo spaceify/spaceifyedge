@@ -19,14 +19,15 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
+var classes = {};
+classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+classes.SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new Logger();
-var errorc = new SpaceifyError();
+var logger = new classes.Logger();
+var errorc = new classes.SpaceifyError();
 
 var url = "";
 var id = null;

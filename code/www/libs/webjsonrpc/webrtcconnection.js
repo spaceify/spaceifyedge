@@ -11,12 +11,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+var classes = {};
+classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new Logger();
+var logger = new classes.Logger();
 
 var id = null;
 var ownStream = null;

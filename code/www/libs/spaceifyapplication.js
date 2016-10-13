@@ -13,24 +13,25 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/";
 
-var Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-var WebServer = (isNodeJs ? require(apiPath + "webserver") : function() {});
-var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore);
-var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
-var SpaceifyService = (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService);
+var classes = {};
+classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
+classes.WebServer = (isNodeJs ? require(apiPath + "webserver") : function() {});
+classes.SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore);
+classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+classes.SpaceifyService = (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService);
 var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new Logger();
-var httpServer = new WebServer();
-var httpsServer = new WebServer();
-var config = new SpaceifyConfig();
-var utility = new SpaceifyUtility();
-var spaceifyCore = new SpaceifyCore();
-var spaceifyService = new SpaceifyService();
+var logger = new classes.Logger();
+var httpServer = new classes.WebServer();
+var httpsServer = new classes.WebServer();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
+var spaceifyCore = new classes.SpaceifyCore();
+var spaceifyService = new classes.SpaceifyService();
 
 var wwwPath = config.APPLICATION_WWW_PATH;
 var manifestPath = config.APPLICATION_PATH || "";

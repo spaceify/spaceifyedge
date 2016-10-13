@@ -13,16 +13,17 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
-var WebSocketServer = (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer);
+var classes = {};
+classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+classes.RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator);
+classes.WebSocketServer = (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new SpaceifyConfig();
-var communicator = new RpcCommunicator();
-var webSocketServer = new WebSocketServer();
+var config = new classes.SpaceifyConfig();
+var communicator = new classes.RpcCommunicator();
+var webSocketServer = new classes.WebSocketServer();
 
 webSocketServer.setEventListener(communicator);
 
