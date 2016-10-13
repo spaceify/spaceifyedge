@@ -293,45 +293,49 @@ var handleMessage = function(requestsOrResponses, connectionId)
 		}
 	};
 
-var handleRPCCall = function(requests, isBatch, connectionId)
+var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
 	{
-	logger.info("BinaryRpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+	var result;
+	var request = requests.shift();
 
-	var responses = [], result, r, onlyNotifications = true;
-
-	for(r = 0; r < requests.length; r++)
+	if(!request)
+		RPCCallHandled(isBatch, responses, onlyNotifications, connectionId);
+	else
 		{
-		var requestId = (requests[r].hasOwnProperty("id") ? requests[r].id : null);
-		var rpcParams = (requests[r].hasOwnProperty("params") ? requests[r].params : []);
+		var requestId = (request.hasOwnProperty("id") ? request.id : null);
+		var rpcParams = (request.hasOwnProperty("params") ? request.params : []);
 
 		if(requestId != null)
 			onlyNotifications = false;
 
-		logger.info((requestId ? "  REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(requests[r]));
+		logger.info((requestId ? "  REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
 
-		if (!requests[r].jsonrpc || requests[r].jsonrpc != "2.0" || !requests[r].method)	// Invalid JSON-RPC
-			{
-			responses.push({"jsonrpc": "2.0", "error": {"code": -32600, "message": "The JSON sent is not a valid Request object."}, "id": null}, connectionId);
-			continue;
+		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
+			{				
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "The JSON sent is not a valid Request object."}, "id": null}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 			}
 
 		if (rpcParams !== "undefined" && rpcParams.constructor !== Array )
 			{
-			responses.push({"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid method parameter(s). Parameters must be placed inside an array."}, "id": requestId}, connectionId);
-			continue;
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid method parameter(s). Parameters must be placed inside an array."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 			}
 
-		if (!exposedRpcMethods.hasOwnProperty(requests[r].method))							// Unknown method
+		if (!exposedRpcMethods.hasOwnProperty(request.method))								// Unknown method
 			{
-			responses.push({"jsonrpc": "2.0", "error": {"code": -32601, "message": "The method does not exist / is not available: " + requests[r].method + "."}, "id": requestId});
-			continue;
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "The method does not exist / is not available: " + request.method + "."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 			}
 
 		try	{
-			var rpcMethod = exposedRpcMethods[requests[r].method];
+			var rpcMethod = exposedRpcMethods[request.method];
 
 			var got = rpcParams.length;														// Check parameter count
-			var expected = (rpcMethod.type == EXPOSE_SYNC ? rpcMethod.method.getLength() - 1 : rpcMethod.method.length - 2);
+			var expected = (rpcMethod.type == EXPOSE_SYNC ? (isRealSpaceify ? rpcMethod.method.length : rpcMethod.method.getLength()) - 1 : rpcMethod.method.length - 2);
 																							// Synchronous: ..., connObj
 			if(expected < got)																// Traditional: ..., connObj, callback
 				rpcParams.splice(expected - got, got - expected);
@@ -351,47 +355,76 @@ var handleRPCCall = function(requests, isBatch, connectionId)
 							remoteAddress: connections[connectionId].getRemoteAddress()
 							};
 
-			if(rpcMethod.type == EXPOSE_SYNC)
+			if(rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
 				{
 				result = rpcMethod.method.sync(...rpcParams, connObj);
+
 				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 				}
-			else
+			else if(rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods with sync capability
 				{
-				rpcMethod.method(...rpcParams, connObj, function(err, data)
+				result = rpcMethod.method(...rpcParams, connObj);
+
+				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+				}
+			else																			// Traditional application callback based methods
+				{
+				if(requestId != null)															// Request
 					{
-					if(err)
-						throw(err);
-					else
-						addResponse(requestId, data, responses);
-					});
+					rpcMethod.method(...rpcParams, connObj, function(err, data)
+						{
+						if(err)
+							throw(err);
+						else
+							{
+							addResponse(requestId, data, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
+						});
+					}
+				else																			// Notification
+					{
+					rpcMethod.method(...rpcParams, connObj, null);
+
+					handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+					}
 				}
 			}
 		catch(err)
 			{
 			err = errorc.make(err);															// Make all errors adhere to the SpaceifyError format
 
-			if(requestId != null)
-				responses.push({jsonrpc: "2.0", error: err, id: requestId});
+			addResponse(requestId, {jsonrpc: "2.0", error: err, id: requestId}, responses);
+
+			handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 			}
-
-		if(requestId != null)
-			logger.info("  RESPONSE <- " + JSON.stringify(responses[responses.length - 1]));
-		else
-			logger.info("  NO RESPONSE SEND FOR NOTIFICATION");
 		}
+	};
 
+var addResponse = function(requestId, result, responses)
+	{
+	if(requestId != null)																	// Requests send responses
+		{
+		logger.info("  SEND RESPONSE <- " + JSON.stringify(result));
+
+		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		}
+	else																					// but notifications don't and can't send responses
+		logger.info("  NOTIFICATION -x- NO RESPONSE");
+	}
+
+var RPCCallHandled = function(isBatch, responses, onlyNotifications, connectionId)
+	{
 	if(!onlyNotifications && responses.length == 0)
 		responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
 
 	if(responses.length > 0)														// Batch -> [response objects] || Single -> response object
 		sendMessage((isBatch ? responses : responses[0]), connectionId);
-	};
-
-var addResponse = function(requestId, result, responses)
-	{
-	if(requestId != null)															// Notifications don't and can't send responses
-		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
 	}
 
 // Handle incoming return values for a RPC call that we have made previously
