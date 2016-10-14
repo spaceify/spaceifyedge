@@ -32,6 +32,8 @@ RUN n 6.2.2
 
 RUN mkdir -p /var/run/sshd
 
-RUN echo "root:docker123" | chpasswd
+# username: spaceify, password: spaceify123
+RUN useradd -u 12345 -g users -d /home/spaceify -s /bin/bash -p '$1$xyz$YbrofsNE.j8evvfa3Sivo1' spaceify
+RUN usermod -aG sudo spaceify
 
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
