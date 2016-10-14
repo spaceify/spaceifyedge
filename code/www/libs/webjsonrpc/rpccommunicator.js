@@ -254,7 +254,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 			{
 			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
-			if(isNodeJs)
+			if(isNodeJs && !isRealSpaceify)
 				{
 				fibrous.run( function()
 					{
@@ -279,7 +279,13 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 	var request = requests.shift();
 
 	if(!request)
-		RPCCallHandled(isBatch, responses, onlyNotifications, connectionId);
+		{
+		if(!onlyNotifications && responses.length == 0)
+			responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
+
+		if(responses.length > 0)															// Batch -> [response objects] || Single -> response object
+			sendMessage((isBatch ? responses : responses[0]), connectionId);
+		}
 	else
 		{
 		var requestId = (request.hasOwnProperty("id") ? request.id : null);
@@ -288,7 +294,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if(requestId != null)
 			onlyNotifications = false;
 
-		logger.info((requestId ? "  REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{				
@@ -390,23 +396,14 @@ var addResponse = function(requestId, result, responses)
 	{
 	if(requestId != null)																	// Requests send responses
 		{
-		logger.info("  SEND RESPONSE <- " + JSON.stringify(result));
+		logger.info("  RESPONSE <- " + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
 		}
-	else																					// but notifications don't and can't send responses
-		logger.info("  NOTIFICATION -x- NO RESPONSE");
+	//else																					// but notifications don't and can't send responses
+	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
 	}
 
-var RPCCallHandled = function(isBatch, responses, onlyNotifications, connectionId)
-	{
-	if(!onlyNotifications && responses.length == 0)
-		responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
-
-	if(responses.length > 0)														// Batch -> [response objects] || Single -> response object
-		sendMessage((isBatch ? responses : responses[0]), connectionId);
-	}
-	
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
