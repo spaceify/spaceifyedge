@@ -42,4 +42,6 @@ done
 distro=$(sqlite3 /var/lib/spaceify/data/db/spaceify.db "SELECT distribution FROM information;")
 
 printf "\nRemoving spaceify$distro image.\n"
-docker rmi "spaceify$distro" > /dev/null 2>&1 || true
+
+imageid=$(docker images | grep -E "spaceify$distro" | awk -e '{print $3}')
+docker rmi $imageid -f > /dev/null 2>&1 || true
