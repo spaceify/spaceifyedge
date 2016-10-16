@@ -184,7 +184,7 @@ self.runApplication = fibrous( function(appobj)
 				+ "    printf '" + config.APPLICATION_UNINITIALIZED + "'\n" + "\n"
 				+ "fi" + "\n"
 				+ "kill -9 \\\$\\\$" + "\n"
-				+ "\" > /tmp/run.sh && bash /tmp/run.sh \n";
+				+ "\" > /tmp/run.sh && bash /tmp/run.sh 2>&1 | tee /volume/console.log \n";
 
 	var response = dockerHelper.sync.executeCommand(bash, [config.APPLICATION_INITIALIZED, config.APPLICATION_UNINITIALIZED], true);
 
