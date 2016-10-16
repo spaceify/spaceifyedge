@@ -25,7 +25,7 @@ There's an assumption that three network interfaces has been configured:
 
 * `NAT` for Internet access
 * Host-only `vbox0` for communication between host machine (192.168.56.1)
-* Host-only `vbox1` for communication to Spaceify users). (192.168.57.1)
+* Host-only `vbox1` for communication to Spaceify users). (192.168.56.2)
 
 For the network setup details in VirtualBox, see this [guide](https://spaceify.org/wiki/doku.php?id=tutorials:running_spaceify_in_virtualbox).
 
@@ -122,4 +122,3 @@ You can now browse to [http://edge.spaceify.net](http://edge.spaceify.net) with 
 The Spaceify ecosystem was born as a collaborative effort of researchers from Helsinki Institute for Information Technology (HIIT), Aalto University, University of Helsinki and University of Florida. In late 2014 Spaceify was released as an open source project on github under the MIT license. The original Spaceify team continues active development of the ecosystem, but we also invite new developers to join us. A good way to get started is to publish Spaceify packages on the Spaceify package repository! 
 
 More information about Spaceify, repository and packages can be found from [Spaceify's web page](https://spaceify.org).
-
