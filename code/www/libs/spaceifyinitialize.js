@@ -17,7 +17,7 @@ var edgeURL = window.location.protocol + "//edge.spaceify.net/";
 
 self.start = function(getjQuery)
 	{
-	load(edgeURL + "libs/inject/spaceify.min.csv", "application/text", function(str)
+	load(edgeURL + "libs/inject/spaceify.csv", "application/text", function(str)
 		{
 		if(getjQuery && typeof jQuery === "undefined")
 			str = "javascript\tjs/jquery.min.js\t-\tapplication/javascript\t-\n" + str;

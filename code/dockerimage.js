@@ -8,8 +8,8 @@
 
 var Logger = require("./logger");
 var Docker = require("dockerode");
+var fibrous = require("./fibrous");
 var language = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function DockerImage()

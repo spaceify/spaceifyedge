@@ -106,6 +106,12 @@ if (( $current_version < 8 )); then
 
 fi
 
+if (( $current_version < 9 )); then
+
+	sqlite3 $dbs "ALTER TABLE applications ADD COLUMN develop INTEGER DEFAULT 0;"
+
+fi
+
 # ----------
 # ----------
 # ----------

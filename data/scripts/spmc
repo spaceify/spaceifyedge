@@ -34,7 +34,15 @@ _spm ()
 		command=${COMP_WORDS[1]}
 
 		case "$command" in
-			install | publish | source)
+			install)
+				case "$cur" in
+					a*) COMPREPLY=( $( compgen -W 'authenticate' $cur ) ) ;;
+					d*) COMPREPLY=( $( compgen -W 'develop' $cur ) ) ;;
+					f*) COMPREPLY=( $( compgen -W 'force' $cur ) ) ;;
+					 *) _default "authenticate develop force" ;;
+				esac
+			;;
+			publish | source)
 				case "$cur" in
 					a*) COMPREPLY=( $( compgen -W 'authenticate' $cur ) ) ;;
 					f*) COMPREPLY=( $( compgen -W 'force' $cur ) ) ;;

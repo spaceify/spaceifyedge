@@ -13,9 +13,9 @@ var mkdirp = require("mkdirp");
 var Github = require("github");
 var AdmZip = require("adm-zip");
 var Logger = require("./logger");
+var fibrous = require("./fibrous");
 var language = require("./language");
 var Database = require("./database");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var Messaging = require("./messaging");
 var httpStatus = require("./httpstatus");
 var Application = require("./application");
@@ -963,7 +963,7 @@ var install = fibrous( function(manifest, sessionId)
 	var image;
 	var dbApp;
 	var appPath;
-        var volumePath;
+	var volumePath;
 	var application;
 	var information;
 	var dockerContainer;
@@ -1005,7 +1005,7 @@ var install = fibrous( function(manifest, sessionId)
 		// INSTALL APPLICATION AND API FILES TO VOLUME DIRECTORY
 		sendMessage.sync(language.INSTALL_APPLICATION_FILES);
 		volumePath = appPath + sharedValidator.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY;
-		utility.sync.copyDirectory(config.WORK_PATH, volumePath, false, []);								// Copy applications files to volume
+		utility.sync.copyDirectory(config.WORK_PATH, volumePath, false, []);								// Copy application files to volume
 
 		// GENERATE A SPACEIFY CA SIGNED CERTIFICATE FOR THIS APPLICATION
 		sendMessage.sync(language.INSTALL_GENERATE_CERTIFICATE);

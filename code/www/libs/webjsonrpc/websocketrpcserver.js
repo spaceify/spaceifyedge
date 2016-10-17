@@ -101,6 +101,11 @@ self.callRpc = function()
 	communicator.callRpc.apply(this, arguments);
 	}
 
+self.closeConnection = function(connectionId)
+	{
+	communicator.closeConnection(connectionId);
+	}
+
 self.setConnectionListener = function(listener)
 	{
 	connectionListener = (typeof listener == "function" ? listener : null);

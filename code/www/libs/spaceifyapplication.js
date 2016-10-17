@@ -20,7 +20,7 @@ classes.SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyC
 classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
 classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
 classes.SpaceifyService = (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService);
-var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -33,16 +33,12 @@ var utility = new classes.SpaceifyUtility();
 var spaceifyCore = new classes.SpaceifyCore();
 var spaceifyService = new classes.SpaceifyService();
 
-var wwwPath = config.APPLICATION_WWW_PATH;
-var manifestPath = config.APPLICATION_PATH || "";
-var caCrt = config.API_WWW_PATH + config.SPACEIFY_CRT;
-var key = config.APPLICATION_TLS_PATH + config.SERVER_KEY;
-var crt = config.APPLICATION_TLS_PATH + config.SERVER_CRT;
-
 var manifest = null;
 
 var HTTP_PORT = (isRealSpaceify ? 80 : 6080);
 var HTTPS_PORT = (isRealSpaceify ? 443 : 6443);
+
+config.makeRealApplicationPaths();
 
 self.start = function()
 	{
@@ -59,7 +55,7 @@ var start = function(application, options)
 		var service_name;
 
 		try {
-			manifest = utility.sync.loadJSON(manifestPath + config.MANIFEST, true, true);
+			manifest = utility.sync.loadJSON(config.APPLICATION_PATH + config.MANIFEST, true, true);
 
 				// SERVICES -- -- -- -- -- -- -- -- -- -- //
 			if(manifest.provides_services)							// <= SERVERS - PROVIDES SERVICES
@@ -81,10 +77,10 @@ var start = function(application, options)
 				{
 				var opts =	{
 							hostname: config.ALL_IPV4_LOCAL,
-							key: key,
-							crt: crt,
-							caCrt: caCrt,
-							wwwPath: wwwPath,
+							key: config.APPLICATION_TLS_PATH + config.SERVER_KEY,
+							crt: config.APPLICATION_TLS_PATH + config.SERVER_CRT,
+							caCrt: config.API_WWW_PATH + config.SPACEIFY_CRT,
+							wwwPath: config.APPLICATION_WWW_PATH,
 							indexFile: config.INDEX_HTML,
 							serverName: manifest.name + " Server"
 							};

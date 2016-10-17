@@ -14,9 +14,9 @@ var http = require("http");
 var crypto = require("crypto");
 var qs = require("querystring");
 var Logger = require("./logger");
+var fibrous = require("./fibrous");
 var language = require("./language");
 var Messaging = require("./messaging");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyError = require("./spaceifyerror");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -60,6 +60,8 @@ var STATUS = "status";
 
 var AUTH  = "authenticate";
 var AUTH_ = "-a";
+var DEVE  = "develop";
+var DEVE_  = "-d";
 var SPAC  = "spacelet";
 var SPAC_ = "-s";
 var SAND  = "sandboxed";
@@ -75,7 +77,7 @@ var EMPTY = "empty";
 
 var commands = INSTALL + "|" + PUBLISH + "|" + SOURCE + "|" + REMOVE + "|" + START + "|" + STOP + "|" + RESTART + "|" + LIST + "|" + STATES + "|" + REGISTER + "|" + HELP + "|" + VERSION + "|" + STATUS;
 var operRegex = new RegExp("^(" + commands + ")$");
-var options = AUTH + "|" + SPAC + "|" + SAND + "|" + NATI + "|" + VERB + "|" + FORC;
+var options = AUTH + "|" + DEVE + "|" + SPAC + "|" + SAND + "|" + NATI + "|" + VERB + "|" + FORC;
 var optsRegex = new RegExp("^(" + options + ")$");
 
 var p = "│";                    // pipe
@@ -98,6 +100,7 @@ var tee = "┬";                  // tee
 var left = "─";                 // left
 var angle = "└";                // angle
 var middle = "├";               // middle
+
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
@@ -120,6 +123,7 @@ self.start = fibrous( function()
 	var password = "";
 	var openMessaging;
 	var verbose = false;
+	var develop = false;
 	var githubUsername = "";
 	var githubPassword = "";
 	var authenticate = false;
@@ -143,6 +147,8 @@ self.start = fibrous( function()
 
 			if(arg == AUTH || arg == AUTH_)
 				authenticate = true;
+			else if(arg == DEVE || arg == DEVE_)
+				develop = true;
 			else if(arg == VERB || arg == VERB_)
 				verbose = true;
 			else if(arg == FORC || arg == FORC_)
@@ -198,7 +204,7 @@ self.start = fibrous( function()
 
 		// DO THE REQUESTED COMMAND
 		if(command == INSTALL)
-			install.sync(applicationPackage, username, password, cwd, force);
+			install.sync(applicationPackage, username, password, cwd, force, develop);
 		else if(command == REMOVE)
 			remove.sync(applicationPackage);
 		else if(command == START)
@@ -395,9 +401,9 @@ var version = fibrous( function()
 	logger.force(spmParts[4] + ":", "v" + spmParts[5]);
 	});
 
-var install = fibrous( function(applicationPackage, username, password, cwd, force)
+var install = fibrous( function(applicationPackage, username, password, cwd, force, develop)
 	{
-	var result = appManConnection.sync.callRpc("installApplication", [applicationPackage, username, password, cwd, force, sessionId], self);
+	var result = appManConnection.sync.callRpc("installApplication", [applicationPackage, username, password, cwd, force, develop, sessionId], self);
 	exitCode = (result == applicationManager.SUCCESS ? 0 : 1);
 	});
 

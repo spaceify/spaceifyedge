@@ -40,9 +40,9 @@ var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/")
 var classes = {};
 classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
 classes.SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
-classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
 classes.CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer);
-var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
+classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -386,7 +386,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 					rpcMethod.method(...rpcParams, connObj, function(err, data)
 						{
 						if(err)
-							throw(err);
+							throw err;
 						else
 							{
 							addResponse(requestId, data, responses);

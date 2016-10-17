@@ -127,7 +127,7 @@ core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 
 ################## DNS CONFIGURATION #########################################
 
-dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\ndhcp-range=10.0.0.2,10.0.0.254,4h\ndhcp-option=3,10.0.0.1\ndhcp-option=6,10.0.0.1\ndhcp-option=15,edge.spaceify.net\ndhcp-authoritative"
+dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\naddress=/resource.spaceify.net/10.0.0.1\ndhcp-range=10.0.0.2,10.0.0.254,4h\ndhcp-option=3,10.0.0.1\ndhcp-option=6,10.0.0.1\ndhcp-option=15,edge.spaceify.net\ndhcp-authoritative"
 
 #If NetworkManager is installed, configure the dnsmasq that shipped with it
 

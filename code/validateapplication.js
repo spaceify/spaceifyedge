@@ -9,8 +9,9 @@
  */
 
 var mmm = require("mmmagic");
+var fibrous = require("./fibrous");
+var Routines = require("./routines");
 var language  = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -19,6 +20,7 @@ function ValidateApplication()
 {
 var self = this;
 
+var routines = new Routines();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
@@ -390,15 +392,7 @@ self.serviceName = function(value, params)
 
 self.makeUniqueDirectory = function(unique_name, noEndSlash)
 	{ // Make a file system safe directory name: lowercase, allowed characters, can't start or end with /.
-	unique_name = unique_name.toLowerCase();
-	unique_name = unique_name.replace(/[^a-z0-9\/]/g, "/");
-	unique_name = unique_name.replace(/^\/+/, "");
-	unique_name += (unique_name.search(/\/$/) != -1 ? "" : "/");
-
-	if(noEndSlash)
-		unique_name = unique_name.replace(/\/$/, "");
-
-	return unique_name;
+	return routines.makeUniqueDirectory(unique_name, noEndSlash);
 	}
 
 var addError = function(error)

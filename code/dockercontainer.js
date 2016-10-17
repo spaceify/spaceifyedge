@@ -11,8 +11,8 @@
 var events = require("events");
 var Logger = require("./logger");
 var Docker = require("dockerode");
+var fibrous = require("./fibrous");
 var language = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var DockerHelper = require("./dockerhelper");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -49,9 +49,6 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 	var hostPort;
 
 	try	{
-		/*var version = docker.sync.version();
-		console.log(version);*/
-
 		for(var p = 0; p < portCount; p++)
 			{
 			exposed[new String(config.FIRST_SERVICE_PORT + p) + "/tcp"] = {};
