@@ -100,7 +100,7 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	document.getElementById("certIframe").src = network.getEdgeURL(false, false, false) + "/spaceify.crt";
+	document.getElementById("certIframe").src = network.getEdgeURL(false, false, false, true) + "/spaceify.crt";
 	return true;
 	}
 
@@ -108,7 +108,7 @@ self.loadCertificate = function()
 self.showAdminTile = function(callback)
 	{
 	$("#adminUtilities").empty();
-	var evt = new CustomEvent("addTile", {detail: {type: "adminTile", container: "adminUtilities", src: network.getEdgeURL(true, false, false) + "/admin", callback: callback}, bubbles: true, cancelable: true});
+	var evt = new CustomEvent("addTile", {detail: {type: "adminTile", container: "adminUtilities", src: network.getEdgeURL(true, false, false, true) + "/admin", callback: callback}, bubbles: true, cancelable: true});
 	document.body.dispatchEvent(evt);
 	}
 
@@ -161,7 +161,7 @@ self.renderTile = function(manifest, callback)
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
 			if(manifest.isRunning && network.implementsWebServer(manifest))
-				src = network.getEdgeURL(false, true, false) + (!network.isSecure() ? appURL.port : appURL.securePort) + "/" + config.TILEFILE;
+				src = network.getEdgeURL(false, true, false, true) + (!network.isSecure() ? appURL.port : appURL.securePort) + "/" + config.TILEFILE;
 			else
 				src = self.externalResourceURL(manifest.unique_name, config.TILEFILE);
 
@@ -171,7 +171,7 @@ self.renderTile = function(manifest, callback)
 		}
 	else																							// SPACEIFY RENDERS A DEFAULT TILE
 		{
-		var src = network.getEdgeURL(false, false, false) + "/images/icon.png";						// Show default icon or applications custom icon
+		var src = network.getEdgeURL(false, false, false, false) + "/images/icon.png";				// Show default icon or applications custom icon
 
 		if(manifest.images)
 			{
@@ -229,7 +229,7 @@ self.getApplications = function()
 
 self.externalResourceURL = function(unique_name, file)
 	{ // This is implemented exactly the same way in the ecap-spaceify-injector (Injector::getFiles)
-	return network.getEdgeURL(false, false, true) + unique_name + "/" + file;
+	return network.getEdgeURL(false, false, true, false) + unique_name + "/" + file;
 	}
 
 }

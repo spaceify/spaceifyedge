@@ -1,5 +1,5 @@
 "use strict";
-
+ 
 /**
  * Database, 17.1.2014 Spaceify Oy
  * 
@@ -11,8 +11,8 @@
 
 var fs = require("fs");
 var sqlite3 = require("sqlite3");
+var fibrous = require("./fibrous");
 var language = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
 var ValidateApplication = require("./validateapplication");
 var SpaceifyUtility = require("./spaceifyutility");

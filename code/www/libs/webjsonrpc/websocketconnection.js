@@ -201,13 +201,13 @@ var onMessage = function(message)
 			{
 			if (message.type == "utf8")
 				{
-				logger.info("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
+				//logger.info("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
 
 				eventListener.onMessage(message.utf8Data, self);
 				}
 			if (message.type == "binary")
 				{
-				logger.info("WebSocketConnection::onMessage(binary): " + binaryData.length);
+				//logger.info("WebSocketConnection::onMessage(binary): " + binaryData.length);
 
 				eventListener.onMessage(message.binaryData, self);
 				}
@@ -221,7 +221,7 @@ var onMessage = function(message)
 
 var onMessageEvent = function(event)
 	{
-	logger.info("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
+	//logger.info("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
 
 	try	{
 		if (eventListener)

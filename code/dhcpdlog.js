@@ -7,7 +7,7 @@
  */
 
 var PubSub = require("./pubsub");
-var fibrous = require("./lib/fibrous/lib/fibrous");
+var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
 
 function DHCPDLog()

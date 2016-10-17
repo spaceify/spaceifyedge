@@ -9,9 +9,9 @@
  */
 
 var Logger = require("./logger");
+var fibrous = require("./fibrous");
 var Database = require("./database");
 var language = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var Application = require("./application");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -123,11 +123,20 @@ self.run = fibrous( function(application)
 		/*else if(managerType == config.NATIVE)
 			applicationPath = config.NATIVE_PATH;*/
 
+		var fullApiPath = config.SPACEIFY_CODE_PATH;
+		var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
+
 		volumes[config.API_PATH] = {};
 		volumes[config.VOLUME_PATH] = {};
+		volumes[fullApiPath] = {};
+		volumes[fullVolumePath] = {};
 
-		binds = [applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY + ":" + config.VOLUME_PATH + ":rw",
-				 config.SPACEIFY_CODE_PATH + ":" + config.API_PATH + ":ro"];
+		binds = [
+				fullVolumePath + ":" + config.VOLUME_PATH + ":rw",
+				fullVolumePath + ":" + fullVolumePath + ":rw",
+				fullApiPath + ":" + config.API_PATH + ":ro",
+				fullApiPath + ":" + config.SPACEIFY_CODE_PATH + ":ro"
+				];
 
 		dockerContainer = new DockerContainer();
 		application.setDockerContainer(dockerContainer);

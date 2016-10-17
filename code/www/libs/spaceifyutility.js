@@ -27,7 +27,7 @@ if (typeof exports !== "undefined")
 	global.request = require("request");
 	global.spawn = require("child_process").spawn;
 	}
-var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

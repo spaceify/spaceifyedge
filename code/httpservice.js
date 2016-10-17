@@ -8,9 +8,9 @@
 
 var url = require("url");
 var Logger = require("./logger");
+var fibrous = require("./fibrous");
 var language = require("./language");
 var WebServer = require("./webserver");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");

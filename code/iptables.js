@@ -8,7 +8,7 @@
 
 var fs = require("fs");
 var PubSub = require("./pubsub");
-var fibrous = require("./lib/fibrous/lib/fibrous");
+var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 

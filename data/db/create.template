@@ -1,4 +1,4 @@
-CREATE TABLE applications(unique_name TEXT NOT NULL PRIMARY KEY, unique_directory TEXT, docker_image_id TEXT, type TEXT, version TEXT, inject_identifier TEXT DEFAULT NULL, install_datetime TEXT, inject_enabled INTEGER DEFAULT 0, position INTEGER DEFAULT 0);
+CREATE TABLE applications(unique_name TEXT NOT NULL PRIMARY KEY, unique_directory TEXT, docker_image_id TEXT, type TEXT, version TEXT, inject_identifier TEXT DEFAULT NULL, install_datetime TEXT, inject_enabled INTEGER DEFAULT 0, position INTEGER DEFAULT 0, develop INTEGER DEFAULT 0);
 CREATE TABLE provided_services(unique_name TEXT, service_name TEXT, service_type TEXT);
 CREATE TABLE inject_hostnames(unique_name TEXT, inject_hostname TEXT);
 CREATE TABLE inject_files(unique_name TEXT, url_or_path TEXT, directory TEXT DEFAULT NULL, file TEXT, inject_type TEXT, inject_order INTEGER);

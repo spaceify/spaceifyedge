@@ -86,7 +86,7 @@ self.listen = function(opts, callback)
 			var crt = fs.readFileSync(options.crt);
 			var caCrt = fs.readFileSync(options.caCrt, "utf8");
 
-			webServer = https.createServer({ key: key, cert: crt, ca: caCrt}, function(request, response)
+			webServer = https.createServer({ key: key, cert: crt, ca: caCrt }, function(request, response)
 				{
 				response.writeHead(501);
 				response.end("Not implemented");

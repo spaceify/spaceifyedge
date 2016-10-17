@@ -18,7 +18,7 @@ var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/")
 var classes = {};
 classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
 classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
-var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;

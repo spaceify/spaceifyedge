@@ -24,7 +24,7 @@ classes.WebSocketRpcServer = (isNodeJs ? require(apiPath + "websocketrpcserver")
 classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
 classes.SpaceifyNetwork = (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork);
 classes.WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection);
-var fibrous = (isNodeJs ? require(apiPath + "lib/fibrous/lib/fibrous") : function(fn) { return fn; });
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;

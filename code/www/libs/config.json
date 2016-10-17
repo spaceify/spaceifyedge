@@ -25,11 +25,10 @@
   "API_PATH": "/api/",
   "API_WWW_PATH": "/api/www/",
   "API_NODE_MODULES_DIRECTORY": "/api/node_modules",
-  "APPLICATION": "application",
   "APPLICATION_DIRECTORY": "application/",
   "APPLICATION_PATH": "/volume/application/",
-  "APPLICATION_TLS_PATH": "/volume/tls/",
   "APPLICATION_WWW_PATH": "/volume/application/www/",
+  "APPLICATION_TLS_PATH": "/volume/tls/",
 
   "WWW_URL": "edge.spaceify.net/",
   "WWW_DIRECTORY": "www/",
@@ -60,6 +59,7 @@
 
   "EDGE_IP": "10.0.0.1",
   "EDGE_HOSTNAME": "edge.spaceify.net",
+  "RESOURCE_HOSTNAME": "resource.spaceify.net",
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",

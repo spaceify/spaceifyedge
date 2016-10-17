@@ -22,7 +22,7 @@ classes.WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection
 var self = this;
 var logger = new classes.Logger();
 var config = new classes.SpaceifyConfig();
-var communicator = classes.RpcCommunicator();
+var communicator = new classes.RpcCommunicator();
 var connection = new classes.WebSocketConnection();
 
 var ownStream = null;

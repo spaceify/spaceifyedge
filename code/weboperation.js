@@ -6,8 +6,8 @@
  * @class WebOperation
  */
 
+var fibrous = require("./fibrous");
 var language = require("./language");
-var fibrous = require("./lib/fibrous/lib/fibrous");
 var SecurityModel = require("./securitymodel");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
