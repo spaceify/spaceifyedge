@@ -174,7 +174,7 @@ var messageListener = function(message)
 	}
 
 	// EXPOSED JSON-RPC -- -- -- -- -- -- -- -- -- -- //
-var installApplication = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, force, sessionId, connObj)
+var installApplication = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, force, develop, sessionId, connObj)
 	{
 	var start;
 	var answer;
