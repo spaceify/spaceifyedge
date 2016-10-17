@@ -364,7 +364,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 					rpcMethod.method(...rpcParams, connObj, function(err, data)
 						{
 						if(err)
-							throw(err);
+							throw err;
 						else
 							{
 							addResponse(requestId, data, responses);
