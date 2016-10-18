@@ -68,8 +68,8 @@ var start = function(application, options)
 
 			if(manifest.requires_services)							// <= CLIENTS - REQUIRES SERVICES
 				{
-				createRequiredServices.sync(manifest.requires_services, false);
-				createRequiredServices.sync(manifest.requires_services, true);
+				createRequiredServices.sync(manifest.requires_services, 0, false);
+				createRequiredServices.sync(manifest.requires_services, 0, true);
 				}
 
 				// START APPLICATIONS HTTP AND HTTPS WEB SERVERS -- -- -- -- -- -- -- -- -- -- //
@@ -179,10 +179,17 @@ var stop = fibrous( function()
 	spaceifyService.close();									// Close all servers
 	});
 
-var createRequiredServices = function(services, isSecure, callback)
+var createRequiredServices = function(services, position, isSecure, callback)
 	{
-	for(var i = 0; i < services.length; i++)
-		spaceifyService.connect(services[i].service_name, isSecure, (i + 1 != services.length ? null : callback));
+	if(position == services.length)
+		callback();
+	else
+		{
+		spaceifyService.connect(services[position++].service_name, isSecure, function(err, data)
+			{
+			createRequiredServices(services, position, isSecure, callback);
+			});
+		}
 	}
 
 	// METHODS -- -- -- -- -- -- -- -- -- -- //
