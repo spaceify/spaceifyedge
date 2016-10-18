@@ -371,7 +371,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 				}
-			else if(rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods with sync capability
+			else if(rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
 				{
 				result = rpcMethod.method(...rpcParams, connObj);
 
@@ -379,14 +379,18 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 				}
-			else																			// Traditional application callback based methods
+			else																			// Traditional callback based methods
 				{
 				if(requestId != null)															// Request
 					{
 					rpcMethod.method(...rpcParams, connObj, function(err, data)
 						{
 						if(err)
-							throw err;
+							{
+							addError(requestId, err, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
 						else
 							{
 							addResponse(requestId, data, responses);
@@ -405,9 +409,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 			}
 		catch(err)
 			{
-			err = errorc.make(err);															// Make all errors adhere to the SpaceifyError format
-
-			addResponse(requestId, {jsonrpc: "2.0", error: err, id: requestId}, responses);
+			addError(requestId, err, responses);
 
 			handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 			}
@@ -422,8 +424,22 @@ var addResponse = function(requestId, result, responses)
 
 		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
 		}
-	//else																					// but notifications don't and can't send responses
+	//else																					// Notifications can't send responses
 	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	}
+
+var addError = function(requestId, err, responses)
+	{
+	if(requestId != null)																	// Requests send responses
+		{
+		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
+
+		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+
+		responses.push({jsonrpc: "2.0", error: err, id: requestId});
+		}
+	//else																					// Notifications can't send responses
+	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
 	}
 
 // Handle incoming return values for a RPC call that we have made previously
