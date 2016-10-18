@@ -86,7 +86,8 @@ function open(serviceObj, service, isSecure, callback)
 		{
 		connect(service[service_name], serviceObj.port, isSecure, function()
 			{
-			callback(null, service[service_name]);
+			if(typeof callback === "function")
+				callback(null, service[service_name]);
 			});
 		}
 	else
@@ -98,13 +99,17 @@ function open(serviceObj, service, isSecure, callback)
 				if(!service[service_name].getIsOpen())											// Let the automaton get the connection up
 					disconnectionListener(-1, service_name, isSecure);
 
-				return callback(errobj, null);
+				if(typeof callback === "function")
+					callback(errobj, null);
 				}
-
-			connect(service[service_name], serviceObj.port, isSecure, function()
+			else
 				{
-				callback(null, service[service_name]);
-				});
+				connect(service[service_name], serviceObj.port, isSecure, function()
+					{
+					if(typeof callback === "function")
+						callback(null, service[service_name]);
+					});
+				}
 			});
 		}
 	}
@@ -193,7 +198,8 @@ self.listen = fibrous( function(service_name, port, securePort)
 
 	listen.sync(provided[service_name], port, false);
 	listen.sync(providedSecure[service_name], securePort, true);
-	core.sync.registerService(service_name);
+
+	core.sync.registerService(service_name, {port: port, securePort: securePort});
 	});
 
 var listen = fibrous( function(service, port, isSecure)
