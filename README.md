@@ -24,8 +24,8 @@ These instruction apply at least on vanilla Ubuntu 16.04.x server running inside
 There's an assumption that three network interfaces has been configured:
 
 * `NAT` for Internet access
-* Host-only `vbox0` for communication between host machine (192.168.56.1)
-* Host-only `vbox1` for communication to Spaceify users). (192.168.56.2)
+* Host-only `vbox0` for communication between host machine (192.168.56.1, no DHCP)
+* Host-only `vbox1` for communication to Spaceify users). (192.168.57.1, no DHCP)
 
 For the network setup details in VirtualBox, see this [guide](https://spaceify.org/wiki/doku.php?id=tutorials:running_spaceify_in_virtualbox).
 
@@ -39,9 +39,13 @@ For the network setup details in VirtualBox, see this [guide](https://spaceify.o
 ```
 sudo nano /etc/network/interface
 ```
-and add the following lines there:
+and add/change the following lines there:
 ```
-# Virtual machine interface
+# NAT Internet access
+auto eth0
+iface eth0 inet dhcp
+
+# Virtual machine host communication
 auto eth1
 iface eth1 inet static 
 address 192.168.56.2
