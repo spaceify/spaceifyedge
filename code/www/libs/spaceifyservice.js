@@ -183,7 +183,6 @@ var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, se
 
 self.getRequiredService = function(service_name)
 	{
-console.log("--------------------------------------------", required);
 	return (required[service_name] ? required[service_name] : null);
 	}
 
