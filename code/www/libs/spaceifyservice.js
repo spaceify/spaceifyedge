@@ -50,6 +50,10 @@ var crt = config.APPLICATION_TLS_PATH + config.SERVER_CRT;
 
 var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
 
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
 	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
 self.connect = function(serviceObj, isSecure, callback)
 	{ // serviceObj = object (service object) or string (service name)
@@ -73,6 +77,7 @@ self.connect = function(serviceObj, isSecure, callback)
 
 function open(serviceObj, service, isSecure, callback)
 	{
+	var port;
 	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
 
 	if(!service[service_name])
@@ -84,7 +89,9 @@ function open(serviceObj, service, isSecure, callback)
 
 	if(typeof serviceObj === "object")
 		{
-		connect(service[service_name], serviceObj.port, isSecure, function()
+		port = (!isSecure ? serviceObj.port : serviceObj.securePort);
+
+		connect(service[service_name], port, isSecure, function()
 			{
 			if(typeof callback === "function")
 				callback(null, service[service_name]);
@@ -104,7 +111,9 @@ function open(serviceObj, service, isSecure, callback)
 				}
 			else
 				{
-				connect(service[service_name], serviceObj.port, isSecure, function()
+				port = (!isSecure ? serviceObj.port : serviceObj.securePort);
+
+				connect(service[service_name], port, isSecure, function()
 					{
 					if(typeof callback === "function")
 						callback(null, service[service_name]);
@@ -174,6 +183,7 @@ var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, se
 
 self.getRequiredService = function(service_name)
 	{
+console.log("--------------------------------------------", required);
 	return (required[service_name] ? required[service_name] : null);
 	}
 
@@ -187,8 +197,12 @@ self.keepConnectionUp = function(val)
 	keepConnectionUp = (typeof val == "boolean" ? val : false);
 	}
 
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
 	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
-self.listen = fibrous( function(service_name, port, securePort)
+self.listen = fibrous( function(service_name, unique_name, port, securePort)
 	{
 	if(!provided[service_name])																// Create the connection objects
 		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
@@ -199,7 +213,7 @@ self.listen = fibrous( function(service_name, port, securePort)
 	listen.sync(provided[service_name], port, false);
 	listen.sync(providedSecure[service_name], securePort, true);
 
-	core.sync.registerService(service_name, {port: port, securePort: securePort});
+	core.sync.registerService(service_name, {unique_name: unique_name, port: port, securePort: securePort});
 	});
 
 var listen = fibrous( function(service, port, isSecure)
