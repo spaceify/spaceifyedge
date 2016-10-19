@@ -32,13 +32,13 @@ var applications = {};
 
 self.install = fibrous( function(unique_name, throws)
 	{
-	var dbApp;
+	var dbApplication;
 	var application = null;
 
 	try	{
-		dbApp = database.sync.getApplication(unique_name);
+		dbApplication = database.sync.getApplication(unique_name);
 
-		application = build.sync(dbApp.docker_image_id, dbApp.unique_directory, dbApp.unique_name);
+		application = build.sync(dbApplication);
 		}
 	catch(err)
 		{
@@ -53,7 +53,7 @@ self.install = fibrous( function(unique_name, throws)
 	return true;
 	});
 
-var build = fibrous( function(docker_image_id, unique_directory, unique_name)
+var build = fibrous( function(dbApplication)
 	{
 	var manifest;
 	var application = null;
@@ -63,14 +63,14 @@ var build = fibrous( function(docker_image_id, unique_directory, unique_name)
 		applicationPath = config.SPACELETS_PATH;
 	else if(managerType == config.SANDBOXED)
 		applicationPath = config.SANDBOXED_PATH;
-	/*else if(managerType == config.NATIVE)
-		applicationPath = config.NATIVE_PATH;*/
+	else if(managerType == config.NATIVE)
+		applicationPath = config.NATIVE_PATH;
 
-	if((manifest = utility.sync.loadJSON(applicationPath + unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
-		throw language.E_BUILD_READ_MANIFEST_FAILED.preFmt("Manager::build", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": unique_name});
+	if((manifest = utility.sync.loadJSON(applicationPath + dbApplication.unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
+		throw language.E_BUILD_READ_MANIFEST_FAILED.preFmt("Manager::build", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": dbApplication.unique_name});
 
-	application = new Application(manifest);
-	application.setDockerImageId(docker_image_id);
+	application = new Application(manifest, dbApplication.develop);
+	application.setDockerImageId(dbApplication.docker_image_id);
 	add(application);
 
 	return application;
@@ -89,7 +89,7 @@ self.start = fibrous( function(unique_name)
 		if(!application.isInitialized())
 			{
 			throw language.E_START_INIT_FAILED.preFmt("Manager::start", {	"~err": application.getInitializationError(), 
-																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.managerType]});
+																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
 			}
 
 		startObject = { providesServices: application.getProvidesServices() };
@@ -116,46 +116,54 @@ self.run = fibrous( function(application)
 		if(application.isRunning())
 			return true;
 
-		if(managerType == config.SPACELET)
-			applicationPath = config.SPACELETS_PATH;
-		else if(managerType == config.SANDBOXED)
-			applicationPath = config.SANDBOXED_PATH;
-		/*else if(managerType == config.NATIVE)
-			applicationPath = config.NATIVE_PATH;*/
+		if(application.isDevelop())
+			return false;
 
-		var fullApiPath = config.SPACEIFY_CODE_PATH;
-		var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
-
-		volumes[config.API_PATH] = {};
-		volumes[config.VOLUME_PATH] = {};
-		volumes[fullApiPath] = {};
-		volumes[fullVolumePath] = {};
-
-		binds = [
-				fullVolumePath + ":" + config.VOLUME_PATH + ":rw",
-				fullVolumePath + ":" + fullVolumePath + ":rw",
-				fullApiPath + ":" + config.API_PATH + ":ro",
-				fullApiPath + ":" + config.SPACEIFY_CODE_PATH + ":ro"
-				];
-
-		dockerContainer = new DockerContainer();
-		application.setDockerContainer(dockerContainer);
-		dockerContainer.sync.startContainer(application.getProvidesServicesCount(), application.getDockerImageId(), volumes, binds);
-
-		application.createRuntimeServices(dockerContainer.getPublicPorts(), dockerContainer.getIpAddress());
-
-		response = dockerContainer.sync.runApplication(application);			// [0] = output from the app, [1] = initialization status
-
-		if(response[1] == config.APPLICATION_UNINITIALIZED)
+		if(managerType == config.SPACELET || managerType == config.SANDBOXED)
 			{
-			matches = /;;(.+)::/.exec(response[0]);								// extract error string from the output
-			application.setInitialized(false, matches[1].trim());
-			self.sync.stop(application.getUniqueName());
-			}
-		else
-			application.setInitialized(true, "");
+			if(managerType == config.SPACELET)
+				applicationPath = config.SPACELETS_PATH;
+			else if(managerType == config.SANDBOXED)
+				applicationPath = config.SANDBOXED_PATH;
 
-		application.setRunningState(application.isInitialized());
+			var fullApiPath = config.SPACEIFY_CODE_PATH;
+			var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
+
+			volumes[config.API_PATH] = {};
+			volumes[config.VOLUME_PATH] = {};
+			volumes[fullApiPath] = {};
+			volumes[fullVolumePath] = {};
+
+			binds = [
+					fullVolumePath + ":" + config.VOLUME_PATH + ":rw",
+					fullVolumePath + ":" + fullVolumePath + ":rw",
+					fullApiPath + ":" + config.API_PATH + ":ro",
+					fullApiPath + ":" + config.SPACEIFY_CODE_PATH + ":ro"
+					];
+
+			dockerContainer = new DockerContainer();
+			application.setDockerContainer(dockerContainer);
+			dockerContainer.sync.startContainer(application.getProvidesServicesCount(), application.getDockerImageId(), volumes, binds);
+
+			application.createRuntimeServices(dockerContainer.getPublicPorts(), dockerContainer.getIpAddress());
+
+			response = dockerContainer.sync.runApplication(application);			// [0] = output from the app, [1] = initialization status
+
+			if(response[1] == config.APPLICATION_UNINITIALIZED)
+				{
+				matches = /;;(.+)::/.exec(response[0]);								// extract error string from the output
+				application.setInitialized(false, matches[1].trim());
+				self.sync.stop(application.getUniqueName());
+				}
+			else
+				application.setInitialized(true, "");
+
+			application.setRunningState(application.isInitialized());
+			}
+		else //if(managerType == config.NATIVE)
+			{
+			application.setRunningState(true);
+			}
 		}
 	catch(err)
 		{
@@ -171,8 +179,15 @@ self.stop = fibrous( function(unique_name)
 
 	if(application)
 		{
-		if((dockerContainer = application.getDockerContainer()) != null)
-			dockerContainer.sync.stopContainer(application);
+		if(managerType == config.SPACELET || managerType == config.SANDBOXED)
+			{
+			if((dockerContainer = application.getDockerContainer()) != null)
+				dockerContainer.sync.stopContainer(application);
+			}
+		else //if(managerType == config.NATIVE)
+			{
+			
+			}
 
 		application.setRunningState(false);
 		}

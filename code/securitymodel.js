@@ -383,9 +383,9 @@ var matchOrigin = function(origin, hostname)
 	}
 
 	// REGISTER, UNREGISTER, GET SERVICES -- -- -- -- -- -- -- -- -- -- //
-self.registerService = function(application, service_name)
+self.registerService = function(application, service_name, ports)
 	{
-	return application.registerService(service_name, true);
+	return application.registerService(service_name, ports, true);
 	}
 
 self.unregisterService = function(application, service_name)

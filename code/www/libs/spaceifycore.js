@@ -47,9 +47,9 @@ self.startSpacelet = function(unique_name, callback)
 		});
 	}
 
-self.registerService = function(service_name, callback)
+self.registerService = function(service_name, ports, callback)
 	{
-	call("registerService", [service_name], useSecure, callback);
+	call("registerService", [service_name, ports], useSecure, callback);
 	}
 
 self.unregisterService = function(service_name, callback)

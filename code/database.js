@@ -135,7 +135,7 @@ self.getApplications = fibrous( function(type)
 		}
 	});
 
-self.insertApplication = fibrous( function(manifest)
+self.insertApplication = fibrous( function(manifest, develop)
 	{
 	var max;
 	var params;
@@ -150,9 +150,9 @@ self.insertApplication = fibrous( function(manifest)
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
 		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
-		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1];
+		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
-		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
+		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
 		addProvidedServices.sync(manifest);
 

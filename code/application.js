@@ -10,7 +10,7 @@ var SpaceifyConfig = require("./spaceifyconfig");
 var ValidateApplication = require("./validateapplication");
 var SpaceifyUtility = require("./spaceifyutility");
 
-function Application(manifest)
+function Application(manifest, develop)
 {
 var self = this;
 
@@ -229,13 +229,20 @@ self.getRuntimeService = function(service_name, unique_name)
 	return null;
 	}
 
-self.registerService = function(service_name, state)
+self.registerService = function(service_name, ports, state)
 	{ // Returns runtime services when successfully registered/unregistered, null if no such service
 	for(var s = 0; s < runtimeServices.length; s++)
 		{
 		if(runtimeServices[s].service_name == service_name)
 			{
-			runtimeServices[s].isRegistered = state;						// false=unregistered, true=registered
+			runtimeServices[s].isRegistered = state;						// false = unregistered, true = registered
+
+			if(ports)														// native application and develop mode application can set its ports
+				{
+				runtimeServices[s].port = ports.port;
+				runtimeServices[s].securePort = ports.securePort;
+				}
+
 			return runtimeServices[s];
 			}
 		}
@@ -257,6 +264,11 @@ self.isInitialized = function()
 self.getInitializationError = function()
 	{
 	return initializationError;
+	}
+
+self.isDevelop = function()
+	{
+	return (develop == 0 ? false : true);
 	}
 
 }

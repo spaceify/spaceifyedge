@@ -159,16 +159,20 @@ var disconnectionListener = function(connectionId, serverId, isSecure)
 	}
 
 	// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
-var registerService = fibrous( function(service_name, connObj)
+var registerService = fibrous( function(service_name, ports, connObj)
 	{
-	// ALLOW REGISTRATION FROM APPLICATIONS ONLY - STARTED CONTAINERS (APPLICATIONS) HAVE AN IP THAT IDENTIFIES THEM
+	// ALLOW REGISTRATION ONLY FROM APPLICATIONS AND EDGE
 	var applicationIp = get("getApplicationByIp", connObj.remoteAddress);
 
-	if(!applicationIp)
+	if(!applicationIp && !securityModel.isLocalIP(connObj.remoteAddress))
 		throw language.E_REGISTER_SERVICE_UNKNOWN_ADDRESS.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
 
-	// APPLICATION CAN REGISTER ONLY ITS OWN SERVICES = SERVICE NAME FOUND IN ITS SERVICES
-	var service = securityModel.registerService(applicationIp, service_name);
+	// APPLICATIONS RUNNING IN DOCKER CONTAINERS CAN NOT REGISTER SERVICES WITH PORTS
+	if(applicationIp)
+		ports = null;
+
+	// APPLICATIONS CAN REGISTER ONLY THEIR OWN SERVICES = SERVICE NAME FOUND IN ITS SERVICES
+	var service = securityModel.registerService((applicationIp ? applicationIp : connObj.remoteAddress), service_name, ports);
 	if(!service)
 		throw language.E_REGISTER_SERVICE_UNKNOWN_SERVICE_NAME.preFmt("Core::registerService", {"~name": service_name});
 

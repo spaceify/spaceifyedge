@@ -224,6 +224,7 @@ var language =
 	"PACKAGE_STOPPED": "~type stopped.",
 	"PACKAGE_REMOVING": "Removing ~type ~name:",
 	"PACKAGE_STARTING": "Starting ~type ~name.",
+	"PACKAGE_DEVELOP": "The ~name ~type is installed in develop mode and is not started. Start it manually.",
 	"PACKAGE_STARTED": "~type started.",
 	"PACKAGE_RESTARTED": "~type restarted.",
 	"PACKAGE_ALREADY_STOPPED": "~type ~name is already stopped.",

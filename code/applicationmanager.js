@@ -255,7 +255,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				}
 
 			// Install the application
-			install.sync(manifest, sessionId);
+			install.sync(manifest, develop, sessionId);
 
 			// Start applications in reverse order they were installed
 			startOrder.push({unique_name: manifest.unique_name, type: manifest.type});
@@ -333,12 +333,14 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				{
 				start = startOrder.pop();
 
-				if(start.type != config.SPACELET)
+				if(start.type != config.SPACELET && !develop)
 					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
+				else if(develop)														// Show this message for all the package types
+					sendMessage.sync(utility.replace(language.PACKAGE_DEVELOP, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 
-				coreConnection.sync.callRpc("installApplication", [start.unique_name, start.type, sessionId, true], self);
+				coreConnection.sync.callRpc("installApplication", [start.unique_name, start.type, develop, sessionId, true], self);
 
-				if(start.type != config.SPACELET)
+				if(start.type != config.SPACELET && !develop)
 					{
 					coreConnection.sync.callRpc("startApplication", [start.unique_name, sessionId, true], self);
 						
@@ -958,7 +960,7 @@ var getLocalPublishDirectory = fibrous( function(applicationPackage)
 	return config.WORK_PATH + config.PUBLISH_ZIP;
 	});
 
-var install = fibrous( function(manifest, sessionId)
+var install = fibrous( function(manifest, develop, sessionId)
 	{
 	var image;
 	var dbApp;
@@ -972,7 +974,7 @@ var install = fibrous( function(manifest, sessionId)
 	var customDockerImage = (typeof manifest.docker_image != "undefined" && manifest.docker_image == true ? true : false);
 
 	try {
-		application = new Application(manifest);
+		application = new Application(manifest, develop);
 
 		if(manifest.type == config.SPACELET)
 			appPath = config.SPACELETS_PATH;
@@ -1029,7 +1031,7 @@ var install = fibrous( function(manifest, sessionId)
 		// INSERT/UPDATE APPLICATION DATA TO DATABASE - FINALIZE INSTALLATION
 		sendMessage.sync(language.INSTALL_UPDATE_DATABASE);
 
-		database.sync.insertApplication(manifest);
+		database.sync.insertApplication(manifest, develop);
 
 		database.sync.commit();
 
