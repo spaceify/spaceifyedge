@@ -63,7 +63,7 @@ var start = function(application, options)
 				var services = manifest.provides_services;
 
 				for(var i = 0; i < services.length; i++)
-					spaceifyService.sync.listen(services[i].service_name, config.FIRST_SERVICE_PORT + i, config.FIRST_SERVICE_PORT_SECURE + i);
+					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, config.FIRST_SERVICE_PORT + i, config.FIRST_SERVICE_PORT_SECURE + i);
 				}
 
 			if(manifest.requires_services)							// <= CLIENTS - REQUIRES SERVICES
