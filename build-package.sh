@@ -3,6 +3,9 @@
 # Build Spaceify debian package
 # Spaceify Oy 2013
 
+printf "\n\e[4mRetrieving git submodule(s)\e[0m\n"
+git submodule update --init --recursive
+
 printf "\n\e[4mBuilding Spaceify debian package\e[0m\n"
 
 # ----------
