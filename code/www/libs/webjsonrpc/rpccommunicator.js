@@ -343,7 +343,10 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 			if(rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
 				{
-				result = rpcMethod.method.sync(...rpcParams, connObj);
+				//result = rpcMethod.method.sync(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.sync.apply(rpcMethod.object, rpcParams);
 
 				addResponse(requestId, result, responses);
 
@@ -351,7 +354,10 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 				}
 			else if(rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
 				{
-				result = rpcMethod.method(...rpcParams, connObj);
+				//result = rpcMethod.method(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.apply(rpcMethod.object, rpcParams);
 
 				addResponse(requestId, result, responses);
 
@@ -361,7 +367,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 				{
 				if(requestId != null)															// Request
 					{
-					rpcMethod.method(...rpcParams, connObj, function(err, data)
+					/*rpcMethod.method(...rpcParams, connObj, function(err, data)
 						{
 						if(err)
 							{
@@ -375,11 +381,20 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 							}
+						});*/
+
+					rpcParams.push(connObj, function(err, data)
+						{
+						callbackReturns(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId);
 						});
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
 					}
 				else																			// Notification
 					{
-					rpcMethod.method(...rpcParams, connObj, null);
+					//rpcMethod.method(...rpcParams, connObj, null);
+
+					rpcParams.push(connObj);
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
 
 					handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 					}
@@ -393,6 +408,21 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 			}
 		}
 	};
+
+var callbackReturns = function(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId)
+	{
+	if(err)
+		{
+		addError(requestId, err, responses);
+
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	else
+		{
+		addResponse(requestId, data, responses);
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	}
 
 var addResponse = function(requestId, result, responses)
 	{
