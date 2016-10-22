@@ -64,7 +64,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			password = operation.password || "";
 
 			connect.sync();
-			data = secureConnection.sync.callRpc("installApplication", [operation.package, username, password, null, force, userData.sessionId], self);
+			data = secureConnection.sync.callRpc("installApplication", [operation.package, username, password, null, force, false, userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "removeApplication" && isSecure && userData.sessionId)

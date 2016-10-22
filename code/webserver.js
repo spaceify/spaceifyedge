@@ -426,7 +426,7 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 	// HEADER -- -- -- -- -- -- -- -- -- -- //
 	headers = [];
 	headers.push(["Set-Cookie", "locale=" + locale + "; Path=/"]);
-	headers.push(["Set-Cookie", sessions[sessiontoken].cookie + "; Path=/"]);
+	headers.push(["Set-Cookie", sessions[sessiontoken].cookie]);
 
 	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
 	if(!options.isSecure && isSecurePage)												// Redirect secure pages to secure server
@@ -568,7 +568,7 @@ var createSession = function(Domain, Path)
 	shasum.update( utility.bytesToHexString(crypto.randomBytes(16)) );
 	var sessiontoken = shasum.digest("hex").toString();
 
-	var cookie = SESSIONTOKEN + "=" + sessiontoken;// + "; Path=" + Path + "; Domain=" + Domain + "; HttpOnly";
+	var cookie = SESSIONTOKEN + "=" + sessiontoken + "; Path=" + Path;// + "; Domain=" + Domain + "; HttpOnly";
 	if(options.isSecure)
 		cookie += "; Secure";
 

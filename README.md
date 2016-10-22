@@ -24,8 +24,8 @@ These instruction apply at least on vanilla Ubuntu 16.04.x server running inside
 There's an assumption that three network interfaces has been configured:
 
 * `NAT` for Internet access
-* Host-only `vbox0` for communication between host machine (192.168.56.1, no DHCP)
-* Host-only `vbox1` for communication to Spaceify users). (192.168.57.1, no DHCP)
+* Host-only `vbox0` for communication between host machine (192.168.56.1)
+* Host-only `vbox1` for communication to Spaceify users). (192.168.56.2)
 
 For the network setup details in VirtualBox, see this [guide](https://spaceify.org/wiki/doku.php?id=tutorials:running_spaceify_in_virtualbox).
 
@@ -39,13 +39,9 @@ For the network setup details in VirtualBox, see this [guide](https://spaceify.o
 ```
 sudo nano /etc/network/interface
 ```
-and add/change the following lines there:
+and add the following lines there:
 ```
-# NAT Internet access
-auto eth0
-iface eth0 inet dhcp
-
-# Virtual machine host communication
+# Virtual machine interface
 auto eth1
 iface eth1 inet static 
 address 192.168.56.2
@@ -103,7 +99,7 @@ sudo apt-get install -f
 
 3.2. Danted SOCKS proxy is still missing from this version so it needs to be installed separately
 ```
-sudo apt-get install dante-server
+sudo apt-get install danted
 sudo cp data/scripts/danted.conf /etc/danted.conf
 sudo service danted restart
 ```
