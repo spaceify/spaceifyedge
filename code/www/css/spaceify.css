@@ -2,6 +2,7 @@
 body {
 	margin: 0;
 	padding: 0;
+	background-color: #5fc4b4;
 }
 
 .edgeBody {
@@ -51,7 +52,9 @@ a.edgeTileLink:link, a.edgeTileLink:visited, a.edgeTileLink:hover, a.edgeTileLin
 	height: 148px;
 	padding: 0;
 	margin: 0px 10px 10px 0px;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 3px 8px rgba(0, 0, 0, 0.2);
+	border: solid 1px #ddd;
+	border-radius: 5px;
+	background-color: #fff;
 }
 .edgeTile.pointer {
 	cursor: pointer;
@@ -279,3 +282,119 @@ a.edgeTileLink:link, a.edgeTileLink:visited, a.edgeTileLink:hover, a.edgeTileLin
 	padding: 0;
 }
 /* t, r, b, l */
+
+#top_bar {
+  background-color: #f2f2f2;
+  width: 100%;
+  height: 80px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+#logolink {
+  float: left;
+  margin-left: 50px;
+}
+
+#appstorelogo {
+  float: left;
+  margin-left: 50px;
+  width: 115px;
+  height: 80px;
+}
+
+#appstorelogo img {
+  display:block;
+  margin:auto;
+}
+
+#logoname {
+  font-family: 'Roboto Light', sans-serif;
+  float: left;
+  padding-top: 19px;
+  padding-bottom: 0px;
+  font-size: 40px;
+  padding-left: 15px;
+  color: #1ca7ce;
+}
+
+.large_background_footer {
+  width: 100%;
+  height: 10px;
+  background-color: #1aa8ce;
+  padding: 0px;
+  margin: 0px;
+}
+
+#content_container {
+  width: 100%;
+  font-family: 'Roboto Light', sans-serif;
+  background-color: #fff;
+  margin: 0px;
+  padding: 0px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.horizontalForContent {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	background-color: #fff;
+}
+
+#footer {
+  font-family: 'Roboto Light', sans-serif;
+  font-size: 1.1em;
+  line-height: 1.7em;
+  width: 100%;
+  color: #fff;
+  box-sizing: border-box;
+  padding: 10px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+#footer img {
+  margin-right: 10px;
+}
+
+#footer .section_w30 {
+  width: 30%;
+  float: left;
+  height: 40px;
+  line-height: 40px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+#footer .section_w35 {
+  width: 35%;
+  float: left;
+  height: 40px;
+  line-height: 40px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+#footer .smaller {
+  font-size: 1em;
+  line-height: 1.6em;
+  color: #003b47;
+}
+
+#footer .footerContentLeft {
+  float: left;
+  padding: 0px;
+  padding-left: 20px;
+}
+
+#footer .footerContentRight {
+  float: right;
+  padding: 0px;
+  padding-right: 20px;
+}

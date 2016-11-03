@@ -1,6 +1,9 @@
 <!doctype html>
 <html ng-app-spaceify>
-	<head head-directive>
+		<head head-directive>
+		<link rel="stylesheet" href="fonts/roboto/roboto.css">
+		<link rel="stylesheet" href="css/skeleton/normalize.css">
+		<link rel="stylesheet" href="css/skeleton/skeleton.css">
 		<script src="app/storage.js"></script>
 		<script src="js/angular-1.5.3.min.js"></script>
 		<script src="app/spaceify.js"></script>
@@ -116,29 +119,55 @@
 
 	<body class="edgeBody" id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
 
-		<!-- VIEW -->
-		<the-tiles></the-tiles>
+		<div id="top_bar" class="top_bar">
+			<a id="logolink" class="logolink" routerLink="/intro"><img id="appstorelogo" class="appstorelogo" src="images/icon-80p.png" alt="" /></a>
+			<div id="logoname" class="logoname">Spaceify Edge</div>
+		</div>
+		<div class="large_background_footer">&nbsp;</div>
 
-		<h4 class="edgeH4" id="spaceletHeader" style="display: none;">{{ getString("spacelets") }}</h4>
-		<div class="tiles" id="spacelet" style="display: none;"></div>
-		<div class="breaker"></div>
+		<div id="content_container">
+			<div class="container">
+				<div class="row">
+					<div class="twelve columns">
 
-		<h4 class="edgeH4" id="sandboxedHeader" style="display: none;">{{ getString("sandboxed") }}</h4>
-		<div class="tiles" id="sandboxed" style="display: none;"></div>
-		<div class="breaker"></div>
+						<!-- VIEW -->
+						<the-tiles></the-tiles>
 
-		<h4 class="edgeH4" id="nativeHeader" style="display: none;">{{ getString("native") }}</h4>
-		<div class="tiles" id="native" style="display: none;"></div>
-		<div class="breaker"></div>
+						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString("spacelets") }}</h5>
+						<div class="tiles" id="spacelet" style="display: none;"></div>
+						<div class="breaker"></div>
 
-		<h4 class="edgeH4" id="userUtilitiesHeader" style="display: none;">{{ getString("user_utilities") }}</h4>
-		<div class="tiles" id="userUtilities" style="display: none;"></div>
-		<div class="breaker"></div>
+						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString("sandboxed") }}</h5>
+						<div class="tiles" id="sandboxed" style="display: none;"></div>
+						<div class="breaker"></div>
 
-		<h4 class="edgeH4" id="adminUtilitiesHeader" style="display: none;">{{ getString("admin_utilities") }}</h4>
-		<div class="tiles" id="adminUtilities" style="display: none;"></div>
-		<div class="breaker"></div>
+						<h5 class="edgeH5" id="nativeHeader" style="display: none;">{{ getString("native") }}</h5>
+						<div class="tiles" id="native" style="display: none;"></div>
+						<div class="breaker"></div>
 
-		<iframe id="certIframe" src="" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString("user_utilities") }}</h5>
+						<div class="tiles" id="userUtilities" style="display: none;"></div>
+						<div class="breaker"></div>
+
+						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString("admin_utilities") }}</h5>
+						<div class="tiles" id="adminUtilities" style="display: none;"></div>
+						<div class="breaker"></div>
+
+						<iframe id="certIframe" src="" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="footer" class="footer">
+			<div class="section_w70">
+				<div class="footerContentLeft smaller">
+					<img class="floatLeft" id="32pxc" src="./images/by-nc-nd_eu.png" width="91" height="32">
+					<span class="floatLeft">Copyright &copy; 2014-2016 Spaceify.org</span>
+				</div>
+			</div>
+		</div>
+
 	</body>
 </html>
