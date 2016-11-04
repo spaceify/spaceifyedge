@@ -78,7 +78,6 @@ rm -r "$dst/code/node_modules" > /dev/null 2>&1 || true
 rm "$dst/code/www/spaceify.crt" > /dev/null 2>&1 || true
 chmod -R 0644 "$dst/code" > /dev/null 2>&1 || true
 rm "$dst/code/test*" > /dev/null 2>&1 || true
-sed -i 's/spaceify\.csv/spaceify\.min\.csv/g' "$dst/code/www/libs/spaceifyinitialize.js"
 
 # ----------
 # ----------

@@ -1,12 +1,32 @@
 <!doctype html>
 <html ng-app-spaceify>
-		<head head-directive>
+	<head body-directive>
+		<!-- -->
+		<meta charset="utf-8">
+		<meta name="product" content="Spaceify">
+		<meta name="author" content="Spaceify Oy">
+		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+		<link href="css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<!-- REMOTE >>>>>>>>>>
+		<link sp_href="css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<<<<<<<<<< REMOTE -->
 		<link rel="stylesheet" href="fonts/roboto/roboto.css">
 		<link rel="stylesheet" href="css/skeleton/normalize.css">
 		<link rel="stylesheet" href="css/skeleton/skeleton.css">
-		<script src="app/storage.js"></script>
-		<script src="js/angular-1.5.3.min.js"></script>
-		<script src="app/spaceify.js"></script>
+
+		<title ng-bind="$root.getString('title')">Loading...</title>
+		<!-- -->
+
+		<!-- -->
+		<script src="js/spaceify.edge.js"></script>
+		<!-- REMOTE >>>>>>>>>>
+		<script src="js/spaceify.loader.js" defer></script>
+		<script sp_src="js/spaceify.edge.js"></script>
+		<<<<<<<<<< REMOTE -->
+		<!-- -->
 
 		<script>
 		var net = null;
@@ -14,7 +34,7 @@
 		var sync = null;
 		var config = null;
 
-		function pageReady()
+		function angularReady()
 			{
 			window.spaceifyCache = new SpaceifyCache();
 
@@ -23,43 +43,39 @@
 			config = new SpaceifyConfig();
 			sync = new SpaceifySynchronous();
 
-			sync.waterFall(
-				[
-				{object: core, method: net.showInstalledApplications, params: [null], type: "async"}
-				],
-				function()												// finally
-					{
-					var apps = net.getApplications();
+			net.showInstalledApplications(function()
+				{
+				var apps = net.getApplications();
 
-					$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
-					$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
-					$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
-					$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
+				$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+				$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+				$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+				$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
 
-					jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader").css("display", "block");
+				jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader, #edgeBody").css("display", "block");
 
-					core.setEventListeners(	[
-						config.EVENT_SPACELET_INSTALLED,
-						config.EVENT_SPACELET_REMOVED,
-						config.EVENT_SANDBOXED_INSTALLED,
-						config.EVENT_SANDBOXED_REMOVED,
-						config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
-						config.EVENT_SANDBOXED_DEBIAN_REMOVED,
-						config.EVENT_NATIVE_DEBIAN_INSTALLED,
-						config.EVENT_NATIVE_DEBIAN_REMOVED
-						],
-						[
-						spaceletInstalled,
-						spaceletRemoved,
-						sandboxedInstalled,
-						sandboxedRemoved,
-						sandboxedDebianInstalled,
-						sandboxedDebianRemoved,
-						nativeDebianInstalled,
-						nativeDebianRemoved
-						],
-						this, null, function(err, data, id, ms) { });
-					});
+				core.setEventListeners(	[
+					config.EVENT_SPACELET_INSTALLED,
+					config.EVENT_SPACELET_REMOVED,
+					config.EVENT_SANDBOXED_INSTALLED,
+					config.EVENT_SANDBOXED_REMOVED,
+					config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
+					config.EVENT_SANDBOXED_DEBIAN_REMOVED,
+					config.EVENT_NATIVE_DEBIAN_INSTALLED,
+					config.EVENT_NATIVE_DEBIAN_REMOVED
+					],
+					[
+					spaceletInstalled,
+					spaceletRemoved,
+					sandboxedInstalled,
+					sandboxedRemoved,
+					sandboxedDebianInstalled,
+					sandboxedDebianRemoved,
+					nativeDebianInstalled,
+					nativeDebianRemoved
+					],
+					this, null, function(err, data, id, ms) { });
+				});
 			}
 
 			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
@@ -189,7 +205,6 @@
 
 						</div>
 						<div class="breaker"></div>
-
 
 						<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
 						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString('admin_utilities') }}</h5>
