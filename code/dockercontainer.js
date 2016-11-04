@@ -26,16 +26,16 @@ var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
 
+var exposed;
+var bindings;
+var portOrder;
+var container;
+var containerId;
+var containerIp;
+var inspectedData;
+var containerPorts;
 //var PortSpecs = [];
-var exposed = {};
-var bindings = {};
-var portOrder = [];
-var container = null;
-var containerId = null;
-var containerIp = null;
-var envPorts = "";
-var inspectedData = {};
-var containerPorts = [];
+// Execute initializeContainer();
 
 var login = "root";
 var password ="docker123";
@@ -92,7 +92,7 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 				},
 			"ExposedPorts": exposed
 			//"PortSpecs": PortSpecs
-      	};
+		};
 		container = docker.sync.createContainer(opts);
 		}
 	catch(err) {
@@ -124,8 +124,6 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 
 		containerPorts.push(hostPort);
 		logger.info("HostPort " + port + " = " + hostPort);
-
-		envPorts += "export PORT_" + port.replace(/[^0-9]/g, "") + "=" + hostPort + "\n";
 		}
 	});
 
@@ -134,13 +132,14 @@ self.stopContainer = fibrous( function(appobj)
 	try	{
 		if(container != null)
 			{
-			if(appobj.getStopCommand() != "")
+			if(appobj.getType() != config.SANDBOXED_DEBIAN && appobj.getStopCommand() != "")
 				dockerHelper.sync.executeCommand("cd " + config.APPLICATION_PATH + " && " + appobj.getStopCommand() + " && echo stopcontainer", ["stopcontainer"], false);
 
 			container.sync.stop({"t": "0"});
 			container.sync.wait();
 			container.sync.remove({"force": true});
-			container = null;
+
+			initializeContainer();
 			}
 		}
 	catch(err)
@@ -151,12 +150,12 @@ self.stopContainer = fibrous( function(appobj)
 
 self.installApplication = fibrous( function(appobj)
 	{
-	var ics = "";																		// Execute user defined commands inside the Docker container
+	var installCommands = "";															// Execute user defined commands inside the Docker container
 	var icommands = appobj.getInstallCommands();
 	for(var i = 0; i < icommands.length; i++)
-		ics += " && " + icommands[i];
+		installCommands += " && " + icommands[i];
 
-	dockerHelper.sync.executeCommand("export NODE_PATH=" + config.API_NODE_MODULES_DIRECTORY + ics + " && echo icfinished", ["icfinished"], false);
+	dockerHelper.sync.executeCommand("export NODE_PATH=" + config.API_NODE_MODULES_DIRECTORY + installCommands + " && echo icfinished", ["icfinished"], false);
 
 	// Create a new image (difference) for each application by committing the currently running container
 	return container.sync.commit({"repo": appobj.getUniqueName(), "container": self.getContainerId()});
@@ -166,22 +165,26 @@ self.runApplication = fibrous( function(appobj)
 	{
 	dockerHelper.sync.executeCommand("/usr/sbin/sshd -D & echo spaceifyend", ["spaceifyend"], false);
 
-	var bash = 	  "cd " + config.APPLICATION_PATH + "\n"
-				+ "printf \""
-				+ "#!/bin/bash" + "\n"
-				+ "export IS_REAL_SPACEIFY=YES\n"
-				+ "export NODE_PATH=" + config.API_NODE_MODULES_DIRECTORY + "\n"
-				+ "export APPLICATION_INITIALIZED=" + config.APPLICATION_INITIALIZED + "\n"
-				+ "export APPLICATION_UNINITIALIZED=" + config.APPLICATION_UNINITIALIZED + "\n"
-				+  envPorts + "\n"
-				+  appobj.getStartCommand() + "\n"
-				+ "ec=\\\$?" + "\n"
-				+ "if (( \\\$ec != 0 )); then" + "\n"
-				+ "    printf ';;Starting the application failed with return code '" + "\\\$ec::" + "\n"
-				+ "    printf '" + config.APPLICATION_UNINITIALIZED + "'\n" + "\n"
-				+ "fi" + "\n"
-				+ "kill -9 \\\$\\\$" + "\n"
-				+ "\" > /tmp/run.sh && bash /tmp/run.sh 2>&1 | tee /volume/console.log \n";
+	var bash =	"cd " + config.APPLICATION_PATH + "\n";
+		bash += "printf \"";
+		bash += "#!/bin/bash" + "\n";
+		bash += "export IS_REAL_SPACEIFY=YES" + "\n";
+		bash += "export NODE_PATH=" + config.API_NODE_MODULES_DIRECTORY + "\n";
+		bash += "export APPLICATION_INITIALIZED=" + config.APPLICATION_INITIALIZED + "\n";
+		bash += "export APPLICATION_UNINITIALIZED=" + config.APPLICATION_UNINITIALIZED + "\n";
+		if(appobj.getType() != config.SANDBOXED_DEBIAN)
+			{
+			bash +=  appobj.getStartCommand() + "\n";
+			bash += "ec=\\\$?" + "\n";
+			bash += "if (( \\\$ec != 0 )); then" + "\n";
+			bash += "    printf ';;Starting the application failed with return code '" + "\\\$ec::" + "\n";
+			bash += "    printf '" + config.APPLICATION_UNINITIALIZED + "'\n" + "\n";
+			bash += "fi" + "\n";
+			}
+		else
+			bash += "printf '" + config.APPLICATION_INITIALIZED + "'\n" + "\n";
+		bash += "kill -9 \\\$\\\$" + "\n";
+		bash += "\" > /tmp/run.sh && bash /tmp/run.sh 2>&1 | tee /volume/console.log \n";
 
 	var response = dockerHelper.sync.executeCommand(bash, [config.APPLICATION_INITIALIZED, config.APPLICATION_UNINITIALIZED], true);
 
@@ -208,6 +211,19 @@ self.getStreams = function()
 	return dockerHelper.getStreams();
 	}
 
+var initializeContainer = function()
+	{
+	exposed = {};
+	bindings = {};
+	portOrder = [];
+	container = null;
+	containerId = null;
+	containerIp = null;
+	inspectedData = {};
+	containerPorts = [];
+	}
+
+initializeContainer();
 }
 
 module.exports = DockerContainer;

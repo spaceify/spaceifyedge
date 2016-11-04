@@ -1,17 +1,39 @@
 <!doctype html>
 <html ng-app-spaceify spaceify-secure>
-	<head head-directive>
-		<script src="../app/storage.js"></script>
-		<script src="../js/angular-1.5.3.min.js"></script>
-		<script src="../app/spaceify.js"></script>
+	<head body-directive>
+		<!-- -->
+		<meta charset="utf-8">
+		<meta name="product" content="Spaceify">
+		<meta name="author" content="Spaceify Oy">
+		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+		<link href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<!-- REMOTE >>>>>>>>>>
+		<link sp_href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<<<<<<<<<< -->
+
+		<title ng-bind="$root.getString('title')">Loading...</title>
+		<!-- -->
+
+		<!-- -->
+		<script src="../js/spaceify.edge.js"></script>
+		<!-- REMOTE >>>>>>>>>>
+		<script src="js/spaceify.loader.js"></script>
+		<script sp_src="js/spaceify.edge.js"></script>
+		<<<<<<<<<< REMOTE -->
+		<!-- -->
 
 		<script>
 		var self = this;
 		var sam = null;
 		var config = null;
 
-		function pageReady()
+		function angularReady()
 			{
+			$("#edgeBody").show();
+
 			config = new SpaceifyConfig();
 			sam = new SpaceifyApplicationManager();
 			}
@@ -20,7 +42,7 @@
 		function getApplications()
 			{
 			jQuery("#adminContainerRight").empty();
-			var types = [config.SPACELET, config.SANDBOXED/*, config.NATIVE*/];
+			var types = [config.SPACELET, config.SANDBOXED, config.SANDBOXED_DEBIAN, config.NATIVE_DEBIAN];
 			sam.getApplications(types, self, gotApplications);
 			}
 
@@ -39,6 +61,8 @@
 				sam.restartApplication(unique_name, self, applicationRestarted);
 			else if(operation == "remove")
 				sam.removeApplication(unique_name, self, applicationRemoved);
+			else if(operation == "purge")
+				sam.purgeApplication(unique_name, self, applicationPurged);
 			else if(operation == "install")
 				sam.installApplication($("#package").val(), "", "", true, self, applicationInstalled);
 			else if(operation == "getServiceRuntimeStates")
@@ -55,19 +79,24 @@
 			var acr = $("#adminContainerRight");
 
 			printApps(acr, applications.spacelet, "SPACELETS", true);
-			printApps(acr, applications.sandboxed, "APPLICATIONS", false);
-			//printApps(acr, applications.native, "NATIVE APPLICATIONS", false);
+			printApps(acr, applications.sandboxed, "SANDBOXED", false);
+			printApps(acr, applications.sandboxed_debian, "SANDBOXED DEBIAN", false);
+			printApps(acr, applications.native_debian, "NATIVE DEBIAN", false);
 			}
 
 		loggedOut = function(result)
 			{
 			window.location.assign(spaceifyPage.urlHttps + "admin/login.html");
+			/* REMOTE >>>>>>>>>>
+			spaceifyLoader.loadPage(spaceifyPage.urlHttps + "admin/login.html", spaceifyPage.urlHttps + "admin/");
+			<<<<<<<<<< REMOTE */
 			}
 
-		applicationStopped = 
+		applicationStopped =
 		applicationStarted =
 		applicationRestarted =
 		applicationRemoved =
+		applicationPurged =
 		applicationInstalled = function(result)
 			{
 			<!-- DO SOME PROCESSING AFTER COMMAND IS EXECUTED. DEFINE THESE INDIVIDUALLY IF REQUIRED. -->
@@ -81,12 +110,13 @@
 
 			printRuntimeService("SPACELET", services.spacelet, acr);
 			printRuntimeService("SANDBOXED", services.sandboxed, acr);
-			printRuntimeService("NATIVE", services.native, acr);
+			printRuntimeService("SANDBOXED DEBIAN", services.sandboxed_debian, acr);
+			printRuntimeService("NATIVE DEBIAN", services.native_debian, acr);
 			}
 		printRuntimeService = function(title, services, acr)
 			{
 			acr.append($("<div>" + title + "</div>"));
-			
+
 			if(Object.keys(services).length == 0)
 				return acr.append($("<div>No services</div><div>&nbsp;</div>"));
 
@@ -177,7 +207,7 @@
 			}
 
 		<!-- APPLICATION MANAGER CALLBACKS (HANDLERS) -->
-		self.failed = function()
+		self.failed = function(err)
 			{ <!-- Setting up messaging failed -->
 			$("#adminContainerRight").append($("<div>Setting up the messaging connection failed. There will be no messages or questions from the Application Manager.</div>"));
 			}
@@ -206,13 +236,13 @@
 			{ <!-- General messages from the Application manager -->
 			$("#adminContainerRight").append($("<div>" + (message != "" ? message : "<br>") + "</div>"));
 			}
-		
+
 		self.question = function(question, choices, origin, answerId)
 			{ <!-- Questions from the Application manager -->
 			$("#adminContainerRight").append($("<div>" + question + "<br>" + "</div>"));
 
 			for(var i=0; i<choices.length; i++)
-				$("#adminContainerRight").append($("<div><button onclick=\"sam.answer('" + choices[i].short + "', '" + answerId + "');\">" + choices[i].screen + "</button></div>"));
+				$("#adminContainerRight").append($("<div><button onclick=\"sam.sendAnswer('" + choices[i].short + "', '" + answerId + "');\">" + choices[i].screen + "</button></div>"));
 			}
 
 		self.questionTimedOut = function(message, origin, answerId)
@@ -395,7 +425,7 @@
 			<!-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->
 			<br><br>
 			<h3>Application Manager Commands</h3>
-			
+
 			<button class="adminButton normal" name="operation" onclick="getApplications();">
 				getApplications
 			</button>
@@ -439,6 +469,11 @@
 				removeApplication
 			</button>
 
+			<br><br>
+			<button class="adminButton normal" name="operation" onclick="commandApplication('purge');">
+				purgeApplication
+			</button>
+
 			<br><hr>
 			<p>Unique name in the Spaceify registry (e.g. spaceify/bigscreen)</p>
 			<p>Package URL (e.g. spaceify.org/downloads/bigscreen.zip)</p>
@@ -453,7 +488,7 @@
 			<!-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->
 			<br><hr>
 
-			<button class="adminButton normal" name="operation" onclick="window.location.assign(spaceifyPage.urlHttps + 'appstore/');">
+			<button class="adminButton normal" name="operation" onclick="window.location.assign(spaceifyPage.urlHttps + 'appstore/index.html');">
 				Spaceify AppStore
 			</button>
 

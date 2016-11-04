@@ -19,14 +19,14 @@ var Database = require("./database");
 var Messaging = require("./messaging");
 var httpStatus = require("./httpstatus");
 var Application = require("./application");
-var SecurityModel = require("./securitymodel");
 var DockerImage = require("./dockerimage.js");
-var DockerContainer = require("./dockercontainer.js");
 var SpaceifyError = require("./spaceifyerror");
+var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
-var ValidateApplication = require("./validateapplication");
 var SpaceifyUtility = require("./spaceifyutility");
+var DockerContainer = require("./dockercontainer.js");
 var WebSocketRpcServer = require("./websocketrpcserver");
+var ValidateApplication = require("./validateapplication");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
 
 function ApplicationManager()
@@ -96,12 +96,13 @@ iptables -D INPUT -p tcp --dport 4949 -j DROP
 	// Expose RPC nethods
 	appManServer.exposeRpcMethodSync("installApplication", self, installApplication);
 	appManServer.exposeRpcMethodSync("removeApplication", self, removeApplication);
+	appManServer.exposeRpcMethodSync("purgeApplication", self, purgeApplication);
 	appManServer.exposeRpcMethodSync("startApplication", self, startApplication);
 	appManServer.exposeRpcMethodSync("stopApplication", self, stopApplication);
 	appManServer.exposeRpcMethodSync("restartApplication", self, restartApplication);
 	appManServer.exposeRpcMethodSync("getApplications", self, getApplications);
 	appManServer.exposeRpcMethodSync("sourceCode", self, sourceCode);
-	appManServer.exposeRpcMethodSync("requestMessages", self, requestMessages);
+	appManServer.exposeRpcMethodSync("requestMessageId", self, requestMessageId);
 	appManServer.exposeRpcMethodSync("adminLogIn", self, adminLogIn);
 	appManServer.exposeRpcMethodSync("adminLogOut", self, adminLogOut);
 	appManServer.exposeRpcMethodSync("getServiceRuntimeStates", self, getServiceRuntimeStates);
@@ -116,7 +117,7 @@ iptables -D INPUT -p tcp --dport 4949 -j DROP
 	appManServer.listen.sync({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true, debug: true});
 
 	// Setup messaging server
-	messaging.setMessageListener(messageListener);
+	messaging.setAnswerListener(answerListener);
 	messaging.listen.sync(config.APPMAN_MESSAGE_PORT_SECURE);
 
 	// Setup a connection to the core
@@ -160,13 +161,13 @@ var coreDisconnectionListener = function(id)
 		}, config.RECONNECT_WAIT);
 	}
 
-var messageListener = function(message)
-	{
+var answerListener = function(answer, answerCallbackId)
+	{ // Remote answer through RPC to Messaging::answer -> here
 	try {
-		if(message.type == messaging.MESSAGE_ANSWER && message.answerCallBackId && answerCallbacks[message.answerCallBackId])
+		if(answerCallbackId in answerCallbacks)
 			{
-			answerCallbacks[message.answerCallBackId].callback(null, message.answer.toLowerCase());
-			delete answerCallbacks[message.answerCallBackId];
+			answerCallbacks[answerCallbackId].callback(null, answer.toLowerCase());
+			delete answerCallbacks[answerCallbackId];
 			}
 		}
 	catch(err)
@@ -183,12 +184,14 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	var existing;
 	var validator;
 	var suggested;
+	var isStarted;
 	var information;
 	var registry_url;
 	var startOrder = [];
 	var existing_service;
 	var required_service;
 	var suggested_version;
+	var applicationStatus;
 	var isSuggested = false;
 	var suggested_unique_name;
 	var suggestedApplications = [];
@@ -205,9 +208,10 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		// Get current release information
 		information = database.sync.getInformation();
 
+		// ---------->
 		// Iterate all the application packages: the package and the packages it requires (suggested applications)
 		while(applicationPackages.length > 0)
-			{ // ---------->
+			{
 			sendMessage.sync(language.RESOLVING_ORIGIN);
 
 			// Get next package
@@ -234,7 +238,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				for(var r = 0; r < manifest.requires_services.length; r++)
 					sendMessage.sync("- " + manifest.requires_services[r].service_name);
 
-				answer = ask.sync(utility.replace(language.PACKAGE_ASK_INSTALL_QUESTION, {"~type": language.APP_DISPLAY_NAMES[manifest.type]}), language.PACKAGE_ASK_INSTALL_Y_N, self.INSTALL_APPLICATION);
+				answer = askQuestion.sync(utility.replace(language.PACKAGE_ASK_INSTALL_QUESTION, {"~type": language.APP_DISPLAY_NAMES[manifest.type]}), language.PACKAGE_ASK_INSTALL_Y_N, self.INSTALL_APPLICATION);
 
 				if(answer == "n" || answer == "no" || answer == messaging.MESSAGE_TIMED_OUT)
 					{
@@ -247,7 +251,9 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				}
 
 			// Stop existing, running application
-			if(coreConnection.sync.callRpc("isApplicationRunning", [manifest.unique_name], self))
+			applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [manifest.unique_name], self);
+
+			if(applicationStatus.isRunning)
 				{
 				sendMessage.sync(utility.replace(language.PACKAGE_STOPPING_EXISTING, {"~type": language.APP_DISPLAY_NAMES[manifest.type], "~name": manifest.unique_name}));
 				sendMessage.sync("");
@@ -326,27 +332,31 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 					}
 				}
 
-			} // <----------
+			}
+			// <----------
 
+			// ---------->
 			// (Re)start applications and/or build spacelets. Show messages only for applications.
 			while(startOrder.length > 0)
 				{
 				start = startOrder.pop();
 
-				if(start.type != config.SPACELET && !develop)
+				if(	start.type != config.SPACELET && !develop)
 					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
-				else if(develop)														// Show this message for all the package types
+				else if(develop)
 					sendMessage.sync(utility.replace(language.PACKAGE_DEVELOP, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 
-				coreConnection.sync.callRpc("installApplication", [start.unique_name, start.type, develop, sessionId, true], self);
+				coreConnection.sync.callRpc("installApplication", [start.unique_name, start.type, sessionId, true], self);
 
-				if(start.type != config.SPACELET && !develop)
+				if(	start.type != config.SPACELET && !develop)
 					{
-					coreConnection.sync.callRpc("startApplication", [start.unique_name, sessionId, true], self);
-						
-					sendMessage.sync(utility.replace(language.PACKAGE_STARTED, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[start.type]}));
+					isStarted = coreConnection.sync.callRpc("startApplication", [start.unique_name, sessionId, false], self);
+
+					sendMessage.sync(utility.replace((isStarted ? language.PACKAGE_STARTED : language.PACKAGE_START_FAILED),
+										{"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[start.type]}));
 					}
 				}
+			// <----------
 
 			installationStatus = self.SUCCESS;
 		}
@@ -373,13 +383,14 @@ var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::removeApplication");
 
 		var dbApp = database.sync.getApplication(unique_name);
+
 		if(!dbApp)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::removeApplication", {"~name": unique_name});
 
 		// Remove the application
 		database.sync.begin();
+
 		remove.sync(dbApp, sessionId, false);
-		database.sync.commit();
 
 		// Finalize remove
 		sendMessage.sync(utility.replace(language.PACKAGE_REMOVED, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[dbApp.type]}));
@@ -392,26 +403,106 @@ var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 		}
 	finally
 		{
+		database.sync.commit();
 		database.close();
+
 		sendEnd.sync();
 		}
 
 	return true;
 	});
 
+var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
+	{
+	var dbApp;
+	var path = "";
+	var unique_directory = sharedValidator.makeUniqueDirectory(unique_name);
+
+	// Preconditions for performing this operation
+	if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
+		{
+		sendErrors.sync(language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::purgeApplication"));
+		sendEnd.sync();
+		return;
+		}
+
+		// PURGE - PURGIN ALSO HANDLES INCOMPLETE INSTALLATIONS -- -- -- -- -- -- -- -- -- -- //
+	sendMessage.sync(utility.replace(language.PACKAGE_PURGING, {"~name": unique_name}));
+
+	try {
+		dbApp = database.sync.getApplication(unique_name);
+
+		if(dbApp)
+			{
+			// Stop all the instances of running applications having applications unique_name
+			coreConnection.sync.callRpc("removeApplication", [unique_name, sessionId, false], self);
+
+			// Remove database entries
+			sendMessage.sync(language.PACKAGE_REMOVE_FROM_DATABASE);
+
+			database.sync.removeApplication(dbApp.unique_name);
+
+			// Remove existing docker images + containers
+			sendMessage.sync(language.PACKAGE_REMOVING_DOCKER);
+
+			removeImage(dbApp.docker_image_id, dbApp.unique_name);
+			}
+		}
+	catch(err)
+		{
+		sendErrors.sync(err);
+		}
+	finally
+		{
+		database.close();
+		}
+
+	// Remove the application folder completely, including the user data
+	if(utility.sync.isLocal(config.SPACELETS_PATH + unique_directory, "directory"))
+		path = config.SPACELETS_PATH + unique_directory;
+	else if(utility.sync.isLocal(config.SANDBOXED_PATH + unique_directory, "directory"))
+		path = config.SANDBOXED_PATH + unique_directory;
+	else if(utility.sync.isLocal(config.SANDBOXED_DEBIAN_PATH + unique_directory, "directory"))
+		path = config.SANDBOXED_DEBIAN_PATH + unique_directory;
+	else if(utility.sync.isLocal(config.NATIVE_DEBIAN_PATH + unique_directory, "directory"))
+		path = config.NATIVE_DEBIAN_PATH + unique_directory;
+
+	if(path != "")
+		{
+		sendMessage.sync(language.PACKAGE_DELETE_FILES);
+
+		utility.sync.deleteDirectory(path);
+		}
+
+	// Finalize purge
+	if(path == "" && !dbApp)
+		sendMessage.sync(language.E_APPLICATION_NOT_INSTALLED.preFmt("", {"~name": unique_name}).message);
+	else
+		sendMessage.sync(language.PACKAGE_PURGED);
+
+	sendEnd.sync();
+
+	return true;
+	});
+
 var startApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
+	var dbApp;
+	var applicationStatus;
+
 	try {
 		// Preconditions for performing this operation
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::startApplication");
 
-		var dbApp = database.sync.getApplication(unique_name);
+		dbApp = database.sync.getApplication(unique_name);
 		if(!dbApp)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::startApplication", {"~name": unique_name});
 
 		// Start the application
-		if(coreConnection.sync.callRpc("isApplicationRunning", [dbApp.unique_name], self))
+		applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [dbApp.unique_name], self);
+
+		if(applicationStatus.isRunning)
 			sendMessage.sync(utility.replace(language.PACKAGE_ALREADY_RUNNING, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
 		else
 			{
@@ -435,17 +526,22 @@ var startApplication = fibrous( function(unique_name, sessionId, connObj)
 
 var stopApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
+	var dbApp;
+	var applicationStatus;
+
 	try {
 		// Preconditions for performing this operation
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::stopApplication");
 
-		var dbApp = database.sync.getApplication(unique_name);
+		dbApp = database.sync.getApplication(unique_name);
 		if(!dbApp)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::stopApplication", {"~name": unique_name});
 
 		// Stop the application
-		if(!coreConnection.sync.callRpc("isApplicationRunning", [dbApp.unique_name], self))
+		applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [dbApp.unique_name], self);
+
+		if(!applicationStatus.isRunning)
 			sendMessage.sync(utility.replace(language.PACKAGE_ALREADY_STOPPED, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
 		else
 			{
@@ -500,13 +596,19 @@ var restartApplication = fibrous( function(unique_name, sessionId, connObj)
 var getApplications = fibrous( function(types, connObj)
 	{
 	var applications;
+	var applicationStatus;
 
 	try {
 		// Get application data
 		applications = database.sync.getApplications(types);
 
 		for(var i = 0; i < applications.length; i++)
-			applications[i]["isRunning"] = coreConnection.sync.callRpc("isApplicationRunning", [applications[i].unique_name], self);
+			{
+			applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [applications[i].unique_name], self);
+
+			applications[i].isRunning = applicationStatus.isRunning;
+			applications[i].isDevelop = applicationStatus.isDevelop;
+			}
 		}
 	catch(err)
 		{
@@ -538,7 +640,7 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 		if(!getPackage.sync(applicationPackage, false, false, username, password, registry_url, currentWorkingDirectory))
 			throw language.E_PROCESS_PACKAGE_FAILED.preFmt("ApplicationManager::sourceCode", {"~source": applicationPackage});
 
-		dest = applicationPackage.replace(/[^0-9a-zA-Z-_]/g, "_");
+		dest = applicationPackage.replace(/[^0-9a-zA-Z-_\/]/g, "_");
 		dest = dest.replace(/_{2,}/g, "_");
 		dest = dest.replace(/^_*|_*$/g, "");
 		dest = currentWorkingDirectory + "/" + config.SOURCES_DIRECTORY + dest;
@@ -546,7 +648,7 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 		utility.sync.deleteDirectory(dest);															// Remove previous files
 		utility.sync.copyDirectory(config.WORK_PATH, dest, false, []);								// Copy files to sources directory
 
-		sendMessage.sync(utility.replace(language.GET_SOURCES_OK, {"~directory": dest}));
+		sendMessage.sync("", utility.replace(language.GET_SOURCES_OK, {"~directory": dest}));
 		}
 	catch(err)
 		{
@@ -560,13 +662,13 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 		}
 	});
 
-var requestMessages = fibrous( function(sessionId, connObj)
+var requestMessageId = fibrous( function(sessionId, connObj)
 	{ // Only logged in users can connect to the messaging service
 	var messageId = null;
 
 	try {
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
-			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::requestMessages");
+			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::requestMessageId");
 
 		messageId = messaging.messageIdRequested();
 		}
@@ -817,7 +919,7 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 		{
 		database.close();
 		removeTemporaryFiles.sync();
-		sendEnd.sync();
+		//sendEnd.sync();
 		}
 
 	return true;
@@ -970,8 +1072,9 @@ var install = fibrous( function(manifest, develop, sessionId)
 	var information;
 	var dockerContainer;
 	var dockerImageName;
+	var customDockerImage;
+	var docker_image_id = "N/A";
 	var dockerImage = new DockerImage();
-	var customDockerImage = (typeof manifest.docker_image != "undefined" && manifest.docker_image == true ? true : false);
 
 	try {
 		application = new Application(manifest, develop);
@@ -980,22 +1083,16 @@ var install = fibrous( function(manifest, develop, sessionId)
 			appPath = config.SPACELETS_PATH;
 		else if(manifest.type == config.SANDBOXED)
 			appPath = config.SANDBOXED_PATH;
-		/*else if(manifest.type == config.NATIVE)
-			appPath = config.NATIVE_PATH;*/
-
-		information = database.sync.getInformation();
-		if(customDockerImage)
-			dockerImageName = config.CUSTOM_DOCKER_IMAGE + manifest.unique_name;
-		else if(information.distribution == config.UBUNTU_DISTRO_NAME)
-			dockerImageName = config.UBUNTU_DOCKER_IMAGE;
-		else if(information.distribution == config.RASPBIAN_DISTRO_NAME)
-			dockerImageName = config.RASPBIAN_DOCKER_IMAGE;
-
-		dbApp = database.sync.getApplication(manifest.unique_name);
+		else if(manifest.type == config.SANDBOXED_DEBIAN)
+			appPath = config.SANDBOXED_DEBIAN_PATH;
+		else if(manifest.type == config.NATIVE_DEBIAN)
+			appPath = config.NATIVE_DEBIAN_PATH;
 
 		database.sync.begin();																				// global transaction
 
 		// REMOVE EXISTING DOCKER IMAGE(S) AND APPLICATION FILES
+		dbApp = database.sync.getApplication(manifest.unique_name);
+
 		if(dbApp)
 			{
 			remove.sync(dbApp, sessionId, false);
@@ -1013,30 +1110,46 @@ var install = fibrous( function(manifest, develop, sessionId)
 		sendMessage.sync(language.INSTALL_GENERATE_CERTIFICATE);
 		createClientCertificate.sync(appPath, manifest);
 
-		// CREATE A NEW DOCKER IMAGE FOR THE APPLICATION FROM THE DEFAULT IMAGE OR CUSTOM IMAGE
-		if(customDockerImage)
-			{ // test: docker run -i -t image_name /bin/bash
-			sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER_IMAGE, {"~image": dockerImageName}));
-			utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: appPath + manifest.unique_name + config.APPLICATION_PATH}, null);
-			}
-		else
-			sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER, {"~image": config.SPACEIFY_DOCKER_IMAGE}));
+		if(!develop && manifest.type != config.NATIVE_DEBIAN)
+			{
+			information = database.sync.getInformation();
 
-		dockerContainer = new DockerContainer();
-		dockerContainer.sync.startContainer(application.getProvidesServicesCount(), dockerImageName);
-		image = dockerContainer.sync.installApplication(application);
-		manifest.docker_image_id = image.Id;
-		dockerImage.sync.removeContainers("", dockerImageName, dockerContainer.getStreams());
+			customDockerImage = (typeof manifest.docker_image != "undefined" && manifest.docker_image == true ? true : false);
+
+			if(customDockerImage)
+				dockerImageName = config.CUSTOM_DOCKER_IMAGE + manifest.unique_name;
+			else if(information.distribution == config.UBUNTU_DISTRO_NAME)
+				dockerImageName = config.UBUNTU_DOCKER_IMAGE;
+			else if(information.distribution == config.RASPBIAN_DISTRO_NAME)
+				dockerImageName = config.RASPBIAN_DOCKER_IMAGE;
+
+			// CREATE A NEW DOCKER IMAGE FOR THE APPLICATION FROM THE DEFAULT IMAGE OR CUSTOM IMAGE
+			if(customDockerImage)
+				{ // test: docker run -i -t image_name /bin/bash
+				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER_IMAGE, {"~image": dockerImageName}));
+				utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: appPath + manifest.unique_name + config.APPLICATION_PATH}, null);
+				}
+			else
+				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER, {"~image": dockerImageName}));
+
+			dockerContainer = new DockerContainer();
+			dockerContainer.sync.startContainer(application.getProvidesServicesCount(), dockerImageName);
+			image = dockerContainer.sync.installApplication(application);
+			docker_image_id = image.Id;
+
+			dockerImage.sync.removeContainers("", dockerImageName, dockerContainer.getStreams());
+		}
 
 		// INSERT/UPDATE APPLICATION DATA TO DATABASE - FINALIZE INSTALLATION
 		sendMessage.sync(language.INSTALL_UPDATE_DATABASE);
 
-		database.sync.insertApplication(manifest, develop);
+		database.sync.insertApplication(manifest, docker_image_id, develop);
 
 		database.sync.commit();
 
 		// COPY PACKAGE TO INSTALLED PACKAGES DIRECTORY
-		utility.sync.zipDirectory(config.WORK_PATH, config.INSTALLED_PATH + manifest.docker_image_id + config.EXT_COMPRESSED);
+		if(!develop)
+			utility.sync.zipDirectory(config.WORK_PATH, config.INSTALLED_PATH + docker_image_id + config.EXT_COMPRESSED);
 
 		// APPLICATION IS NOW INSTALLED SUCCESSFULLY
 		sendMessage.sync("");
@@ -1046,7 +1159,8 @@ var install = fibrous( function(manifest, develop, sessionId)
 		{
 		database.sync.rollback();
 
-		dockerImage.sync.removeImage((manifest.docker_image_id ? manifest.docker_image_id : ""), manifest.unique_name);
+		if(!develop)
+			dockerImage.sync.removeImage((docker_image_id != "N/A" ? docker_image_id : ""), manifest.unique_name);
 
 		removeUniqueData.sync(appPath, manifest);
 
@@ -1056,24 +1170,20 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 var remove = fibrous( function(dbApp, sessionId, throws)
 	{
-	var inspected;
-	var dockerImage = new DockerImage();
-
 	// Stop all the instances of running applications having applications unique_name
 	sendMessage.sync(utility.replace(language.PACKAGE_REMOVING, {"~type": language.APP_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
 
 	coreConnection.sync.callRpc("removeApplication", [dbApp.unique_name, sessionId, throws], self);
 
+	// Remove database entries
+	sendMessage.sync(language.PACKAGE_REMOVE_FROM_DATABASE);
+
+	database.sync.removeApplication(dbApp.unique_name);
+
 	// Remove existing docker images + containers
 	sendMessage.sync(language.PACKAGE_REMOVING_DOCKER);
 
-	inspected = dockerImage.sync.inspect(dbApp.unique_name);
-	if(inspected)																					// Try to remove committed image
-		dockerImage.sync.removeImage(dbApp.docker_image_id, dbApp.unique_name);
-
-	inspected = dockerImage.sync.inspect(config.CUSTOM_DOCKER_IMAGE + dbApp.unique_name);			// Try to remove custom image
-	if(inspected)
-		dockerImage.sync.removeImage(inspected.id, config.CUSTOM_DOCKER_IMAGE + dbApp.unique_name);
+	removeImage(dbApp.docker_image_id, dbApp.unique_name);
 
 	// Remove application files directory
 	sendMessage.sync(language.PACKAGE_DELETE_FILES);
@@ -1082,14 +1192,25 @@ var remove = fibrous( function(dbApp, sessionId, throws)
 		removeUniqueData.sync(config.SPACELETS_PATH, dbApp);
 	else if(dbApp.type == config.SANDBOXED)
 		removeUniqueData.sync(config.SANDBOXED_PATH, dbApp);
-	/*else if(dbApp.type == config.NATIVE)
-		removeUniqueData.sync(config.NATIVE_PATH, dbApp);*/
-
-	// Remove database entries
-	sendMessage.sync(language.PACKAGE_REMOVE_FROM_DATABASE);
-
-	database.sync.removeApplication(dbApp.unique_name);
+	else if(dbApp.type == config.SANDBOXED_DEBIAN)
+		removeUniqueData.sync(config.SANDBOXED_DEBIAN_PATH, dbApp);
+	else if(dbApp.type == config.NATIVE_DEBIAN)
+		removeUniqueData.sync(config.NATIVE_DEBIAN_PATH, dbApp);
 	});
+
+var removeImage = function(docker_image_id, unique_name)
+	{
+	var inspected;
+	var dockerImage = new DockerImage();
+
+	var inspected = dockerImage.sync.inspect(unique_name);
+	if(inspected)																					// Try to remove committed image
+		dockerImage.sync.removeImage(docker_image_id, unique_name);
+
+	inspected = dockerImage.sync.inspect(config.CUSTOM_DOCKER_IMAGE + unique_name);					// Try to remove custom image
+	if(inspected)
+		dockerImage.sync.removeImage(inspected.id, config.CUSTOM_DOCKER_IMAGE + unique_name);
+	}
 
 var removeTemporaryFiles = fibrous( function()
 	{
@@ -1208,55 +1329,64 @@ var sendErrors = fibrous( function(err)
 	if(err instanceof Array)																		// These error objects originate from getPackage
 		{
 		for(var i = 0; i < err.length; i++)
-			sendMessage.sync({type: messaging.MESSAGE_ERROR, data: err[i]});
+			sendMessage.sync({type: messaging.MESSAGE_ERROR, data: [err[i]]});
 		}
 	else if(err)																					// "Normal" errors
 		{
 		err = errorc.typeToErrorObject(err);														// Make sure the error is an error object
 
-		sendMessage.sync({type: messaging.MESSAGE_ERROR, data: err});
+		sendMessage.sync({type: messaging.MESSAGE_ERROR, data: [err]});
 		}
 	});
 
 var sendWarning = fibrous( function(message, code)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_WARNING, data: {message: message, code: code} });
+	sendMessage.sync({type: messaging.MESSAGE_WARNING, data: [message,  code]});
 	});
 
 var sendNotify = fibrous( function(message, code)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_NOTIFY, data: {message: message, code: code} });
+	sendMessage.sync({type: messaging.MESSAGE_NOTIFY, data: [message, code]});
 	});
 
 var sendEnd = fibrous( function()
 	{
-	sendMessage.sync({type: messaging.MESSAGE_END, message: ""});
+	sendMessage.sync({type: messaging.MESSAGE_END, data: [""]});
 	});
 
-var ask = function(question, choices, origin, callback)
+var sendFail = fibrous( function(err)
 	{
-	var answerCallBackId = utility.randomString(32, true);											// Don't wait forever the answer
-	var qobj = {type: messaging.MESSAGE_QUESTION, message: question, choices: choices, origin: origin, answerCallBackId: answerCallBackId};
-	answerCallbacks[answerCallBackId] = {callback: callback, question: qobj, timestamp: Date.now()};
+	sendMessage.sync({type: messaging.MESSAGE_FAIL, data: [err]});
+	});
 
-	sendMessage.sync(qobj);
+var askQuestion = function(question, choices, origin, callback)
+	{
+	var answerCallbackId = utility.randomString(32, true);											// Don't wait forever for the answer
+
+	var questionObj = {type: messaging.MESSAGE_QUESTION, data: [question, choices, origin, answerCallbackId]};
+
+	answerCallbacks[answerCallbackId] = {callback: callback, question: questionObj, timestamp: Date.now()};
+
+	sendMessage.sync(questionObj);
 	}
 
 var questionCarbageCollection = function()
 	{
-	var tobj;
-	var acid = Object.keys(answerCallbacks);
+	var questionObj;
+	var answerCallback, answerCallbackIds = Object.keys(answerCallbacks);
 
-	for(var i = 0; i < acid.length; i++)
+	for(var i = 0; i < answerCallbackIds.length; i++)
 		{
-		if((Date.now() - answerCallbacks[acid[i]].timestamp) >= config.QUESTION_CARBAGE_INTERVAL)
-			{
-			tobj = answerCallbacks[acid[i]].question;													// Notify external listener (spm/web page)
-			tobj = {type: messaging.MESSAGE_TIMED_OUT, message: language.INSTALL_APPLICATION_TIMED_OUT, origin: tobj.origin, answerCallBackId: tobj.answerCallBackId};
-			sendMessage.sync(tobj);
+		answerCallback = answerCallbacks[answerCallbackIds[i]];
 
-			answerCallbacks[acid[i]].callback(null, messaging.MESSAGE_TIMED_OUT);						// Return time out to caller
-			delete answerCallbacks[acid[i]];
+		if((Date.now() - answerCallback.timestamp) >= QUESTION_CARBAGE_INTERVAL)
+			{
+			questionObj = answerCallback.question;											// Notify external listener (spm/web page)
+			questionObj = {type: messaging.MESSAGE_TIMED_OUT, data: [language.INSTALL_APPLICATION_TIMED_OUT, questionObj.data[2], questionObj.data[3]]};
+			sendMessage.sync(questionObj);
+
+			answerCallback.callback(null, messaging.MESSAGE_TIMED_OUT);						// Return time out to caller
+			delete answerCallbacks[answerCallbackIds[i]];
 			}
 		}
 	}

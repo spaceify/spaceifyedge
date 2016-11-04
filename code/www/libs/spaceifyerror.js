@@ -11,8 +11,10 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = {};
-classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var classes =
+	{
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
+	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -156,7 +158,7 @@ self.typeToErrorObject = function(err)
 
 self.errorToString = function(err, printPath, printCode)
 	{ // Format an error object to a displayable string
-	var errstr = "", code = "", path = "";
+	var errstr = "", code = "", path = "", message = "";
 
 	if(typeof err == "string")
 		errstr += err;
@@ -173,11 +175,13 @@ self.errorToString = function(err, printPath, printCode)
 			{
 			code = (printCode && err.codes[i] ? err.codes[i] : null);
 			path = (printPath && err.paths[i] ? err.paths[i] : null);
+			message = self.ucfirst(err.messages[i]);
+			message = self.endWithDot(message);
 
-			errstr = (errstr != "" ? ", " : "");
+			errstr += (errstr != "" ? " " : "");
 			errstr += (path ? path : "");
 			errstr += (code ? (path ? " - " : "") + code : "");
-			errstr += (code || path ? " " : "") + err.messages[i];
+			errstr += (code || path ? " " : "") + message;
 			}
 		}
 
@@ -200,6 +204,21 @@ self.replace = function(str, strs, replaceWith)
 	str = str.replace(/~[a-zA-Z0-9]*\s/g, " " + rw + " ");			// '~x '  -> ' y '
 	str = str.replace(/\s~[a-zA-Z0-9]*/g, rw);						// ' ~x'  -> 'y'
 	str = str.replace(/~[a-zA-Z0-9]+/g, rw);						// '~x'   -> 'y'
+
+	return str;
+	}
+
+self.ucfirst = function(str)
+	{
+	str = str.trim();
+	return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+self.endWithDot = function(str)
+	{
+	str = str.trim();
+	if(str.charAt(str.length - 1) != ".")
+		str += ".";
 
 	return str;
 	}

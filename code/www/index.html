@@ -11,12 +11,12 @@
 		<script>
 		var net = null;
 		var core = null;
-		var config = null;
 		var sync = null;
+		var config = null;
 
 		function pageReady()
 			{
-			window["spaceifyCache"] = new SpaceifyCache();
+			window.spaceifyCache = new SpaceifyCache();
 
 			net = new SpaceifyNet();
 			core = new SpaceifyCore();
@@ -25,8 +25,6 @@
 
 			sync.waterFall(
 				[
-				{object: core, method: net.showAdminTile, params: [null], type: "async"},
-				{object: core, method: net.showUserUtilities, params: [null], type: "async"},
 				{object: core, method: net.showInstalledApplications, params: [null], type: "async"}
 				],
 				function()												// finally
@@ -35,25 +33,30 @@
 
 					$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
 					$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
-					$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+					$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+					$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
 
-					jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader").css("display", "block");					
+					jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader").css("display", "block");
 
 					core.setEventListeners(	[
 						config.EVENT_SPACELET_INSTALLED,
 						config.EVENT_SPACELET_REMOVED,
-						config.EVENT_APPLICATION_INSTALLED,
-						config.EVENT_APPLICATION_REMOVED,
-						config.EVENT_NATIVE_APPLICATION_INSTALLED,
-						config.EVENT_NATIVE_APPLICATION_REMOVED
+						config.EVENT_SANDBOXED_INSTALLED,
+						config.EVENT_SANDBOXED_REMOVED,
+						config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
+						config.EVENT_SANDBOXED_DEBIAN_REMOVED,
+						config.EVENT_NATIVE_DEBIAN_INSTALLED,
+						config.EVENT_NATIVE_DEBIAN_REMOVED
 						],
 						[
 						spaceletInstalled,
 						spaceletRemoved,
-						applicationInstalled,
-						applicationRemoved,
-						nativeApplicationInstalled,
-						nativeApplicationRemoved
+						sandboxedInstalled,
+						sandboxedRemoved,
+						sandboxedDebianInstalled,
+						sandboxedDebianRemoved,
+						nativeDebianInstalled,
+						nativeDebianRemoved
 						],
 						this, null, function(err, data, id, ms) { });
 					});
@@ -74,31 +77,45 @@
 			callback(null, true);
 			}
 
-		function applicationInstalled(result, connObj, callback)
+		function sandboxedInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
 			$("#sandboxed, #sandboxedHeader").css("display", "block");
 			callback(null, true);
 			}
 
-		function applicationRemoved(result, connObj, callback)
+		function sandboxedRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
 			$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
 			callback(null, true);
 			}
 
-		function nativeApplicationInstalled(result, connObj, callback)
+		function sandboxedDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#native, #nativeHeader").css("display", "block");
+			$("#sandboxedDebian, #sandboxedDebianHeader").css("display", "block");
 			callback(null, true);
 			}
 
-		function nativeApplicationRemoved(result, connObj, callback)
+		function sandboxedDebianRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
-			$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+			$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+			callback(null, true);
+			}
+
+		function nativeDebianInstalled(result, connObj, callback)
+			{
+			renderTile(result.manifest);
+			$("#nativeDebian, #nativeDebianHeader").css("display", "block");
+			callback(null, true);
+			}
+
+		function nativeDebianRemoved(result, connObj, callback)
+			{
+			var apps = removeTile(result.manifest);
+			$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
 			callback(null, true);
 			}
 
@@ -113,7 +130,6 @@
 			net.removeTile(manifest);
 			return net.getApplications();
 			}
-
 		</script>
 	</head>
 
@@ -133,26 +149,70 @@
 						<!-- VIEW -->
 						<the-tiles></the-tiles>
 
-						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString("spacelets") }}</h5>
+						<!-- SPACELETS -- -- -- -- -- -- -- -- -- -- -->
+						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString('spacelets') }}</h5>
 						<div class="tiles" id="spacelet" style="display: none;"></div>
 						<div class="breaker"></div>
 
-						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString("sandboxed") }}</h5>
+						<!-- SANDBOXED -- -- -- -- -- -- -- -- -- -- -->
+						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString('sandboxed') }}</h5>
 						<div class="tiles" id="sandboxed" style="display: none;"></div>
 						<div class="breaker"></div>
 
-						<h5 class="edgeH5" id="nativeHeader" style="display: none;">{{ getString("native") }}</h5>
-						<div class="tiles" id="native" style="display: none;"></div>
+						<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
+						<h5 class="edgeH5" id="sandboxedDebianHeader" style="display: none;">{{ getString('sandboxed_debian') }}</h5>
+						<div class="tiles" id="sandboxedDebian" style="display: none;"></div>
 						<div class="breaker"></div>
 
-						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString("user_utilities") }}</h5>
-						<div class="tiles" id="userUtilities" style="display: none;"></div>
+						<!-- NATIVE DEBIAN -->
+						<h5 class="edgeH5" id="nativeDebianHeader" style="display: none;">{{ getString('native_debian') }}</h5>
+						<div class="tiles" id="nativeDebian" style="display: none;"></div>
 						<div class="breaker"></div>
 
-						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString("admin_utilities") }}</h5>
-						<div class="tiles" id="adminUtilities" style="display: none;"></div>
+						<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
+						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString('user_utilities') }}</h5>
+						<div class="tiles" id="userUtilities" style="display: none;">
+
+							<!-- CERTIFICATE TILE -->
+							<div class="edgeTile pointer" onclick="net.loadCertificate();">
+								<div class="edgeTileImage">
+									<img width="128" height="128" src="images/certificate.png" id="installCertificateId">
+									<!-- REMOTE >>>>>>>>>>
+									<img width="128" height="128" sp_src="images/certificate.png" id="installCertificateId">
+									<<<<<<<<<< REMOTE -->
+								</div>
+
+								<div class="edgeTileInfo">
+									<div class="edgeTitle text bold">{{ getString("install_certificate_title") }}</div>
+								</div>
+							</div>
+
+						</div>
 						<div class="breaker"></div>
 
+
+						<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
+						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString('admin_utilities') }}</h5>
+						<div class="tiles" id="adminUtilities" style="display: none;">
+
+							<!-- LOG IN || ADMIN TILE -->
+							<div class="edgeTile pointer" onclick="net.openAdminPages();">
+								<div class="edgeTileImage">
+									<img width="128" height="128" src="images/admin.png" id="adminLogInId">
+									<!-- REMOTE >>>>>>>>>>
+									<img width="128" height="128" sp_src="images/admin.png" id="adminLogInId">
+									<<<<<<<<<< REMOTE -->
+								</div>
+
+								<div class="edgeTileInfo">
+									<div class="edgeTitle text bold">{{ getString("admin_tile_title") }}</div>
+								</div>
+							</div>
+
+						</div>
+						<div class="breaker"></div>
+
+						<!-- MISC -- -- -- -- -- -- -- -- -- -- -->
 						<iframe id="certIframe" src="" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
 
 					</div>

@@ -1,5 +1,5 @@
 "use strict";
- 
+
 /**
  * Database, 17.1.2014 Spaceify Oy
  * 
@@ -14,8 +14,8 @@ var sqlite3 = require("sqlite3");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
-var ValidateApplication = require("./validateapplication");
 var SpaceifyUtility = require("./spaceifyutility");
+var ValidateApplication = require("./validateapplication");
 
 function Database()
 {
@@ -116,7 +116,7 @@ self.getApplications = fibrous( function(type)
 	{
 	var order;
 	var where;
-		
+
 	try {
 		if(!isOpen())
 			openDB();
@@ -135,7 +135,7 @@ self.getApplications = fibrous( function(type)
 		}
 	});
 
-self.insertApplication = fibrous( function(manifest, develop)
+self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 	{
 	var max;
 	var params;
@@ -150,7 +150,7 @@ self.insertApplication = fibrous( function(manifest, develop)
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
 		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
-		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
 		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
@@ -168,11 +168,11 @@ self.insertApplication = fibrous( function(manifest, develop)
 		}
 	});
 
-self.updateApplication = fibrous( function(manifest)
+self.updateApplication = fibrous( function(manifest, docker_image_id)
 	{
 	var params;
 	var inject_identifier;
-		
+
 	try {
 		if(!isOpen())
 			openDB();
@@ -180,7 +180,7 @@ self.updateApplication = fibrous( function(manifest)
 		self.sync.begin();
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		params = [validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
+		params = [validator.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
 
 		db.sync.run("UPDATE applications SET unique_directory=?, docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
@@ -346,10 +346,6 @@ self.getCoreSettings = fibrous( function()
 		{
 		throw err;	//language.E_DATABASE_GET_CORE_SETTINGS.pre("Database::getCoreSettings", err);
 		}
-	finally
-		{
-		self.close();
-		}
 	});
 
 self.saveCoreSettings = fibrous( function(settings)
@@ -425,10 +421,6 @@ self.getInformation = fibrous( function()
 	catch(err)
 		{
 		throw err;	//language.E_DATABASE_GET_INFORMATION.pre("Database::getInformation", err);
-		}
-	finally
-		{
-		self.close();
 		}
 	});
 

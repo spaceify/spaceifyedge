@@ -6,9 +6,11 @@
  * @class Application
  */
 
+var fibrous = require("./fibrous");
+var DockerHelper = require("./dockerhelper");
 var SpaceifyConfig = require("./spaceifyconfig");
-var ValidateApplication = require("./validateapplication");
 var SpaceifyUtility = require("./spaceifyutility");
+var ValidateApplication = require("./validateapplication");
 
 function Application(manifest, develop)
 {
@@ -16,14 +18,11 @@ var self = this;
 
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+var dockerHelper = new DockerHelper();
 var validator = new ValidateApplication();
 
 var dockerContainer = null;
 var docker_image_id = "";
-
-var runningState = false;
-var isInitialized = false;
-var initializationError = "";
 
 var runtimeServices = [];
 
@@ -58,6 +57,11 @@ self.getUniqueName = function()
 	return manifest.unique_name;
 	}
 
+self.getUniqueNameAsServiceName = function()
+	{
+	return manifest.unique_name.replace(/[\/_]/g, "") + ".service";
+	}
+	
 self.isShared = function()
 	{
 	return manifest.shared;
@@ -83,6 +87,23 @@ self.getProvidesServicesCount = function()
 self.getProvidesServices = function()
 	{
 	return manifest.provides_services ? manifest.provides_services : null;
+	}
+
+self.getProvidedService = function(service_name)
+	{
+	var service = null;
+	var gps = self.getProvidesServices() || [];
+
+	for(var i = 0; i < gps.length; i++)
+		{
+		if(gps[i].service_name == service_name)
+			{
+			service = gps[i];
+			break;
+			}
+		}
+
+	return service;
 	}
 
 self.getRequiresServicesCount = function()
@@ -111,8 +132,10 @@ self.getInstallationPath = function()
 		path = config.SPACELETS_PATH;
 	else if(self.getType() == config.SANDBOXED)
 		path = config.SANDBOXED_PATH;
-	else if(self.getType() == config.NATIVE)
-		path = config.NATIVE_PATH;
+	else if(self.getType() == config.SANDBOXED_DEBIAN)
+		path = config.SANDBOXED_DEBIAN_PATH;
+	else if(self.getType() == config.NATIVE_DEBIAN)
+		path = config.NATIVE_DEBIAN_PATH;
 
 	return path + self.getUniqueDirectory() + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
 	}
@@ -137,18 +160,44 @@ self.getDockerImageId = function()
 	return docker_image_id;
 	}
 
-self.setRunningState = function(state)
+self.isRunning = fibrous( function()
 	{
-	runningState = state;
+	var status;
+	var containers;
+	var type = self.getType();
+	var applicationIsRunning = false;
 
-	if(!state)
-		runtimeServices = [];
-	}
+	if(type == config.SPACELET || type == config.SANDBOXED || type == config.SANDBOXED_DEBIAN)
+		{ // Find a container having the ImageID
+		containers = dockerHelper.listContainers();
+		for(var i = 0; i < containers.length; i++)
+			{
+			if(containers[i].ImageID == self.getDockerImageId())
+				{
+				applicationIsRunning = true;
+				break;
+				}
+			}
+		}
+	else //if(type == config.NATIVE_DEBIAN)
+		{ // Use systemctl to find out is service running = active
+		try {
+			status = utility.execute.sync("systemctl", ["is-active", self.getUniqueNameAsServiceName()], {}, null);
 
-self.isRunning = function()
-	{
-	return runningState;
-	}
+			if(status.stdout)
+				{
+				status = status.stdout.replace(/\n/g, "").toLowerCase();
+
+				if(status == "active")
+					applicationIsRunning = true;
+				}
+			}
+		catch(err)
+			{}
+		}
+
+	return applicationIsRunning;
+	});
 
 self.implementsWebServer = function()
 	{
@@ -161,7 +210,7 @@ self.createRuntimeServices = function(ports, ip)
 	var fp = config.FIRST_SERVICE_PORT;
 	var fps = config.FIRST_SERVICE_PORT_SECURE;
 
-	runtimeServices = [];
+	self.clearRuntimeServices();
 
 	for(var i = 0; i < gps.length; i++)
 		{
@@ -193,6 +242,42 @@ self.createRuntimeServices = function(ports, ip)
 								});
 	}
 
+self.createRuntimeService = function(service_name, ports, ip)
+	{
+	// Create runtime service with ports and IP attached to its provided service.
+	// Use only for develop mode and native debian applications.
+	var s, service = self.getProvidedService(service_name);
+
+	if(!service && service_name != config.HTTP)
+		return null;
+
+	for(s = 0; s < runtimeServices.length; s++)
+		{
+		if(runtimeServices[s].service_name == service_name)
+			break;
+		}
+
+	service =	{
+				service_name: (service_name != config.HTTP ? service.service_name : config.HTTP),
+				service_type: (service_name != config.HTTP ? service.service_name : config.HTTP),
+				port: ports.port,
+				securePort: ports.securePort,
+				containerPort: null,
+				secureContainerPort: null,
+				ip: ip,
+				isRegistered: false,
+				unique_name: ports.unique_name,
+				type: self.getType()
+				};
+
+	if(s == runtimeServices.length)
+		runtimeServices.push(service);
+	else
+		runtimeServices[s] = service;
+
+	return service;
+	}
+
 self.getRuntimeServices = function()
 	{
 	return runtimeServices;
@@ -215,18 +300,20 @@ self.getRuntimeService = function(service_name, unique_name)
 
 		// 1:
 		// Multiple applications can have the same service name. Return the first matching service.
-		// All applications have the HTTP service. Without the unique_name the first service on the list would always be returned.
+		// Without checking the unique_name the HTTP service of the first application would always be returned.
 		// 2:
 		// The service belongs to the requested unique application
 		if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||
 			/*2*/ (unique_name && unique_name == UNIQUE_NAME && service_name == SERVICE_NAME) )
-			{
-			runtimeServices[s].isRunning = self.isRunning();
 			return runtimeServices[s];
-			}
 		}
 
 	return null;
+	}
+
+self.clearRuntimeServices = function()
+	{
+	runtimeServices = [];
 	}
 
 self.registerService = function(service_name, ports, state)
@@ -237,8 +324,8 @@ self.registerService = function(service_name, ports, state)
 			{
 			runtimeServices[s].isRegistered = state;						// false = unregistered, true = registered
 
-			if(ports)														// native application and develop mode application can set its ports
-				{
+			if(ports)														// develop mode, native debian and sandboxed debian
+				{															// applications can set their own ports
 				runtimeServices[s].port = ports.port;
 				runtimeServices[s].securePort = ports.securePort;
 				}
@@ -248,22 +335,6 @@ self.registerService = function(service_name, ports, state)
 		}
 
 	return null;
-	}
-
-self.setInitialized = function(status, error)
-	{
-	isInitialized = status;
-	initializationError = error;
-	}
-
-self.isInitialized = function()
-	{
-	return isInitialized;
-	}
-
-self.getInitializationError = function()
-	{
-	return initializationError;
 	}
 
 self.isDevelop = function()

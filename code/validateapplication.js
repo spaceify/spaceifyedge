@@ -84,7 +84,7 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 	var path = "";
 
 	try {
-		if(manifest.type == config.SPACELET)												// inject_files
+		if(manifest.type == config.SPACELET)														// inject_files
 			{
 			for(i = 0; i < manifest.inject_files.length; i++)
 				{
@@ -96,7 +96,7 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 				}
 			}
 
-		if(manifest.images)																	// images
+		if(manifest.images)																			// images
 			{
 			magic = new mmm.Magic(mmm.MAGIC_MIME_TYPE);
 
@@ -120,10 +120,20 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 				}
 			}
 
-		if(manifest.docker_image)														// Dockerfile
+		if(manifest.docker_image)																	// Dockerfile
 			{
 			if(!utility.sync.isLocal(application_path + config.DOCKERFILE, "file"))
 				addError( language.E_VALIDATE_DIRECTORIES_DOCKER_IMAGE.pre("ValidateApplication::validateDirectories") );
+			}
+
+		if(manifest.type == config.NATIVE_DEBIAN || manifest.type == config.SANDBOXED_DEBIAN)		// public keys, Debian packages
+			{
+			if(!utility.sync.isLocal(application_path + config.DEB_DIRECTORY, "directory"))
+				addError( language.E_VALIDATE_DIRECTORIES_DEB_DIRECTORY.pre("ValidateApplication::validateDirectories") );
+			else
+				{
+				
+				}
 			}
 		}
 	catch(err)
@@ -168,9 +178,9 @@ self.validateManifest = fibrous( function(manifest)
 	var sub_rule_field;
 	var sub_rule_errors;
 
-	rules = utility.sync.loadJSON(config.SPACEIFY_MANIFEST_RULES_FILE, true, true);						// Get the manifest validation rules
+	rules = utility.sync.loadJSON(config.SPACEIFY_MANIFEST_RULES_FILE, true, true);					// Get the manifest validation rules
 
-	if(!manifest.type || rules.lists.application_types.indexOf(manifest.type) == -1)					// Manifest must have the type field
+	if(!manifest.type || rules.lists.application_types.indexOf(manifest.type) == -1)				// Manifest must have the type field
 		throw language.E_VALIDATE_MANIFEST_MANIFEST_TYPE.pre("ValidateApplication::validateManifest");
 
 	// FOR EACH MANIFEST FIELD THERE IS A DIFFERENT SET OF RULES
@@ -178,15 +188,17 @@ self.validateManifest = fibrous( function(manifest)
 		{
 		rule = rules.rules[field];
 
-		required = (rule.required == "all" || rule.required == manifest.type ? true : false);			// Field required by all, specific application type or none
-		type = rule.type;																				// Type of the rule, e.g. string, array, ...
-		rule_errors = rule.errors;																		// The errors the rule has
+		// Field required by all, specific application type or none
+		required = (rule.required.indexOf(config.All) != -1 || rule.required.indexOf(manifest.type) != -1 ? true : false);
 
-		is_set = field in manifest;																		// Add error if file required and is not defined
+		type = rule.type;																			// Type of the rule, e.g. string, array, ...
+		rule_errors = rule.errors;																	// The errors the rule has
+
+		is_set = field in manifest;																	// Add error if file required and is not defined
 		if(required && !is_set)
 			addErrorManifest(rule_errors.field, rules.errors[rule_errors.field], "");
 
-		is_type = (is_set ? isType(type, manifest[field], field) : false);										// Add error if field type is not ok
+		is_type = (is_set ? isType(type, manifest[field], field) : false);								// Add error if field type is not ok
 		if(!is_type && is_set)
 			addErrorManifest(rule_errors.type, rules.errors[rule_errors.type], "");
 
@@ -315,7 +327,7 @@ var isUnique = function(rule, vobj, type)
 	if(!rule.unique)
 		return;
 
-	for(i = 0; i < rule.unique.length; i++)																// there might be multiple fields to check for uniqueness in a rule
+	for(i = 0; i < rule.unique.length; i++)															// there might be multiple fields to check for uniqueness in a rule
 		{
 		unique = rule.unique[i];
 		compare = unique.compare;																		// name of the compare array (e.g. service_name)
@@ -365,15 +377,15 @@ self.suggestedApplication = function(value, params)
 	var regx;
 	var values = value.split(/@/);
 
-	if(values.length > 2)												// More than one @
+	if(values.length > 2)																			// More than one @
 		return false;
 
 	regx = rules.regxs[params[0]];
-	if(values[0].match(new RegExp(regx)))								// Match against regular expression "unique_name"
+	if(values[0].match(new RegExp(regx)))															// Match against regular expression "unique_name"
 		return false;
 
 	regx = rules.regxs[params[1]];
-	if(values.length == 2 && values[1].match(new RegExp(regx)))			// Match against regular expression "version"
+	if(values.length == 2 && values[1].match(new RegExp(regx)))										// Match against regular expression "version"
 		return false;
 
 	return true;
@@ -381,15 +393,33 @@ self.suggestedApplication = function(value, params)
 
 self.serviceName = function(value, params)
 	{ // JavaScript doesn't support negative look behinds and /^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$(?<!\/http|https)/ won't work!
-	if(value.match(/(\/http|https|\/)$/))									// Can't be with http or https, because they are reserved services, or end with /
-		return false;
+	if(value.match(/(\/http|https|\/)$/))															// Can't be with http or https, because they are 
+		return false;																				// reserved services, or end with /
 
-	if(!value.match(/^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$/))	// Must match this predefined rule for service names
+	if(!value.match(/^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$/))								// Must match this predefined rule for service names
 		return false;
 
 	return true;
 	}
 
+self.testArray = function(value, params)
+	{
+	var isStringArray = true;
+
+	for(var i = 0; i < value.length; i++)
+		{
+		if(!isValue(value[i], params))
+			{
+			isStringArray = false;
+			break;
+			}
+		}
+
+	return (value.length == 0 ? false : isStringArray);
+	}
+
+	// -- -- -- -- -- -- -- -- -- -- //
+	
 self.makeUniqueDirectory = function(unique_name, noEndSlash)
 	{ // Make a file system safe directory name: lowercase, allowed characters, can't start or end with /.
 	return routines.makeUniqueDirectory(unique_name, noEndSlash);

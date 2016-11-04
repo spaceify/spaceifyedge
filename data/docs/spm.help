@@ -1,23 +1,26 @@
   Usage: spm command [options] [package]
   
-  commands: install
-            publish
-            source
-            remove
-            start
-            stop
-            restart
+  commands: help
+            install
             list
-            states
+            publish
+            purge
             register
+            remove
+            restart
+            source
+            start
+            states
+            stop
             version
-            help
   
   options: authenticate | -a
+           develop | -d
            force | -f
            spacelet | -s
            sandboxed | -S
-           native | -n
+           sandboxed_debian | -SD
+           native_debian | -n
            verbose | -v
   
   package: URL, directory, zip archive, Spaceify registry, GitHub repository or unique_name
@@ -39,12 +42,16 @@ Commands and options the commands accept.
     Displays Spaceify edge version information.
 %%
 %install%
-  install [authenticate | -a, force | -f] package
+  install [authenticate | -a, develop | -d, force | -f] package
   
     Installs a package to the edge node.
   
     The authenticate option can be used for authenticating to GitHub repository. The username
     and password will be prompted if this option is set.
+  
+    With the develop option applications are installed to edge as develop mode applications.
+    See the documentation in https://spaceify.org for more information about the develop
+    mode.
   
     The force option can be used to skip the security questions. Packages are installed
     without asking are the services they require allowed for them. Notice that the questions
@@ -133,7 +140,7 @@ Commands and options the commands accept.
 %source%
   source [authenticate | -a] package
   
-    Gets the source codes for a package.
+    Gets the source code and other content of a package.
   
     The authenticate option can be used for authenticating to GitHub repository. The username
     and password will be prompted if this option is set.
@@ -183,11 +190,18 @@ Commands and options the commands accept.
 %remove%
   remove unique_name
   
-    Removes a package from the edge node. Packages can be removed only by using
-    their unique name. When a package is removed all the files and database entries are removed
-    from the edge node.
+    Removes installed packages from the edge node. The packages installation
+    directory is not deleted and application written data is left undeleted.
+    Use the purge command to completely remove the installation.
   
       spm remove unique_name
+%%
+%purge%
+  purge unique_name
+  
+    Purge command removes installed packages completely from the edge.
+  
+      spm purge unique_name
 %%
 %start%
   start unique_name
@@ -211,27 +225,27 @@ Commands and options the commands accept.
       spm restart sapceify/bigscreen
 %%
 %list%
-  list [spacelet | -s, sandboxed | -S, native | -n, verbose | -v]
+  list [spacelet | -s, sandboxed | -S, sandboxed_debian | -SD, native_debian | -n, verbose | -v]
   
     Lists information about the installed packages.
   
-    The package type options spacelet, sandboxed and native can be used to limit the
-    resulting list to specific types of packages. The order of the options is the order
-    in which the packages are listed. Use the verbose option to output a
-    more detailed list of the packages.
+    The package type options spacelet, sandboxed, sandboxed debian and native debian can be
+    used to limit the resulting list to specific types of packages. The order of the options
+    is the order in which the packages are listed. Use the verbose option to output a more
+    detailed list of the packages.
   
       spm list
       spm list spacelet
-      spm list sandboxed native
-      spm list native sandboxed
+      spm list sandboxed native_debian
+      spm list native_debian sandboxed_debian
       spm list verbose
       spm list -s verbose
 %%
-%list%
+%state%
   state
   
-    Lists runtime status information of the spacelets and applications. The
-    status contains such information as port mappings.
+    Lists runtime status information of spacelets and applications, f.ex.
+    port mappings.
   
     spm states
 %%

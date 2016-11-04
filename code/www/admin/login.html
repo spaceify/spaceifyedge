@@ -1,17 +1,37 @@
 <!doctype html>
 <html ng-app-spaceify spaceify-secure spaceify-is-login>
-	<head head-directive>
-		<script src="../app/storage.js"></script>
-		<script src="../js/angular-1.5.3.min.js"></script>
-		<script src="../app/spaceify.js"></script>
+	<head body-directive>
+		<!-- -->
+		<meta charset="utf-8">
+		<meta name="product" content="Spaceify">
+		<meta name="author" content="Spaceify Oy">
+		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+		<link href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<!-- REMOTE >>>>>>>>>>
+		<link sp_href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<<<<<<<<<< REMOTE -->
+
+		<title ng-bind="$root.getString('title')">Loading...</title>
+		<!-- -->
+
+		<!-- -->
+		<script src="../js/spaceify.edge.js"></script>
+		<!-- REMOTE >>>>>>>>>>
+		<script src="js/spaceify.loader.js"></script>
+		<script sp_src="js/spaceify.edge.js"></script>
+		<<<<<<<<<< REMOTE -->
+		<!-- -->
 
 		<script>
-		function pageReady()
+		function angularReady()
 			{
 			net = new SpaceifyNet();
 			sam = new SpaceifyApplicationManager();
 
-			$("#adminLoginContainer").show();
+			$("#edgeBody").show();
 			$("#password").val("").focus();
 
 			$("#password").keyup(function(e)
@@ -23,13 +43,16 @@
 
 		function logIn()
 			{
-			sam.logIn($("#password").val(), this, loggedIn)
+			sam.logIn($("#password").val(), this, loggedIn);
 			}
 
 		function loggedIn(result)
 			{
 			if(result.isLoggedIn)
-				window.location.assign(spaceifyPage.urlHttps + "appstore/");
+				window.location.assign(spaceifyPage.urlHttps + "appstore/index.html");
+				/* REMOTE >>>>>>>>>>
+				spaceifyLoader.loadPage(spaceifyPage.urlHttps + "appstore/index.html", spaceifyPage.urlHttps + "appstore/");
+				<<<<<<<<<< REMOTE */
 			}
 
 		this.error = function(err)
@@ -43,11 +66,16 @@
 
 	<body class="edgeBody" id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
 
-		<div class="adminLoginContainer" id="adminLoginContainer" style="display: none;">
+		<div class="adminLoginContainer" id="adminLoginContainer">
 
 			<div class="adminLogo">
-				<span class="adminLogoHelper"></span>	
-				<img src="../images/logotext.png" class="adminLogoImage" width="291" height="100">
+				<span class="adminLogoHelper"></span>
+				<img src="../images/logotext.png" class="adminLogoImage" width="291" height="100"
+					onclick="window.location.assign(spaceifyPage.urlHttp);">
+				<!-- REMOTE >>>>>>>>>>
+				<img sp_src="../images/logotext.png" class="adminLogoImage" width="291" height="100"
+					onclick="spaceifyLoader.loadPage(spaceifyPage.urlHttp + "index.html", spaceifyPage.urlHttp);">
+				<<<<<<<<<< REMOTE -->
 			</div>
 
 			<div class="adminLoginTitle">

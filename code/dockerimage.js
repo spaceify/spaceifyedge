@@ -6,8 +6,8 @@
  * @class DockerImage
  */
 
-var Logger = require("./logger");
 var Docker = require("dockerode");
+var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -21,24 +21,25 @@ var utility = new SpaceifyUtility();
 
 var docker = new Docker({socketPath: "/var/run/docker.sock"});
 
-self.stopContainers = fibrous( function(imageId, imageName)
+self.stopContainers = fibrous( function(imageID, imageName)
 	{
-	var imageId;
 	var container;
+	var containers;
+	//var shortImageID = imageID.substr(0, 12);									// Id is always the short 12 character version
 
 	try {
-		imageId = imageId.substr(0, 12);										// Id is always the short 12 character version
-
 		containers = docker.sync.listContainers({"all": 1});
+
 		containers.forEach(function(containerInfo)
 			{
-			containerInfo.Image = containerInfo.Image.split(":")[0];			// containerInfo.Image can be either <name:tag> or <id>!? Check which it is.
-			if(containerInfo.Image == imageId || containerInfo.Image == imageName)
+			if(containerInfo.ImageID == imageID || containerInfo.Image == imageName)
 				{
 				logger.info(utility.replace(language.STOP_CONTAINER, {"~container": containerInfo.Image}));
 
 				container = docker.getContainer(containerInfo.Id);
 				container.sync.stop({"t": "0"});
+				container.sync.wait();
+				container.sync.remove({"force": true});
 				}
 			});
 		}
@@ -48,21 +49,19 @@ self.stopContainers = fibrous( function(imageId, imageName)
 		}
 	});
 
-self.removeContainers = fibrous( function(imageId, imageName, streams)
+self.removeContainers = fibrous( function(imageID, imageName, streams)
 	{
-	var imageId;
 	var container;
+	var containers;
+	//var shortImageID = imageID.substr(0, 12);										// Id is always the short 12 character version;
 
 	try {
-		self.sync.stopContainers(imageId, imageName);
-
-		imageId = imageId.substr(0, 12);										// Id is always the short 12 character version
+		self.sync.stopContainers(imageID, imageName);
 
 		containers = docker.sync.listContainers({"all": 1, "size": 1});
 		containers.forEach(function(containerInfo)
 			{
-			containerInfo.Image = containerInfo.Image.split(":")[0];			// containerInfo.Image can be either <name:tag> or <id>!? Check which it is.
-			if(containerInfo.Image == imageId || containerInfo.Image == imageName)
+			if(containerInfo.Image == imageID || containerInfo.Image == imageName)
 				{
 				utility.replace(language.REMOVE_CONTAINER, {"~container": containerInfo.Image});
 
@@ -80,18 +79,18 @@ self.removeContainers = fibrous( function(imageId, imageName, streams)
 		}
 	});
 
-self.removeImage = fibrous( function(imageId, imageName)
+self.removeImage = fibrous( function(imageID, imageName)
 	{
-	var img;
-	
+	var image;
+
 	try {
 		if(!self.sync.inspect(imageName))											// Image must exist
 			return false;
 
-		self.sync.removeContainers(imageId, imageName, null);
+		self.sync.removeContainers(imageID, imageName, null);
 
-		img = docker.getImage(imageId);
-		img.sync.remove();
+		image = docker.getImage(imageID);
+		image.sync.remove();
 		}
 	catch(err)
 		{
@@ -101,12 +100,12 @@ self.removeImage = fibrous( function(imageId, imageName)
 
 self.inspect = fibrous( function(image)
 	{
-	var img;
+	var image;
 	var info = null;
 
 	try {
-		img = docker.getImage(image);
-		info = img.sync.inspect();
+		image = docker.getImage(image);
+		info = image.sync.inspect();
 		}
 	catch(err)
 		{}

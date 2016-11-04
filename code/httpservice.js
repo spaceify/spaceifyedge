@@ -36,11 +36,11 @@ var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
-var apps = [];																							// Spacelets, applications and native applications
+var apps = [];																		// Spacelets, sandboxed, sandboxed debian and native debian applications
 
 self.start = fibrous( function()
 	{
-	process.title = "spaceifyhttp";																		// Shown in ps aux
+	process.title = "spaceifyhttp";													// Shown in ps aux
 
 	try	{
 		// Set listeners
@@ -61,21 +61,25 @@ self.start = fibrous( function()
 
 		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_INSTALLED, self, spaceletInstalled);
 		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_REMOVED, self, spaceletRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_INSTALLED, self, applicationInstalled);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_REMOVED, self, applicationRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STARTED, self, applicationStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STOPPED, self, applicationStopped);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_INSTALLED, self, nativeApplicationInstalled);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_REMOVED, self, nativeApplicationRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STARTED, self, nativeApplicationStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STOPPED, self, nativeApplicationStopped);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_INSTALLED, self, sandboxedInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_REMOVED, self, sandboxedRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_STARTED, self, sandboxedStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_STOPPED, self, sandboxedStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_INSTALLED, self, sandboxedDebianInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_REMOVED, self, sandboxedDebianRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_STARTED, self, sandboxedDebianStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_STOPPED, self, sandboxedDebianStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_INSTALLED, self, nativeDebianInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_REMOVED, self, nativeDebianRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_STARTED, self, nativeDebianStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_STOPPED, self, nativeDebianStopped);
 		coreConnection.exposeRpcMethodSync(config.EVENT_EDGE_SETTINGS_CHANGED, self, edgeSettingsChanged);
 
 		connectToCore.sync();
 
-		/*var uid = parseInt(process.env.SUDO_UID);														// ToDo: No super user rights
+		/*var uid = parseInt(process.env.SUDO_UID);									// ToDo: No super user rights
 		if(uid)
 			process.setuid(uid);*/
 		}
@@ -125,22 +129,29 @@ var connectToCore = fibrous( function()
 		for(i = 0; i < applicationData["sandboxed"].length; i++)
 			addApp(applicationData["sandboxed"][i]);
 
-		for(i = 0; i < applicationData["native"].length; i++)
-			addApp(applicationData["native"][i]);
+		for(i = 0; i < applicationData["sandboxed_debian"].length; i++)
+			addApp(applicationData["sandboxed_debian"][i]);
+
+		for(i = 0; i < applicationData["native_debian"].length; i++)
+			addApp(applicationData["native_debian"][i]);
 
 		coreConnection.callRpc("setEventListeners",	[ 	[
-														config.EVENT_APPLICATION_INSTALLED,
-														config.EVENT_APPLICATION_REMOVED,
-														config.EVENT_APPLICATION_STARTED,
-														config.EVENT_APPLICATION_STOPPED,
 														config.EVENT_SPACELET_INSTALLED,
 														config.EVENT_SPACELET_REMOVED,
-														config.EVENT_SPACELET_STARTED,
-														config.EVENT_SPACELET_STOPPED,
-														config.EVENT_NATIVE_APPLICATION_INSTALLED,
-														config.EVENT_NATIVE_APPLICATION_REMOVED,
-														config.EVENT_NATIVE_APPLICATION_STARTED,
-														config.EVENT_NATIVE_APPLICATION_STOPPED,
+														//config.EVENT_SPACELET_STARTED,
+														//config.EVENT_SPACELET_STOPPED,
+														config.EVENT_SANDBOXED_INSTALLED,
+														config.EVENT_SANDBOXED_REMOVED,
+														//config.EVENT_SANDBOXED_STARTED,
+														//config.EVENT_SANDBOXED_STOPPED,
+														config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
+														config.EVENT_SANDBOXED_DEBIAN_REMOVED,
+														//config.EVENT_SANDBOXED_DEBIAN_STARTED,
+														//config.EVENT_SANDBOXED_DEBIAN_STOPPED,
+														config.EVENT_NATIVE_DEBIAN_INSTALLED,
+														config.EVENT_NATIVE_DEBIAN_REMOVED,
+														//config.EVENT_NATIVE_DEBIAN_STARTED,
+														//config.EVENT_NATIVE_DEBIAN_STOPPED,
 														config.EVENT_EDGE_SETTINGS_CHANGED
 														],
 														sessionId
@@ -180,8 +191,8 @@ var coreDisconnectionListener = function(id)
 	if(coreDisconnectionTimerId != null)
 		return;
 
-	if(httpServer)													// Did core's server go down or did core shut down? Either way, the log in sessions are revoked.
-		httpServer.destroySessions();
+	if(httpServer)																	// Did core's server go down or did core shut down?
+		httpServer.destroySessions();												// Either way, the log in sessions are revoked.
 	if(httpsServer)
 		httpsServer.destroySessions();
 
@@ -204,22 +215,27 @@ var coreDisconnectionListener = function(id)
 	// EXPOSED METHODS / EVENT LISTENERS -- -- -- -- -- -- -- -- -- -- //
 var spaceletInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
 var spaceletRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var spaceletStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var spaceletStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+//var spaceletStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var spaceletStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var applicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
-var applicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var applicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var applicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+var sandboxedInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var sandboxedRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var sandboxedStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var sandboxedStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var nativeApplicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
-var nativeApplicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var nativeApplicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var nativeApplicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+var sandboxedDebianInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var sandboxedDebianRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var sandboxedDebianStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var sandboxedDebianStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+
+var nativeDebianInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var nativeDebianRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var nativeDebianStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var nativeDebianStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
 var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = settings; });
 
-var requestListener = function(request, body, urlObj, isSecure, callback)
+var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecure, callback)
 	{
 	var service;
 	var pathPos, appPos;
@@ -268,9 +284,9 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 			if(pathPos == apps[appPos].length)										// The beginning of the pathname was same
 				{																	// but it must end with "/" or "" to be
 				part = pathname[pathPos] || "";										// completely identical with the unique_name
-																					// E.g. path = s/a/image.jpg, unique_name = s/a -> ok
-				if(part == "/" || part == "")										//      path = s/a1/image.jpg, unique_name = s/a -> not ok
-					{																
+																					// E.g. path = s/a/image.jpg, if unique_name = s/a -> ok
+				if(part == "/" || part == "")										//      path = s/a1/image.jpg, if unique_name = s/a -> not ok
+					{
 					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
 
 					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part, responseCode: null});
@@ -290,9 +306,8 @@ var addApp = function(manifest)
 	{
 	var length;
 	var wwwPath;
-	var isRunning = ("isRunning" in manifest ? manifest.isRunning : false);
 
-	// wwwPath is the path on the file system to spacelets, applications or native applications www directory.
+	// wwwPath is the path on the file system to spacelets, sandboxed, sandboxed debian or native debian applications www directory.
 	// e.g. /var/lib/spaceify/data/sandboxed/spaceify/bigscreen/volume/application/www/
 	wwwPath = manifest.unique_name + "/" + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
 
@@ -300,11 +315,13 @@ var addApp = function(manifest)
 		wwwPath = config.SPACELETS_PATH + wwwPath;
 	else if(manifest.type == config.SANDBOXED)
 		wwwPath = config.SANDBOXED_PATH + wwwPath;
-	else if(manifest.type == config.NATIVE)
-		wwwPath = config.NATIVE_PATH + wwwPath;
+	else if(manifest.type == config.SANDBOXED_DEBIAN)
+		wwwPath = config.SANDBOXED_DEBIAN_PATH + wwwPath;
+	else if(manifest.type == config.NATIVE_DEBIAN)
+		wwwPath = config.NATIVE_DEBIAN_PATH + wwwPath;
 
 	length = manifest.unique_name.length;
-	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, isRunning: isRunning, wwwPath: wwwPath});
+	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, wwwPath: wwwPath});
 	}
 
 var remApp = function(unique_name)
@@ -315,13 +332,9 @@ var remApp = function(unique_name)
 		apps.splice(index, 1);
 	}
 
-var setAppRunningState = function(unique_name, state)
+/*var setAppRunningState = function(unique_name, state)
 	{
-	var index;
-
-	if((index = getAppIndex(unique_name)) != -1)
-		apps[index].isRunning = state;
-	}
+	}*/
 
 var getAppIndex = function(unique_name)
 	{

@@ -17,11 +17,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = {};
-classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-classes.SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError);
-classes.CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer);
-classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -335,11 +337,15 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 			var connObj =	{
 							requestId: requestId,
 							connectionId: connectionId,
-							origin: connections[connectionId].getOrigin(),
 							isSecure: connections[connectionId].getIsSecure(),
-							remotePort: connections[connectionId].getRemotePort(),
-							remoteAddress: connections[connectionId].getRemoteAddress()
 							};
+
+			if(!isRealSpaceify)
+				{
+				connObj.origin = connections[connectionId].getOrigin(),
+				connObj.remotePort = connections[connectionId].getRemotePort(),
+				connObj.remoteAddress = connections[connectionId].getRemoteAddress()
+				}
 
 			if(rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
 				{

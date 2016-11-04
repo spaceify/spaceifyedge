@@ -60,7 +60,7 @@ self.getService = function(service_name, unique_name)
 
 			// 1:
 			// Multiple applications can have the same service name. Return the first matching service.
-			// All applications have the HTTP service. Without the unique_name the first service on the list would always be returned.
+			// Without checking the unique_name the HTTP service of the first application would always be returned.
 			// 2:
 			// The service belongs to the requested unique application
 			if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||

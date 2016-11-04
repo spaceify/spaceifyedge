@@ -78,6 +78,17 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			data = secureConnection.sync.callRpc("removeApplication", [operation.unique_name, userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
+		else if(operation.type == "purgeApplication" && isSecure && userData.sessionId)
+			{
+			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+
+			if(!operation.unique_name)
+				throw errorc.errorFromObject(language.E_GET_DATA_UNDEFINED_PARAMETERS);
+
+			connect.sync();
+			data = secureConnection.sync.callRpc("purgeApplication", [operation.unique_name, userData.sessionId], self);
+			}
+		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "startApplication" && isSecure && userData.sessionId)
 			{
 			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
@@ -111,12 +122,12 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			data = secureConnection.sync.callRpc("restartApplication", [operation.unique_name, userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
-		else if(operation.type == "requestMessages" && isSecure && userData.sessionId)
+		else if(operation.type == "requestMessageId" && isSecure && userData.sessionId)
 			{
 			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
 
 			connect.sync();
-			data = secureConnection.sync.callRpc("requestMessages", [userData.sessionId], self);
+			data = secureConnection.sync.callRpc("requestMessageId", [userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "getCoreSettings" && isSecure && userData.sessionId)
@@ -163,7 +174,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			{
 			connect.sync();
 
-			data = {spacelet: [], sandboxed: [], native: []};
+			data = {spacelet: [], sandboxed: [], sandboxed_debian: [], native_debian: []};
 			dbApps = secureConnection.sync.callRpc("getApplications", [operation.types || ""], self);
 
 			for(var i = 0; i < dbApps.length; i++)
@@ -175,8 +186,10 @@ self.getData = fibrous( function(operation, userData, isSecure)
 					path = config.SPACELETS_PATH;
 				else if(type == config.SANDBOXED)
 					path = config.SANDBOXED_PATH;
-				else if(type == config.NATIVE)
-					path = config.NATIVE_PATH;
+				else if(type == config.SANDBOXED_DEBIAN)
+					path = config.SANDBOXED_DEBIAN_PATH;
+				else if(type == config.NATIVE_DEBIAN)
+					path = config.NATIVE_DEBIAN_PATH;
 
 				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.APPLICATION_PATH + config.MANIFEST, true);
 				manifest.isRunning = dbApps[i].isRunning;

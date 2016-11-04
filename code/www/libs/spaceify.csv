@@ -1,6 +1,4 @@
-# libs/spaceifyinitialize.js injects the files Spaceify needs to web pages based on this list.
-#
-# Lines must have six tokens and undefined tokens are defined with hyphen (-)!
+# Lines must have six tokens, undefined tokens must contain hyphen (-)!
 # Format: type url path mime parameter class
 # Separator: tabulator
 # Line ending: (Unix style) line feed \n
@@ -11,26 +9,33 @@
 # url
 # A relative or absolute url to a web server for javascript and css type.
 #
-# path
-# For json and text a path to a file on the local filesystem.
+# custom
+# Custom field for freely defined value.
 #
 # mime
 # MIME type of the file
 #
 # parameter
-# Parameter to use in the injector.
+# Parameter to use in the injection process.
 # json: variable where result from JSON.parse(...) is assigned to. The variable is appended with window. and prepended with = by the injector.
 #       e.g. window.sconfig = JSON.parse(...);
+# locale: language files by locales, e.g. en_US, fi_FI, fi_SE
+# !x = parameter name for a group, e.g. locales are to be stored in a window.spLocales
 # css: media type
 
-# Styles first
+# Styles
 css	css/spaceify.css	-	text/css	all
 
-# 3rd party
+# 3rd party files
 
-# Spaceify
-json	libs/config.json	-	application/json	sconfig
+# Spaceify's languages. Store locales to window.spLocales. First locale on the list is the default locale.
+!locale:window:spLocales
+locale	locales/en_US.json	en_US	application/json	-
 
+# Spaceify's JSON
+json	libs/config.json	-	application/json	spConfig
+
+# Spaceify's JavaScript
 javascript	libs/logger.js	-	application/javascript	-
 
 javascript	libs/webjsonrpc/binaryrpccommunicator.js	-	application/javascript	-
@@ -57,3 +62,8 @@ javascript	libs/spacelet.js	-	application/javascript	-
 javascript	libs/spaceifyapplication.js	-	application/javascript	-
 javascript	libs/spaceifyerror.js	-	application/javascript	-
 javascript	libs/service.js	-	application/javascript	-
+
+# Spaceify's HTML tiles
+!tiles:window:spTiles
+tile	templates/tile.html	tile	text/html	-
+tile	templates/apptile.html	appTile	text/html	-

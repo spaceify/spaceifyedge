@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+
+		<script type="text/javascript" src="../../js/spaceify.loader.js" defer></script>
+		<script type="text/javascript">
+			window.loadOnce = true;
+
+			window.onload = function()
+				{
+				var params = spaceifyLoader.parseQuery(window.location.href);
+
+				if(!window.isSpaceifyNetwork)
+					{
+					spaceifyLoader.setConnectionListener(function()
+						{
+						spaceifyLoader.loadPage(params.sp_host + params.sp_path, params.sp_host);
+						});
+					}
+				else
+					{
+					spaceifyLoader.loadPage(params.sp_host + params.sp_path, params.sp_host, function()
+						{
+						spaceifyLoader.loadAllElements();
+						});
+					}
+				};
+		</script>
+		<title></title>
+	</head>
+	<body>
+	</body>
+</html>

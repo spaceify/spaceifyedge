@@ -1,9 +1,29 @@
 <!doctype html>
 <html ng-app-spaceify spaceify-secure>
-	<head head-directive>
-		<script src="../app/storage.js"></script>
-		<script src="../js/angular-1.5.3.min.js"></script>
-		<script src="../app/spaceify.js"></script>
+	<head body-directive>
+		<!-- -->
+		<meta charset="utf-8">
+		<meta name="product" content="Spaceify">
+		<meta name="author" content="Spaceify Oy">
+		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+		<link href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<!-- REMOTE >>>>>>>>>>
+		<link sp_href="../css/spaceify.edge.css" rel="stylesheet" type="text/css">
+		<<<<<<<<<< REMOTE -->
+
+		<title ng-bind="$root.getString('title')">Loading...</title>
+		<!-- -->
+
+		<!-- -->
+		<script src="../js/spaceify.edge.js"></script>
+		<!-- REMOTE >>>>>>>>>>
+		<script src="js/spaceify.loader.js"></script>
+		<script sp_src="js/spaceify.edge.js"></script>
+		<<<<<<<<<< REMOTE -->
+		<!-- -->
 
 		<script>
 			var sam = null;
@@ -23,14 +43,16 @@
 					$("#packageReadme").css("height", event.data.height + "px");
 				}
 
-			function pageReady()
+			function angularReady()
 				{
 				config = new SpaceifyConfig();
 				sam = new SpaceifyApplicationManager();
 
 				// Setup the page
+				$("#edgeBody").show();
+
 				var atype = $("#atype");
-				atype.append($("<option></option><option>" + config.SPACELET + "</option><option>" + config.SANDBOXED + "</option><option>" + config.NATIVE + "</option>"));
+				atype.append($("<option></option><option>" + config.SPACELET + "</option><option>" + config.SANDBOXED + "</option><option>" + config.SANDBOXED_DEBIAN + "</option><option>" + config.NATIVE_DEBIAN + "</option>"));
 
 				var categories = $("#categories");													// Categories in human readable format
 				categories.append($("<option></option>")).val("");
@@ -88,12 +110,14 @@
 					{
 					if(result.fetchedRows > 0)
 						{
-						for(var i=0; i<packages.sandboxed.length; i++)
-							listContainer.append(row(packages.sandboxed[i], "sandboxed" + i));
 						for(var i=0; i<packages.spacelet.length; i++)
 							listContainer.append(row(packages.spacelet[i], "spacelet" + i));
-						for(var i=0; i<packages.native.length; i++)
-							listContainer.append(row(packages.native[i], "native" + i));
+						for(var i=0; i<packages.sandboxed.length; i++)
+							listContainer.append(row(packages.sandboxed[i], "sandboxed" + i));
+						for(var i=0; i<packages.sandboxed_debian.length; i++)
+							listContainer.append(row(packages.sandboxed_debian[i], "sandboxed_debian" + i));
+						for(var i=0; i<packages.native_debian.length; i++)
+							listContainer.append(row(packages.native_debian[i], "native_debian" + i));
 						}
 					else
 						listContainer.append($("<div>No results</div>"));
@@ -118,7 +142,7 @@
 				detailContainer.empty();
 
 				var pos= id.replace(/[a-z]/g, "");
-				var type = id.replace(/[^a-z]/g, "");			
+				var type = id.replace(/[^a-z]/g, "");
 				var manifest = packages[type][pos];
 
 				// empty div
@@ -131,19 +155,28 @@
 
 				if(manifest.icon)
 					{
-					adiv.append($("<h3><u>APPLICATIONS ICON</u></h3>"));
+					adiv.append($("<h3><u>ICON</u></h3>"));
 					adiv.append($('<img src="https://' + manifest.icon + '" width="128" height="128">'));
+					/* REMOTE >>>>>>>>>>
+					adiv.append($('<img sp_src="https://' + manifest.icon + '" width="128" height="128">'));
+					<<<<<<<<<< REMOTE */
 					}
 				else
 					{
 					adiv.append($("<h3><u>THE DEFAULT ICON</u></h3>"));
 					adiv.append($('<img src="../images/icon.png" width="128" height="128">'));
+					/* REMOTE >>>>>>>>>>
+					adiv.append($('<img sp_src="../images/icon.png" width="128" height="128">'));
+					<<<<<<<<<< REMOTE */
 					}
 
 				if(manifest.readme)
 					{
 					adiv.append($("<h3><u>THE README</u></h3>"));
 					adiv.append($('<iframe id="packageReadme" src="https://' + manifest.readme + '" frameBorder="0" sandbox="allow-scripts" style="width: 100%;"></iframe>'));
+					/* REMOTE >>>>>>>>>>
+					adiv.append($('<iframe id="packageReadme" sp_src="https://' + manifest.readme + '" frameBorder="0" sandbox="allow-scripts" style="width: 100%;"></iframe>'));
+					<<<<<<<<<< REMOTE */
 					}
 				}
 
@@ -152,7 +185,7 @@
 				// Buttons
 				$("#navFirst").attr("disabled", _page == 1 || _fetchedRows == 0 ? true : false);
 				$("#navPrev").attr("disabled", _page == 1 || _fetchedRows == 0 ? true : false);
-					
+
 				$("#navNext").attr("disabled", _page == _maxPages || _fetchedRows == 0 ? true : false);
 				$("#navLast").attr("disabled", _page == _maxPages || _fetchedRows == 0 ? true : false);
 

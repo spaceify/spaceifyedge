@@ -13,10 +13,12 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = {};
-classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-classes.Language = (isNodeJs ? require(apiPath + "language") : {});
-classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	Language: (isNodeJs ? require(apiPath + "language") : {}),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
+	};
 if (typeof exports !== "undefined")
 	{
 	global.os = require("os");
@@ -28,7 +30,6 @@ if (typeof exports !== "undefined")
 	global.spawn = require("child_process").spawn;
 	}
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -361,12 +362,12 @@ self.postPublish = function(applicationPackage, username, password, release_name
 
 self.postRegister = function(edge_id, edge_name, edge_password, callback)
 	{
-	logger.force(language.POSTING_REGISTRATION);
+	//logger.force(language.POSTING_REGISTRATION);
 
-	request({
+	request["post"]({
 		url: config.EDGE_REGISTER_URL,
 		headers: { "content-type" : "multipart/form-data" },
-		method: "POST",
+		//method: "POST",
 		multipart:
 			[
 				{ "Content-Disposition" : 'form-data; name="edge_id"', body: edge_id },
@@ -376,7 +377,7 @@ self.postRegister = function(edge_id, edge_name, edge_password, callback)
 		},
 		function(err, result, body)
 			{
-			callback( (err ? err : null), (err ? null : (result.statusCode != 200 ? parseInt(result.statusCode) : body)) );
+			callback(err ? err : null, err ? null : (result.statusCode != 200 ? result.statusCode : body));
 			});
 	}
 
@@ -562,20 +563,20 @@ self.execute = function(command, args, options, spmMessage, callback)
 
 	spawned.stdout.on("data", function(data)
 		{
-		if(spmMessage)
+		/*if(spmMessage)
 			spmMessage.sync(data, true);
 		else
-			logger.force(data, true);
+			logger.force(data, true);*/
 
 		stdout += data;
 		});
 
 	spawned.stderr.on("data", function(data)
 		{
-		if(spmMessage)
+		/*if(spmMessage)
 			spmMessage.sync(data, true);
 		else
-			logger.force(data, true);
+			logger.force(data, true);*/
 
 		stderr += data;
 		});

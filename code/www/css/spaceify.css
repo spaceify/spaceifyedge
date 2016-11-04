@@ -248,6 +248,9 @@ a.edgeTileLink:link, a.edgeTileLink:visited, a.edgeTileLink:hover, a.edgeTileLin
 	max-width: 291px;
 	max-height: 100px;
 }
+.adminLogoImage:hover {
+	cursor: pointer;
+}
 
 /* Common containers for all admin pages */
 .adminContainer {

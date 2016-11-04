@@ -22,11 +22,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = {};
-classes.Logger = (isNodeJs ? require(apiPath + "logger") : Logger);
-classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility);
-classes.WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection);
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility),
+	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
+	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -52,7 +54,7 @@ self.listen = function(opts, callback)
 		if(!("id" in options))														// Set only once
 			{
 			options.hostname = opts.hostname || null;
-			options.port = opts.port || "";
+			options.port = opts.port || 0;
 			options.key = opts.key || "";
 			options.crt = opts.crt || "";
 			options.caCrt = opts.caCrt || "";
@@ -95,6 +97,8 @@ self.listen = function(opts, callback)
 
 		webServer.listen(options.port, options.hostname, 511, function()
 			{
+			options.port = webServer.address().port;
+
 			serverUpListener();
 
 			if(typeof callback == "function")

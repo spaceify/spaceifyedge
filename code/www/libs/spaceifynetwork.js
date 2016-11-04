@@ -13,24 +13,24 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes = {};
-classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-classes.SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility);
+var classes =
+	{
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
+
 var self = this;
 
+var errorc = new classes.SpaceifyError();
 var config = new classes.SpaceifyConfig();
 var utility = new classes.SpaceifyUtility();
 
 // Get the URL to the Spaceify Core
-self.getEdgeURL = function(forceSecure, withPort, withSlash, useEdgeHostname)
+self.getEdgeURL = function(forceSecure, port, withSlash)
 	{
-	return (forceSecure ? "https:" : location.protocol) + 
-			"//" + 
-			(useEdgeHostname ? config.EDGE_HOSTNAME : config.RESOURCE_HOSTNAME) + 
-			(withPort ? ":" : "") + 
-			(withSlash ? "/" : "");
+	return (forceSecure ? "https:" : location.protocol) + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withSlash ? "/" : "");
 	}
 
 // Get secure or insecure port based on web pages protocol or requested security
@@ -50,7 +50,7 @@ self.getProtocol = function(withScheme)
 	{
 	return (location.protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
 	}
-	
+
 // Parse URL query
 self.parseQuery = function(url)
 	{
@@ -130,54 +130,96 @@ self.implementsWebServer = function(manifest)
 	return (manifest.implements && manifest.implements.indexOf(config.WEB_SERVER) != -1 ? true : false);
 	}
 
-	// XMLHttp -- -- -- -- -- -- -- -- -- -- //
+self.isPortInUse = function(port, callback)
+	{ // Adapted from https://gist.github.com/timoxley/1689041
+	if(!port)
+		return callback(null, true);
+
+	var net = require("net");
+	var server = net.createServer();
+
+	server.once("error", function(err)
+		{
+		callback(err.code != "EADDRINUSE" ? err : null, true);
+		});
+
+	server.once("listening", function()
+		{
+		server.once("close", function()
+			{
+			callback(null, false)
+			});
+
+		server.close();
+		});
+
+	server.listen(port);
+	}
+
+	// XMLHttpRequest -- -- -- -- -- -- -- -- -- -- //
 self.GET = function(url, callback, responseType)
 	{
 	var ms = Date.now();
 	var id = utility.randomString(16, true);
-	var xmlhttp = createXMLHTTP();
-	xmlhttp.onreadystatechange = function() { onReadyState(xmlhttp, id, ms, callback); };
+	var xhr = createXMLHttpRequest();
+	xhr.onreadystatechange = function() { onReadyState(xhr, id, ms, callback); };
 
-	xmlhttp.open("GET", url, true);
-	xmlhttp.responseType = (responseType ? responseType : "");
-	xmlhttp.send();
+	xhr.open("GET", url, true);
+	xhr.responseType = (responseType ? responseType : "");
+	xhr.send();
 	}
 
 self.POST_FORM = function(url, post, responseType, callback)
 	{
-	var boundary = "---------------------------" + Date.now().toString(16);
-
-	var content = "";
-	for(var i = 0; i < post.length; i++)
+	if(typeof spaceifyLoader !== "undefined")
+		spaceifyLoader.postData(url, post, responseType, callback);
+	else
 		{
-		content += "--" + boundary + "\r\n";
+		var boundary = "---------------------------" + Date.now().toString(16);
 
-		content += post[i].content;
-		content += "\r\n\r\n" + post[i].data + "\r\n";
+		var body = "";
+		for(var i = 0; i < post.length; i++)
+			{
+			body += "\r\n--" + boundary + "\r\n";
+
+			body += post[i].content;
+			body += "\r\n\r\n" + post[i].data + "\r\n";
+			}
+		body += "\r\n--" + boundary + "--";
+
+		var ms = Date.now();
+		var id = utility.randomString(16, true);
+		var xhr = createXMLHttpRequest();
+		xhr.open("POST", url, true);
+		xhr.responseType = (responseType ? responseType : "text");
+		xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
+		xhr.onreadystatechange = function() { onReadyState(xhr, id, ms, callback); };
+		xhr.send(body);
 		}
-	content += "\r\n--" + boundary + "--";
-
-	var ms = Date.now();
-	var id = utility.randomString(16, true);
-	var xmlhttp = createXMLHTTP();
-	xmlhttp.onreadystatechange = function() { onReadyState(xmlhttp, id, ms, callback); };
-	xmlhttp.open("POST", url, true);
-	xmlhttp.responseType = (responseType ? responseType : "text/plain");
-	xmlhttp.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
-	xmlhttp.setRequestHeader("Content-Length", content.length);
-	xmlhttp.send(content);
 	}
-	
+
 self.POST_JSON = function(url, jsonData, callback)
 	{
+	var result;
+	var content;
+	var error = null;
+
 	try {
-		var content = "Content-Disposition: form-data; name=data;\r\nContent-Type: application/json; charset=utf-8";
+		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		self.POST_FORM(config.OPERATION_URL, [{content: content, data: JSON.stringify(jsonData)}], "application/json", function(err, response, id, ms)
+		self.POST_FORM(config.OPERATION_URL, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
-			var result = JSON.parse(response.replace(/&quot;/g,'"'));
+			try {
+				if(typeof response !== "string")
+					response = JSON.stringify(response);
 
-			var error = null;
+				result = JSON.parse(response.replace(/&quot;/g,'"'));
+				}
+			catch(err)
+				{
+				result = {err: errorc.makeErrorObject("sne1", "Invalid JSON received.", "SpaceifyNetwork::POST_JSON")};
+				}
+
 			if(result.err)
 				error = result.err;
 			else if(result.error)
@@ -192,15 +234,15 @@ self.POST_JSON = function(url, jsonData, callback)
 		}
 	}
 
-var createXMLHTTP = function()
+var createXMLHttpRequest = function()
 	{
 	return (window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"));		// IE7+, Firefox, Chrome, Opera, Safari : IE5, IE6
 	}
 
-var onReadyState = function(xmlhttp, id, ms, callback)
+var onReadyState = function(xhr, id, ms, callback)
 	{
-	if(xmlhttp.readyState == 4)
-		callback( (xmlhttp.status != 200 ? xmlhttp.status : null), (xmlhttp.status == 200 ? xmlhttp.response : null), id, Date.now() - ms );
+	if(xhr.readyState == 4)
+		callback( (xhr.status != 200 ? xhr.status : null), (xhr.status == 200 ? xhr.response : null), id, Date.now() - ms );
 	}
 
 }

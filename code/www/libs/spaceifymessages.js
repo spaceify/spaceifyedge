@@ -16,7 +16,8 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
-var messageConnection = new WebSocketConnection();
+
+var pipeId = null;
 
 var messageId;
 var errors = [];
@@ -24,16 +25,10 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
-	// CONSTANTS -- -- -- -- -- -- -- -- -- -- //
-self.MESSAGE = 1;
-self.MESSAGE_END = 2;
-self.MESSAGE_ERROR = 3;
-self.MESSAGE_WARNING = 4;
-self.MESSAGE_NOTIFY = 5;
-self.MESSAGE_ANSWER = 6;
-self.MESSAGE_QUESTION = 7;
-self.MESSAGE_CONFIRM = 8;
-self.MESSAGE_TIMED_OUT = 9;
+var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : true);
+
+var isConnected = false;
+var connection = (isSpaceifyNetwork ? new WebSocketRpcConnection() : piperClient);
 
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
@@ -42,36 +37,53 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
-	if(!callerOrigin.message)
-		return fail(errorc.makeErrorObject("sme1", "Message callback must be implemented.", "SpaceifyMessage::connect"));
+	if(isConnected)
+		return managerOrigin.connected();
 
-	network.POST_JSON(config.OPERATION_URL, { type: "requestMessages" }, function(err, messageId_)					// Request a messageId
+	network.POST_JSON(config.OPERATION_URL, { type: "requestMessageId" }, function(err, gotId)						// Request a messageId
 		{
 		if(err)
 			return fail(err);
 
-		messageId = messageId_;
+		messageId = gotId;
 
-		messageConnection.setEventListener(self);
+		connection.exposeRpcMethod("fail", self, fail);
+		connection.exposeRpcMethod("error", self, error);
+		connection.exposeRpcMethod("warning", self, warning);
+		connection.exposeRpcMethod("notify", self, notify);
+		connection.exposeRpcMethod("message", self, message);
+		connection.exposeRpcMethod("question", self, question);
+		connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
+		connection.exposeRpcMethod("end", self, end);
 
-		messageConnection.connect({hostname: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true}, function(err, data)
+		if(isSpaceifyNetwork)
+			{				
+			connection.connect({hostname: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true}, function(err, data)
+				{
+				if(err)
+					return fail(err);
+
+				isConnected = true;
+				connection.callRpc("confirm", [messageId]);
+				managerOrigin.connected();
+				});
+			}
+		else
 			{
-			if(err)
-				return fail(err);
-
-			messageConnection.send(JSON.stringify({type: self.MESSAGE_CONFIRM, messageId: messageId}));	// Confirm that we are listening
-
-			managerOrigin.success();
-			});
+			connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
+				{
+				pipeId = id;
+				isConnected = true;
+				piperClient.callClientRpc(pipeId, "confirm", [messageId]);
+				managerOrigin.connected();
+				});
+			}
 		});
 	}
 
-var fail = function(err)
+self.isConnected = function()
 	{
-	if(callerOrigin.fail)
-		callerOrigin.fail(err);
-
-	managerOrigin.fail(err);
+	return isConnected;
 	}
 
 self.getErrors = function()
@@ -84,52 +96,82 @@ self.getWarnings = function()
 	return warnings;
 	}
 
-self.answer = function(answer, answerCallBackId)
+	// Exposed RPC methods -- -- -- -- -- -- -- -- -- -- //
+var fail = function(err, connObj, callback)
 	{
-	if(!messageConnection)
-		return;
+	isConnected = false;
 
-	messageConnection.send(JSON.stringify({type: self.MESSAGE_ANSWER, messageId: messageId, answer: answer, answerCallBackId: answerCallBackId}));
+	if(callerOrigin.fail)
+		callerOrigin.fail(err);
+
+	managerOrigin.fail(err);
+
+	callback(null, true);
 	}
 
-//** MessageListener interface implementation
-//** EventListener interface implementation
-self.onDisconnected = function(id) {}
-
-self.onMessage = function(message, connection)
+var error = function(err, connObj, callback)
 	{
-	try {
-		message = JSON.parse(message);
+	errors.push(err);
 
-		if(message.type == self.MESSAGE_END)
-			throw "";
-		else if(message.type == self.MESSAGE_ERROR)
-			errors.push(message.data);
-		else if(message.type == self.MESSAGE_WARNING)
-			{
-			warning.push(message.data);
-			if(callerOrigin.warning)
-				callerOrigin.warning(message.data.message, message.data.code);
-			}
-		else if(message.type == self.MESSAGE_NOTIFY && callerOrigin.notify)
-			callerOrigin.notify(message.data.message, message.data.code);
-		else if(message.type == self.MESSAGE_QUESTION && callerOrigin.question)
-			callerOrigin.question(message.message, message.choices, message.source, message.answerCallBackId);
-		else if(message.type == self.MESSAGE_TIMED_OUT && callerOrigin.questionTimedOut)
-			callerOrigin.questionTimedOut(message.message, message.source, message.answerCallBackId);
-		else if(message.type == self.MESSAGE && callerOrigin.message)
-			callerOrigin.message(message.message);
-		}
-	catch(err)
-		{
-		if(err !== "")
-			errors.push(errorc.make(err));
+	callback(null, true);
+	}
 
-		messageConnection.close();
+var warning = function(message_, code, connObj, callback)
+	{
+	warning.push({message: message_, code: code});
 
-		managerOrigin.ready(1);
-		}
+	if(callerOrigin.warning)
+		callerOrigin.warning(message_, code);
+
+	callback(null, true);
+	}
+
+var notify = function(message_, code, connObj, callback)
+	{
+	if(callerOrigin.notify)
+		callerOrigin.notify(message_, code, connObj, callback);
+
+	callback(null, true);
+	}
+
+var message = function(message_, connObj, callback)
+	{
+	if(callerOrigin.message)
+		callerOrigin.message(message_);
+
+	callback(null, true);
+	}
+
+var question = function(message_, choices, origin, answerCallBackId, connObj, callback)
+	{
+	if(callerOrigin.question)
+		callerOrigin.question(message_, choices, origin, answerCallBackId);
+
+	callback(null, true);
+	}
+	
+var questionTimedOut = function(message_, origin, answerCallBackId, connObj, callback)
+	{
+	if(callerOrigin.questionTimedOut)
+		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
+
+	callback(null, true);
+	}
+
+var end = function(message_, connObj, callback)
+	{
+	managerOrigin.ready(1);
+
+	callback(null, true);
+	}
+
+	// Response methods -- -- -- -- -- -- -- -- -- -- //
+self.sendAnswer = function(answer, answerCallBackId)
+	{
+	if (isSpaceifyNetwork)
+		connection.callRpc("answer", [messageId, answer, answerCallBackId]);
+	else
+		connection.callClientRpc(pipeId, "answer", [messageId, answer, answerCallBackId]);
 	}
 
 }
-

@@ -3,6 +3,7 @@
   "SPACEIFY_CODE_PATH": "/var/lib/spaceify/code/",
   "SPACEIFY_DATA_PATH": "/var/lib/spaceify/data/",
   "SPACEIFY_WWW_PATH": "/var/lib/spaceify/code/www/",
+  "SPACEIFY_NODE_MODULES_PATH": "/var/lib/spaceify/code/node_modules/",
   "SPACEIFY_WWW_ERRORS_PATH": "/var/lib/spaceify/code/www/errors/",
   "SPACEIFY_TLS_PATH": "/var/lib/spaceify/data/tls/",
   "SPACEIFY_DATABASE_FILE": "/var/lib/spaceify/data/db/spaceify.db",
@@ -13,7 +14,8 @@
 
   "SPACELETS_PATH": "/var/lib/spaceify/data/spacelets/",
   "SANDBOXED_PATH": "/var/lib/spaceify/data/sandboxed/",
-  "NATIVE_PATH": "/var/lib/spaceify/data/native/",
+  "SANDBOXED_DEBIAN_PATH": "/var/lib/spaceify/data/sandboxed_debian/",
+  "NATIVE_DEBIAN_PATH": "/var/lib/spaceify/data/native_debian/",
   "INSTALLED_PATH": "/var/lib/spaceify/data/installed/",
 
   "DOCS_PATH": "/var/lib/spaceify/data/docs/",
@@ -32,6 +34,8 @@
 
   "WWW_URL": "edge.spaceify.net/",
   "WWW_DIRECTORY": "www/",
+
+  "DEB_DIRECTORY": "deb/",
 
   "WORK_PATH": "/tmp/package/",
   "PACKAGE_PATH": "package/",
@@ -59,12 +63,12 @@
 
   "EDGE_IP": "10.0.0.1",
   "EDGE_HOSTNAME": "edge.spaceify.net",
-  "RESOURCE_HOSTNAME": "resource.spaceify.net",
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",
   "ALL_IPV4_LOCAL": "0.0.0.0",
   "CONNECTION_HOSTNAME": "localhost",
+  "RESOURCE_HOSTNAME": "resource.spaceify.net",
 
   "APPLICATION_SUBNET": "172.17.0.0/16",
 
@@ -82,10 +86,10 @@
 
   "OPERATION_URL": "https://edge.spaceify.net/templates/operation.html",
   "ADMIN_LOGIN_URL": "https://edge.spaceify.net/admin/login.html",
-  "ADMIN_INDEX_URL": "https://edge.spaceify.net/admin/",
+  "ADMIN_INDEX_URL": "https://edge.spaceify.net/appstore/",
   "REGISTRY_HOSTNAME": "spaceify.org",
   "REGISTRY_URL": "https://spaceify.org",
-  "REGISTRY_PUBLISH_URL": "https://spaceify.org/ajax/upload.php?type=package&id=package",
+  "REGISTRY_PUBLISH_URL": "https://spaceify.org/ajax/upload.php?type=package&fileid=package",
   "REGISTRY_INSTALL_URL": "https://spaceify.org/install.php",
   "EDGE_APPSTORE_GET_PACKAGES_URL": "https://spaceify.org/appstore/getpackages.php",
   "EDGE_REGISTER_URL": "https://spaceify.net/edge/register.php",
@@ -111,9 +115,11 @@
 
   "SPACELET": "spacelet",
   "SANDBOXED": "sandboxed",
-  "NATIVE": "native",
+  "SANDBOXED_DEBIAN": "sandboxed_debian",
+  "NATIVE_DEBIAN": "native_debian",
   "ANY": "any",
-  "APP_TYPE_NUMBER": {"spacelet": 0, "sandboxed": 1, "native": 2, "any": 3},
+  "ALL": "all",
+  "APP_TYPE_NUMBER": {"spacelet": 0, "sandboxed": 1, "sandboxed_debian": 2, "native_debian": 3, "any": 4},
 
   "OPEN": "open",
   "OPEN_LOCAL": "open_local",
@@ -141,7 +147,7 @@
   "INDEX_HTML": "index.html",
   "INDEX_TPL": "index.tpl",
   "SERVER_NAME": "Spaceify Web Server",
-  
+
   "TILEFILE": "tile.html",
   "WEB_SERVER": "WEB_SERVER",
 
@@ -168,18 +174,22 @@
 
   "SESSION_COOKIE_PUBSUB_PATH": "/var/lib/spaceify/data/db/session_cookies.pub",
 
-  "EVENT_APPLICATION_INSTALLED": "ApplicationInstalled",
-  "EVENT_APPLICATION_REMOVED": "ApplicationRemoved",
-  "EVENT_APPLICATION_STARTED": "ApplicationStarted",
-  "EVENT_APPLICATION_STOPPED": "ApplicationStopped",
-  "EVENT_SPACELET_INSTALLED": "SpaceletInstalled",
-  "EVENT_SPACELET_REMOVED": "SpaceletRemoved",
-  "EVENT_SPACELET_STARTED": "SpaceletStarted",
-  "EVENT_SPACELET_STOPPED": "SpaceletStopped",
-  "EVENT_NATIVE_APPLICATION_INSTALLED": "NativeApplicationInstalled",
-  "EVENT_NATIVE_APPLICATION_REMOVED": "NativeApplicationRemoved",
-  "EVENT_NATIVE_APPLICATION_STARTED": "NativeApplicationStarted",
-  "EVENT_NATIVE_APPLICATION_STOPPED": "NativeApplicationStopped",
+  "EVENT_SPACELET_INSTALLED": "spaceletInstalled",
+  "EVENT_SPACELET_REMOVED": "spaceletRemoved",
+  "EVENT_SPACELET_STARTED": "spaceletStarted",
+  "EVENT_SPACELET_STOPPED": "spaceletStopped",
+  "EVENT_SANDBOXED_INSTALLED": "sandboxedInstalled",
+  "EVENT_SANDBOXED_REMOVED": "sandboxedRemoved",
+  "EVENT_SANDBOXED_STARTED": "sandboxedStarted",
+  "EVENT_SANDBOXED_STOPPED": "sandboxedStopped",
+  "EVENT_SANDBOXED_DEBIAN_INSTALLED": "sandboxedDebianInstalled",
+  "EVENT_SANDBOXED_DEBIAN_REMOVED": "sandboxedDebianRemoved",
+  "EVENT_SANDBOXED_DEBIAN_STARTED": "sandboxedDebianStarted",
+  "EVENT_SANDBOXED_DEBIAN_STOPPED": "sandboxedDebianStopped",
+  "EVENT_NATIVE_DEBIAN_INSTALLED": "nativeDebianInstalled",
+  "EVENT_NATIVE_DEBIAN_REMOVED": "nativeDebianRemoved",
+  "EVENT_NATIVE_DEBIAN_STARTED": "nativeDebianStarted",
+  "EVENT_NATIVE_DEBIAN_STOPPED": "nativeDebianStopped",
   "EVENT_EDGE_SETTINGS_CHANGED": "EdgeSettingsChanged",
   "EVENT_CORE_SETTINGS_CHANGED": "CoreSettingsChanged"
 }

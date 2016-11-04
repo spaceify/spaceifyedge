@@ -5,14 +5,14 @@
     "encoding": "UTF-8",
     "description": "American English",
 
-    "title": "Spaceify",
-    "loading": "Loading...",
-    "version": "v"
+    "loading": "Loading..."
   },
 
   "index":
   {
     "title": "Welcome to Spaceify",
+
+    "version": "v",
 
     "splash_welcome": "Welcome to Spaceify powered wireless network.",
     "splash_info": "1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install certificate' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.",
@@ -21,8 +21,9 @@
     "splash_certificate_action": "Install certificate",
 
     "spacelets": "Spacelets",
-    "sandboxed": "Applications",
-    "native": "Native",
+    "sandboxed": "Sandboxed",
+    "sandboxed debian": "Sandboxed Debian",
+    "native_debian": "Native Debian",
     "user_utilities": "Utilities",
     "admin_utilities": "Administration",
 

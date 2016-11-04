@@ -3,7 +3,7 @@
 /**
  * Manager, 22.10.2015 Spaceify Oy
  * 
- * Spacelet, sandboxed application and native application manager class.
+ * Spacelet, sandboxed, sandboxed debian and native debian application manager class.
  * 
  * @class Manager
  */
@@ -29,16 +29,33 @@ var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 
 var applications = {};
+var applicationsCount = 0;
 
 self.install = fibrous( function(unique_name, throws)
 	{
+	var manifest;
 	var dbApplication;
 	var application = null;
+	var applicationPath = "";
 
 	try	{
 		dbApplication = database.sync.getApplication(unique_name);
 
-		application = build.sync(dbApplication);
+		if(managerType == config.SPACELET)
+			applicationPath = config.SPACELETS_PATH;
+		else if(managerType == config.SANDBOXED)
+			applicationPath = config.SANDBOXED_PATH;
+		else if(managerType == config.SANDBOXED_DEBIAN)
+			applicationPath = config.SANDBOXED_DEBIAN_PATH;
+		else if(managerType == config.NATIVE_DEBIAN)
+			applicationPath = config.NATIVE_DEBIAN_PATH;
+
+		if((manifest = utility.sync.loadJSON(applicationPath + dbApplication.unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
+			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("Manager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": dbApplication.unique_name});
+
+		application = new Application(manifest, dbApplication.develop);
+		application.setDockerImageId(dbApplication.docker_image_id);
+		add(application);
 		}
 	catch(err)
 		{
@@ -53,30 +70,7 @@ self.install = fibrous( function(unique_name, throws)
 	return true;
 	});
 
-var build = fibrous( function(dbApplication)
-	{
-	var manifest;
-	var application = null;
-	var applicationPath = "";
-
-	if(managerType == config.SPACELET)
-		applicationPath = config.SPACELETS_PATH;
-	else if(managerType == config.SANDBOXED)
-		applicationPath = config.SANDBOXED_PATH;
-	else if(managerType == config.NATIVE)
-		applicationPath = config.NATIVE_PATH;
-
-	if((manifest = utility.sync.loadJSON(applicationPath + dbApplication.unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
-		throw language.E_BUILD_READ_MANIFEST_FAILED.preFmt("Manager::build", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": dbApplication.unique_name});
-
-	application = new Application(manifest, dbApplication.develop);
-	application.setDockerImageId(dbApplication.docker_image_id);
-	add(application);
-
-	return application;
-	});
-
-self.start = fibrous( function(unique_name)
+self.start = fibrous( function(unique_name, throws)
 	{
 	var startObject = {};
 	var application = null;
@@ -84,25 +78,20 @@ self.start = fibrous( function(unique_name)
 	try	{
 		application = applications[unique_name];
 
-		self.sync.run(application);
-
-		if(!application.isInitialized())
-			{
-			throw language.E_START_INIT_FAILED.preFmt("Manager::start", {	"~err": application.getInitializationError(), 
-																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
-			}
+		run.sync(application);
 
 		startObject = { providesServices: application.getProvidesServices() };
 		}
 	catch(err)
 		{
-		throw errorc.make(err);
+		if(throws)
+			throw errorc.make(err);
 		}
 
 	return startObject;
 	});
 
-self.run = fibrous( function(application)
+var run = fibrous( function(application)
 	{ // Starts the application in a Docker container
 	var ferr;
 	var matches;
@@ -113,18 +102,20 @@ self.run = fibrous( function(application)
 	var applicationPath = "";
 
 	try	{
-		if(application.isRunning())
+		if(application.sync.isRunning())
 			return true;
 
 		if(application.isDevelop())
 			return false;
 
-		if(managerType == config.SPACELET || managerType == config.SANDBOXED)
+		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
 			if(managerType == config.SPACELET)
 				applicationPath = config.SPACELETS_PATH;
 			else if(managerType == config.SANDBOXED)
 				applicationPath = config.SANDBOXED_PATH;
+			else if(managerType == config.SANDBOXED_DEBIAN)
+				applicationPath = config.SANDBOXED_DEBIAN_PATH;
 
 			var fullApiPath = config.SPACEIFY_CODE_PATH;
 			var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
@@ -141,6 +132,8 @@ self.run = fibrous( function(application)
 					fullApiPath + ":" + config.SPACEIFY_CODE_PATH + ":ro"
 					];
 
+			application.clearRuntimeServices();
+
 			dockerContainer = new DockerContainer();
 			application.setDockerContainer(dockerContainer);
 			dockerContainer.sync.startContainer(application.getProvidesServicesCount(), application.getDockerImageId(), volumes, binds);
@@ -152,17 +145,18 @@ self.run = fibrous( function(application)
 			if(response[1] == config.APPLICATION_UNINITIALIZED)
 				{
 				matches = /;;(.+)::/.exec(response[0]);								// extract error string from the output
-				application.setInitialized(false, matches[1].trim());
-				self.sync.stop(application.getUniqueName());
-				}
-			else
-				application.setInitialized(true, "");
 
-			application.setRunningState(application.isInitialized());
+				matches = errorc.endWithDot(matches[1]);
+
+				self.sync.stop(application.getUniqueName());						// Stop container
+
+				throw language.E_START_INIT_FAILED.preFmt("Manager::run", {	"~err": matches,
+																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
+				}
 			}
-		else //if(managerType == config.NATIVE)
+		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			application.setRunningState(true);
+			status = utility.execute.sync("systemctl", ["start", application.getUniqueNameAsServiceName()], {}, null);
 			}
 		}
 	catch(err)
@@ -179,23 +173,25 @@ self.stop = fibrous( function(unique_name)
 
 	if(application)
 		{
-		if(managerType == config.SPACELET || managerType == config.SANDBOXED)
+		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
 			if((dockerContainer = application.getDockerContainer()) != null)
 				dockerContainer.sync.stopContainer(application);
 			}
-		else //if(managerType == config.NATIVE)
+		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			
+			status = utility.execute.sync("systemctl", ["stop", application.getUniqueNameAsServiceName()], {}, null);
 			}
 
-		application.setRunningState(false);
+		application.clearRuntimeServices();
 		}
 	});
 
 var add = function(application)
 	{
 	applications[application.getUniqueName()] = application;
+
+	applicationsCount = Object.keys(applications).length;
 	}
 
 self.remove = fibrous( function(unique_name)
@@ -210,6 +206,8 @@ self.remove = fibrous( function(unique_name)
 			delete applications[keys[i]];
 			}
 		}
+
+	applicationsCount = Object.keys(applications).length;
 	});
 
 self.removeAll = fibrous( function()
@@ -217,24 +215,19 @@ self.removeAll = fibrous( function()
 	self.sync.remove("");
 	});
 
+self.getApplicationCount = function()
+	{
+	return applicationsCount;
+	}
+
 	// -- -- -- -- -- -- -- -- -- -- //
-self.isRunning = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].isRunning() : null);
-	}
-
-self.implementsWebServer = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].implementsWebServer() : null);
-	}
-
 self.getApplication = function(unique_name)
 	{
 	return (unique_name in applications ? applications[unique_name] : null);
 	}
 
 self.getApplicationByIp = function(ip)
-	{
+	{ // Only sandboxed applications can return a unique IP 
 	var dc;
 
 	for(var unique_name in applications)
@@ -245,21 +238,6 @@ self.getApplicationByIp = function(ip)
 		}
 
 	return null;
-	}
-
-self.getInstallationPath = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].getInstallationPath() : null);
-	}
-
-self.getManifest = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].getManifest() : null);
-	}
-
-self.getType = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].getType() : null);
 	}
 
 self.getRuntimeService = function(search)
@@ -289,16 +267,6 @@ self.getRuntimeServicesByName = function(service_name)
 	return (Object.keys(services).length > 0 ? services : null);
 	}
 
-self.getRuntimeServices = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].getRuntimeServices() : null);
-	}
-
-self.getRequiresServices = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name].getRequiresServices() : null);
-	}
-
 self.getServiceRuntimeStates = function()
 	{
 	var state;
@@ -324,19 +292,12 @@ self.getServiceRuntimeStates = function()
 							isRegistered: services[i].isRegistered
 							});
 
-			status[unique_name] = state;
+			status[unique_name] = { services: state, isDevelop: applications[unique_name].isDevelop() };
 			}
 		}
 
 	return status;
 	}
-
-/*self.getStreams = function(search)
-	{
-	var dc = applications[i].getDockerContainer();
-	if(dc && dc.getContainerId() == search)
-		return dc.getStreams();
-	}*/
 
 }
 

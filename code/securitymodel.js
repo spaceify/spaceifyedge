@@ -390,7 +390,7 @@ self.registerService = function(application, service_name, ports)
 
 self.unregisterService = function(application, service_name)
 	{
-	return application.registerService(service_name, false);
+	return application.registerService(service_name, null, false);
 	}
 
 self.getOpenServices = function(services, remoteAddress)

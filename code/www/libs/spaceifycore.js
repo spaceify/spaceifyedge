@@ -12,11 +12,14 @@ function SpaceifyCore()
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : true);
 
-var classes = {};
-classes.SpaceifyNetwork = (isNodeJs ? function() {} : SpaceifyNetwork);
-classes.SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig);
-classes.WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection);
+var classes =
+	{
+	SpaceifyNetwork: (isNodeJs ? function() {} : SpaceifyNetwork),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
+	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
@@ -24,15 +27,16 @@ var self = this;
 var config = new classes.SpaceifyConfig();
 var network = new classes.SpaceifyNetwork();
 
-var connection = null;
-var secureConnection = null;
+var pipeId = null;
+var isConnected = false;
+var connection = (isSpaceifyNetwork ? new classes.WebSocketRpcConnection() : piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
 
 self.startSpacelet = function(unique_name, callback)
 	{
-	call("startSpacelet", [unique_name], useSecure, function(err, services, id, ms)
+	callRpc("startSpacelet", [unique_name], function(err, services, id, ms)
 		{
 		if(err)
 			callback(err, null);
@@ -49,27 +53,27 @@ self.startSpacelet = function(unique_name, callback)
 
 self.registerService = function(service_name, ports, callback)
 	{
-	call("registerService", [service_name, ports], useSecure, callback);
+	callRpc("registerService", [service_name, ports], callback);
 	}
 
-self.unregisterService = function(service_name, callback)
+self.unregisterService = function(service_name, unique_name, callback)
 	{
-	call("unregisterService", [service_name], useSecure, callback);
+	callRpc("unregisterService", [service_name, unique_name], callback);
 	}
 
 self.getService = function(service_name, unique_name, callback)
 	{
-	call("getService", [service_name, unique_name], useSecure, callback);
+	callRpc("getService", [service_name, unique_name], callback);
 	}
 
 self.getServices = function(service_name, callback)
 	{
-	call("getServices", [service_name], useSecure, callback);
+	callRpc("getServices", [service_name], callback);
 	}
 
 self.getOpenServices = function(unique_names, callback)
 	{
-	call("getOpenServices", [unique_names], useSecure, callback);
+	callRpc("getOpenServices", [unique_names], callback);
 	}
 
 self.getManifest = function(unique_name, callback)
@@ -79,7 +83,7 @@ self.getManifest = function(unique_name, callback)
 	if(manifest)
 		callback(null, manifest, -1, 0);
 	else
-		call("getManifest", [unique_name, true], useSecure, function(err, data, id, ms)
+		callRpc("getManifest", [unique_name, true], function(err, data, id, ms)
 			{
 			if(!err && isCache())
 				getCache().setManifest(unique_name, data);
@@ -96,21 +100,26 @@ self.isAdminLoggedIn = function(callback)
 		});
 	}
 
+self.getApplicationStatus = function(unique_name, callback)
+	{
+	callRpc("getApplicationStatus", [unique_name], callback);
+	}
+
 self.isApplicationRunning = function(unique_name, callback)
 	{
-	call("isApplicationRunning", [unique_name], useSecure, callback);
+	callRpc("isApplicationRunning", [unique_name], callback);
 	}
 
 self.getServiceRuntimeStates = function(unique_name, callback)
 	{
-	call("getServiceRuntimeStates", [unique_name], useSecure, callback);
+	callRpc("getServiceRuntimeStates", [unique_name], callback);
 	}
 
 self.getApplicationData = function(callback)
 	{
 	var i;
 
-	call("getApplicationData", [], useSecure, function(err, data, id, ms)
+	callRpc("getApplicationData", [], function(err, data, id, ms)
 		{
 		if(!err && isCache())
 			{
@@ -120,8 +129,11 @@ self.getApplicationData = function(callback)
 			for(i = 0; i < data.sandboxed.length; i++)
 				getCache().setApplication(data.sandboxed[i]);
 
-			/*for(i = 0; i < data.native.length; i++)
-				getCache().setApplication(data.native[i]);*/
+			for(i = 0; i < data.sandboxed_debian.length; i++)
+				getCache().setApplication(data.sandboxed_debian[i]);
+
+			for(i = 0; i < data.native_debian.length; i++)
+				getCache().setApplication(data.native_debian[i]);
 			}
 
 		callback(err, data, id, ms);
@@ -130,35 +142,22 @@ self.getApplicationData = function(callback)
 
 self.getApplicationURL = function(unique_name, callback)
 	{
-	var urls = (isCache() ? getCache().getApplicationURL(unique_name) : null);
-
-	if(urls)
-		callback(null, urls, -1, 0);
-	else
-		call("getApplicationURL", [unique_name], useSecure, function(err, data, id, ms)
-			{
-			if(!err && isCache())
-				getCache().setApplicationURL(unique_name, data);
-
-			callback(err, data, id, ms);
-			});
+	callRpc("getApplicationURL", [unique_name], callback);
 	}
 
 self.setSplashAccepted = function(callback)
 	{
-	call("setSplashAccepted", [], useSecure, callback);
+	callRpc("setSplashAccepted", [], callback);
 	}
 
 self.setEventListeners = function(events, listeners, context, sessionId, callback)
 	{
-	call("setEventListeners", [events], useSecure, function(err, data, id, ms)
+	callRpc("setEventListeners", [events], function(err, data, id, ms)
 		{
 		if(!err)
 			{
-			var wsRpcConnection = (!useSecure ? connection : secureConnection);
-
 			for(var i = 0; i < events.length; i++)
-				wsRpcConnection.exposeRpcMethod(events[i], context, listeners[i]);
+				connection.exposeRpcMethod(events[i], context, listeners[i]);
 			}
 
 		callback(err, data, id, ms);
@@ -178,40 +177,75 @@ self.loadOptions = function(unique_name, directory, filename, callback)
 	}*/
 
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
-var call = function(method, params, isSecure, callback)
-	{ // Open only one secure and unsecure connection for each SpaceifyCore instance
-	if((!isSecure && !connection) || (isSecure && !secureConnection))
+var callRpc = function(method, params, callback)
+	{
+	if(!isConnected)
+		connect(method, params, callback);
+	else
+		call(method, params, callback);
+	}
+
+var call = function(method, params, callback)
+	{
+	if(isSpaceifyNetwork)
 		{
-		connect(isSecure, function(err, data, id, ms)
+		connection.callRpc(method, params, self, function(err, data, id, ms)
 			{
-			if(!err)
-				callRpc(method, params, isSecure, callback);
-			else
-				callback(err, data, id, ms);
+			callback(err, data, id, ms);
 			});
 		}
 	else
-		callRpc(method, params, isSecure, callback);
-	}
-
-var callRpc = function(method, params, isSecure, callback)
-	{
-	(!isSecure ? connection : secureConnection).callRpc(method, params, self, function(err, data, id, ms)
 		{
-		callback(err, data, id, ms);
-		});
+		connection.callClientRpc(pipeId, method, params, self, function(err, data)
+			{
+			callback(err, data);
+			});
+		}
 	}
 
-var connect = function(isSecure, callback)
+var connect = function(method, params, callback)
 	{
-	var port = !isSecure ? config.CORE_PORT : config.CORE_PORT_SECURE;
+	var hostname;
+	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
+	var protocol = (!useSecure ? "ws" : "wss");
 
-	var wsRpcConnection = new classes.WebSocketRpcConnection();
-	!isSecure ? connection = wsRpcConnection : secureConnection = wsRpcConnection;
+	if(isSpaceifyNetwork)
+		{
+		if(!isNodeJs)
+			hostname = config.EDGE_HOSTNAME;
+		else if(isRealSpaceify)
+			hostname = config.EDGE_IP;
+		else
+			hostname = config.CONNECTION_HOSTNAME;
 
-	var hostname = (isNodeJs ? config.EDGE_IP : config.EDGE_HOSTNAME);
+		connection.connect({hostname: hostname, port: port, isSecure: useSecure, caCrt: caCrt}, function(err, data, id, ms)
+			{
+			if(!err)
+				call(method, params, callback);
+			else
+				{
+				isConnected = true;
+				callback(err, data, id, ms);
+				}
+			});
+		}
+	else
+		{
+		connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: port, protocol: protocol}, null, function(id)
+			{
+			pipeId = id;
+			isConnected = true;
+			call(method, params, callback);
+			});
+		}
+	}
 
-	wsRpcConnection.connect({hostname: hostname, port: port, isSecure: isSecure, caCrt: caCrt}, callback);
+self.close = function()
+	{
+	if(connection && connection.close)
+		connection.close();
+
+	connection = null;
 	}
 
 	// CACHE -- -- -- -- -- -- -- -- -- -- //

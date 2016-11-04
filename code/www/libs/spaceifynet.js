@@ -14,7 +14,7 @@ var self = this;
 
 var ordinal = 0;
 var showLoadingInstances = 0;
-var applications = { spacelet: {}, sandboxed: {}, native: {}, spaceletCount: 0, sandboxedCount: 0, nativeCount: 0 };
+var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spaceletCount: 0, sandboxedCount: 0, sandboxedDebianCount: 0, nativeDebianCount: 0 };
 
 var core = new SpaceifyCore();
 var config = new SpaceifyConfig();
@@ -82,6 +82,11 @@ self.isArray = function(obj)
 	return Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
+var scope = function(id)
+	{
+	return angular.element(document.getElementById(id)).scope();
+	}
+
 	// SPLASH -- -- -- -- -- -- -- -- -- -- //
 self.setSplashAccepted = function()
 	{
@@ -100,24 +105,17 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	document.getElementById("certIframe").src = network.getEdgeURL(false, false, false, true) + "/spaceify.crt";
+	document.getElementById("certIframe").src = network.getEdgeURL(false, false, true) + "spaceify.crt";
 	return true;
 	}
 
 	// ADMIN -- -- -- -- -- -- -- -- -- -- //
-self.showAdminTile = function(callback)
+self.openAdminPages = function()
 	{
-	$("#adminUtilities").empty();
-	var evt = new CustomEvent("addTile", {detail: {type: "adminTile", container: "adminUtilities", src: network.getEdgeURL(true, false, false, true) + "/admin", callback: callback}, bubbles: true, cancelable: true});
-	document.body.dispatchEvent(evt);
-	}
-
-	// USER UTILITIES -- -- -- -- -- -- -- -- -- -- //
-self.showUserUtilities = function(callback)
-	{
-	$("#userUtilities").empty();
-	var evt = new CustomEvent("addTile", {detail: {type: "certificateTile", container: "userUtilities", callback: callback}, bubbles: true, cancelable: true});
-	document.body.dispatchEvent(evt);
+	window.location.assign("https://edge.spaceify.net/appstore/");
+	/* REMOTE >>>>>>>>>>
+	spaceifyLoader.loadPage(spaceifyPage.urlHttps + "appstore/index.html", spaceifyPage.urlHttps + "appstore/");
+	<<<<<<<<<< REMOTE */
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -125,7 +123,8 @@ self.showInstalledApplications = function(callback)
 	{
 	$("#spacelet").empty();
 	$("#sandboxed").empty();
-	$("#native").empty();
+	$("#sandboxedDebian").empty();
+	$("#nativeDebian").empty();
 
 	var methods = [], j;
 
@@ -140,8 +139,11 @@ self.showInstalledApplications = function(callback)
 		for(j = 0; j < apps.sandboxed.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed[j], null], type: "async"});
 
-		for(j = 0; j < apps.native.length; j++)
-			methods.push({object: self, method: self.renderTile, params: [apps.native[j], null], type: "async"});
+		for(j = 0; j < apps.sandboxed_debian.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed_debian[j], null], type: "async"});
+
+		for(j = 0; j < apps.native_debian.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.native_debian[j], null], type: "async"});
 
 		new SpaceifySynchronous().waterFall(methods, function()
 			{
@@ -154,24 +156,46 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
-	var src, evt, i;
+	var port, src, sp_host, sp_path, i, id;
 
-	if(manifest.hasTile)																			// APPLICATION SUPPLIES ITS OWN TILE
+	if(manifest.hasTile)																			// Application supplies its own tile
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
-			if(manifest.isRunning && network.implementsWebServer(manifest))
-				src = network.getEdgeURL(false, true, false, true) + (!network.isSecure() ? appURL.port : appURL.securePort) + "/" + config.TILEFILE;
-			else
-				src = self.externalResourceURL(manifest.unique_name, config.TILEFILE);
+			port = (!network.isSecure() ? appURL.port : appURL.securePort);
 
-			evt = new CustomEvent("addTile", {detail: {type: "appTile", container: manifest.type, manifest: manifest, src: src, callback: callback}, bubbles: true, cancelable: true});
-			document.body.dispatchEvent(evt);
+			if(appURL.implementsWebServer && port)
+				{
+				sp_host = network.getEdgeURL(false, port, true);
+				sp_path = config.TILEFILE;
+				}
+			else
+				{
+				sp_host = self.externalResourceURL(manifest.unique_name);
+				sp_path = config.TILEFILE;
+				}
+
+			src = sp_host + sp_path
+			/* REMOTE >>>>>>>>>>
+			/ * if(!isSpaceifyNetwork)
+				src = "libs/spaceifyloader/tileloader.html?sp_host=" + encodeURIComponent(sp_host) + "&sp_path=" + encodeURIComponent(sp_path);
+			else
+				src = sp_host + sp_path;* /
+			src = "libs/spaceifyloader/tileloader.html?sp_host=" + encodeURIComponent(sp_host) + "&sp_path=" + encodeURIComponent(sp_path);
+			<<<<<<<<<< REMOTE */
+
+			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, src: src, callback:
+				function()
+					{
+					callback();
+					}
+				});
 			});
 		}
-	else																							// SPACEIFY RENDERS A DEFAULT TILE
+	else																							// Spaceify renders default tile
 		{
-		var src = network.getEdgeURL(false, false, false, false) + "/images/icon.png";				// Show default icon or applications custom icon
+		sp_host = network.getEdgeURL(false, false, true);											// Show default icon or applications custom icon
+		sp_path = "images/icon.png";
 
 		if(manifest.images)
 			{
@@ -179,15 +203,20 @@ self.renderTile = function(manifest, callback)
 				{
 				if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
 					{
-					src = self.externalResourceURL(	manifest.unique_name, 
-													(manifest.images[i].directory ? manifest.images[i].directory + "/" : "") + manifest.images[i].file);
+					sp_host = self.externalResourceURL(manifest.unique_name);
+					sp_path = ("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
 					break;
 					}
 				}
 			}
 
-		evt = new CustomEvent("addTile", {detail: {type: "tile", container: manifest.type, manifest: manifest, src: src, callback: callback}, bubbles: true, cancelable: true});
-		document.body.dispatchEvent(evt);
+		id = "tile_" + manifest.unique_name.replace("/", "_");
+		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, src: sp_host + sp_path, id: id, callback: function()
+			{
+			/* REMOTE >>>>>>>>>>
+			spaceifyLoader.loadData(document.getElementById(id + "_img"), callback);
+			<<<<<<<<<< REMOTE */
+			} });
 		}
 
 	addApplication(manifest);
@@ -208,8 +237,10 @@ var addApplication = function(manifest)
 		{ applications.spacelet[manifest.unique_name] = manifest; applications.spaceletCount++; }
 	else if(manifest.type == config.SANDBOXED)
 		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxedCount++; }
-	else if(manifest.type == config.NATIVE)
-		{ applications.native[manifest.unique_name] = manifest; applications.nativeCount++; }
+	else if(manifest.type == config.SANDBOXED_DEBIAN)
+		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxedDebianCount++; }
+	else if(manifest.type == config.NATIVE_DEBIAN)
+		{ applications.native_debian[manifest.unique_name] = manifest; applications.nativeDebianCount++; }
 	}
 
 var removeApplication = function(manifest)
@@ -218,8 +249,10 @@ var removeApplication = function(manifest)
 		{ delete applications.spacelet[manifest.unique_name]; applications.spaceletCount--; }
 	else if(manifest.type == config.SANDBOXED)
 		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxedCount--; }
-	else if(manifest.type == config.NATIVE)
-		{ delete applications.native[manifest.unique_name]; applications.nativeCount--; }
+	else if(manifest.type == config.SANDBOXED_DEBIAN)
+		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxedDebianCount--; }
+	else if(manifest.type == config.NATIVE_DEBIAN)
+		{ delete applications.native_debian[manifest.unique_name]; applications.nativeDebianCount--; }
 	}
 
 self.getApplications = function()
@@ -227,9 +260,9 @@ self.getApplications = function()
 	return applications;
 	}
 
-self.externalResourceURL = function(unique_name, file)
+self.externalResourceURL = function(unique_name)
 	{ // This is implemented exactly the same way in the ecap-spaceify-injector (Injector::getFiles)
-	return network.getEdgeURL(false, false, true, false) + unique_name + "/" + file;
+	return network.getEdgeURL(false, false, true) + unique_name + "/";
 	}
 
 }

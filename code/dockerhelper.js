@@ -8,8 +8,9 @@
 
 var fs = require("fs");
 var net = require("net");
-var language = require("./language");
+var Docker = require("dockerode");
 var Logger = require("./logger");
+var language = require("./language");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyUtility = require("./spaceifyutility");
 
@@ -102,6 +103,13 @@ self.waitForOutput = function(waitedStrings, callback)
 				}
 			}
 		});
+	}
+
+self.listContainers = function()
+	{
+	var docker = new Docker({socketPath: "/var/run/docker.sock"});
+
+	return docker.sync.listContainers({"all": 1});
 	}
 
 }

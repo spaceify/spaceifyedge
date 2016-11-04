@@ -1,0 +1,38 @@
+###### In spaceifyedge repository as root:
+
+git fetch
+git checkout TG-38-remote-access-to-edge-nodes
+git pull
+apt-get purge spaceify
+rm -rf /tmp/build
+./build-package.sh
+dpkg -i /tmp/build/spaceify_0.6.0_all.deb
+
+
+#### In "projects" directory, get the spaceifyloader repository
+
+git clone --recursive https://ptesavol@bitbucket.org/ptesavol/spaceifyloader.git
+
+#make the www directory visible on a local web server, if you are on a real edge node, do
+
+ln -s /home/spaceify/projects/spaceifyloader/www /var/lib/spaceify/code/www/remote
+
+
+
+#### In "projects" directory, get the communicationhub repository
+
+git clone https://ptesavol@bitbucket.org/ptesavol/communicationhub.git
+cd communicationhub
+npm install
+
+# make the bundled gamelib visible to the spaceifyloader 
+
+ln -s /home/spaceify/projects/communicationhub/out/gamelib.bundle.js /home/spaceify/projects/spaceifyloader/www/libs/
+
+node spaceifypiper.js
+
+## Open browser to localhost/remote, the spaceify front page should now load!!
+
+
+
+
