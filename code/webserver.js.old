@@ -53,7 +53,7 @@ var processingRequest = false;
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
 
-var CARBAGE_INTERVAL = 600;										// Make it Less than session interval!!! Times are in seconds.
+var CARBAGE_INTERVAL = 600000;
 var SESSION_INTERVAL = 3600 * 24;
 
 var accessControlAllowHeaders = ["evaste"];
@@ -65,7 +65,6 @@ self.listen = function(opts, callback)
 	var body;
 	var caCrt;
 	var files;
-	var urlObj;
 
 	options.hostname = opts.hostname || config.ALL_IPV4_LOCAL;
 	options.port = opts.port || 0;
@@ -96,7 +95,7 @@ self.listen = function(opts, callback)
 
 	// -- --
 	options.carbageCollectInterval = (opts.carbageCollectInterval || CARBAGE_INTERVAL);
-	options.carbageIntervalId = setInterval(carbageCollection, options.carbageCollectInterval * 1000);
+	options.carbageIntervalId = setInterval(carbageCollection, options.carbageCollectInterval);
 
 	options.sessionDeleteInterval = (opts.sessionDeleteInterval || SESSION_INTERVAL) * 1000;
 
@@ -334,32 +333,29 @@ var load = function(wwwPath, pathname, responseCode)
 		contentType = pathname.lastIndexOf(".");									// Get content type of the file
 		contentType = pathname.substr(contentType + 1, pathname.length - contentType - 1);
 
-		if(wwwPath.lastIndexOf(".htm") !== -1)										// Reqular or AngularJS file
+		html = file.toString().match(regxHTML);										// The <head ...> tag has the required information
+
+		if(html)																	// Reqular or AngularJS webpage
 			{ // e.g., <html ng-app spaceify-secure spaceify-is-login> -> ['html', 'ng-app', 'spaceify-secure', 'spaceify-is-login']
-			html = file.toString().match(regxHTML);
+			if(html[0].indexOf("ng-app") != -1 || html[0].indexOf("ng-app-spaceify") != -1)
+				isAngularJS = true;
 
-			if(html)
-				{
-				if(html[0].indexOf("ng-app") != -1 || html[0].indexOf("ng-app-spaceify") != -1)
-					isAngularJS = true;
+			if(html[0].indexOf("spaceify-secure") != -1)
+				isSecurePage = true;
 
-				if(html[0].indexOf("spaceify-secure") != -1)
-					isSecurePage = true;
+			if(html[0].indexOf("spaceify-is-login") != -1)
+				isLogInPage = isSecurePage = true;
 
-				if(html[0].indexOf("spaceify-is-login") != -1)
-					isLogInPage = isSecurePage = true;
-
-				if(html[0].indexOf("spaceify-operation") != -1)
-					isOperationPage = true;
-				}
+			if(html[0].indexOf("spaceify-operation") != -1)
+				isOperationPage = true;
 			}
 
 		if(isOperationPage)
-			status = renderOperationPage.sync();
+			status = renderOperationPage.sync(request, response, GET, POST, cookies);
 		else if(isAngularJS)														// The web page contains AngularJS
-			status = renderAngularJS(file, contentType, pathname, isSecurePage, isLogInPage, responseCode);
+			status = renderAngularJS(file, contentType, pathname, isSecurePage, isLogInPage, request, response, urlObj, GET, POST, cookies, responseCode);
 		else																		// Regular web page
-			status = renderHTML.sync(file, contentType, responseCode);
+			status = renderHTML.sync(file, contentType, request, response, responseCode);
 		}
 	catch(err)
 		{
@@ -368,14 +364,13 @@ var load = function(wwwPath, pathname, responseCode)
 	return status;
 	}
 
-var renderHTML = fibrous( function(file, contentType, responseCode)
+var renderHTML = fibrous( function(file, contentType, request, response, responseCode)
 	{
-	return write(file, contentType, responseCode, "", []);
+	return write(file, contentType, request, response, responseCode, "", []);
 	});
 
-var renderOperationPage = fibrous( function()
+var renderOperationPage = fibrous( function(request, response, GET, POST, cookies)
 	{
-	var isSecure;
 	var userData;
 	var operation;
 	var data = null;
@@ -384,57 +379,50 @@ var renderOperationPage = fibrous( function()
 	var headers = [];
 	var operationData;
 
-	if(!currentRequest.POST["operation"])
+	if(!POST["operation"])
 		error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_INVALID_DATA_POST);
 	else
 		{
 		// SESSION
-		sessiontoken = manageSessions(config.EDGE_HOSTNAME, "/");
+		sessiontoken = manageSessions(cookies, config.EDGE_HOSTNAME, "/");
 
 		// HEADERS
 		headers.push(["Set-Cookie", sessions[sessiontoken].cookie]);
 
 		// OPERATION
-		operation = utility.parseJSON(currentRequest.POST["operation"].body, true);
+		operation = utility.parseJSON(POST["operation"].body, true);
 
 		userData = sessions[sessiontoken].userData;
 
-		isSecure = options.isSecure;
-		/* >>>>>>>>>> REMOTE
-		// ToDo: Rethink these logics, they most propably are not a secure way to detect remote operation
-		isSecure = ((currentRequest.urlObj.protocol == "https:" && !options.isSecure) || options.isSecure);
-		<<<<<<<<<< REMOTE */
-
-		operationData = webOperation.sync.getData(operation, userData, isSecure);
+		operationData = webOperation.sync.getData(operation, userData, options.isSecure);
 
 		data = operationData.data;
 		error = operationData.error;
 		}
 
-	return write(JSON.stringify({err: error, data: data}), "json", null, "", headers);
+	return write(JSON.stringify({err: error, data: data}), "json", request, response, null, "", headers);
 	});
 
-var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogInPage, responseCode)
+var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogInPage, request, response, urlObj, GET, POST, cookies, responseCode)
 	{
 	var head;
 	var script;
 	var section;
-	var protocol;
 	var headers = [];
 	var sessiontoken;
 	var operationData;
 	var locale = config.DEFAULT_LOCALE;
 
 	// SESSIONS -- -- -- -- -- -- -- -- -- -- //
-	sessiontoken = manageSessions(config.EDGE_HOSTNAME, "/");
+	sessiontoken = manageSessions(cookies, config.EDGE_HOSTNAME, "/");
 
 	// GET THE LOCALE / LANGUAGE FOR THE CURRENT SESSION
-	if(currentRequest.GET && currentRequest.GET.locale)
-		locale = currentRequest.GET.locale;
-	else if(currentRequest.POST.locale)
-		locale = currentRequest.POST.locale;
-	else if(currentRequest.cookies.locale)
-		locale = currentRequest.cookies.locale.value;
+	if(GET && GET.locale)
+		locale = GET.locale;
+	else if(POST.locale)
+		locale = POST.locale;
+	else if(cookies.locale)
+		locale = cookies.locale.value;
 	else if(options.locale)
 		locale = options.locale;
 
@@ -445,46 +433,18 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 
 	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
 	if(!options.isSecure && isSecurePage)												// Redirect secure pages to secure server
-		return redirect(302, utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port), headers);
+		return redirect(request, response, 302, utility.parseURLFromURLObject(urlObj, config.EDGE_HOSTNAME, "https", urlObj.port), headers);
 	else if(options.isSecure && isSecurePage)
 		{
 		operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, sessions[sessiontoken].userData, options.isSecure);
 
 		if(operationData.error)															// Internal Server Error
-			return redirect(500, "", headers);
+			return redirect(request, response, 500, "", headers);
 		else if(!operationData.isLoggedIn && !isLogInPage)								// Redirect to log in if not logged in
-			return redirect(302, config.ADMIN_LOGIN_URL, headers);
-		else if(operationData.isLoggedIn && isLogInPage)								// Redirect to appstore index if already logged in
-			return redirect(302, config.ADMIN_INDEX_URL, headers);
+			return redirect(request, response, 302, config.ADMIN_LOGIN_URL, headers);
+		else if(operationData.isLoggedIn && isLogInPage)								// Redirect to index if already logged in
+			return redirect(request, response, 302, config.ADMIN_INDEX_URL, headers);
 		}
-
-	/* >>>>>>>>>> REMOTE
-	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
-	// Accept local and remote requests.
-		// ToDo: Rethink these logics, they most propably are not a secure or even a functional way to mix local and remote operation
-
-	protocol = (currentRequest.urlObj.protocol ? currentRequest.urlObj.protocol : "http:");
-
-		// Remote HTTPS requests arriving over secure pipe to unsecure web server must not be redirected
-	//if(!options.isSecure && isSecurePage)
-	if(!options.isSecure && protocol == "http:" && isSecurePage)
-		return redirect(302, utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port), headers);
-
-		// Secure server or remote https request
-		// Remote HTTPS requests arriving over secure pipe to HTTP web server must not be redirected
-	//else if(options.isSecure && isSecurePage)
-	if((options.isSecure || protocol == "https:") && isSecurePage)
-		{
-		operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, sessions[sessiontoken].userData, true);
-
-		if(operationData.error)															// Internal Server Error
-			return redirect(500, "", headers);
-		else if(!operationData.isLoggedIn && !isLogInPage)								// Redirect to log in if not logged in
-			return redirect(302, config.ADMIN_LOGIN_URL, headers);
-		else if(operationData.isLoggedIn && isLogInPage)								// Redirect to appstore index if already logged in
-			return redirect(302, config.ADMIN_INDEX_URL, headers);
-		}
-	 <<<<<<<<<< REMOTE */
 
 	section = pathname.replace(/\.[^.]*$/, "");
 	section = section.replace(/^\//, "");
@@ -496,8 +456,9 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 	if(head)
 		{
 		script = "\t\tvar spaceifyPage = " + JSON.stringify({
-						//ip: currentRequest.request.connection.remoteAddress;			// Proxy? -> currentRequest.request.headers["x-forwarded-for"],
+						//ip: request.connection.remoteAddress;							// Proxy? -> request.headers["x-forwarded-for"],
 						locale: locale,
+						locales, locales,
 						section: section,
 						protocol: options.protocol,
 						isSecure: options.isSecure,
@@ -512,10 +473,10 @@ var renderAngularJS = function(file, contentType, pathname, isSecurePage, isLogI
 		}
 
 	// RETURN PAGE -- -- -- -- -- -- -- -- -- -- //
-	return write(file, contentType, responseCode, "", headers);
+	return write(file, contentType, request, response, responseCode, "", headers);
 	}
 
-var redirect = function(responseCode, location, headers)
+var redirect = function(request, response, responseCode, location, headers)
 	{
 	var content = "";
 
@@ -526,66 +487,25 @@ var redirect = function(responseCode, location, headers)
 	else if(responseCode == 404 || responseCode == 500)
 		content = fs.sync.readFile(options.wwwErrorsPath + responseCode + ".html");
 
-	return write(content, "html", responseCode, location, headers);
+	return write(content, "html", request, response, responseCode, location, headers);
 	}
 
-var write = function(content, contentType, responseCode, location, headers)
+var write = function(content, contentType, request, response, responseCode, location, headers)
 	{
-	var value;
 	var now = new Date();
-	var allowHeaders = [];
-	var requestHeaders = "";
 
 	headers.push(["Content-Type", (contentTypes[contentType] ? contentTypes[contentType] : "text/plain"/*application/octet-stream*/) + "; charset=utf-8"]);
 	headers.push(["Accept-Ranges", "bytes"]);
 	headers.push(["Content-Length", content.length]);
 	headers.push(["Server", options.serverName]);
 	headers.push(["Date", now.toUTCString()]);
-	headers.push(["Access-Control-Allow-Origin", "*"]);//currentRequest.request.headers.origin ? currentRequest.request.headers.origin : "*";//currentRequest.request.headers.host;
+	headers.push(["Access-Control-Allow-Origin", "*"]);//request.headers.origin ? request.headers.origin : "*";//request.headers.host;
 	//headers.push(["X-Frame-Options", "SAMEORIGIN"]);
-
 	if(responseCode == 301 || responseCode == 302)
 		headers.push(["Location", location]);
 
-	currentRequest.response.writeHead(responseCode || 200, headers);
-	currentRequest.response.end(currentRequest.request.method == "HEAD" ? "" : content);
-
-	return true;
-	}
-
-var writeOptions = function()
-	{ // CORS preflight
-	var header;
-	var value;
-	var headers = [];
-	var allowed = false;
-	var now = new Date();
-	var allowHeaders = [];
-
-	headers.push(["Server", options.serverName]);
-	headers.push(["Date", now.toUTCString()]);
-	headers.push(["Access-Control-Allow-Origin", "*"]);
-
-	if("access-control-request-headers" in currentRequest.request.headers)
-		{
-		header = currentRequest.request.headers["access-control-request-headers"].split(",");
-		for(var i = 0; i < header.length; i++)
-			{
-			value = header[i].trim().toLowerCase();
-
-			if(accessControlAllowHeaders.indexOf(value) != -1)
-				allowHeaders.push(value);
-			}
-
-		if(allowHeaders.length > 0)
-			{
-			allowed = true;
-			headers.push(["Access-Control-Allow-Headers", allowHeaders.join(",")]);
-			}
-		}
-
-	currentRequest.response.writeHead(allowed ? 200 : 403, headers);
-	currentRequest.response.end("");
+	response.writeHead(responseCode || 200, headers);
+	response.end(content);
 
 	return true;
 	}
@@ -596,6 +516,9 @@ var parsePost = function(request, body)
 	var contentType;
 
 	try {
+		if(request.method.toLowerCase() != "post")
+			throw "";
+
 		if(!request.headers["content-type"])
 			throw "";
 
@@ -629,9 +552,9 @@ var checkURL = function(wwwPath, pathname)
 	}
 
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING HTTP COOKIES -- -- -- -- -- -- -- -- -- -- //
-var manageSessions = function(domain, path)
+var manageSessions = function(cookies, domain, path)
 	{
-	var sessiontoken = (currentRequest.cookies[SESSIONTOKEN] ? currentRequest.cookies[SESSIONTOKEN].value : null);
+	var sessiontoken = (cookies[SESSIONTOKEN] ? cookies[SESSIONTOKEN].value : null);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
 	if(!session)														// Create a session if it doesn't exist yet
@@ -666,7 +589,7 @@ var parseCookies = function(request)
 	{
 	var name_value;
 	var cookies = {};
-	var cookie = (request.headers.evaste || request.headers.cookie || "").split(";");
+	var cookie = (request.headers.cookie || request.headers.Cookie || "").split(";");
 
 	for(var i = 0; i < cookie.length; i++)
 		{

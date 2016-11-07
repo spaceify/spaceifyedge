@@ -38,6 +38,7 @@ var spaceifyService = new classes.SpaceifyService();
 config.makeRealApplicationPaths();
 
 var manifest = null;
+var application = null;
 
 var HTTP_PORT = (isRealSpaceify ? 80 : null);
 var HTTPS_PORT = (isRealSpaceify ? 443 : null);
@@ -50,19 +51,47 @@ self.start = function()
 		self.connect.apply(self, arguments);
 	}
 
-var start = function(application, options)
+var start = function(application_, options)
 	{
 	fibrous.run( function()
 		{
+		var server;
 		var port;
 		var securePort;
 		var registerHttp;
+		var hasWebServers;
+		var listenHttp = false;
+		var listenHttps = false;
+		var listenSecure = true;
+		var listenUnsecure = true;
 
+		application = application_;
+
+			// OPTIONS -- -- -- -- -- -- -- -- -- -- //
+		options = options || {};
+
+		hasWebServers = (options.webservers || options.webServers ? true : false);
+
+		if(hasWebServers)
+			{
+			server = options.webservers || options.webServers;
+			listenHttp = ("http" in server ? server.http : false);
+			listenHttps = ("https" in server ? server.https : false);
+			}
+
+		if(options.websocketservers || options.webSocketServers)
+			{
+			server = options.websocketservers || options.webSocketServers;
+			listenSecure = ("secure" in server ? server.secure : false);
+			listenUnsecure = ("unsecure" in server ? server.unsecure : false);
+			}
+
+			// APPLICATION -- -- -- -- -- -- -- -- -- -- //
 		try {
-			manifest = utility.sync.loadJSON(config.APPLICATION_PATH + config.MANIFEST, true, true);
+			manifest = utility.sync.loadJSON(config.APPLICATION_VOLUME_PATH + config.MANIFEST, true, true);
 
 				// SERVICES -- -- -- -- -- -- -- -- -- -- //
-			if(manifest.provides_services)							// <= SERVERS - PROVIDES SERVICES
+			if(manifest.provides_services)														// <= SERVERS - PROVIDES SERVICES
 				{
 				var services = manifest.provides_services;
 
@@ -71,18 +100,18 @@ var start = function(application, options)
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
 					securePort = (isRealSpaceify ? config.FIRST_SERVICE_PORT_SECURE + i : null);
 
-					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, port, securePort);
+					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
 					}
 				}
 
-			if(manifest.requires_services)							// <= CLIENTS - REQUIRES SERVICES
+			if(manifest.requires_services)														// <= CLIENTS - REQUIRES SERVICES
 				{
 				createRequiredServices.sync(manifest.requires_services, 0, false);
 				createRequiredServices.sync(manifest.requires_services, 0, true);
 				}
 
 				// START APPLICATIONS HTTP AND HTTPS WEB SERVERS -- -- -- -- -- -- -- -- -- -- //
-			if(options && options.webservers)
+			if(hasWebServers)
 				{
 				var opts =	{
 							hostname: config.ALL_IPV4_LOCAL,
@@ -96,18 +125,18 @@ var start = function(application, options)
 
 				registerHttp = false;
 
-				if(options.webservers.http && options.webservers.http === true && !httpServer.getIsOpen())
+				if(listenHttp && !httpServer.getIsOpen())
 					{
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
 					httpServer.listen.sync(opts);
 
-					HTTP_PORT = httpServer.getPort();				// Get the port because in develop mode the port is not known beforehand
-
+					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
+																								// do not have knowledge of port numbers beforehand
 					registerHttp = true;
 					}
 
-				if(options.webservers.https && options.webservers.https === true && !httpsServer.getIsOpen())
+				if(listenHttps && !httpsServer.getIsOpen())
 					{
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
@@ -125,7 +154,7 @@ var start = function(application, options)
 					}
 				}
 
-			if(application.start)
+			if(application && application.start && typeof application.start == "function")
 				application.start();
 
 				// APPLICATION INITIALIALIZED SUCCESSFULLY -- -- -- -- -- -- -- -- -- -- //
@@ -133,9 +162,6 @@ var start = function(application, options)
 			}
 		catch(err)
 			{
-			if(application.fail)
-				application.fail(err);
-
 			initFail.sync(err);
 			}
 		}, function(err, data)
@@ -144,9 +170,11 @@ var start = function(application, options)
 			});
 	}
 
-self.connect = function(application, unique_names, options)
+self.connect = function(application_, unique_names, options)
 	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending from where this method is called
 	try {
+		application = application_;
+
 		if(unique_names.constructor !== Array)													// getOpenServices takes an array of unique names
 			unique_names = [unique_names];
 
@@ -162,20 +190,22 @@ self.connect = function(application, unique_names, options)
 		{
 		if(typeof application == "function")
 			application(err, false);
-		else if(application && application.fail)
+		else if(application && application.fail && typeof application.fail == "function")
 			application.fail(err);
 		}
 	}
 
-var connectServices = function(application, services)
+var connectServices = function(application_, services)
 	{ // Connect to services in the array one at a time
 	var service = services.shift();
+
+	application = application_;
 
 	if(typeof service === "undefined")
 		{
 		if(typeof application == "function")
 			application(null, true);
-		else if(application && application.start)
+		else if(application && application.start && typeof application.start == "function")
 			application.start();
 
 		return;
@@ -192,18 +222,21 @@ var initFail = fibrous( function(err)
 	logger.error([";;", err, "::"], true, true, logger.ERROR);
 	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);
 
-	stop.sync();
+	stop.sync(err);
 	});
 
-var stop = fibrous( function()
+var stop = fibrous( function(err)
 	{
-	httpServer.sync.close();
-	httpsServer.sync.close();
+	httpServer.close();
+	httpsServer.close();
 
-	spaceifyService.disconnect();								// Disconnect all clients
-	spaceifyService.close();									// Close all servers
+	spaceifyService.disconnect();																// Disconnect clients
+	spaceifyService.close();																	// Close servers
 
 	spaceifyCore.close();
+
+	if(application && application.fail && typeof application.fail == "function")
+		application.fail(err);
 	});
 
 var createRequiredServices = function(services, position, isSecure, callback)

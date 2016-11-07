@@ -553,7 +553,7 @@ self.replace = function(str, strs, replaceWith)
 	}
 
 	// OPERATING SYSTEM -- -- -- -- -- -- -- -- -- -- //
-self.execute = function(command, args, options, spmMessage, callback)
+self.execute = function(command, args, options, messageCallback, callback)
 	{
 	var bExited = false;
 	var stdout = "";
@@ -563,20 +563,16 @@ self.execute = function(command, args, options, spmMessage, callback)
 
 	spawned.stdout.on("data", function(data)
 		{
-		/*if(spmMessage)
-			spmMessage.sync(data, true);
-		else
-			logger.force(data, true);*/
+		if(messageCallback)
+			messageCallback(false, data);
 
 		stdout += data;
 		});
 
 	spawned.stderr.on("data", function(data)
 		{
-		/*if(spmMessage)
-			spmMessage.sync(data, true);
-		else
-			logger.force(data, true);*/
+		if(messageCallback)
+			messageCallback(true, data);
 
 		stderr += data;
 		});

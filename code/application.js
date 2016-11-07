@@ -7,6 +7,7 @@
  */
 
 var fibrous = require("./fibrous");
+var Routines = require("./routines");
 var DockerHelper = require("./dockerhelper");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -16,6 +17,7 @@ function Application(manifest, develop)
 {
 var self = this;
 
+var routines = new Routines();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
@@ -59,7 +61,7 @@ self.getUniqueName = function()
 
 self.getUniqueNameAsServiceName = function()
 	{
-	return manifest.unique_name.replace(/[\/_]/g, "") + ".service";
+	return routines.makeSystemctlServiceName(manifest.unique_name);
 	}
 	
 self.isShared = function()
@@ -259,7 +261,7 @@ self.createRuntimeService = function(service_name, ports, ip)
 
 	service =	{
 				service_name: (service_name != config.HTTP ? service.service_name : config.HTTP),
-				service_type: (service_name != config.HTTP ? service.service_name : config.HTTP),
+				service_type: (service_name != config.HTTP ? service.service_type : config.HTTP),
 				port: ports.port,
 				securePort: ports.securePort,
 				containerPort: null,

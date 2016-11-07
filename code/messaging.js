@@ -36,6 +36,7 @@ var GARBAGE_INTERVAL = 60000;
 self.MESSAGE = "message";
 self.MESSAGE_END = "end";
 self.MESSAGE_ERROR = "error";
+self.MESSAGE_STDOUT = "stdout";
 self.MESSAGE_WARNING = "warning";
 self.MESSAGE_NOTIFY = "notify";
 self.MESSAGE_QUESTION = "question";

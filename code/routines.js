@@ -10,7 +10,7 @@ var self = this;
 self.makeUniqueDirectory = function(unique_name, noEndSlash)
 	{ // Make a file system safe directory name: lowercase, allowed characters, can't start or end with /.
 	unique_name = unique_name.toLowerCase();
-	unique_name = unique_name.replace(/[^a-z0-9\/]/g, "/");
+	unique_name = unique_name.replace(/[^a-z0-9\/_]/g, "/");
 	unique_name = unique_name.replace(/^\/+/, "");
 	unique_name += (unique_name.search(/\/$/) != -1 ? "" : "/");
 
@@ -18,6 +18,11 @@ self.makeUniqueDirectory = function(unique_name, noEndSlash)
 		unique_name = unique_name.replace(/\/$/, "");
 
 	return unique_name;
+	}
+
+self.makeSystemctlServiceName = function(unique_name)
+	{
+	return unique_name.replace(/_\//g, "") + ".service";
 	}
 
 }

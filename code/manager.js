@@ -156,7 +156,7 @@ var run = fibrous( function(application)
 			}
 		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			status = utility.execute.sync("systemctl", ["start", application.getUniqueNameAsServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["start", application.getUniqueNameAsServiceName()], {}, null);
 			}
 		}
 	catch(err)
@@ -180,7 +180,7 @@ self.stop = fibrous( function(unique_name)
 			}
 		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			status = utility.execute.sync("systemctl", ["stop", application.getUniqueNameAsServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["stop", application.getUniqueNameAsServiceName()], {}, null);
 			}
 
 		application.clearRuntimeServices();

@@ -449,18 +449,18 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 		if(!(application = get("getApplication", unique_name)))
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
 
-		manifest = getManifest.sync(unique_name, false, false, connObj);
+		manifest = getManifest.sync(unique_name, true, false, connObj);
 
 		getManager(application.getType()).sync.remove(unique_name);
 
 		// Events
-		if(manifest.type == config.SPACELET)
+		if(application.getType() == config.SPACELET)
 			event = config.EVENT_SPACELET_REMOVED;
-		else if(manifest.type == config.SANDBOXED)
+		else if(application.getType() == config.SANDBOXED)
 			event = config.EVENT_SANDBOXED_REMOVED;
-		else if(manifest.type == config.SANDBOXED_DEBIAN)
+		else if(application.getType() == config.SANDBOXED_DEBIAN)
 			event = config.EVENT_SANDBOXED_DEBIAN_REMOVED;
-		else if(manifest.type == config.NATIVE_DEBIAN)
+		else if(application.getType() == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_REMOVED;
 
 		callEvent(event, { manifest: manifest });
@@ -630,7 +630,7 @@ var getApplicationData = fibrous( function(connObj)
 	for(i = 0; i < dbNativeDebian.length; i++)
 		{
 		if((manifest = getManifest.sync(dbNativeDebian[i].unique_name, dbNativeDebian[i].unique_directory, false, connObj)))
-			appData.native_debian.push(utility.parseJSON(manifest), true);
+			appData.native_debian.push(manifest);
 		}
 
 	return appData;
@@ -686,10 +686,11 @@ var getManifest = fibrous( function(unique_name, unique_directory, throws, connO
 	if(!application && throws)
 		throw language.E_GET_MANIFEST_FAILED.preFmt("Core::getManifest", {"~name": unique_name});
 
-	if( application && ( (typeof unique_directory == "boolean" && unique_directory) || typeof unique_directory == "string") )
-		{
+	if(application)
 		manifest = application.getManifest();
 
+	if( application && ( (typeof unique_directory == "boolean" && unique_directory) || typeof unique_directory == "string") )
+		{
 		if(typeof unique_directory == "boolean")
 			{
 			try { unique_directory = (database.sync.getApplication(unique_name)).unique_directory; }

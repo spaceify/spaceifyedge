@@ -204,7 +204,7 @@ self.renderTile = function(manifest, callback)
 				if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
 					{
 					sp_host = self.externalResourceURL(manifest.unique_name);
-					sp_path = ("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
+					sp_path = "images/" + ("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
 					break;
 					}
 				}
@@ -213,6 +213,7 @@ self.renderTile = function(manifest, callback)
 		id = "tile_" + manifest.unique_name.replace("/", "_");
 		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, src: sp_host + sp_path, id: id, callback: function()
 			{
+			callback();
 			/* REMOTE >>>>>>>>>>
 			spaceifyLoader.loadData(document.getElementById(id + "_img"), callback);
 			<<<<<<<<<< REMOTE */

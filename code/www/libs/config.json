@@ -27,8 +27,10 @@
   "API_PATH": "/api/",
   "API_WWW_PATH": "/api/www/",
   "API_NODE_MODULES_DIRECTORY": "/api/node_modules",
+  "APPLICATION_ROOT": "application",
   "APPLICATION_DIRECTORY": "application/",
-  "APPLICATION_PATH": "/volume/application/",
+  "APPLICATION_VOLUME_PATH": "/volume/application/",
+  "APPLICATION_VOLUME_DIRECTORY": "volume/application/",
   "APPLICATION_WWW_PATH": "/volume/application/www/",
   "APPLICATION_TLS_PATH": "/volume/tls/",
 
@@ -36,6 +38,9 @@
   "WWW_DIRECTORY": "www/",
 
   "DEB_DIRECTORY": "deb/",
+  "APPLICATION_DEB_DIRECTORY": "application/deb/",
+  "SYSTEMD_PATH": "/lib/systemd/system/",
+  "START_SH_FILE": "application/start.sh",
 
   "WORK_PATH": "/tmp/package/",
   "PACKAGE_PATH": "package/",
@@ -120,6 +125,7 @@
   "ANY": "any",
   "ALL": "all",
   "APP_TYPE_NUMBER": {"spacelet": 0, "sandboxed": 1, "sandboxed_debian": 2, "native_debian": 3, "any": 4},
+  "APP_TYPES": ["spacelet", "sandboxed", "sandboxed_debian", "native_debian"],
 
   "OPEN": "open",
   "OPEN_LOCAL": "open_local",
@@ -173,6 +179,9 @@
 		"transport","video","weather","word_processors","workflow"],
 
   "SESSION_COOKIE_PUBSUB_PATH": "/var/lib/spaceify/data/db/session_cookies.pub",
+
+  "SPACEIFY_REPOSITORY": "deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main",
+  "SPACEIFY_APPLICATION_REPOSITORY_LIST": "/etc/apt/sources.list.d/spaceifyapplication.list",
 
   "EVENT_SPACELET_INSTALLED": "spaceletInstalled",
   "EVENT_SPACELET_REMOVED": "spaceletRemoved",

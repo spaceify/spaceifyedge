@@ -9,13 +9,13 @@
 		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 
 		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-		<link href="css/spaceify.edge.css" rel="stylesheet" type="text/css">
-		<!-- REMOTE >>>>>>>>>>
-		<link sp_href="css/spaceify.edge.css" rel="stylesheet" type="text/css">
-		<<<<<<<<<< REMOTE -->
 		<link rel="stylesheet" href="fonts/roboto/roboto.css">
 		<link rel="stylesheet" href="css/skeleton/normalize.css">
 		<link rel="stylesheet" href="css/skeleton/skeleton.css">
+		<link rel="stylesheet" href="css/spaceify.edge.css" type="text/css">
+		<!-- REMOTE >>>>>>>>>>
+		<link rel="stylesheet" sp_href="css/spaceify.edge.css" type="text/css">
+		<<<<<<<<<< REMOTE -->
 
 		<title ng-bind="$root.getString('title')">Loading...</title>
 		<!-- -->
@@ -49,8 +49,8 @@
 
 				$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
 				$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
-				$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
-				$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
+				$("#sandboxed_debian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+				$("#native_debian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
 
 				jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader, #edgeBody").css("display", "block");
 
@@ -110,28 +110,28 @@
 		function sandboxedDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#sandboxedDebian, #sandboxedDebianHeader").css("display", "block");
+			$("#sandboxed_debian, #sandboxedDebianHeader").css("display", "block");
 			callback(null, true);
 			}
 
 		function sandboxedDebianRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
-			$("#sandboxedDebian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+			$("#sandboxed_debian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
 			callback(null, true);
 			}
 
 		function nativeDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#nativeDebian, #nativeDebianHeader").css("display", "block");
+			$("#native_debian, #nativeDebianHeader").css("display", "block");
 			callback(null, true);
 			}
 
 		function nativeDebianRemoved(result, connObj, callback)
 			{
 			var apps = removeTile(result.manifest);
-			$("#nativeDebian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
+			$("#native_debian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
 			callback(null, true);
 			}
 
@@ -177,12 +177,12 @@
 
 						<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
 						<h5 class="edgeH5" id="sandboxedDebianHeader" style="display: none;">{{ getString('sandboxed_debian') }}</h5>
-						<div class="tiles" id="sandboxedDebian" style="display: none;"></div>
+						<div class="tiles" id="sandboxed_debian" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- NATIVE DEBIAN -->
 						<h5 class="edgeH5" id="nativeDebianHeader" style="display: none;">{{ getString('native_debian') }}</h5>
-						<div class="tiles" id="nativeDebian" style="display: none;"></div>
+						<div class="tiles" id="native_debian" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
@@ -190,17 +190,17 @@
 						<div class="tiles" id="userUtilities" style="display: none;">
 
 							<!-- CERTIFICATE TILE -->
-							<div class="edgeTile pointer" onclick="net.loadCertificate();">
-								<div class="edgeTileImage">
-									<img width="128" height="128" src="images/certificate.png" id="installCertificateId">
+							<div class="edgeTile" onclick="net.loadCertificate();">
+
+								<img class="edgeTileImage" width="64" height="64" src="images/certificate.png" id="installCertificateId">
 									<!-- REMOTE >>>>>>>>>>
-									<img width="128" height="128" sp_src="images/certificate.png" id="installCertificateId">
+									<img class="edgeTileImage" width="64" height="64" sp_src="images/certificate.png" id="installCertificateId">
 									<<<<<<<<<< REMOTE -->
+
+								<div class="edgeTileText oneline">
+									{{ getString('install_certificate_title') }}
 								</div>
 
-								<div class="edgeTileInfo">
-									<div class="edgeTitle text bold">{{ getString("install_certificate_title") }}</div>
-								</div>
 							</div>
 
 						</div>
@@ -211,17 +211,17 @@
 						<div class="tiles" id="adminUtilities" style="display: none;">
 
 							<!-- LOG IN || ADMIN TILE -->
-							<div class="edgeTile pointer" onclick="net.openAdminPages();">
-								<div class="edgeTileImage">
-									<img width="128" height="128" src="images/admin.png" id="adminLogInId">
+							<div class="edgeTile" onclick="net.openAdminPages();">
+
+								<img class="edgeTileImage" width="64" height="64" src="images/admin.png" id="adminLogInId">
 									<!-- REMOTE >>>>>>>>>>
-									<img width="128" height="128" sp_src="images/admin.png" id="adminLogInId">
+									<img class="edgeTileImage" width="64" height="64" sp_src="images/admin.png" id="adminLogInId">
 									<<<<<<<<<< REMOTE -->
+
+								<div class="edgeTileText oneline">
+									{{ getString('admin_tile_title') }}
 								</div>
 
-								<div class="edgeTileInfo">
-									<div class="edgeTitle text bold">{{ getString("admin_tile_title") }}</div>
-								</div>
 							</div>
 
 						</div>

@@ -77,11 +77,16 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 	{ // CHECKS THAT THE FILES DEFINED IN THE MANIFEST ARE IN THE PACKAGE
 	var i;
 	var obj;
+	var key;
 	var type;
 	var image;
 	var mtype;
 	var magic;
+	var isFile;
 	var path = "";
+	var serviceFile;
+	var hasDebPackages;
+	var hasAptRepositories;
 
 	try {
 		if(manifest.type == config.SPACELET)														// inject_files
@@ -126,14 +131,46 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 				addError( language.E_VALIDATE_DIRECTORIES_DOCKER_IMAGE.pre("ValidateApplication::validateDirectories") );
 			}
 
-		if(manifest.type == config.NATIVE_DEBIAN || manifest.type == config.SANDBOXED_DEBIAN)		// public keys, Debian packages
+		if(manifest.type == config.NATIVE_DEBIAN || manifest.type == config.SANDBOXED_DEBIAN)		
 			{
-			if(!utility.sync.isLocal(application_path + config.DEB_DIRECTORY, "directory"))
+			hasDebPackages = "deb_packages" in manifest;
+			hasAptRepositories = "apt_repositories" in manifest;
+
+				// DEBIAN PACKAGES AND PUBLIC KEYS -- -- -- -- -- -- -- -- -- -- //
+			if((hasDebPackages || hasAptRepositories) && !utility.sync.isLocal(application_path + config.DEB_DIRECTORY, "directory"))
 				addError( language.E_VALIDATE_DIRECTORIES_DEB_DIRECTORY.pre("ValidateApplication::validateDirectories") );
 			else
 				{
-				
+				if(hasDebPackages)
+					{
+					for(i = 0; i < manifest.deb_packages.length; i++)
+						{
+						if(!utility.sync.isLocal(application_path + config.DEB_DIRECTORY + manifest.deb_packages[i].name, "file"))
+							addError( language.E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY.preFmt("ValidateApplication::validateDirectories", {"~deb": manifest.deb_packages[i].name}) );
+						}
+					}
+
+				if(hasAptRepositories)
+					{
+					for(i = 0; i < manifest.apt_repositories.length; i++)
+						{
+						key = manifest.apt_repositories[i].public_key;
+						isFile = key.match(/^file:/);
+						key = key.replace(/^file:|^url:/, "");
+						manifest.apt_repositories[i].public_key = key;
+						manifest.apt_repositories[i].isFile = (!isFile ? false : true);
+
+						if(isFile && !utility.sync.isLocal(application_path + config.DEB_DIRECTORY + key, "file"))
+							addError( language.E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY.preFmt("ValidateApplication::validateDirectories", {"~key": key}) );
+						}
+					}
 				}
+
+					// THE SERVICE FILE FILE -- -- -- -- -- -- -- -- -- -- //
+				serviceFile = routines.makeSystemctlServiceName(manifest.unique_name);
+
+				if(!utility.sync.isLocal(application_path + serviceFile, "file"))
+					addError( language.E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING.preFmt("ValidateApplication::validateDirectories", {"~service": service}) );			
 			}
 		}
 	catch(err)

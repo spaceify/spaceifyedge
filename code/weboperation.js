@@ -191,7 +191,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 				else if(type == config.NATIVE_DEBIAN)
 					path = config.NATIVE_DEBIAN_PATH;
 
-				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.APPLICATION_PATH + config.MANIFEST, true);
+				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.APPLICATION_VOLUME_PATH + config.MANIFEST, true);
 				manifest.isRunning = dbApps[i].isRunning;
 				data[type].push(manifest);
 				}

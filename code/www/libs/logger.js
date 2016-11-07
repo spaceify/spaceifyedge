@@ -34,24 +34,27 @@ self.ERROR = 2;
 self.WARN = 4;
 self.FORCE = 8;
 self.RETURN = 16;
+self.STDOUT = 32;
 
 var labelStr = {};
 labelStr[self.INFO] = "[i] ";
+labelStr[self.STDOUT] = "";
 labelStr[self.ERROR] = "[e] ";
 labelStr[self.WARN] = "[w] ";
 labelStr[self.FORCE] = "";
-var labels = self.INFO | self.ERROR | self.WARN | self.FORCE;
+var labels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
 
-var levels = self.INFO | self.ERROR | self.WARN | self.FORCE;
+var levels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
 
-self.info = function() { out(self.INFO, arguments); }
+self.info = function() { out(self.INFO, false, arguments); }
 self.error = function() { printErrors.apply(this, arguments); }
-self.warn = function() { out(self.WARN, arguments); }
-self.force = function() { out(self.FORCE, arguments); }
+self.warn = function() { out(self.WARN, false, arguments); }
+self.force = function() { out(self.FORCE, false, arguments); }
+self.stdout = function() { out(self.STDOUT, true, arguments); }
 
-var out = function(level)
+var out = function(level, fromStdout)
 	{
-	var strp, strs = arguments[1];
+	var strp, strs = arguments[2];
 
 	var str = "";																			// Concatenate strings passed in the arguments, separate strings with space
 	for(var i = 0; i < strs.length; i++)
@@ -68,7 +71,7 @@ var out = function(level)
 	if((output && (levels & level)) || level == self.FORCE)
 		{
 		var txt = label + str;
-		isNodeJs ? process.stdout.write(txt + "\n") : console.log(txt);
+		isNodeJs ? process.stdout.write(txt + (fromStdout ? "" : "\n")) : console.log(txt);
 		}
 	}
 
@@ -77,7 +80,7 @@ var printErrors = function(err, printPath, printCode, printType)
 	var message = errorc.errorToString(err, printPath, printCode);
 
 	if(printType == self.ERROR)
-		out.call(self, self.ERROR, [message]);
+		out.call(self, self.ERROR, false, [message]);
 	else if(printType == self.FORCE)
 		self.force(message);
 

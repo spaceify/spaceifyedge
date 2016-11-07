@@ -75,9 +75,9 @@ var language =
 
 	"E_GET_SERVICE_RUNTIME_STATES_FAILED": new SpaceifyError({"code": 2035, "message": "Failed to get service runtime states."}),
 
-	"E_SET_APPLICATION_RUNNING_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2036, "message": "Set application running failed. Native debian, sandboxed debian or develop mode application with the unique name ~unique_name was not found."}),
+	"E_SET_APPLICATION_RUNNING_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2036, "message": "Set application running failed. Native Debian, sandboxed Debian or develop mode application with the unique name ~unique_name was not found."}),
 	"E_SET_APPLICATION_RUNNING_ACCESS_DENIED": new SpaceifyError({"code": 2037, "message": "Set application running failed. Access denied from callers remote address."}),
-	"E_SET_APPLICATION_RUNNING_WRONG_TYPE": new SpaceifyError({"code": 2038, "message": "Set application running failed. Only native debian, sandboxed debian and develop mode applications can be set their running state."}),
+	"E_SET_APPLICATION_RUNNING_WRONG_TYPE": new SpaceifyError({"code": 2038, "message": "Set application running failed. Only native Debian, sandboxed Debian and develop mode applications can be set their running state."}),
 
 	"E_PACKAGE_DEVELOP_MODE": new SpaceifyError({"code": 2039, "message": "~type is installed in develop mode and can not be started or stopped with spm. Start it manually."}),
 
@@ -105,6 +105,7 @@ var language =
 	"E_GIT_FAILED_TO_GET_GITHUB_DATA": new SpaceifyError({"code": 7011, "message": "Failed to get data from GitHub."}),
 	"E_PROCESS_PACKAGE_FAILED": new SpaceifyError({"code": 7012, "message": "Getting package from ~source failed."}),
 	"E_AUTHENTICATION_FAILED": new SpaceifyError({"code": 7013, "message": "Authentication failed."}),
+	"E_ONLY_SANDBOXED_OR_SPACELET": new SpaceifyError({"code": 7014, "message": "Only sandboxed applications and spacelets can be installed in develop mode."}),
 
 	// Manager
 	"E_START_INIT_FAILED": new SpaceifyError({"code": 8000, "message": "~type failed to initialize itself. ~err"}),
@@ -160,9 +161,12 @@ var language =
 	"E_VALIDATE_DIRECTORIES_IMAGE_TYPES": new SpaceifyError({"code": 13004, "message": "Supported image formats are jpg, gif and png."}),
 	"E_VALIDATE_DIRECTORIES_DOCKER_IMAGE": new SpaceifyError({"code": 13005, "message": "Custom Docker image creation is defined but file Dockerfile is not found from applications directory."}),
 
-	"E_VALIDATE_MANIFEST_MANIFEST_TYPE": new SpaceifyError({"code": 13006, "message": "Manifest must have type field defined and type must be spacelet, sandboxed, sandboxed_debian or native_debian."}),
+	"E_VALIDATE_MANIFEST_MANIFEST_TYPE": new SpaceifyError({"code": 13006, "message": "Manifest must have type field and accepted values are spacelet, sandboxed, sandboxed_debian or native_debian."}),
 
-	"E_VALIDATE_DIRECTORIES_DEB_DIRECTORY": new SpaceifyError({"code": 13007, "message": "Native debian and sandboxed debian packages must have deb directory."}),
+	"E_VALIDATE_DIRECTORIES_DEB_DIRECTORY": new SpaceifyError({"code": 13007, "message": "Native Debian and sandboxed Debian packages must have deb directory when spaceify.manifest contains apt_repositories or deb_packages field."}),
+	"E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13008, "message": "Debian package ~deb was not found from packages deb directory."}),
+	"E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13009, "message": "Public key ~key was not found from packages deb directory."}),
+	"E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING": new SpaceifyError({"code": 13010, "message": "The service file ~service of this package was not found from the application directory."}),
 
 	// WebOperation
 	"E_GET_DATA_OPERATION_NOT_DEFINED": "{\"code\": 15000, \"message\": \"No operation defined.\", \"path\": \"WebOperation::getData()\"}",
@@ -251,6 +255,8 @@ var language =
 	"PACKAGE_REMOVE_FROM_DATABASE": " - Database entries.",
 	"PACKAGE_REMOVING_DOCKER": " - Docker image and container.",
 	"PACKAGE_DELETE_FILES": " - Files.",
+	"PACKAGE_DELETE_REPOSITORY": " - Repository entries.",
+	"PACKAGE_PURGE_DEBIAN_PACKAGES": " - Purging Debian packages.",
 	"PACKAGE_ASK_REQUIRED": "The ~type ~name requires the following service(s):",
 	"PACKAGE_ASK_INSTALL_QUESTION": "Do you want to install the ~type?",
 	"PACKAGE_ASK_INSTALL_Y_N": [{"screen": "Yes", "long": "yes", "short": "y"}, {"screen": "No", "long": "no", "short": "n"}],
@@ -268,6 +274,12 @@ var language =
 	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to the edge. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
 	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
 	"INSTALL_SUGGESTED_SAME_PACKAGES": "The installed ~installing_type requires '~suggested_unique_name, version: ~suggested_version' to be installed for the service '~required_service_name'. However, '~existing_unique_name, version: ~existing_version' is already installed and will not be reinstalled or updated.",
+	"INSTALL_APT_REPOSITORIES": " - Adding Debian package repositories.",
+	"INSTALL_APT_REPOSITORIES_SOURCE": "Source: ~source",
+	"INSTALL_APT_REPOSITORIES_KEY": "GnuPG key: ~key",
+	"APT_REPOSITORIES_UPDATE": " - Updating Debian package lists.",
+	"INSTALL_APT_PACKAGES": " - Installing Debian packages from remote repositories.",
+	"INSTALL_DEB_PACKAGES": " - Installing local Debian packages.",
 
 	"GET_SOURCES_OK": "OK. Packages content is in directory ~directory.",
 
@@ -283,8 +295,8 @@ var language =
 
 	"NO_APPLICATIONS": "No installed applications or spacelets.",
 	"NO_RUNNING_APPLICATIONS": "No running applications or spacelets.",
-	"INSTALLED_HEADERS": [ "Installed spacelets.", "Installed sandboxed applications.", "Installed sandboxed debian applications.", "Installed native debian applications." ],
-	"RUNNING_HEADERS": [ "Running spacelets.", "Running sandboxed applications.", "Running sandboxed debian applications.", "Running native debian applications." ],
+	"INSTALLED_HEADERS": { "spacelet": "Installed spacelets.", "sandboxed": "Installed sandboxed applications.", "sandboxed_debian": "Installed sandboxed Debian applications.", "native_debian": "Installed native Debian applications." },
+	"RUNNING_HEADERS": [ "Running spacelets.", "Running sandboxed applications.", "Running sandboxed Debian applications.", "Running native Debian applications." ],
 
 	"M_NAME": "Name: ",
 	"M_START_COMMAND": "Start command: ",
@@ -326,8 +338,8 @@ var language =
 	"M_PORT_LISTEN": " [LISTEN]",
 	"M_PORT_REFUSED": " [REFUSED]",
 
-	"APP_DISPLAY_NAMES": {"spacelet": "spacelet", "sandboxed": "sandboxed application", "sandboxed_debian": "sandboxed debian application", "native_debian": "native debian application"},
-	"APP_UPPER_CASE_DISPLAY_NAMES": {"spacelet": "Spacelet", "sandboxed": "Sandboxed application", "sandboxed_debian": "Sandboxed debian application", "native_debian": "Native debian application"}
+	"APP_DISPLAY_NAMES": {"spacelet": "spacelet", "sandboxed": "sandboxed application", "sandboxed_debian": "sandboxed Debian application", "native_debian": "native Debian application"},
+	"APP_UPPER_CASE_DISPLAY_NAMES": {"spacelet": "Spacelet", "sandboxed": "Sandboxed application", "sandboxed_debian": "Sandboxed Debian application", "native_debian": "Native Debian application"}
 	};
 
 if(typeof exports !== "undefined")

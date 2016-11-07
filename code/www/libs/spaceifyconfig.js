@@ -44,7 +44,7 @@ self.makeRealApplicationPaths = function()
 		volumePath = cwd.replace("/application", "/");
 
 		self["APPLICATION_TLS_PATH"] = volumePath + "/tls/";
-		self["APPLICATION_PATH"] = volumePath + "/application/";
+		self["APPLICATION_VOLUME_PATH"] = volumePath + "/application/";
 		self["APPLICATION_WWW_PATH"] = volumePath + "/application/www/";
 		}
 	catch(err)

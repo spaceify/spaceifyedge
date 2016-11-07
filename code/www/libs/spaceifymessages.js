@@ -47,6 +47,7 @@ self.connect = function(managerOrigin_, callerOrigin_)
 
 		messageId = gotId;
 
+		connection.exposeRpcMethod("stdout", self, stdout);
 		connection.exposeRpcMethod("fail", self, fail);
 		connection.exposeRpcMethod("error", self, error);
 		connection.exposeRpcMethod("warning", self, warning);
@@ -138,6 +139,14 @@ var message = function(message_, connObj, callback)
 	{
 	if(callerOrigin.message)
 		callerOrigin.message(message_);
+
+	callback(null, true);
+	}
+
+var stdout = function(message_, connObj, callback)
+	{
+	if(callerOrigin.stdout)
+		callerOrigin.stdout(message_);
 
 	callback(null, true);
 	}

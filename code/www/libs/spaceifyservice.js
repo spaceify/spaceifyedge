@@ -205,21 +205,34 @@ self.keepConnectionUp = function(val)
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
-self.listen = fibrous( function(service_name, unique_name, port, securePort)
+self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
 	{
+	if(typeof listenUnsecure == "undefined")
+		listenUnsecure = true;
+
+	if(typeof listenSecure == "undefined")
+		listenSecure = true;
+
 	if(!provided[service_name])																// Create the connection objects
 		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
 
 	if(!providedSecure[service_name])
 		providedSecure[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
 
-	listen.sync(provided[service_name], port, false);
-	listen.sync(providedSecure[service_name], securePort, true);
+	if(listenUnsecure)
+		listen.sync(provided[service_name], port, false);
+
+	if(listenSecure)
+		listen.sync(providedSecure[service_name], securePort, true);
 
 	if(!port || !securePort)
-		{
-		port = provided[service_name].getServer().getPort();								// If port was null or 0 the real port number
-		securePort = providedSecure[service_name].getServer().getPort();					// is known after the server is listening
+		{ // If port was null or 0 the real port number is known only after the server is listening
+		if(listenUnsecure)
+			port = provided[service_name].getServer().getPort();
+
+		if(listenSecure)
+			securePort = providedSecure[service_name].getServer().getPort();
+
 		console.log("    LISTEN -----> " + service_name + " - port: " + port + ", secure port: " + securePort);
 		}
 
@@ -238,16 +251,15 @@ self.close = function(service_name)
 	{ // Close one service, listed services or all services
 	var keys;
 
-	if(!service_names)																		// All the services
-		keys = Object.keys(required);
-	else if(service_name.constructor !== Array)												// One service (string)
+	if(typeof service_names == "undefined")																		// All the services
+		keys = Object.keys(provided);
+	else if(typeof service_names != "undefined" && service_name.constructor !== Array)							// One service (string)
 		keys = [service_names];
 
 	for(var i = 0; i < keys.length; i++)
 		{
 		if(keys[i] in provided)
 			provided[keys[i]].getServer().close();
-
 		if(keys[i] in providedSecure)
 			providedSecure[keys[i]].getServer().close();
 		}
