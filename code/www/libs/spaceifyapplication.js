@@ -97,6 +97,9 @@ var start = function(application_, options)
 
 				for(var i = 0; i < services.length; i++)
 					{
+					if(services.service_type == config.ALIEN)
+						continue;
+
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
 					securePort = (isRealSpaceify ? config.FIRST_SERVICE_PORT_SECURE + i : null);
 
