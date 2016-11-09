@@ -1,9 +1,11 @@
 /**
- * Routines, 17.10.2016 Spaceify Oy
- * Dependency free routines
+ * Unique application, 17.10.2016 Spaceify Oy
+ * Dependency free
+ *
+ * @class SpaceifyUnique
  */
 
-function Routines()
+function SpaceifyUnique()
 {
 var self = this;
 
@@ -27,4 +29,5 @@ self.makeSystemctlServiceName = function(unique_name)
 
 }
 
-module.exports = Routines;
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyUnique;

@@ -88,7 +88,7 @@ var start = function(application_, options)
 
 			// APPLICATION -- -- -- -- -- -- -- -- -- -- //
 		try {
-			manifest = utility.sync.loadJSON(config.APPLICATION_VOLUME_PATH + config.MANIFEST, true, true);
+			manifest = utility.sync.loadJSON(config.VOLUME_APPLICATION_PATH + config.MANIFEST, true, true);
 
 				// SERVICES -- -- -- -- -- -- -- -- -- -- //
 			if(manifest.provides_services)														// <= SERVERS - PROVIDES SERVICES
@@ -115,10 +115,10 @@ var start = function(application_, options)
 				{
 				var opts =	{
 							hostname: config.ALL_IPV4_LOCAL,
-							key: config.APPLICATION_TLS_PATH + config.SERVER_KEY,
-							crt: config.APPLICATION_TLS_PATH + config.SERVER_CRT,
+							key: config.VOLUME_TLS_PATH + config.SERVER_KEY,
+							crt: config.VOLUME_TLS_PATH + config.SERVER_CRT,
 							caCrt: config.API_WWW_PATH + config.SPACEIFY_CRT,
-							wwwPath: config.APPLICATION_WWW_PATH,
+							wwwPath: config.VOLUME_APPLICATION_WWW_PATH,
 							indexFile: config.INDEX_HTML,
 							serverName: manifest.name + " Server"
 							};

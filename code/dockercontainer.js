@@ -77,7 +77,7 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 			"OpenStdin": true,
 			"StdinOnce": false,
 			"Env": null,
-			//"WorkingDir": config.APPLICATION_VOLUME_PATH,
+			//"WorkingDir": config.VOLUME_APPLICATION_PATH,
 			//"Cmd": ["/usr/sbin/sshd", "-D"],
 			"Cmd": ["/bin/bash"],
 			"Image": imageNameOrId,
@@ -133,7 +133,7 @@ self.stopContainer = fibrous( function(appobj)
 		if(container != null)
 			{
 			if(appobj.getType() != config.SANDBOXED_DEBIAN && appobj.getStopCommand() != "")
-				dockerHelper.sync.executeCommand("cd " + config.APPLICATION_VOLUME_PATH + " && " + appobj.getStopCommand() + " && echo stopcontainer", ["stopcontainer"], false);
+				dockerHelper.sync.executeCommand("cd " + config.VOLUME_APPLICATION_PATH + " && " + appobj.getStopCommand() + " && echo stopcontainer", ["stopcontainer"], false);
 
 			container.sync.stop({"t": "0"});
 			container.sync.wait();
@@ -165,7 +165,7 @@ self.runApplication = fibrous( function(appobj)
 	{
 	dockerHelper.sync.executeCommand("/usr/sbin/sshd -D & echo spaceifyend", ["spaceifyend"], false);
 
-	var bash =	"cd " + config.APPLICATION_VOLUME_PATH + "\n";
+	var bash =	"cd " + config.VOLUME_APPLICATION_PATH + "\n";
 		bash += "printf \"";
 		bash += "#!/bin/bash" + "\n";
 		bash += "export IS_REAL_SPACEIFY=YES" + "\n";

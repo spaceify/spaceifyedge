@@ -96,13 +96,13 @@ self.exposeRpcMethodSync = function(name, object, method)
 
 self.setConnectionListener = function(listener)
 	{
-	if(typeof listener == "function")
+	if (typeof listener == "function")
 		connectionListeners.push(listener);
 	};
 
 self.setDisconnectionListener = function(listener)
 	{
-	if(typeof listener == "function")
+	if (typeof listener == "function")
 		disconnectionListeners.push(listener);
 	};
 
@@ -148,7 +148,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 		return;
 
 	try	{
-		if(!(methods instanceof Array))														// Process single request as "a single batch request"
+		if (!(methods instanceof Array))													// Process single request as "a single batch request"
 			{
 			isBatch = false;
 			params = [params];
@@ -169,7 +169,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 			logger.info("  " + JSON.stringify(callObject));
 			}
 
-		if(typeof callback == "function")
+		if (typeof callback == "function")
 			callbackBuffer.pushBack(currentId, object, callback);
 		}
 	catch(err)
@@ -271,14 +271,14 @@ var handleMessage = function(requestsOrResponses, connectionId)
 	var isBatch = true;
 
 	try	{
-		if(!(requestsOrResponses instanceof Array))										// Process single request/response as "a single batch request/response"
+		if (!(requestsOrResponses instanceof Array))									// Process single request/response as "a single batch request/response"
 			{ requestsOrResponses = [requestsOrResponses]; isBatch = false; }
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
 			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
-			if(isNodeJs && !isRealSpaceify)
+			if (isNodeJs && !isRealSpaceify)
 				{
 				fibrous.run( function()
 					{
@@ -302,12 +302,12 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 	var result;
 	var request = requests.shift();
 
-	if(!request)
+	if (!request)
 		{
-		if(!onlyNotifications && responses.length == 0)
+		if (!onlyNotifications && responses.length == 0)
 			responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
 
-		if(responses.length > 0)															// Batch -> [response objects] || Single -> response object
+		if (responses.length > 0)															// Batch -> [response objects] || Single -> response object
 			sendMessage((isBatch ? responses : responses[0]), connectionId);
 		}
 	else
@@ -315,7 +315,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		var requestId = (request.hasOwnProperty("id") ? request.id : null);
 		var rpcParams = (request.hasOwnProperty("params") ? request.params : []);
 
-		if(requestId != null)
+		if (requestId != null)
 			onlyNotifications = false;
 
 		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
@@ -347,9 +347,9 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 			var got = rpcParams.length;														// Check parameter count
 			var expected = (rpcMethod.type == EXPOSE_SYNC ? (isRealSpaceify ? rpcMethod.method.length : rpcMethod.method.getLength()) - 1 : rpcMethod.method.length - 2);
 																							// Synchronous: ..., connObj
-			if(expected < got)																// Traditional: ..., connObj, callback
+			if (expected < got)																// Traditional: ..., connObj, callback
 				rpcParams.splice(expected - got, got - expected);
-			else if(expected > got)
+			else if (expected > got)
 				{
 				expected = expected - got;
 				while(expected--)
@@ -362,14 +362,14 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 							isSecure: connections[connectionId].getIsSecure()
 							};
 
-			if(!isRealSpaceify)
+			if (!isRealSpaceify)
 				{
 				connObj.origin = connections[connectionId].getOrigin(),
 				connObj.remotePort = connections[connectionId].getRemotePort(),
 				connObj.remoteAddress = connections[connectionId].getRemoteAddress()
 				}
 
-			if(rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
+			if (rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
 				{
 				//result = rpcMethod.method.sync(...rpcParams, connObj);
 
@@ -380,7 +380,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
 				}
-			else if(rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
+			else if (rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
 				{
 				//result = rpcMethod.method(...rpcParams, connObj);
 
@@ -393,11 +393,11 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 				}
 			else																			// Traditional callback based methods
 				{
-				if(requestId != null)															// Request
+				if (requestId != null)															// Request
 					{
 					/*rpcMethod.method(...rpcParams, connObj, function(err, data)
 						{
-						if(err)
+						if (err)
 							{
 							addError(requestId, err, responses);
 
@@ -439,7 +439,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 
 var callbackReturns = function(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId)
 	{
-	if(err)
+	if (err)
 		{
 		addError(requestId, err, responses);
 
@@ -454,7 +454,7 @@ var callbackReturns = function(err, data, requestId, requests, isBatch, response
 
 var addResponse = function(requestId, result, responses)
 	{
-	if(requestId != null)																	// Requests send responses
+	if (requestId != null)																	// Requests send responses
 		{
 		logger.info("  RESPONSE <- " + JSON.stringify(result));
 
@@ -466,7 +466,7 @@ var addResponse = function(requestId, result, responses)
 
 var addError = function(requestId, err, responses)
 	{
-	if(requestId != null)																	// Requests send responses
+	if (requestId != null)																	// Requests send responses
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
@@ -486,7 +486,7 @@ var handleReturnValue = function(responses, isBatch)
 	var error = null, result = null;
 
 	try	{
-		if(isBatch)
+		if (isBatch)
 			{
 			var processed = processBatchResponse(responses);
 			callbackBuffer.callMethodAndPop(processed.smallestId, processed.errors, processed.results);
@@ -495,14 +495,19 @@ var handleReturnValue = function(responses, isBatch)
 			{
 			logger.info("  RESPONSE: " + JSON.stringify(responses[0]));
 
-			if(!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
+			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
 
-			if (responses[0].error)
+			if (responses[0].hasOwnProperty("error"))
+				{
 				error = responses[0].error;
-
-			if (responses[0].result)
-				result = responses[0].result;
+				result = null;
+				}
+			else if (responses[0].hasOwnProperty("result"))
+				{
+				error = null;
+				results = responses[0].result;
+				}
 
 			callbackBuffer.callMethodAndPop(responses[0].id, error, result);
 			}
@@ -523,17 +528,17 @@ var processBatchResponse = function(responses)
 		{
 		logger.info("  RESPONSE: " + JSON.stringify(responses[r]));
 
-		if(!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
+		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
 
 		smallestId = Math.max(smallestId, responses[r].id);
 
-		if(responses[r].hasOwnProperty("error"))
+		if (responses[r].hasOwnProperty("error"))
 			{
 			errors[responses[r].id] = responses[r].error;
 			results[responses[r].id] = null;
 			}
-		else if(responses[r].hasOwnProperty("result"))
+		else if (responses[r].hasOwnProperty("result"))
 			{
 			errors[responses[r].id] = null;
 			results[responses[r].id] = results[r].result;

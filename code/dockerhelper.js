@@ -96,7 +96,7 @@ self.waitForOutput = function(waitedStrings, callback)
 			{
 			if(buf.lastIndexOf(waitedStrings[i]) != -1 || (buf.length > 0 && waitedStrings[i] == "*"))
 				{
-				logger.info(utility.replace(language.EXECUTE_COMMAND_RECEIVED, {"~code": waitedStrings[i]}), "\n");
+				//logger.info(utility.replace(language.EXECUTE_COMMAND_RECEIVED, {"~code": waitedStrings[i]}), "\n");
 
 				standardOutput.removeAllListeners("data");
 				callback(null, [buf, waitedStrings[i]]);

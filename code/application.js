@@ -7,21 +7,19 @@
  */
 
 var fibrous = require("./fibrous");
-var Routines = require("./routines");
 var DockerHelper = require("./dockerhelper");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
-var ValidateApplication = require("./validateapplication");
 
 function Application(manifest, develop)
 {
 var self = this;
 
-var routines = new Routines();
+var unique = new SpaceifyUnique();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
-var validator = new ValidateApplication();
 
 var dockerContainer = null;
 var docker_image_id = "";
@@ -61,7 +59,7 @@ self.getUniqueName = function()
 
 self.getUniqueNameAsServiceName = function()
 	{
-	return routines.makeSystemctlServiceName(manifest.unique_name);
+	return unique.makeSystemctlServiceName(manifest.unique_name);
 	}
 	
 self.isShared = function()
@@ -76,7 +74,7 @@ self.getType = function()
 
 self.getUniqueDirectory = function()
 	{
-	return validator.makeUniqueDirectory(manifest.unique_name);
+	return unique.makeUniqueDirectory(manifest.unique_name);
 	}
 
 self.getProvidesServicesCount = function()

@@ -14,7 +14,6 @@ var Github = require("github");
 var AdmZip = require("adm-zip");
 var Logger = require("./logger");
 var fibrous = require("./fibrous");
-var Routines = require("./routines");
 var language = require("./language");
 var Database = require("./database");
 var Messaging = require("./messaging");
@@ -23,6 +22,7 @@ var Application = require("./application");
 var DockerImage = require("./dockerimage.js");
 var SpaceifyError = require("./spaceifyerror");
 var SecurityModel = require("./securitymodel");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 var DockerContainer = require("./dockercontainer.js");
@@ -35,15 +35,14 @@ function ApplicationManager()
 var self = this;
 
 var logger = new Logger();
-var routines = new Routines();
 var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var securityModel = new SecurityModel();
 var appManServer = new WebSocketRpcServer();
-var sharedValidator = new ValidateApplication();
 var coreConnection = new WebSocketRpcConnection();
 
 var options = {};
@@ -425,7 +424,7 @@ var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
 	var dbApp;
 	var manifest;
 	var path = "";
-	var unique_directory = sharedValidator.makeUniqueDirectory(unique_name);
+	var unique_directory = unique.makeUniqueDirectory(unique_name);
 
 		// Preconditions for performing this operation
 	if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
@@ -1123,7 +1122,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 			// Install application and api files to volume directory
 		sendMessage.sync(language.INSTALL_APPLICATION_FILES);
-		volumePath = appPath + sharedValidator.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY;
+		volumePath = appPath + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY;
 		utility.sync.copyDirectory(config.WORK_PATH, volumePath, false, []);								// Copy application files to volume
 
 			// Generate a Spaceify ca signed certificate for this application
@@ -1148,7 +1147,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 			if(customDockerImage)
 				{ // test: docker run -i -t image_name /bin/bash
 				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER_IMAGE, {"~image": dockerImageName}));
-				utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: appPath + manifest.unique_name + config.APPLICATION_VOLUME_PATH}, null);
+				utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: appPath + manifest.unique_name + config.VOLUME_APPLICATION_PATH}, null);
 				}
 			else
 				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER, {"~image": dockerImageName}));
@@ -1163,102 +1162,113 @@ var install = fibrous( function(manifest, develop, sessionId)
 			// ToDo: Install the .deb pakages for sandboxed_native applications here (apt_repositories, apt_packages, deb_packages)
 			}
 
-			// Debian repositories
+			// NATIVE APPLICATION
 		if(manifest.type == config.NATIVE_DEBIAN && "apt_repositories" in manifest)
 			{
-			sendMessage.sync(language.INSTALL_APT_REPOSITORIES);
-
-			removeApplicationRepositoryEntries(manifest, true);
-
-			try { list = fs.readFileSync(config.SPACEIFY_APPLICATION_REPOSITORY_LIST, "utf8"); } catch(err) { list = ""; }
-
-			for(var i = 0; i < manifest.apt_repositories.length; i++)
+				// Debian repositories
+			if("apt_repositories" in manifest)
 				{
-				source = makeRepositoryLine(manifest.apt_repositories[i]);								// Repository source
-				list += source;
+				sendMessage.sync(language.INSTALL_APT_REPOSITORIES);
 
-				sendMessage.sync(utility.replace(language.INSTALL_APT_REPOSITORIES_SOURCE, { "~source": source}));
+				removeApplicationRepositoryEntries(manifest, true);
 
-				public_key = manifest.apt_repositories[i].public_key;									// Repository GnuPG key
-				if(public_key != "")
+				try { list = fs.readFileSync(config.SPACEIFY_APPLICATION_REPOSITORY_LIST, "utf8"); } catch(err) { list = ""; }
+
+				for(var i = 0; i < manifest.apt_repositories.length; i++)
 					{
-					sendMessage.sync(utility.replace(language.INSTALL_APT_REPOSITORIES_KEY, { "~key": public_key}));
+					source = makeRepositoryLine(manifest.apt_repositories[i]);								// Repository source
+					list += source;
 
-					if(manifest.apt_repositories[i].isFile)
-						public_key = "cat " + public_key + " | apt-key add -";
-					else
-						public_key = "wget -qO- " + public_key + " | apt-key add -";
+					sendMessage.sync(utility.replace(language.INSTALL_APT_REPOSITORIES_SOURCE, { "~source": source}));
 
-					utility.execute.sync("sh", ["-c", public_key], {cwd: volumePath + config.APPLICATION_DEB_DIRECTORY}, function(isError, data)
+					public_key = manifest.apt_repositories[i].public_key;									// Repository GnuPG key
+					if(public_key != "")
+						{
+						sendMessage.sync(utility.replace(language.INSTALL_APT_REPOSITORIES_KEY, { "~key": public_key}));
+
+						if(manifest.apt_repositories[i].isFile)
+							public_key = "cat " + public_key + " | apt-key add -";
+						else
+							public_key = "wget -qO- " + public_key + " | apt-key add -";
+
+						utility.execute.sync("sh", ["-c", public_key], {cwd: volumePath + config.APPLICATION_DIRECTORY}, function(isError, data)
+							{
+							sendMessageStdout.sync("" + data);
+							});
+						}
+					}
+
+				try { list = fs.writeFileSync(config.SPACEIFY_APPLICATION_REPOSITORY_LIST, list, "utf8"); } catch(err) { }
+
+				sendMessage.sync("", language.APT_REPOSITORIES_UPDATE);
+
+				utility.execute.sync("apt-get", ["update"], {}, function(isError, data)
+					{
+					sendMessageStdout.sync("" + data);
+					});
+
+				sendMessage.sync("");
+				}
+			
+				// apt-get install
+			if("apt_packages" in manifest)
+				{
+				sendMessage.sync(language.INSTALL_APT_PACKAGES);
+
+				for(var i = 0; i < manifest.apt_packages.length; i++)
+					{
+					utility.execute.sync("apt-get", ["install", "-y", manifest.apt_packages[i].name], {}, function(isError, data)
 						{
 						sendMessageStdout.sync("" + data);
 						});
 					}
+
+				sendMessage.sync("");
 				}
 
-			try { list = fs.writeFileSync(config.SPACEIFY_APPLICATION_REPOSITORY_LIST, list, "utf8"); } catch(err) { }
-
-			sendMessage.sync("", language.APT_REPOSITORIES_UPDATE);
-
-			utility.execute.sync("apt-get", ["update"], {}, function(isError, data)
+				// dpkg install
+			if("deb_packages" in manifest)
 				{
-				sendMessageStdout.sync("" + data);
-				});
+				sendMessage.sync(language.INSTALL_DEB_PACKAGES);
 
-			sendMessage.sync("");
-			}
-			
-			// apt-get install
-		if(manifest.type == config.NATIVE_DEBIAN && "apt_packages" in manifest)
-			{
-			sendMessage.sync(language.INSTALL_APT_PACKAGES);
-
-			for(var i = 0; i < manifest.apt_packages.length; i++)
-				{
-				utility.execute.sync("apt-get", ["install", "-y", manifest.apt_packages[i].name], {}, function(isError, data)
+				for(var i = 0; i < manifest.deb_packages.length; i++)
 					{
-					sendMessageStdout.sync("" + data);
-					});
+					utility.execute.sync("dpkg", ["-i", volumePath + config.APPLICATION_DIRECTORY + manifest.deb_packages[i].name], {}, function(isError, data)
+						{
+						sendMessageStdout.sync("" + data);
+						});
+					}
+
+				sendMessage.sync("");
 				}
 
-			sendMessage.sync("");
-			}
-
-			// dpkg install
-		if(manifest.type == config.NATIVE_DEBIAN && "deb_packages" in manifest)
-			{
-			sendMessage.sync(language.INSTALL_DEB_PACKAGES);
-
-			for(var i = 0; i < manifest.deb_packages.length; i++)
-				{
-				utility.execute.sync("dpkg", ["-i", volumePath + config.APPLICATION_DEB_DIRECTORY + manifest.deb_packages[i].name], {}, function(isError, data)
-					{
-					sendMessageStdout.sync("" + data);
-					});
-				}
-
-			sendMessage.sync("");
-			}
-
-			// Copy service file to /lib/systemd/system and ~path replacement
-		if(manifest.type == config.NATIVE_DEBIAN)
-			{
-			serviceFile = routines.makeSystemctlServiceName(manifest.unique_name);
+				/* ToDo: MAYBE SANDBOXED_DEBIAN
+				*
+				*
+				*
+				*
+				// Copy service file to /lib/systemd/system and ~path replacement
+			serviceFile = unique.makeSystemctlServiceName(manifest.unique_name);
 
 			list = fs.readFileSync(volumePath + config.APPLICATION_DIRECTORY + serviceFile, "utf8");
 			list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);						// ~path replacement
 
 			fs.writeFileSync(config.SYSTEMD_PATH + serviceFile, list, "utf8");
-			}
 
-			// The ~path replacement in applications start.sh file if it is present in the application directory
-		if(manifest.type == config.NATIVE_DEBIAN && utility.sync.isLocal(volumePath + config.START_SH_FILE, "file"))
-			{
-			list = fs.readFileSync(volumePath + config.START_SH_FILE, "utf8");
-			list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);
+				// The ~path replacement in applications start.sh file if it is present in the application directory
+			if(utility.sync.isLocal(volumePath + config.START_SH_FILE, "file"))
+				{
+				list = fs.readFileSync(volumePath + config.START_SH_FILE, "utf8");
+				list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);
 
-			fs.writeFileSync(volumePath + config.START_SH_FILE, list, "utf8");
-			fs.chmodSync(volumePath + config.START_SH_FILE, 493);
+				fs.writeFileSync(volumePath + config.START_SH_FILE, list, "utf8");
+				fs.chmodSync(volumePath + config.START_SH_FILE, 493);
+				}
+				*
+				*
+				*
+				*
+				*/
 			}
 
 			// Insert/update application data to database - finalize installation
@@ -1352,7 +1362,7 @@ var removeTemporaryFiles = fibrous( function()
 
 var removeUniqueData = fibrous( function(path, obj)
 	{ // Removes existing application data and leaves users data untouched
-	var unique_directory = sharedValidator.makeUniqueDirectory(obj.unique_name);
+	var unique_directory = unique.makeUniqueDirectory(obj.unique_name);
 	utility.sync.deleteDirectory(path + unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY);
 	utility.sync.deleteDirectory(path + unique_directory + config.VOLUME_DIRECTORY + config.TLS_DIRECTORY);
 
@@ -1394,8 +1404,8 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 	var pkgName;
 	var serviceFile;
 	var packages = [];
-	var unique_directory = sharedValidator.makeUniqueDirectory(unique_name, true);
-	var volumePath = config.NATIVE_DEBIAN_PATH + unique_directory + config.APPLICATION_VOLUME_PATH;
+	var unique_directory = unique.makeUniqueDirectory(unique_name, true);
+	var volumePath = config.NATIVE_DEBIAN_PATH + unique_directory + config.VOLUME_APPLICATION_PATH;
 	var manifest = utility.sync.loadJSON(volumePath + config.MANIFEST, true, false);
 
 		// Remove entries from spaceifyapplication.list
@@ -1415,7 +1425,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 			{
 			pkgName = "";
 
-			utility.execute.sync("/bin/bash", ["-c", "dpkg-deb -I " + volumePath + config.DEB_DIRECTORY + packages[i].name + " | grep -i package: | awk -F : '{print $2}'"], {}, function(isError, data)
+			utility.execute.sync("/bin/bash", ["-c", "dpkg-deb -I " + volumePath + packages[i].name + " | grep -i package: | awk -F : '{print $2}'"], {}, function(isError, data)
 				{
 				if(!isError)
 					pkgName += "" + data;
@@ -1436,11 +1446,21 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 			sendMessageStdout.sync("" + data);
 			});
 		}
-		
+
+		/* ToDo: MAYBE FOR SANDBOXED_DEBIAN
+		*
+		*
+		*
+		*
 		// Remove service file
-	serviceFile = config.SYSTEMD_PATH + routines.makeSystemctlServiceName(manifest.unique_name);
+	serviceFile = config.SYSTEMD_PATH + unique.makeSystemctlServiceName(manifest.unique_name);
 	if(utility.sync.isLocal(serviceFile, "file"))
 		fs.unlinkSync(serviceFile);
+		*
+		*
+		*
+		*
+		*/
 	});
 
 var makeRepositoryLine = function(repository)
@@ -1450,7 +1470,7 @@ var makeRepositoryLine = function(repository)
 
 var createClientCertificate = fibrous( function(appPath, manifest)
 	{
-	var tlsPath = appPath + sharedValidator.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.TLS_DIRECTORY;
+	var tlsPath = appPath + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.TLS_DIRECTORY;
 
 	try {
 			// Create an unique configuration for every certificate by using/modifying the openssl configurations.

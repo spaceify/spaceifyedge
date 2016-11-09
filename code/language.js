@@ -163,9 +163,8 @@ var language =
 
 	"E_VALIDATE_MANIFEST_MANIFEST_TYPE": new SpaceifyError({"code": 13006, "message": "Manifest must have type field and accepted values are spacelet, sandboxed, sandboxed_debian or native_debian."}),
 
-	"E_VALIDATE_DIRECTORIES_DEB_DIRECTORY": new SpaceifyError({"code": 13007, "message": "Native Debian and sandboxed Debian packages must have deb directory when spaceify.manifest contains apt_repositories or deb_packages field."}),
-	"E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13008, "message": "Debian package ~deb was not found from packages deb directory."}),
-	"E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13009, "message": "Public key ~key was not found from packages deb directory."}),
+	"E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13008, "message": "Debian package ~deb was not found from packages directory."}),
+	"E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13009, "message": "Public key ~key was not found from packages directory."}),
 	"E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING": new SpaceifyError({"code": 13010, "message": "The service file ~service of this package was not found from the application directory."}),
 
 	// WebOperation

@@ -15,30 +15,36 @@
   "SPACELETS_PATH": "/var/lib/spaceify/data/spacelets/",
   "SANDBOXED_PATH": "/var/lib/spaceify/data/sandboxed/",
   "SANDBOXED_DEBIAN_PATH": "/var/lib/spaceify/data/sandboxed_debian/",
-  "NATIVE_DEBIAN_PATH": "/var/lib/spaceify/data/native_debian/",
+  "NATIVE_DEBIAN_PATH": "/var/lib/spaceify/data/native_debian/",  
+  "APP_TYPE_PATHS": {
+                    "spacelet": "/var/lib/spaceify/data/spacelets/", 
+                    "sandboxed": "/var/lib/spaceify/data/sandboxed/",
+                    "sandboxed_debian": "/var/lib/spaceify/data/sandboxed_debian/",
+                    "native_debian": "/var/lib/spaceify/data/native_debian/"
+                    },
+
   "INSTALLED_PATH": "/var/lib/spaceify/data/installed/",
 
   "DOCS_PATH": "/var/lib/spaceify/data/docs/",
 
   "VERSION_FILE": "/var/lib/spaceify/versions",
 
-  "VOLUME_DIRECTORY": "volume/",
-  "VOLUME_PATH": "/volume/",
   "API_PATH": "/api/",
   "API_WWW_PATH": "/api/www/",
   "API_NODE_MODULES_DIRECTORY": "/api/node_modules",
   "APPLICATION_ROOT": "application",
+  "APPLICATION_PATH": "/application/",
   "APPLICATION_DIRECTORY": "application/",
-  "APPLICATION_VOLUME_PATH": "/volume/application/",
-  "APPLICATION_VOLUME_DIRECTORY": "volume/application/",
-  "APPLICATION_WWW_PATH": "/volume/application/www/",
-  "APPLICATION_TLS_PATH": "/volume/tls/",
+  "VOLUME_PATH": "/volume/",
+  "VOLUME_DIRECTORY": "volume/",
+  "VOLUME_APPLICATION_PATH": "/volume/application/",
+  "VOLUME_APPLICATION_DIRECTORY": "volume/application/",
+  "VOLUME_APPLICATION_WWW_PATH": "/volume/application/www/",
+  "VOLUME_TLS_PATH": "/volume/tls/",
 
   "WWW_URL": "edge.spaceify.net/",
   "WWW_DIRECTORY": "www/",
 
-  "DEB_DIRECTORY": "deb/",
-  "APPLICATION_DEB_DIRECTORY": "application/deb/",
   "SYSTEMD_PATH": "/lib/systemd/system/",
   "START_SH_FILE": "application/start.sh",
 
@@ -57,7 +63,6 @@
   "IPTABLES_PIPEW": "/var/lib/spaceify/data/dev/iptpipew",
 
   "TLS_DIRECTORY": "tls/",
-  "TLS_PATH": "/tls/",
   "TLS_SCRIPTS_PATH": "/var/lib/spaceify/data/scripts/",
 
   "UBUNTU_DISTRO_NAME": "ubuntu",
@@ -125,7 +130,6 @@
   "ANY": "any",
   "ALL": "all",
   "APP_TYPE_NUMBER": {"spacelet": 0, "sandboxed": 1, "sandboxed_debian": 2, "native_debian": 3, "any": 4},
-  "APP_TYPES": ["spacelet", "sandboxed", "sandboxed_debian", "native_debian"],
 
   "OPEN": "open",
   "OPEN_LOCAL": "open_local",

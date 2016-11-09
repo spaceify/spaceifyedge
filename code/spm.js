@@ -524,7 +524,7 @@ var list = fibrous( function(type, bVerbose)
 				else if(t == config.NATIVE_DEBIAN)
 					path = config.NATIVE_DEBIAN_PATH;
 
-				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.APPLICATION_VOLUME_PATH + config.MANIFEST, true);
+				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.VOLUME_APPLICATION_PATH + config.MANIFEST, true);
 
 				continues = (bLast ? ssmll : psmll);
 

@@ -49,8 +49,8 @@ var keepConnectionUp = true;
 var keepConnectionUpTimerIds = {};
 
 var caCrt = apiPath + config.SPACEIFY_CRT_WWW;
-var key = config.APPLICATION_TLS_PATH + config.SERVER_KEY;
-var crt = config.APPLICATION_TLS_PATH + config.SERVER_CRT;
+var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
+var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
 
 var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
 

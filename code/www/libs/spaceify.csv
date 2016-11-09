@@ -62,6 +62,7 @@ javascript	libs/spacelet.js	-	application/javascript	-
 javascript	libs/spaceifyapplication.js	-	application/javascript	-
 javascript	libs/spaceifyerror.js	-	application/javascript	-
 javascript	libs/service.js	-	application/javascript	-
+javascript	libs/spaceifyunique.js	-	application/javascript	-
 
 # Spaceify's HTML tiles
 !tiles:window:spTiles

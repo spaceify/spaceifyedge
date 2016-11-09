@@ -14,8 +14,8 @@ var sqlite3 = require("sqlite3");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
-var ValidateApplication = require("./validateapplication");
 
 function Database()
 {
@@ -28,7 +28,7 @@ var db = null;
 
 var transactions = 0;	// Global transaction. Sequentially called methods in classes must not start/commit/rollback their own transactions.
 
-var validator = new ValidateApplication();
+var unique = new SpaceifyUnique();
 
 var openDB = function()
 	{
@@ -150,7 +150,7 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
 		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
-		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+		params = [manifest.unique_name, unique.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
 		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
@@ -180,7 +180,7 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 		self.sync.begin();
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		params = [validator.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
+		params = [unique.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
 
 		db.sync.run("UPDATE applications SET unique_directory=?, docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
@@ -289,7 +289,7 @@ var addInjectFiles = fibrous( function(manifest)
 
 		stmt = db.prepare("INSERT INTO inject_files (unique_name, url_or_path, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
 
-		application_path = config.SPACELETS_PATH + validator.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
+		application_path = config.SPACELETS_PATH + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
 
 		order = 1;
 		for(var i = 0; i < manifest.inject_files.length; i++)
