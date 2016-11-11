@@ -389,7 +389,9 @@ var installApplicationQuestion = function(message_, answers, prompt, answerCallB
 	{
 	read({ prompt: message_ + " (" + prompt + ")" }, function(error, result, isDefault)
 		{
-		if(answers.indexOf(result) == -1)										// Answer must be one of the choices
+		result = result.toLowerCase();
+
+		if(answers.indexOf(result) == -1)							// Answer must be one of the choices
 			installApplicationQuestion(message_, answers, prompt);
 		else
 			appManMessageConnection.callRpc(messaging.MESSAGE_ANSWER, [messageId, result, answerCallBackId]);
@@ -515,14 +517,7 @@ var list = fibrous( function(type, bVerbose)
 
 			if(bVerbose)
 				{
-				if(t == config.SPACELET)
-					path = config.SPACELETS_PATH;
-				else if(t == config.SANDBOXED)
-					path = config.SANDBOXED_PATH;
-				else if(t == config.SANDBOXED_DEBIAN)
-					path = config.SANDBOXED_DEBIAN_PATH;
-				else if(t == config.NATIVE_DEBIAN)
-					path = config.NATIVE_DEBIAN_PATH;
+				path = config.APP_TYPE_PATHS[t];
 
 				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.VOLUME_APPLICATION_PATH + config.MANIFEST, true);
 

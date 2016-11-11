@@ -181,15 +181,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 				{
 				type = dbApps[i].type;
 
-				path = "";
-				if(type == config.SPACELET)
-					path = config.SPACELETS_PATH;
-				else if(type == config.SANDBOXED)
-					path = config.SANDBOXED_PATH;
-				else if(type == config.SANDBOXED_DEBIAN)
-					path = config.SANDBOXED_DEBIAN_PATH;
-				else if(type == config.NATIVE_DEBIAN)
-					path = config.NATIVE_DEBIAN_PATH;
+				path = config.APP_TYPE_PATHS[type];
 
 				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.VOLUME_APPLICATION_PATH + config.MANIFEST, true);
 				manifest.isRunning = dbApps[i].isRunning;

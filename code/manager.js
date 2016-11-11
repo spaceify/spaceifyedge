@@ -17,6 +17,7 @@ var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 var DockerContainer = require("./dockercontainer");
+var DockerImage = require("./dockerimage");
 
 function Manager(managerType)
 {
@@ -27,6 +28,7 @@ var database = new Database();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+var dockerImage = new DockerImage();
 
 var applications = {};
 var applicationsCount = 0;
@@ -41,14 +43,7 @@ self.install = fibrous( function(unique_name, throws)
 	try	{
 		dbApplication = database.sync.getApplication(unique_name);
 
-		if(managerType == config.SPACELET)
-			applicationPath = config.SPACELETS_PATH;
-		else if(managerType == config.SANDBOXED)
-			applicationPath = config.SANDBOXED_PATH;
-		else if(managerType == config.SANDBOXED_DEBIAN)
-			applicationPath = config.SANDBOXED_DEBIAN_PATH;
-		else if(managerType == config.NATIVE_DEBIAN)
-			applicationPath = config.NATIVE_DEBIAN_PATH;
+		applicationPath = config.APP_TYPE_PATHS[managerType];
 
 		if((manifest = utility.sync.loadJSON(applicationPath + dbApplication.unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
 			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("Manager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": dbApplication.unique_name});
@@ -110,12 +105,11 @@ var run = fibrous( function(application)
 
 		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
-			if(managerType == config.SPACELET)
-				applicationPath = config.SPACELETS_PATH;
-			else if(managerType == config.SANDBOXED)
-				applicationPath = config.SANDBOXED_PATH;
-			else if(managerType == config.SANDBOXED_DEBIAN)
-				applicationPath = config.SANDBOXED_DEBIAN_PATH;
+				// Make sure there are no containers running with the imageID
+			dockerImage.sync.removeContainers(application.getDockerImageId(), "", null);
+
+				// Run
+			applicationPath = config.APP_TYPE_PATHS[managerType];
 
 			var fullApiPath = config.SPACEIFY_CODE_PATH;
 			var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
@@ -184,6 +178,7 @@ self.stop = fibrous( function(unique_name)
 			}
 
 		application.clearRuntimeServices();
+		application.setDockerContainer(null);
 		}
 	});
 

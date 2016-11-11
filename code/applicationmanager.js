@@ -1098,14 +1098,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 	try {
 		application = new Application(manifest, develop);
 
-		if(manifest.type == config.SPACELET)
-			appPath = config.SPACELETS_PATH;
-		else if(manifest.type == config.SANDBOXED)
-			appPath = config.SANDBOXED_PATH;
-		else if(manifest.type == config.SANDBOXED_DEBIAN)
-			appPath = config.SANDBOXED_DEBIAN_PATH;
-		else if(manifest.type == config.NATIVE_DEBIAN)
-			appPath = config.NATIVE_DEBIAN_PATH;
+		appPath = config.APP_TYPE_PATHS[manifest.type];
 
 		database.sync.begin();																				// global transaction
 
@@ -1329,14 +1322,7 @@ var remove = fibrous( function(dbApp, sessionId, throws)
 		// Remove application files directory
 	sendMessage.sync(language.PACKAGE_DELETE_FILES);
 
-	if(dbApp.type == config.SPACELET)
-		removeUniqueData.sync(config.SPACELETS_PATH, dbApp);
-	else if(dbApp.type == config.SANDBOXED)
-		removeUniqueData.sync(config.SANDBOXED_PATH, dbApp);
-	else if(dbApp.type == config.SANDBOXED_DEBIAN)
-		removeUniqueData.sync(config.SANDBOXED_DEBIAN_PATH, dbApp);
-	else if(dbApp.type == config.NATIVE_DEBIAN)
-		removeUniqueData.sync(config.NATIVE_DEBIAN_PATH, dbApp);
+	removeUniqueData.sync(config.APP_TYPE_PATHS[dbApp.type], dbApp);
 	});
 
 var removeImage = function(docker_image_id, unique_name)
@@ -1493,19 +1479,20 @@ var git = fibrous( function(gitoptions, username, password)
 	var content;
 	var blobPos;
 	var tmpPath;
-	var gitoptions = {1: gitoptions[1].replace(/(.git)$/i, "") };
 
 	try {
+		gitoptions[1] = gitoptions[1].replace(/(.git)$/i, "");
+		
 		github = new Github({version: "3.0.0"});
 
-		if(username != "" && password != "")																				// Use authentication when its provided
-			github.authenticate({type: "basic", username: username, password: password});
+		//if(username != "" && password != "")																				// Use authentication when its provided
+		//	github.authenticate({type: "basic", username: username, password: password});
 
-		content = github.repos.sync.getContent({user: gitoptions[0], repo: gitoptions[1], path: ""});
+		content = github.repos.sync.getContent({owner: gitoptions[0], repo: gitoptions[1], path: ""});
 
-		ref = github.gitdata.sync.getReference({user: gitoptions[gitoptions.length - 2], repo: gitoptions[1], ref: "heads/master"});
+		ref = github.gitdata.sync.getReference({owner: gitoptions[0], repo: gitoptions[1], ref: "heads/master"});
 
-		tree = github.gitdata.sync.getTree({user: gitoptions[0], repo: gitoptions[1], sha: ref.object.sha, recursive: 1});	// get the whole repository content
+		tree = github.gitdata.sync.getTree({owner: gitoptions[0], repo: gitoptions[1], sha: ref.object.sha, recursive: 1});	// get the whole repository content
 		tree = tree.tree;
 
 		blobs = 0;
@@ -1526,7 +1513,7 @@ var git = fibrous( function(gitoptions, username, password)
 				{
 				sendMessage.sync(utility.replace(language.DOWNLOADING_GITUHB, {"~pos": blobPos++, "~count": blobs, "~what": tree[i].path, "~bytes": tree[i].size/*, "~where": tree[i].url*/}));
 
-				blob = github.gitdata.sync.getBlob({user: gitoptions[0], repo: gitoptions[1], sha: tree[i].sha});
+				blob = github.gitdata.sync.getBlob({owner: gitoptions[0], repo: gitoptions[1], sha: tree[i].sha});
 				fs.sync.writeFile(tmpPath + tree[i].path, blob.content, {"encoding": blob.encoding.replace("-", "")});		// base64 or utf-8 (utf8 in nodejs)
 				}
 			}

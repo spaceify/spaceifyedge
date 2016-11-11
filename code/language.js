@@ -178,7 +178,7 @@ var language =
 	"E_GET_SERVICE_APPLICATION_NOT_FOUND": new SpaceifyError({"code": 16002, "message": "Get service failed. Application or spacelet was not found."}),
 	"E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Get service failed. Application or spacelet ~unique_name does not have required services defined."}),
 	"E_ADMIN_LOG_IN_FAILED": new SpaceifyError({"code": 16005, "message": "Admin log in failed."}),
-	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge are forbidden."}),
+	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge node are forbidden."}),
 	"E_REMOTE_LOG_IN_FAILED": new SpaceifyError({"code": 16007, "message": "Remote log in failed."}),
 
 	/* ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -270,7 +270,7 @@ var language =
 	"INSTALL_APPLICATION_ABORTED": "Installation aborted.",
 	"INSTALL_APPLICATION_TIMED_OUT": "Installation timed out.",
 	"INSTALL_VERSION_LATEST": "latest",
-	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to the edge. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
+	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to this edge node. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
 	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
 	"INSTALL_SUGGESTED_SAME_PACKAGES": "The installed ~installing_type requires '~suggested_unique_name, version: ~suggested_version' to be installed for the service '~required_service_name'. However, '~existing_unique_name, version: ~existing_version' is already installed and will not be reinstalled or updated.",
 	"INSTALL_APT_REPOSITORIES": " - Adding Debian package repositories.",

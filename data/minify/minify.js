@@ -24,7 +24,25 @@ this.make = function()
 		if(process.argv.length < 3)
 			console.log("\n :: Using default path \'" + path + "/code/www" + "' as the source and target for the minified/uglified files.");
 		else
+			{
+			path = path.replace(/\/^/, "");
+
 			console.log("\n :: Using path \'" + path + "/code/www" + "' as target for the minified/uglified files.");
+			}
+
+		//	//	//	//	//	//	//
+		//	//	//	//	//	//	//
+		// LOADER - JAVASCRIPT	//
+		//	//	//	//	//	//	//
+		//	//	//	//	//	//	//
+
+		loader = parse(path, "/code/www/libs/spaceifyloader.csv");
+
+		console.log(" :: Uglifying SpaceifyLoader JavaScript");
+
+		loader = UglifyJS.minify(loader.js).code;
+		loader = loader.replace(/"use strict";/g, "");
+		fs.writeFileSync(path + "/code/www/js/spaceify.loader.js", loader, "utf8");
 
 		//	//	//	//	//	//	//	//	//	//
 		//	//	//	//	//	//	//	//	//	//
@@ -149,20 +167,6 @@ this.make = function()
 
 			fs.writeFileSync(edge.css[i].replace(".css", ".edge.css"), result, "utf8");
 			}
-
-		//	//	//	//	//	//	//
-		//	//	//	//	//	//	//
-		// LOADER - JAVASCRIPT	//
-		//	//	//	//	//	//	//
-		//	//	//	//	//	//	//
-
-		loader = parse(path, "/code/www/libs/spaceifyloader.csv");
-
-		console.log(" :: Uglifying SpaceifyLoader JavaScript");
-
-		loader = UglifyJS.minify(loader.js).code;
-		loader = loader.replace(/"use strict";/g, "");
-		fs.writeFileSync(path + "/code/www/js/spaceify.loader.js", loader, "utf8");
 		}
 	catch(err)
 		{

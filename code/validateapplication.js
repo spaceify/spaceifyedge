@@ -225,7 +225,7 @@ self.validateManifest = fibrous( function(manifest)
 		rule = rules.rules[field];
 
 		// Field required by all, specific application type or none
-		required = (rule.required.indexOf(config.All) != -1 || rule.required.indexOf(manifest.type) != -1 ? true : false);
+		required = (rule.required.indexOf(config.ALL) != -1 || rule.required.indexOf(manifest.type) != -1 ? true : false);
 
 		type = rule.type;																			// Type of the rule, e.g. string, array, ...
 		rule_errors = rule.errors;																	// The errors the rule has

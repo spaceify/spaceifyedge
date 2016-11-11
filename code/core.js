@@ -701,14 +701,7 @@ var getManifest = fibrous( function(unique_name, unique_directory, throws, connO
 		if(!unique_directory)
 			throw language.E_GET_EXTENDED_MANIFEST_FAILED.pre("Core::getManifest");
 
-		if(manifest.type == config.SPACELET)
-			tileFile = config.SPACELETS_PATH;
-		else if(manifest.type == config.SANDBOXED)
-			tileFile = config.SANDBOXED_PATH;
-		else if(manifest.type == config.SANDBOXED_DEBIAN)
-			tileFile = config.SANDBOXED_DEBIAN_PATH;
-		else if(manifest.type == config.NATIVE_DEBIAN)
-			tileFile = config.NATIVE_DEBIAN_PATH;
+		tileFile = config.APP_TYPE_PATHS[manifest.type];
 
 		tileFile += unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + config.TILEFILE;
 
@@ -939,15 +932,7 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 		if(!dbApp)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
 
-		volume = "";
-		if(dbApp.type == config.SPACELET)
-			volume = config.SPACELETS_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED)
-			volume = config.SANDBOXED_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED_DEBIAN)
-			volume = config.SANDBOXED_DEBIAN_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.NATIVE_DEBIAN)
-			volume = config.NATIVE_DEBIAN_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volume = config.APP_TYPE_PATHS[dbApp.type] + dbApp.unique_directory + config.VOLUME_DIRECTORY;
 
 		if(directory != "")
 			{
@@ -987,15 +972,7 @@ var loadOptions = fibrous( function(sessionId, unique_name, directory, file, con
 		if(!dbApp)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
 
-		volume = "";
-		if(dbApp.type == config.SPACELET)
-			volume = config.SPACELETS_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED)
-			volume = config.SANDBOXED_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED_DEBIAN)
-			volume = config.SANDBOXED_DEBIAN_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.NATIVE_DEBIAN)
-			volume = config.NATIVE_DEBIAN_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volume = config.APP_TYPE_PATHS[dbApp.type] + dbApp.unique_directory + config.VOLUME_DIRECTORY;
 
 		if(directory != "")
 			directory += (directory.search(/\/$/) != -1 ? "" : "/");

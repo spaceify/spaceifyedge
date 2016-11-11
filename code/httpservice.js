@@ -311,14 +311,7 @@ var addApp = function(manifest)
 	// e.g. /var/lib/spaceify/data/sandboxed/spaceify/bigscreen/volume/application/www/
 	wwwPath = manifest.unique_name + "/" + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
 
-	if(manifest.type == config.SPACELET)
-		wwwPath = config.SPACELETS_PATH + wwwPath;
-	else if(manifest.type == config.SANDBOXED)
-		wwwPath = config.SANDBOXED_PATH + wwwPath;
-	else if(manifest.type == config.SANDBOXED_DEBIAN)
-		wwwPath = config.SANDBOXED_DEBIAN_PATH + wwwPath;
-	else if(manifest.type == config.NATIVE_DEBIAN)
-		wwwPath = config.NATIVE_DEBIAN_PATH + wwwPath;
+	wwwPath = config.APP_TYPE_PATHS[manifest.type] + wwwPath;
 
 	length = manifest.unique_name.length;
 	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, wwwPath: wwwPath});

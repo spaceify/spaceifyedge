@@ -21,8 +21,8 @@ var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
 
-var dockerContainer = null;
 var docker_image_id = "";
+var dockerContainer = null;
 
 var runtimeServices = [];
 
@@ -128,14 +128,7 @@ self.getInstallationPath = function()
 	{
 	var path = "";
 
-	if(self.getType() == config.SPACELET)
-		path = config.SPACELETS_PATH;
-	else if(self.getType() == config.SANDBOXED)
-		path = config.SANDBOXED_PATH;
-	else if(self.getType() == config.SANDBOXED_DEBIAN)
-		path = config.SANDBOXED_DEBIAN_PATH;
-	else if(self.getType() == config.NATIVE_DEBIAN)
-		path = config.NATIVE_DEBIAN_PATH;
+	path = config.APP_TYPE_PATHS[self.getType()];
 
 	return path + self.getUniqueDirectory() + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
 	}
@@ -167,7 +160,7 @@ self.isRunning = fibrous( function()
 	var type = self.getType();
 	var applicationIsRunning = false;
 
-	if(type == config.SPACELET || type == config.SANDBOXED || type == config.SANDBOXED_DEBIAN)
+	if((type == config.SPACELET || type == config.SANDBOXED || type == config.SANDBOXED_DEBIAN) && dockerContainer)
 		{ // Find a container having the ImageID
 		containers = dockerHelper.listContainers();
 		for(var i = 0; i < containers.length; i++)
@@ -179,7 +172,7 @@ self.isRunning = fibrous( function()
 				}
 			}
 		}
-	else //if(type == config.NATIVE_DEBIAN)
+	else if(type == config.NATIVE_DEBIAN)
 		{ // Use systemctl to find out is service running = active
 		try {
 			status = utility.execute.sync("systemctl", ["is-active", self.getUniqueNameAsServiceName()], {}, null);
