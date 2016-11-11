@@ -296,10 +296,18 @@ var getServices = fibrous( function(service_name, connObj)
 	return preparedRuntimeServices;
 	});
 
-var getOpenServices = fibrous( function(unique_names, connObj)
+var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 	{ // Get all the open and allowed open_local runtime services from all the unique applications in the list
 	var application;
 	var runtimeServices = [];
+
+	if(unique_names.length == 0)
+		{
+		unique_names = unique_names.concat(spaceletManager.getUniqueNames());
+		unique_names = unique_names.concat(sandboxedManager.getUniqueNames());
+		unique_names = unique_names.concat(sandboxedDebianManager.getUniqueNames());
+		unique_names = unique_names.concat(nativeDebianManager.getUniqueNames());
+		}
 
 	for(var i = 0; i < unique_names.length; i++)
 		{
@@ -307,7 +315,7 @@ var getOpenServices = fibrous( function(unique_names, connObj)
 		if(!application)
 			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
-		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(application.getRuntimeServices(), connObj.remoteAddress) );
+		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(application.getRuntimeServices(), getHttp, connObj.remoteAddress) );
 		}
 
 	return runtimeServices;
@@ -381,7 +389,7 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		spaceletManager.sync.install(unique_name, true);
 		startObject = spaceletManager.sync.start(unique_name, true);
 
-		openRuntimeServices = securityModel.getOpenServices(startObject.providesServices);
+		openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, false);
 
 		// Events
 		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
@@ -512,7 +520,7 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 			event = config.EVENT_NATIVE_DEBIAN_STARTED;
 
 		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
-		startObject.openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, connObj.remoteAddress);
+		startObject.openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, false, connObj.remoteAddress);
 		delete startObject.providesServices;
 
 		callEvent(event, startObject);

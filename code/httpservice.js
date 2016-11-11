@@ -238,7 +238,9 @@ var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = 
 var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecure, callback)
 	{
 	var service;
+	var openServices;
 	var pathPos, appPos;
+	var servicesByServiceName = {};
 	var pathname = urlObj.pathname.replace(/^\/|\/$/, "");
 	var pathnameLength = pathname.length;
 	var pathparts = pathname.split("/");
@@ -267,6 +269,25 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 			contentType = "json";
 			content = JSON.stringify(service);
 			}
+
+		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
+		}
+	else if(part == "services")
+		{
+		if(!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
+			return callback(null, {type: "load", wwwPath: "", pathname: "", responseCode: 404});
+
+		for(var i = 0; i < openServices.length; i++)
+			{
+			if(!(openServices[i].service_name in servicesByServiceName))
+				servicesByServiceName[openServices[i].service_name] = {};
+
+			servicesByServiceName[openServices[i].service_name][openServices[i].unique_name] = openServices[i];
+			}
+
+		responseCode = 200;
+		contentType = "json";
+		content = JSON.stringify(servicesByServiceName);
 
 		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
 		}

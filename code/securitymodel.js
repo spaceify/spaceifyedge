@@ -393,7 +393,7 @@ self.unregisterService = function(application, service_name)
 	return application.registerService(service_name, null, false);
 	}
 
-self.getOpenServices = function(services, remoteAddress)
+self.getOpenServices = function(services, getHttp, remoteAddress)
 	{
 	var result = [];
 
@@ -404,6 +404,8 @@ self.getOpenServices = function(services, remoteAddress)
 			if(services[i].service_type == config.OPEN)
 				result.push(self.makePublicService(services[i]));
 			else if(self.isApplicationIP(remoteAddress) && services[i].service_type == config.OPEN_LOCAL)
+				result.push(self.makePublicService(services[i]));
+			else if(services[i].service_type == config.HTTP && getHttp)
 				result.push(self.makePublicService(services[i]));
 			}
 		}

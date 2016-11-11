@@ -294,6 +294,16 @@ self.getServiceRuntimeStates = function()
 	return status;
 	}
 
+self.getUniqueNames = function()
+	{
+	var uniqueNames = [];
+
+	for(var unique_name in applications)
+		uniqueNames.push(unique_name);
+
+	return uniqueNames;
+	}
+
 }
 
 module.exports = Manager;

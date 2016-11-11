@@ -71,9 +71,9 @@ self.getServices = function(service_name, callback)
 	callRpc("getServices", [service_name], callback);
 	}
 
-self.getOpenServices = function(unique_names, callback)
+self.getOpenServices = function(unique_names, getHttp, callback)
 	{
-	callRpc("getOpenServices", [unique_names], callback);
+	callRpc("getOpenServices", [unique_names, getHttp], callback);
 	}
 
 self.getManifest = function(unique_name, callback)

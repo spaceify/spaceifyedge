@@ -181,7 +181,7 @@ self.connect = function(application_, unique_names, options)
 		if(unique_names.constructor !== Array)													// getOpenServices takes an array of unique names
 			unique_names = [unique_names];
 
-		spaceifyCore.getOpenServices(unique_names, function(err, services)
+		spaceifyCore.getOpenServices(unique_names, false, function(err, services)
 			{
 			if(err)
 				throw err;
