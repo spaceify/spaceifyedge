@@ -229,6 +229,9 @@ var addProvidedServices = fibrous( function(manifest)
 	var stmt;
 
 	try {
+		if(!("provides_services" in manifest))
+			return;
+
 		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.unique_name);
 
 		stmt = db.prepare("INSERT INTO provided_services (unique_name, service_name, service_type) VALUES(?, ?, ?)");

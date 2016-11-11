@@ -77,22 +77,20 @@ self.getUniqueDirectory = function()
 	return unique.makeUniqueDirectory(manifest.unique_name);
 	}
 
-self.getProvidesServicesCount = function()
-	{
-	var srvc = manifest.provides_services ? manifest.provides_services : null;
-
-	return srvc ? srvc.length : 0;
-	}
-
 self.getProvidesServices = function()
 	{
-	return manifest.provides_services ? manifest.provides_services : null;
+	return manifest.provides_services ? manifest.provides_services : [];
+	}
+
+self.getProvidesServicesCount = function()
+	{
+	return self.getProvidesServices().length;
 	}
 
 self.getProvidedService = function(service_name)
 	{
 	var service = null;
-	var gps = self.getProvidesServices() || [];
+	var gps = self.getProvidesServices();
 
 	for(var i = 0; i < gps.length; i++)
 		{
@@ -106,16 +104,14 @@ self.getProvidedService = function(service_name)
 	return service;
 	}
 
-self.getRequiresServicesCount = function()
-	{
-	var srvc = manifest.requires_services ? manifest.requires_services : null;
-
-	return srvc ? srvc.length : 0;
-	}
-
 self.getRequiresServices = function()
 	{
-	return manifest.requires_services ? manifest.requires_services : null;
+	return manifest.requires_services ? manifest.requires_services : [];
+	}
+
+self.getRequiresServicesCount = function()
+	{
+	return self.getRequiresServices().length;
 	}
 
 self.getInstallCommands = function()

@@ -19,7 +19,7 @@
     "provides_services":
     {
       "type": "objects",
-      "required": ["all"],
+      "required": ["none"],
       "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE_P"}],
       "sub_rules":
       {
