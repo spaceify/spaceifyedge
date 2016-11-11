@@ -55,35 +55,50 @@ this.make = function()
 			// PREREQUISITIES -- -- -- -- -- -- -- -- -- -- //
 				// ++ EDGE ++ //
 		fs.writeFileSync(path + "/code/www/js/spaceify.edge.js", "\"use strict\";", "utf8");
+		fs.writeFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\"use strict\";", "utf8");
 		//fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "if(typeof window.angular!=\"undefined\"){delete window.angular;}", "utf8");
+		//fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "if(typeof window.angular!=\"undefined\"){delete window.angular;}", "utf8");
 
 		result = fs.readFileSync(path + "/code/www/js/angular-1.5.3.min.js", "utf8");
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + result, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + result, "utf8");
 
 		jquery = fs.readFileSync(path + "/code/www/js/jquery.min.js", "utf8");
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + jquery, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + jquery, "utf8");
 
 		result = UglifyJS.minify(path + "/code/www/js/spaceifyapp.js").code;
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n" + result, "utf8");
+		result = fs.readFileSync(path + "/code/www/js/spaceifyapp.js", "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n" + result, "utf8");
 
 				// ++ APP ++ //
 		fs.writeFileSync(path + "/code/www/js/spaceify.app.js", "\"use strict\";", "utf8");
+		fs.writeFileSync(path + "/code/www/js/spaceify.app.unpacked.js", "\"use strict\";", "utf8");
 
 		fs.writeFileSync(path + "/code/www/js/spaceify.app.jquery.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
+		fs.writeFileSync(path + "/code/www/js/spaceify.app.jquery.unpacked.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
 
-			// Uglify JavaScript -- -- -- -- -- -- -- -- -- -- //
+			// Uglify / Bundle JavaScript -- -- -- -- -- -- -- -- -- -- //
 		console.log(" :: Uglifying Edge and App JavaScript");
 
 		edgeJS = UglifyJS.minify(edge.js).code;
 		edgeJS = edgeJS.replace(/"use strict";/g, "");
 
-			// ++ EDGE ++ //
+		result = "";
+		for(var i = 0; i < edge.js.length; i++)
+			result += "\n" + fs.readFileSync(edge.js[i], "utf8");
+		
+				// ++ EDGE ++ //
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + edgeJS, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + result, "utf8");
 
-			// ++ APP ++ //
+				// ++ APP ++ //
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.js", "\n\n" + edgeJS, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.unpacked.js", "\n\n" + result, "utf8");
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.js", "\n\n" + edgeJS, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.unpacked.js", "\n\n" + result, "utf8");
 
 			// Minify JSON -- -- -- -- -- -- -- -- -- -- //
 		console.log(" :: Minifying Edge and App JSON");
@@ -96,13 +111,16 @@ this.make = function()
 			json += "window." + edge.json[i].parameter + "=" + result + ";";
 			}
 
-			// ++ EDGE ++ //
+				// ++ EDGE ++ //
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + json, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + json, "utf8");
 
-			// ++ APP ++ //
+				// ++ APP ++ //
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.js", "\n\n" + json, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.unpacked.js", "\n\n" + json, "utf8");
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.js", "\n\n" + json, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.unpacked.js", "\n\n" + json, "utf8");
 
 			// Minify locales -- -- -- -- -- -- -- -- -- -- //
 		console.log(" :: Minifying Edge language JSON");
@@ -117,6 +135,7 @@ this.make = function()
 		result = (edge.groups["locale"].context + "." + edge.groups["locale"].property) + "=" + result + ";";
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + result, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + result, "utf8");
 
 			// Pack tiles -- -- -- -- -- -- -- -- -- -- //
 		console.log(" :: Packing Edge tiles");
@@ -132,18 +151,23 @@ this.make = function()
 		result = (edge.groups["tiles"].context + "." + edge.groups["tiles"].property) + "=" + result;
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + result + ";", "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + result + ";", "utf8");
 
 			// Initializing -- -- -- -- -- -- -- -- -- -- //
-			// ++ EDGE ++ //
+				// ++ EDGE ++ //
 		result = fs.readFileSync(path + "/code/www/js/initializeedge.js", "utf8");
-		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + result, "utf8");
 
-			// ++ APP ++ //
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.js", "\n\n" + result, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.edge.unpacked.js", "\n\n" + result, "utf8");
+
+				// ++ APP ++ //
 		result = fs.readFileSync(path + "/code/www/js/initializeapp.js", "utf8");
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.js", "\n\n" + result, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.unpacked.js", "\n\n" + result, "utf8");
 
 		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.js", "\n\n" + result, "utf8");
+		fs.appendFileSync(path + "/code/www/js/spaceify.app.jquery.unpacked.js", "\n\n" + result, "utf8");
 
 		//	//	//	//	//
 		//	//	//	//	//
