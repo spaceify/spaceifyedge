@@ -3,8 +3,6 @@ function SpaceifyApp()
 var self = this;
 
 var spaceifyApp = window.angular.module("spaceifyApp", []);
-var spLocale = window.spaceifyPage["locale"];
-var spSection = window.spaceifyPage["section"];
 
 	// BOOTSTRAPPED IN js/spaceify.edge.js!!! -- -- -- -- -- -- -- -- -- -- //
 
@@ -23,15 +21,15 @@ spaceifyApp.controller("bodyController", ["$scope", "$window", "$compile", "$tim
 			this.$apply(fn);
 		};
 
-	$scope.getString = function(index)
+	$scope.getString = function(section, index)
 		{
-		return window.spLocales[spLocale][spSection][index];
+		return window.spLocales[spLocale][section][index];
 		}
 
 	$scope.addTile = function(detail)
 		{
 		$scope.manifest = (detail.manifest ? detail.manifest : {});
-		$scope.src = (detail.src ? detail.src : "");
+		$scope.sp_src = (detail.sp_src ? detail.sp_src : "");
 		$scope.id = (detail.id ? detail.id : "");
 
 		$scope.safeApply(function()
@@ -82,6 +80,23 @@ spaceifyApp.filter("trustasresourceurl", ["$sce", function($sce)
 		};
 	}]);
 
+self.getCookie = function(cname)
+	{
+	var name = cname + "=";
+	var ca = document.cookie.split(";");
+	for(var i = 0; i < ca.length; i++)
+		{
+		var c = ca[i];
+		while(c.charAt(0) == " ")
+			c = c.substring(1);
+
+		if(c.indexOf(name) != -1)
+			return c.substring(name.length, c.length);
+		}
+
+	return "";
+	}
+
 self.bootstrap = function()
 	{
 	//window.addEventListener("load", function()
@@ -92,6 +107,7 @@ self.bootstrap = function()
 		});
 	}
 
+var spLocale = self.getCookie("locale") || "en_US";
 }
 
 var spaceifyApp = new SpaceifyApp();

@@ -112,10 +112,7 @@ self.loadCertificate = function()
 	// ADMIN -- -- -- -- -- -- -- -- -- -- //
 self.openAdminPages = function()
 	{
-	window.location.assign("https://edge.spaceify.net/appstore/");
-	/* REMOTE >>>>>>>>>>
-	spaceifyLoader.loadPage(spaceifyPage.urlHttps + "appstore/index.html", spaceifyPage.urlHttps + "appstore/");
-	<<<<<<<<<< REMOTE */
+	spaceifyLoader.loadPage(config.APPSTORE_INDEX_URL, config.APPSTORE_URL, config.EDGE_HTTPS_URL);
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -156,13 +153,14 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
-	var port, src, sp_host, sp_path, i, id;
+	var port, src, sp_host, spe_host, sp_path, i, id;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
 			port = (!network.isSecure() ? appURL.port : appURL.securePort);
+			spe_host = network.getEdgeURL(false, false, true);
 
 			if(appURL.implementsWebServer && port)
 				{
@@ -175,18 +173,22 @@ self.renderTile = function(manifest, callback)
 				sp_path = config.TILEFILE;
 				}
 
-			src = sp_host + sp_path
-			/* REMOTE >>>>>>>>>>
-			/ * if(!isSpaceifyNetwork)
-				src = "libs/spaceifyloader/tileloader.html?sp_host=" + encodeURIComponent(sp_host) + "&sp_path=" + encodeURIComponent(sp_path);
-			else
-				src = sp_host + sp_path;* /
-			src = "libs/spaceifyloader/tileloader.html?sp_host=" + encodeURIComponent(sp_host) + "&sp_path=" + encodeURIComponent(sp_path);
-			<<<<<<<<<< REMOTE */
+			// REMOTE >>>>>>>>>>
+			// if(!window.isSpaceifyNetwork)
+				src = spe_host + "spaceifyloader/index.html?sp_host=" + encodeURIComponent(sp_host) +
+											   "&sp_path=" + encodeURIComponent(sp_path) +
+											   "&spe_host=" + encodeURIComponent(spe_host);
+			// else
+			//	src = sp_host + sp_path;
+			// <<<<<<<<<< REMOTE
 
-			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, src: src, callback:
+			id = "apptile_" + manifest.unique_name.replace("/", "_"); 
+			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
 				function()
 					{
+					var element = document.getElementById(id);
+					element.src = src;
+
 					callback();
 					}
 				});
@@ -210,13 +212,10 @@ self.renderTile = function(manifest, callback)
 				}
 			}
 
-		id = "tile_" + manifest.unique_name.replace("/", "_");
-		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, src: sp_host + sp_path, id: id, callback: function()
+		id = "iconimage_" + manifest.unique_name.replace("/", "_");
+		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, id: id, sp_src: sp_host + sp_path, callback: function()
 			{
-			callback();
-			/* REMOTE >>>>>>>>>>
-			spaceifyLoader.loadData(document.getElementById(id + "_img"), callback);
-			<<<<<<<<<< REMOTE */
+			spaceifyLoader.loadData(document.getElementById(id), callback);
 			} });
 		}
 

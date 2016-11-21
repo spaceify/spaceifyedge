@@ -12,7 +12,7 @@ function SpaceifyCore()
 var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : true);
+var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
 
 var classes =
 	{
@@ -94,7 +94,7 @@ self.getManifest = function(unique_name, callback)
 
 self.isAdminLoggedIn = function(callback)
 	{
-	network.POST_JSON(config.OPERATION_URL, {type: "isAdminLoggedIn"}, function(err, data, id, ms)
+	network.doOperation({type: "isAdminLoggedIn"}, function(err, data, id, ms)
 		{
 		callback((err ? err : null), (err ? false : data), id, ms);
 		});
@@ -167,13 +167,13 @@ self.setEventListeners = function(events, listeners, context, sessionId, callbac
 /*self.saveOptions = function(unique_name, directory, filename, data, callback)
 	{
 	var post = {unique_name: unique_name, directory: directory, filename: filename, data: data};
-	network.POST_JSON(config.OPERATION_URL, post, callback);
+	network.doOperation(post, callback);
 	}
 
 self.loadOptions = function(unique_name, directory, filename, callback)
 	{
 	var post = {unique_name: unique_name, directory: directory, filename: filename};
-	network.POST_JSON(config.OPERATION_URL, post, callback);
+	network.doOperation(post, callback);
 	}*/
 
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //

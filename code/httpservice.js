@@ -253,7 +253,7 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 		part = "service/" + (pathparts.length > 0 && pathparts[0] == "object" ? "object/" : "");
 
 		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace(part, "")], self)))
-			return callback(null, {type: "load", wwwPath: "", pathname: "", responseCode: 404});
+			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
 		if(part == "service/")
 			{
@@ -275,7 +275,7 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 	else if(part == "services")
 		{
 		if(!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
-			return callback(null, {type: "load", wwwPath: "", pathname: "", responseCode: 404});
+			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
 		for(var i = 0; i < openServices.length; i++)
 			{
@@ -310,7 +310,7 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 					{
 					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
 
-					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part, responseCode: null});
+					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part});
 
 					return;
 					}

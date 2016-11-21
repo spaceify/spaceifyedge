@@ -172,7 +172,9 @@ self.GET = function(url, callback, responseType)
 self.POST_FORM = function(url, post, responseType, callback)
 	{
 	if(typeof spaceifyLoader !== "undefined")
+		{
 		spaceifyLoader.postData(url, post, responseType, callback);
+		}
 	else
 		{
 		var boundary = "---------------------------" + Date.now().toString(16);
@@ -187,18 +189,16 @@ self.POST_FORM = function(url, post, responseType, callback)
 			}
 		body += "\r\n--" + boundary + "--";
 
-		var ms = Date.now();
-		var id = utility.randomString(16, true);
 		var xhr = createXMLHttpRequest();
 		xhr.open("POST", url, true);
 		xhr.responseType = (responseType ? responseType : "text");
 		xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
-		xhr.onreadystatechange = function() { onReadyState(xhr, id, ms, callback); };
+		xhr.onreadystatechange = function() { onReadyState(xhr, utility.randomString(16, true), Date.now(), callback); };
 		xhr.send(body);
 		}
 	}
 
-self.POST_JSON = function(url, jsonData, callback)
+self.doOperation = function(jsonData, callback)
 	{
 	var result;
 	var content;
@@ -213,11 +213,11 @@ self.POST_JSON = function(url, jsonData, callback)
 				if(typeof response !== "string")
 					response = JSON.stringify(response);
 
-				result = JSON.parse(response.replace(/&quot;/g,'"'));
+				result = JSON.parse(response.replace(/&quot;/g, '"'));
 				}
 			catch(err)
 				{
-				result = {err: errorc.makeErrorObject("sne1", "Invalid JSON received.", "SpaceifyNetwork::POST_JSON")};
+				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
 				}
 
 			if(result.err)

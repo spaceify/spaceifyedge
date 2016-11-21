@@ -25,7 +25,7 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
-var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : true);
+var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
 var connection = (isSpaceifyNetwork ? new WebSocketRpcConnection() : piperClient);
@@ -40,7 +40,7 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	if(isConnected)
 		return managerOrigin.connected();
 
-	network.POST_JSON(config.OPERATION_URL, { type: "requestMessageId" }, function(err, gotId)						// Request a messageId
+	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
 		{
 		if(err)
 			return fail(err);

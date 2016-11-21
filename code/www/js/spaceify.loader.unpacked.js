@@ -1,3 +1,4 @@
+
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory(require("window.WebSocket"));
@@ -2829,4 +2830,885 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ }
 /******/ ])
 });
-;
+;"use strict"
+
+function HttpParser()
+{
+var self = this;
+
+var contentBegin = null;
+var header = null;
+
+var headerValues = new Object();
+var statusCode = null;
+
+self.getStatusCode = function()
+	{
+	return parseInt(statusCode);
+	};
+
+self.getContentBegin = function()
+	{
+	return contentBegin;
+	};
+
+self.getHeaderValueAsInt = function(key)
+	{
+	key = key.toLowerCase();
+
+	if (headerValues.hasOwnProperty(key))
+		{
+		return parseInt(headerValues[key]);
+		}
+	};
+
+self.getHeaderValue = function(key)
+	{
+	key = key.toLowerCase();
+
+	if (headerValues.hasOwnProperty(key))
+		{
+		return headerValues[key];
+		}
+	};
+
+var findContentBegin = function(arr)
+	{
+	for (var i=0; i < arr.byteLength; i+=1)
+		{
+		if ((i+4) < arr.byteLength && arr[i]==13 && arr[i+1]==10 && arr[i+2]==13 && arr[i+3]==10)
+			{
+			contentBegin = i+4;
+			console.log(arr[contentBegin]);
+			break;
+			}
+
+		}
+	};
+
+var parseHeader = function(arr)
+	{
+	headerValues = {};
+
+	if (contentBegin)
+		header = String.fromCharCode.apply(null, arr.subarray(0, contentBegin));
+	else
+		header = String.fromCharCode.apply(null, arr);
+
+	console.log("Trying to parse header: " + header);
+	var rows = header.split("\n");
+
+	var firstRow = rows[0].split(" ");
+	statusCode = firstRow[1];
+
+	var item = null;
+
+	for (var i=1; i<rows.length; i++)
+		{
+		var separatorIndex = rows[i].indexOf(":");
+
+		if (separatorIndex > -1)
+			{
+			var hkey = rows[i].substring(0, separatorIndex);
+			hkey = hkey.toLowerCase();
+
+			var hvalue = "";
+			if (rows[i].length > separatorIndex)
+				hvalue = rows[i].substring(separatorIndex+1).trim();
+
+			// XMLHttpRequest.getResponseHeader() style comma-space pair separator for multi-headers like Set-Cookie
+			headerValues[hkey] = (hkey in headerValues ? headerValues[hkey] + ", " + hvalue : hvalue);
+			}
+		}
+
+	console.dir(headerValues);
+	};
+
+self.parse = function(arr)
+	{
+	findContentBegin(arr);
+	parseHeader(arr);
+	};
+
+}
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = HttpParser;
+	}"use strict"
+
+function PiperClient()
+{
+var self = this;
+
+var pipes = new Object();
+var webSocketPipes = new Object();
+
+var pipeReadyListener = null;
+
+var targetId = null;
+
+var communicationClient = new sp.CommunicationClient();
+
+var binaryListener = null;
+
+var cookies = null;
+
+// this is a hack, we need a separate cookie storage at some point!
+
+self.setCookies = function(c)
+	{
+	cookies = c;
+	};
+
+self.getCookies = function()
+	{
+	return cookies;
+	}
+
+self.sendTcpBinary = function(connectionId, data)
+	{
+	communicationClient.sendBinaryToClient(connectionId, data);
+	};
+
+self.createTcpPipe = function(host, port, listener, callback)
+	{
+	var hostnameAndPort = host + port;
+
+	for(var pipeId in pipes)
+		{
+		if(pipes[pipeId].hostnameAndPort == hostnameAndPort)
+			{
+			pipes[pipeId].listener = listener;
+			callback(pipeId);
+			return;
+			}
+		}
+
+	communicationClient.createPipe(targetId, function(pipeId)
+		{
+		console.log("pipe ready for TCP");
+
+		communicationClient.callClientRpc(pipeId, "pipeTcp", [host, port], self, function()
+			{
+			console.log("Tcp Pipe ready to "+ host+":"+port);
+			pipes[pipeId] = {listener: listener, hostnameAndPort: hostnameAndPort};
+			callback(pipeId);
+			});
+		});
+	};
+
+self.exposeRpcMethod = function(name, object_, method_)
+	{
+	communicationClient.exposeRpcMethod(name, object_, method_);
+	};
+
+self.callClientRpc = function(id, method, params, selfobj, callback)
+	{
+	communicationClient.callClientRpc(id, method, params, selfobj, callback);
+	};
+
+self.createWebSocketPipe = function(options, listener, callback)
+	{
+	communicationClient.createPipe(targetId, function(pipeId)
+		{
+		console.log("pipe ready for Websocket");
+
+		communicationClient.callClientRpc(pipeId, "pipeWebSocket", [options], self, function()
+			{
+			console.log("Websocket Pipe ready to " + options.host + ":" + options.port);
+			webSocketPipes[pipeId] = listener;
+			callback(pipeId);
+			});
+		});
+	};
+
+self.setBinaryListener = function(lis)
+	{
+	binaryListener = lis;
+	};
+
+self.onBinary = function(data, clientId, connectionId)
+	{
+	console.log("PiperClient::onBinary() from: "+ clientId);
+
+	if (pipes.hasOwnProperty(connectionId))
+		{
+		pipes[connectionId].listener(data);
+		}
+	};
+
+self.onClientDisconnected = function(client)
+	{
+	};
+
+self.onClientConnected = function(client)
+	{
+	if (client)
+		{
+		console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
+		if (client.getClientType() == "piper")
+			{
+			console.log("piper found, trying to build a pipe to it");
+			communicationClient.createPipe(client.getClientId(), function()
+				{
+				console.log("pipe ready");
+
+				targetId = client.getClientId();
+
+				if (pipeReadyListener)
+					pipeReadyListener();
+
+				/*
+				var request = "GET /index.html HTTP/1.1\r\nHost: localhost\r\n\r\n";
+				var data = toab(request);
+				communicationClient.sendBinaryToClient(client.getClientId(), data);
+				*/
+				});
+			}
+		}
+	};
+
+self.sendBinary = function(data)
+	{
+	communicationClient.sendBinaryToClient(targetId, data);
+	};
+
+self.connect = function(host, port, callback)
+	{
+	pipeReadyListener = callback;
+
+	communicationClient.setClientListener(self);
+	communicationClient.setBinaryListener(self);
+	communicationClient.connectWithOptions({host: host, port: port, isSsl:true}, "screen", "jounigroupx", function()
+		{
+		console.log("Hub Connection succeeded");
+		});
+	};
+
+}
+"use strict"
+
+/**
+ * Implements the XMLHttpRequest interface.
+ * References the GLOBAL variable piperClient to implement its functionality
+ */
+
+function SpXMLHttpRequest()
+{
+var self = this;
+
+var xhr = null;
+
+var url = null;
+var method = null;
+var async = null;
+
+var contentLength = null;
+var bodyBytesReceived = null;
+var contentType = null;
+var overridedMimeType = null;
+var fragments = new Array();
+
+var httpParser = new HttpParser();
+
+self.UNSENT = 0;
+self.OPENED = 1;
+self.HEADERS_RECEIVED = 2;
+self.LOADING = 3;
+self.DONE = 4;
+
+self.responseText = "";
+
+var requestHeaders = [];
+
+self.open = function(method_, url_, async_)
+	{
+	method = method_;
+	url = url_;
+	async = async_;
+	};
+
+self.onBinary = function(data)
+	{
+	var arr = new Uint8Array(data);
+	//console.log("SpXMLHttpRequest::onBinary()" +" data: "+ab2str(arr));
+
+	if (!contentLength)		//This is the header chunk
+		{
+		httpParser.parse(arr);
+
+		console.log("SpXMLHttpRequest::onBinary() HTTP server replied with statusCode "+httpParser.getStatusCode());
+
+		if (httpParser.getStatusCode() == 301 || httpParser.getStatusCode() == 302)
+			{
+			url = httpParser.getHeaderValue("Location");
+			console.log("SpXMLHttpRequest::onBinary() redirecting to : " + url);
+			self.send();
+			return;
+			}
+
+		contentLength = httpParser.getHeaderValueAsInt("Content-Length");
+		contentType = httpParser.getHeaderValue("Content-Type");
+
+		if (contentLength)
+			{
+			var temp = arr.subarray(httpParser.getContentBegin());
+
+			fragments.push(temp);
+			bodyBytesReceived = fragments[0].byteLength;
+			}
+		}
+	else		//This is some other chunk
+		{
+		fragments.push(arr);
+		bodyBytesReceived += arr.byteLength;
+		}
+
+	console.log(bodyBytesReceived + " / " + contentLength + " bytes of " + url + " received" );
+
+	/*if (contentLength && contentLength < bodyBytesReceived)
+		{
+		saveByteArray(fragments, 'example.js');
+		}*/
+
+	if (contentLength && contentLength == bodyBytesReceived)
+		{
+		if (!overridedMimeType)
+			self.response = new Blob(fragments, {type : contentType} );
+		else
+			self.response = new Blob(fragments, {type : overridedMimeType} );
+
+		for (var i = 0; i < fragments.length; i++)
+			{
+			if (fragments[i])
+				self.responseText += ab2str(fragments[i]);
+			}
+
+		self.readyState = 4;
+		self.status = 200;
+		self.onreadystatechange();
+		}
+	};
+
+self.overrideMimeType = function(mime)
+	{
+	overridedMimeType = mime;
+	};
+
+self.send = function(body)
+	{
+	//reference global piperClient
+
+	var host = "localhost";
+	var hostname = "localhost";
+	var port = "80";
+
+	if (url.indexOf("//") != -1)
+		{
+		//it is an absolute url
+		var tempUrl = new URL(url);
+
+		if (tempUrl.hostname=="10.0.0.1")
+			{
+			tempUrl.hostname = "localhost";
+			}
+
+		host = tempUrl.host;
+
+		if (tempUrl.hostname)
+			hostname = tempUrl.hostname;
+
+		if (tempUrl.port)
+			port = tempUrl.port;
+
+		url = tempUrl.toString();
+		}
+	else
+		{
+		if (url.charAt(0)!="/")
+			url="/"+url;
+		}
+
+	var request = method + " " + url + " HTTP/1.1\r\nHost: " + host;
+
+	var cookies = getSession("sessionCookies");
+
+	if (cookies)
+		request = request + "\r\nCookie: " + cookies;
+
+	for(var i = 0; i < requestHeaders.length; i++)
+		request += "\r\n" + requestHeaders[i].header + ": " + requestHeaders[i].value;
+	requestHeaders = [];
+
+	if(body)
+		{
+		request += "\r\nContent-Length: " + body.length + "\r\n";
+		request += body;
+		}
+
+	request = request + "\r\n\r\n";
+
+	var data = toab(request);
+
+	console.log("SpXMLHttpRequest::send() making request: " + request);
+
+	piperClient.createTcpPipe(hostname, port, self.onBinary, function(pipeId)
+		{
+		piperClient.sendTcpBinary(pipeId, data);
+		});
+	};
+
+self.setRequestHeader = function(header, value)
+	{
+	requestHeaders.push({header: header, value: value});
+	}
+
+self.getResponseHeader = function(name)
+	{
+	return httpParser.getHeaderValue(name);
+	}
+
+}
+//window.XMLHttpRequest = SpXMLHttpRequest;
+"use strict"
+
+/**
+ * Global methods and variables used in the remote operation classes
+ */
+
+/*
+var saveByteArray = (function () {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    return function (data, name) {
+        var blob = new Blob(data, {type: "octet/stream"}),
+            url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = name;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+}());
+*/
+
+function Utf8ArrayToStr(array)
+{
+	var out, i, len, c;
+	var char2, char3;
+
+	out = "";
+	len = array.length || array.byteLength;
+	i = 0;
+	while(i < len)
+		{
+		c = array[i++];
+		switch(c >> 4)
+		{
+		case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+			// 0xxxxxxx
+			out += String.fromCharCode(c);
+		break;
+		case 12: case 13:
+			// 110x xxxx   10xx xxxx
+			char2 = array[i++];
+			out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+		break;
+		case 14:
+			// 1110 xxxx  10xx xxxx  10xx xxxx
+			char2 = array[i++];
+			char3 = array[i++];
+			out += String.fromCharCode(((c & 0x0F) << 12) |
+							((char2 & 0x3F) << 6) |
+							((char3 & 0x3F) << 0));
+		break;
+		}
+	}
+
+	return out;
+}
+
+function ab2str(buf)
+	{
+	return Utf8ArrayToStr(buf);
+	//return String.fromCharCode.apply(null, new Uint8Array(buf));
+	}
+
+function str2ab(str)
+	{
+	var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+	var bufView = new Uint16Array(buf);
+	for (var i=0, strLen=str.length; i<strLen; i++)
+		{
+		bufView[i] = str.charCodeAt(i);
+		}
+	return buf;
+	}
+
+function toab(str)
+	{
+	var buf = new ArrayBuffer(str.length); // 2 bytes for each char
+	var bufView = new Uint8Array(buf);
+	for (var i=0, strLen=str.length; i<strLen; i++)
+		{
+		bufView[i] = str.charCodeAt(i);
+		}
+	return buf;
+	}
+
+var getSession = function(sessionItem)
+	{
+console.log("GETTING GETTING", sessionItem, sessionStorage.getItem(sessionItem));
+	if (sessionStorage.getItem(sessionItem))
+		return sessionStorage.getItem(sessionItem);
+	else
+		return "";
+	};
+
+var setSession = function(sessionItem, value)
+	{
+console.log("SETTING SETTING", sessionItem, value);
+	if(!value)
+		value = "";
+
+	sessionStorage.setItem(sessionItem, value.trim());
+	};
+
+var SERVER_ADDRESS = {host: "spaceify.net", port: 1980};
+var WEBRTC_CONFIG = {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]};
+
+var piperClient = new PiperClient();
+"use strict"
+
+/**
+ * Implements the page and resource loader interface.
+ * References the GLOBAL variable piperClient to implement some of its functionality
+ */
+
+function SpaceifyLoader()
+{
+var self = this;
+
+var spHost = null;
+var speHost = null;
+
+var connected = false;
+var connectionListener = null;
+
+var elements = null;
+var elementIndex = 0;
+
+self.loadData = function(element, callback)
+	{
+	var sp_type, sp_host, type, url, xhr = new SpXMLHttpRequest();
+
+	if(element.getAttribute("sp_src"))
+		{ sp_type = "sp_src"; type = "src"; }
+	else if(element.getAttribute("spe_src"))
+		{ sp_type = "spe_src"; type = "src"; }
+	else if(element.getAttribute("sp_href"))
+		{ sp_type = "sp_href"; type = "href"; }
+	else if(element.getAttribute("spe_href"))
+		{ sp_type = "spe_href"; type = "href"; }
+
+	url = element.getAttribute(sp_type);
+
+	sp_host = (sp_type == "spe_src" || sp_type == "spe_href" ? speHost : spHost);
+
+	if(url.indexOf("//") == -1 && sp_host)							// Relative URLs fail to load without host
+		url = new URL(url, sp_host).toString()
+
+	if(!url)
+		{
+		callback();
+		return;
+		}
+
+	xhr.onreadystatechange = function()
+		{
+		if (xhr.readyState == 4)
+			{
+			var blob = xhr.response;
+			element.onload = function(e)
+				{
+				window.URL.revokeObjectURL(element[type]);			// Clean up after yourself
+				};
+			element[type] = window.URL.createObjectURL(blob);
+			element.removeAttribute(sp_type);
+			callback();
+			}
+		};
+
+	xhr.open("GET", url, true);
+	xhr.responseType = "blob";
+	xhr.send();
+	};
+
+self.postData = function(url, post, responseType, callback)
+	{
+	var sessionTokenName = getSessionTokenName(url);
+
+	var xhr = new SpXMLHttpRequest();
+
+	xhr.onreadystatechange = function()
+		{
+		if (xhr.readyState == 4)
+			{
+			setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
+			setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+
+			if (xhr.status != 200)
+				callback(xhr.status, null);
+			else if(xhr.response instanceof Blob)
+				{
+				var reader = new FileReader();
+				reader.onload = function(err)
+					{
+					callback(null, reader.result);
+					}
+				reader.readAsText(xhr.response.data, "UTF-8");
+				}
+			else
+				callback(null, JSON.stringify(xhr.response));
+			}
+		};
+
+	var boundary = "---------------------------" + Date.now().toString(16);
+
+	var body = "";
+	for(var i = 0; i < post.length; i++)
+		{
+		body += "\r\n--" + boundary + "\r\n";
+
+		body += post[i].content;
+		body += "\r\n\r\n" + post[i].data + "\r\n";
+		}
+	body += "\r\n--" + boundary + "--";
+
+	xhr.withCredentials = true;
+	xhr.open("POST", url, true);
+	xhr.setRequestHeader(sessionTokenName, getSession(sessionTokenName));
+	xhr.responseType = (responseType ? responseType : "text");
+	xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
+	xhr.send(body);
+	};
+
+self.loadPage = function(url, spHost_, speHost_)
+	{
+	var sessionTokenName = getSessionTokenName(url);
+
+	var xhr = new SpXMLHttpRequest();
+
+	xhr.onreadystatechange = function()
+		{
+		//console.log("SpaceifyLoader::loadPage() content arrived, readyState=="+xhr.readyState);
+
+		if (xhr.readyState == 4)
+			{
+			setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
+			setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+
+			var newDoc = document.open("text/html", "replace");
+			newDoc.write(xhr.responseText);
+			newDoc.close();
+
+			newDoc.loadPageSpHost = spHost_;
+			newDoc.loadPageSpeHost = speHost_;
+			}
+
+		}
+
+	xhr.withCredentials = true;
+	xhr.open("GET", url, true);
+	xhr.setRequestHeader(sessionTokenName, getSession(sessionTokenName));
+	xhr.send(null);
+	};
+
+self.getAllElements = function()
+	{
+	var sp_src = Array.prototype.slice.call(document.querySelectorAll("[sp_src]"));
+
+	var spe_src = Array.prototype.slice.call(document.querySelectorAll("[spe_src]"));
+
+	var sp_href = Array.prototype.slice.call(document.querySelectorAll("[sp_href]"));
+
+	var spe_href = Array.prototype.slice.call(document.querySelectorAll("[spe_href]"));
+
+	elements = spe_href.concat(sp_href, spe_src, sp_src);							// Order: edge css, local css, edge resource, local resource
+
+	console.log("SpaceifyLoader::loadAll() :: Number of elements with sp_src:", sp_src.length, "spe_src:", spe_src.length, "sp_href:", sp_href.length, "spe_href:", spe_href.length);
+	};
+
+self.loadAllElements = function()
+	{
+	elementIndex = 0;
+	recurseElements();
+	};
+
+self.hasElements = function()
+	{
+	return (elements && elements.length > 0 ? true : false);
+	}
+
+	// functions from former contentloader.js end -- -- -- -- -- -- -- -- -- -- //
+var recurseElements = function()
+	{
+	if (elementIndex < elements.length)
+		{
+		self.loadData(elements[elementIndex], function()
+			{
+			elementIndex++;
+			recurseElements();
+			});
+		}
+	}
+
+var getSessionTokenName = function(url)
+	{
+	var sessionTokenName = "X-Edge-Session";
+
+	if(url.indexOf("//") != -1)									// CORS preflight - OPTIONS Access-Control-Request-Headers <-> Access-Control-Allow-Headers
+		{														// Notice: recirections like 302 do not work with this preflight
+		var spltUrl = url.split("://");
+
+		if(spltUrl[0] == "https")
+			sessionTokenName = "X-Edge-Session-Secure";
+		}
+
+	return sessionTokenName;
+	}
+
+self.parseQuery = function(url)
+	{ // Adapted from http://james.padolsey.com/snippets/parsing-urls-with-the-dom/
+	var parameters = {}, part, pair, pairs;
+
+	url = decodeURIComponent(url);
+
+	part = url.split("?");												// url with search or just the search
+	part = (part.length < 2 ? part[0] : part[1]);
+
+	pairs = part.split("&");
+
+	for(var i = 0, length = pairs.length; i < length; i++)
+		{
+		if(!pairs[i])
+			continue;
+
+		pair = pairs[i].split("=");
+		parameters[pair[0]] = (pair.length == 2 ? pair[1] : null);
+		}
+
+	return parameters;
+	}
+
+self.setSpHosts = function(spHost_, speHost_)
+	{
+	spHost = spHost_;
+	speHost = speHost_;
+	}
+
+self.connect = function(host, port, callback)
+	{
+	piperClient.connect(host, port, function()
+		{
+		if (connectionListener)
+			connectionListener();
+		callback();
+		});
+	};
+
+self.setConnectionListener = function(lis)
+	{
+	connectionListener = lis;
+	if (connected)
+		lis();
+	};
+
+}
+
+	// -- -- -- -- -- -- -- -- -- -- //
+function getNetworkInfo(callback)
+	{
+	window.isSpaceifyNetwork = false;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
+	xhr.timeout = 1000;
+	xhr.onreadystatechange = function()
+		{
+		if(xhr.readyState == 4)
+			{
+			window.isSpaceifyNetwork = (xhr.status >= 200 && xhr.status < 304 ? true : false);
+			callback();
+			}
+		};
+	xhr.send();
+	}
+
+var spaceifyLoader = new SpaceifyLoader();
+var contentLoader = spaceifyLoader;										// for leagacy templates compatibility
+function prepareLoader(sp_host, spe_host)
+	{
+	spaceifyLoader.setSpHosts(sp_host, spe_host);
+
+	if(window.isSpaceifyNetwork)
+		{
+		SpXMLHttpRequest = window.XMLHttpRequest;
+		}
+	else
+		{
+		window.isSpaceifyNetwork = false;
+
+		spaceifyLoader.connect(SERVER_ADDRESS.host, SERVER_ADDRESS.port, function()
+			{
+			});
+		}
+	}
+
+function loadPageOrElements(params)
+{
+	spaceifyLoader.getAllElements();
+
+	if(!spaceifyLoader.hasElements())
+		spaceifyLoader.loadPage(params.sp_host + params.sp_path, params.sp_host, params.spe_host);
+	else
+		spaceifyLoader.loadAllElements();
+}
+
+window.onload = function()
+	{
+	var sp_host, spe_host;
+
+	var params = spaceifyLoader.parseQuery(window.location.href);
+	if(!params.sp_host)
+		{
+		sp_host = spe_host = window.location.protocol + "//" + window.location.hostname + "/";
+
+		if(typeof document.loadPageSpHost != "undefined")
+			sp_host = document.loadPageSpHost;
+
+		if(typeof document.loadPageSpeHost != "undefined")
+			spe_host = document.loadPageSpeHost;
+
+		params = { sp_host: sp_host, spe_host: spe_host, sp_path: "index.html" };
+		}
+
+	getNetworkInfo(function()
+		{
+		if(!window.isSpaceifyNetwork)
+			{
+			spaceifyLoader.setConnectionListener(function()
+				{
+				loadPageOrElements(params);
+				});
+
+			prepareLoader(params.sp_host, params.spe_host);
+			}
+		else
+			{
+			prepareLoader(params.sp_host, params.spe_host);
+			loadPageOrElements(params);
+			}
+		});
+	};

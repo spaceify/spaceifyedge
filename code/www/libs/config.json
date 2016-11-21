@@ -76,6 +76,8 @@
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",
+  "EDGE_HTTP_URL": "http://edge.spaceify.net/",
+  "EDGE_HTTPS_URL": "https://edge.spaceify.net/",
   "ALL_IPV4_LOCAL": "0.0.0.0",
   "CONNECTION_HOSTNAME": "localhost",
   "RESOURCE_HOSTNAME": "resource.spaceify.net",
@@ -95,16 +97,30 @@
   "APPMAN_MESSAGE_PORT_SECURE": 4950,
 
   "OPERATION_URL": "https://edge.spaceify.net/templates/operation.html",
+
+  "EDGE_INDEX_URL": "https://edge.spaceify.net/index.html",
+
   "ADMIN_LOGIN_URL": "https://edge.spaceify.net/admin/login.html",
-  "ADMIN_INDEX_URL": "https://edge.spaceify.net/appstore/",
+  "ADMIN_LOGIN_PATH": {"file": "/var/lib/spaceify/code/www/admin/login.html", "content_type": "html"},
+
+  "APPSTORE_URL": "https://edge.spaceify.net/appstore/",
+  "APPSTORE_INDEX_URL": "https://edge.spaceify.net/appstore/index.html",
+  "APPSTORE_INDEX_PATH": {"file": "/var/lib/spaceify/code/www/appstore/index.html", "content_type": "html"},
+
   "REGISTRY_HOSTNAME": "spaceify.org",
   "REGISTRY_URL": "https://spaceify.org",
   "REGISTRY_PUBLISH_URL": "https://spaceify.org/ajax/upload.php?type=package&fileid=package",
   "REGISTRY_INSTALL_URL": "https://spaceify.org/install.php",
+
   "EDGE_APPSTORE_GET_PACKAGES_URL": "https://spaceify.org/appstore/getpackages.php",
   "EDGE_REGISTER_URL": "https://spaceify.net/edge/register.php",
   "EDGE_LOGIN_URL": "https://spaceify.net/edge/login.php",
 
+  "ERROR_PATHS": {
+                 "404": { "file": "/var/lib/spaceify/code/www/errors/404.html", "content_type": "html"},
+                 "500": { "file": "/var/lib/spaceify/code/www/errors/500.html", "content_type": "html"}
+                 },
+  
   "GITHUB_HOSTNAME": "github.com",
 
   "DNS_PORT": 53,

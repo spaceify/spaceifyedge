@@ -5,33 +5,32 @@
 		<meta charset="utf-8">
 		<meta name="product" content="Spaceify">
 		<meta name="author" content="Spaceify Oy">
-		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="description" content="Spaceify Edge">
 		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 
 		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-		<link rel="stylesheet" href="../fonts/roboto/roboto.css">
-		<link rel="stylesheet" href="../css/skeleton/normalize.css">
-		<link rel="stylesheet" href="../css/skeleton/skeleton.css">
-		<link rel="stylesheet" href="../css/spaceify.edge.css" type="text/css">
-		<!-- REMOTE >>>>>>>>>>
-		<link rel="stylesheet" sp_href="css/spaceify.edge.css" type="text/css">
-		<<<<<<<<<< REMOTE -->
+		<link rel="stylesheet" spe_href="fonts/roboto/roboto.css">
+		<link rel="stylesheet" spe_href="css/skeleton/normalize.css">
+		<link rel="stylesheet" spe_href="css/skeleton/skeleton.css">
+		<link rel="stylesheet" spe_href="css/spaceify.edge.css" type="text/css">
 
-		<title ng-bind="$root.getString('title')">Loading...</title>
+		<title ng-bind="$root.getString('admin/login', 'title')">Loading...</title>
 		<!-- -->
 
 		<!-- -->
-		<script src="../js/spaceify.edge.js"></script>
-		<!-- REMOTE >>>>>>>>>>
-		<script src="js/spaceify.loader.js"></script>
-		<script sp_src="js/spaceify.edge.js"></script>
-		<<<<<<<<<< REMOTE -->
+		<script src="../js/spaceify.loader.js"></script>
+		<script spe_src="js/spaceify.edge.js"></script>
 		<!-- -->
 
 		<script>
+		var net;
+		var sam;
+		var config;
+
 		function angularReady()
 			{
 			net = new SpaceifyNet();
+			config = new SpaceifyConfig();
 			sam = new SpaceifyApplicationManager();
 
 			$("#edgeBody").show();
@@ -51,11 +50,9 @@
 
 		function loggedIn(result)
 			{
+console.log(result.isLoggedIn);
 			if(result.isLoggedIn)
-				window.location.assign(spaceifyPage.urlHttps + "appstore/index.html");
-				/* REMOTE >>>>>>>>>>
-				spaceifyLoader.loadPage(spaceifyPage.urlHttps + "appstore/index.html", spaceifyPage.urlHttps + "appstore/");
-				<<<<<<<<<< REMOTE */
+				spaceifyLoader.loadPage(config.APPSTORE_INDEX_URL, config.APPSTORE_URL, config.EDGE_HTTPS_URL);
 			}
 
 		this.error = function(err)
@@ -69,34 +66,55 @@
 
 	<body class="edgeBody" id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
 
-		<div class="adminLoginContainer" id="adminLoginContainer">
+		<div id="top_bar" class="top_bar">
+			<a id="logolink" class="logolink" routerLink="/intro"><img id="appstorelogo" class="appstorelogo" spe_src="images/icon-80p.png" alt="" /></a>
+			<div id="logoname" class="logoname">Spaceify Edge</div>
+		</div>
 
-			<div class="adminLogo">
-				<span class="adminLogoHelper"></span>
-				<img src="../images/logotext.png" class="adminLogoImage" width="291" height="100"
-					onclick="window.location.assign(spaceifyPage.urlHttp);">
-				<!-- REMOTE >>>>>>>>>>
-				<img sp_src="../images/logotext.png" class="adminLogoImage" width="291" height="100"
-					onclick="spaceifyLoader.loadPage(spaceifyPage.urlHttp + "index.html", spaceifyPage.urlHttp);">
-				<<<<<<<<<< REMOTE -->
+		<div class="large_background_footer">&nbsp;</div>
+
+		<div id="content_container">
+
+			<div class="container">
+	
+				<div class="adminLoginContainer" id="adminLoginContainer">
+
+					<div class="adminLogo">
+						<span class="adminLogoHelper"></span>
+						<img spe_src="images/logotext.png" class="adminLogoImage" width="291" height="100"
+							onclick="spaceifyLoader.loadPage(config.EDGE_INDEX_URL, config.EDGE_HTTPS_URL, config.EDGE_HTTPS_URL);">
+					</div>
+
+					<div class="adminLoginTitle">
+						{{ getString("admin/login", "admin_login") }}
+					</div>
+
+					<div class="adminInputContainer">
+						<input class="adminInput" style="width: 200px" type="password" name="password" id="password" placeholder="{{ getString('admin/login', 'password') }}"/>
+					</div>
+
+					<div class="adminInputContainer">
+						<button class="adminButton normal" name="operation" onclick="logIn();">
+							{{ getString("admin/login", "login") }}
+						</button>
+					</div>
+
+					<div class="breaker"></div>
+
+				</div>
+
 			</div>
-
-			<div class="adminLoginTitle">
-				{{ getString("admin_login") }}
-			</div>
-
-			<div class="adminInputContainer">
-				<input class="adminInput" style="width: 200px" type="password" name="password" id="password" placeholder="{{ getString('password') }}"/>
-			</div>
-
-			<div class="adminInputContainer">
-				<button class="adminButton normal" name="operation" onclick="logIn();">
-					{{ getString("login") }}
-				</button>
-			</div>
-
-			<div class="breaker"></div>
 
 		</div>
+
+		<div id="footer" class="footer">
+			<div class="section_w70">
+				<div class="footerContentLeft smaller">
+					<img class="floatLeft" id="32pxc" spe_src="images/by-nc-nd_eu.png" width="91" height="32">
+					<span class="floatLeft">Copyright &copy; 2014-2016 Spaceify.org</span>
+				</div>
+			</div>
+		</div>
+
 	</body>
 </html>

@@ -5,27 +5,21 @@
 		<meta charset="utf-8">
 		<meta name="product" content="Spaceify">
 		<meta name="author" content="Spaceify Oy">
-		<meta name="description" content="Spaceify Edge User interface">
+		<meta name="description" content="Spaceify Edge">
 		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 
 		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-		<link rel="stylesheet" href="fonts/roboto/roboto.css">
-		<link rel="stylesheet" href="css/skeleton/normalize.css">
-		<link rel="stylesheet" href="css/skeleton/skeleton.css">
-		<link rel="stylesheet" href="css/spaceify.edge.css" type="text/css">
-		<!-- REMOTE >>>>>>>>>>
-		<link rel="stylesheet" sp_href="css/spaceify.edge.css" type="text/css">
-		<<<<<<<<<< REMOTE -->
+		<link rel="stylesheet" spe_href="fonts/roboto/roboto.css">
+		<link rel="stylesheet" spe_href="css/skeleton/normalize.css">
+		<link rel="stylesheet" spe_href="css/skeleton/skeleton.css">
+		<link rel="stylesheet" spe_href="css/spaceify.edge.css" type="text/css">
 
-		<title ng-bind="$root.getString('title')">Loading...</title>
+		<title ng-bind="$root.getString('index', 'title')">Loading...</title>
 		<!-- -->
 
 		<!-- -->
-		<script src="js/spaceify.edge.js"></script>
-		<!-- REMOTE >>>>>>>>>>
-		<script src="js/spaceify.loader.js" defer></script>
-		<script sp_src="js/spaceify.edge.js"></script>
-		<<<<<<<<<< REMOTE -->
+		<script src="js/spaceify.loader.js"></script>
+		<script spe_src="js/spaceify.edge.js"></script>
 		<!-- -->
 
 		<script>
@@ -152,9 +146,10 @@
 	<body class="edgeBody" id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
 
 		<div id="top_bar" class="top_bar">
-			<a id="logolink" class="logolink" routerLink="/intro"><img id="appstorelogo" class="appstorelogo" src="images/icon-80p.png" alt="" /></a>
+			<a id="logolink" class="logolink" routerLink="/intro"><img id="appstorelogo" class="appstorelogo" spe_src="images/icon-80p.png" alt="" /></a>
 			<div id="logoname" class="logoname">Spaceify Edge</div>
 		</div>
+
 		<div class="large_background_footer">&nbsp;</div>
 
 		<div id="content_container">
@@ -166,39 +161,36 @@
 						<the-tiles></the-tiles>
 
 						<!-- SPACELETS -- -- -- -- -- -- -- -- -- -- -->
-						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString('spacelets') }}</h5>
+						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString('index', 'spacelets') }}</h5>
 						<div class="tiles" id="spacelet" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- SANDBOXED -- -- -- -- -- -- -- -- -- -- -->
-						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString('sandboxed') }}</h5>
+						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString('index', 'sandboxed') }}</h5>
 						<div class="tiles" id="sandboxed" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
-						<h5 class="edgeH5" id="sandboxedDebianHeader" style="display: none;">{{ getString('sandboxed_debian') }}</h5>
+						<h5 class="edgeH5" id="sandboxedDebianHeader" style="display: none;">{{ getString('index', 'sandboxed_debian') }}</h5>
 						<div class="tiles" id="sandboxed_debian" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- NATIVE DEBIAN -->
-						<h5 class="edgeH5" id="nativeDebianHeader" style="display: none;">{{ getString('native_debian') }}</h5>
+						<h5 class="edgeH5" id="nativeDebianHeader" style="display: none;">{{ getString('index', 'native_debian') }}</h5>
 						<div class="tiles" id="native_debian" style="display: none;"></div>
 						<div class="breaker"></div>
 
 						<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
-						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString('user_utilities') }}</h5>
+						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString('index', 'user_utilities') }}</h5>
 						<div class="tiles" id="userUtilities" style="display: none;">
 
 							<!-- CERTIFICATE TILE -->
 							<div class="edgeTile" onclick="net.loadCertificate();">
 
-								<img class="edgeTileImage" width="64" height="64" src="images/certificate.png" id="installCertificateId">
-									<!-- REMOTE >>>>>>>>>>
-									<img class="edgeTileImage" width="64" height="64" sp_src="images/certificate.png" id="installCertificateId">
-									<<<<<<<<<< REMOTE -->
+								<img class="edgeTileImage" width="64" height="64" spe_src="images/certificate.png" id="installCertificateId">
 
 								<div class="edgeTileText oneline">
-									{{ getString('install_certificate_title') }}
+									{{ getString('index', 'install_certificate_title') }}
 								</div>
 
 							</div>
@@ -207,19 +199,16 @@
 						<div class="breaker"></div>
 
 						<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
-						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString('admin_utilities') }}</h5>
+						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString('index', 'admin_utilities') }}</h5>
 						<div class="tiles" id="adminUtilities" style="display: none;">
 
 							<!-- LOG IN || ADMIN TILE -->
 							<div class="edgeTile" onclick="net.openAdminPages();">
 
-								<img class="edgeTileImage" width="64" height="64" src="images/admin.png" id="adminLogInId">
-									<!-- REMOTE >>>>>>>>>>
-									<img class="edgeTileImage" width="64" height="64" sp_src="images/admin.png" id="adminLogInId">
-									<<<<<<<<<< REMOTE -->
+								<img class="edgeTileImage" width="64" height="64" spe_src="images/admin.png" id="adminLogInId">
 
 								<div class="edgeTileText oneline">
-									{{ getString('admin_tile_title') }}
+									{{ getString('index', 'admin_tile_title') }}
 								</div>
 
 							</div>
@@ -238,7 +227,7 @@
 		<div id="footer" class="footer">
 			<div class="section_w70">
 				<div class="footerContentLeft smaller">
-					<img class="floatLeft" id="32pxc" src="./images/by-nc-nd_eu.png" width="91" height="32">
+					<img class="floatLeft" id="32pxc" spe_src="images/by-nc-nd_eu.png" width="91" height="32">
 					<span class="floatLeft">Copyright &copy; 2014-2016 Spaceify.org</span>
 				</div>
 			</div>

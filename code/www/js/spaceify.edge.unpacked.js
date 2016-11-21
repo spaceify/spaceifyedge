@@ -319,11 +319,6353 @@ c){var e=a|0,f=c;u===f&&(f=Math.min(b(a),3));Math.pow(10,f);return 1==e&&0==f?"o
 return!0}function Q(a,b,d,e){if(m.acceptData(a)){var f,g,h=m.expando,i=a.nodeType,j=i?m.cache:a,k=i?a[h]:a[h]&&h;if(k&&j[k]&&(e||j[k].data)||void 0!==d||"string"!=typeof b)return k||(k=i?a[h]=c.pop()||m.guid++:h),j[k]||(j[k]=i?{}:{toJSON:m.noop}),("object"==typeof b||"function"==typeof b)&&(e?j[k]=m.extend(j[k],b):j[k].data=m.extend(j[k].data,b)),g=j[k],e||(g.data||(g.data={}),g=g.data),void 0!==d&&(g[m.camelCase(b)]=d),"string"==typeof b?(f=g[b],null==f&&(f=g[m.camelCase(b)])):f=g,f}}function R(a,b,c){if(m.acceptData(a)){var d,e,f=a.nodeType,g=f?m.cache:a,h=f?a[m.expando]:m.expando;if(g[h]){if(b&&(d=c?g[h]:g[h].data)){m.isArray(b)?b=b.concat(m.map(b,m.camelCase)):b in d?b=[b]:(b=m.camelCase(b),b=b in d?[b]:b.split(" ")),e=b.length;while(e--)delete d[b[e]];if(c?!P(d):!m.isEmptyObject(d))return}(c||(delete g[h].data,P(g[h])))&&(f?m.cleanData([a],!0):k.deleteExpando||g!=g.window?delete g[h]:g[h]=null)}}}m.extend({cache:{},noData:{"applet ":!0,"embed ":!0,"object ":"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"},hasData:function(a){return a=a.nodeType?m.cache[a[m.expando]]:a[m.expando],!!a&&!P(a)},data:function(a,b,c){return Q(a,b,c)},removeData:function(a,b){return R(a,b)},_data:function(a,b,c){return Q(a,b,c,!0)},_removeData:function(a,b){return R(a,b,!0)}}),m.fn.extend({data:function(a,b){var c,d,e,f=this[0],g=f&&f.attributes;if(void 0===a){if(this.length&&(e=m.data(f),1===f.nodeType&&!m._data(f,"parsedAttrs"))){c=g.length;while(c--)g[c]&&(d=g[c].name,0===d.indexOf("data-")&&(d=m.camelCase(d.slice(5)),O(f,d,e[d])));m._data(f,"parsedAttrs",!0)}return e}return"object"==typeof a?this.each(function(){m.data(this,a)}):arguments.length>1?this.each(function(){m.data(this,a,b)}):f?O(f,a,m.data(f,a)):void 0},removeData:function(a){return this.each(function(){m.removeData(this,a)})}}),m.extend({queue:function(a,b,c){var d;return a?(b=(b||"fx")+"queue",d=m._data(a,b),c&&(!d||m.isArray(c)?d=m._data(a,b,m.makeArray(c)):d.push(c)),d||[]):void 0},dequeue:function(a,b){b=b||"fx";var c=m.queue(a,b),d=c.length,e=c.shift(),f=m._queueHooks(a,b),g=function(){m.dequeue(a,b)};"inprogress"===e&&(e=c.shift(),d--),e&&("fx"===b&&c.unshift("inprogress"),delete f.stop,e.call(a,g,f)),!d&&f&&f.empty.fire()},_queueHooks:function(a,b){var c=b+"queueHooks";return m._data(a,c)||m._data(a,c,{empty:m.Callbacks("once memory").add(function(){m._removeData(a,b+"queue"),m._removeData(a,c)})})}}),m.fn.extend({queue:function(a,b){var c=2;return"string"!=typeof a&&(b=a,a="fx",c--),arguments.length<c?m.queue(this[0],a):void 0===b?this:this.each(function(){var c=m.queue(this,a,b);m._queueHooks(this,a),"fx"===a&&"inprogress"!==c[0]&&m.dequeue(this,a)})},dequeue:function(a){return this.each(function(){m.dequeue(this,a)})},clearQueue:function(a){return this.queue(a||"fx",[])},promise:function(a,b){var c,d=1,e=m.Deferred(),f=this,g=this.length,h=function(){--d||e.resolveWith(f,[f])};"string"!=typeof a&&(b=a,a=void 0),a=a||"fx";while(g--)c=m._data(f[g],a+"queueHooks"),c&&c.empty&&(d++,c.empty.add(h));return h(),e.promise(b)}});var S=/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source,T=["Top","Right","Bottom","Left"],U=function(a,b){return a=b||a,"none"===m.css(a,"display")||!m.contains(a.ownerDocument,a)},V=m.access=function(a,b,c,d,e,f,g){var h=0,i=a.length,j=null==c;if("object"===m.type(c)){e=!0;for(h in c)m.access(a,b,h,c[h],!0,f,g)}else if(void 0!==d&&(e=!0,m.isFunction(d)||(g=!0),j&&(g?(b.call(a,d),b=null):(j=b,b=function(a,b,c){return j.call(m(a),c)})),b))for(;i>h;h++)b(a[h],c,g?d:d.call(a[h],h,b(a[h],c)));return e?a:j?b.call(a):i?b(a[0],c):f},W=/^(?:checkbox|radio)$/i;!function(){var a=y.createElement("input"),b=y.createElement("div"),c=y.createDocumentFragment();if(b.innerHTML="  <link/><table></table><a href='/a'>a</a><input type='checkbox'/>",k.leadingWhitespace=3===b.firstChild.nodeType,k.tbody=!b.getElementsByTagName("tbody").length,k.htmlSerialize=!!b.getElementsByTagName("link").length,k.html5Clone="<:nav></:nav>"!==y.createElement("nav").cloneNode(!0).outerHTML,a.type="checkbox",a.checked=!0,c.appendChild(a),k.appendChecked=a.checked,b.innerHTML="<textarea>x</textarea>",k.noCloneChecked=!!b.cloneNode(!0).lastChild.defaultValue,c.appendChild(b),b.innerHTML="<input type='radio' checked='checked' name='t'/>",k.checkClone=b.cloneNode(!0).cloneNode(!0).lastChild.checked,k.noCloneEvent=!0,b.attachEvent&&(b.attachEvent("onclick",function(){k.noCloneEvent=!1}),b.cloneNode(!0).click()),null==k.deleteExpando){k.deleteExpando=!0;try{delete b.test}catch(d){k.deleteExpando=!1}}}(),function(){var b,c,d=y.createElement("div");for(b in{submit:!0,change:!0,focusin:!0})c="on"+b,(k[b+"Bubbles"]=c in a)||(d.setAttribute(c,"t"),k[b+"Bubbles"]=d.attributes[c].expando===!1);d=null}();var X=/^(?:input|select|textarea)$/i,Y=/^key/,Z=/^(?:mouse|pointer|contextmenu)|click/,$=/^(?:focusinfocus|focusoutblur)$/,_=/^([^.]*)(?:\.(.+)|)$/;function aa(){return!0}function ba(){return!1}function ca(){try{return y.activeElement}catch(a){}}m.event={global:{},add:function(a,b,c,d,e){var f,g,h,i,j,k,l,n,o,p,q,r=m._data(a);if(r){c.handler&&(i=c,c=i.handler,e=i.selector),c.guid||(c.guid=m.guid++),(g=r.events)||(g=r.events={}),(k=r.handle)||(k=r.handle=function(a){return typeof m===K||a&&m.event.triggered===a.type?void 0:m.event.dispatch.apply(k.elem,arguments)},k.elem=a),b=(b||"").match(E)||[""],h=b.length;while(h--)f=_.exec(b[h])||[],o=q=f[1],p=(f[2]||"").split(".").sort(),o&&(j=m.event.special[o]||{},o=(e?j.delegateType:j.bindType)||o,j=m.event.special[o]||{},l=m.extend({type:o,origType:q,data:d,handler:c,guid:c.guid,selector:e,needsContext:e&&m.expr.match.needsContext.test(e),namespace:p.join(".")},i),(n=g[o])||(n=g[o]=[],n.delegateCount=0,j.setup&&j.setup.call(a,d,p,k)!==!1||(a.addEventListener?a.addEventListener(o,k,!1):a.attachEvent&&a.attachEvent("on"+o,k))),j.add&&(j.add.call(a,l),l.handler.guid||(l.handler.guid=c.guid)),e?n.splice(n.delegateCount++,0,l):n.push(l),m.event.global[o]=!0);a=null}},remove:function(a,b,c,d,e){var f,g,h,i,j,k,l,n,o,p,q,r=m.hasData(a)&&m._data(a);if(r&&(k=r.events)){b=(b||"").match(E)||[""],j=b.length;while(j--)if(h=_.exec(b[j])||[],o=q=h[1],p=(h[2]||"").split(".").sort(),o){l=m.event.special[o]||{},o=(d?l.delegateType:l.bindType)||o,n=k[o]||[],h=h[2]&&new RegExp("(^|\\.)"+p.join("\\.(?:.*\\.|)")+"(\\.|$)"),i=f=n.length;while(f--)g=n[f],!e&&q!==g.origType||c&&c.guid!==g.guid||h&&!h.test(g.namespace)||d&&d!==g.selector&&("**"!==d||!g.selector)||(n.splice(f,1),g.selector&&n.delegateCount--,l.remove&&l.remove.call(a,g));i&&!n.length&&(l.teardown&&l.teardown.call(a,p,r.handle)!==!1||m.removeEvent(a,o,r.handle),delete k[o])}else for(o in k)m.event.remove(a,o+b[j],c,d,!0);m.isEmptyObject(k)&&(delete r.handle,m._removeData(a,"events"))}},trigger:function(b,c,d,e){var f,g,h,i,k,l,n,o=[d||y],p=j.call(b,"type")?b.type:b,q=j.call(b,"namespace")?b.namespace.split("."):[];if(h=l=d=d||y,3!==d.nodeType&&8!==d.nodeType&&!$.test(p+m.event.triggered)&&(p.indexOf(".")>=0&&(q=p.split("."),p=q.shift(),q.sort()),g=p.indexOf(":")<0&&"on"+p,b=b[m.expando]?b:new m.Event(p,"object"==typeof b&&b),b.isTrigger=e?2:3,b.namespace=q.join("."),b.namespace_re=b.namespace?new RegExp("(^|\\.)"+q.join("\\.(?:.*\\.|)")+"(\\.|$)"):null,b.result=void 0,b.target||(b.target=d),c=null==c?[b]:m.makeArray(c,[b]),k=m.event.special[p]||{},e||!k.trigger||k.trigger.apply(d,c)!==!1)){if(!e&&!k.noBubble&&!m.isWindow(d)){for(i=k.delegateType||p,$.test(i+p)||(h=h.parentNode);h;h=h.parentNode)o.push(h),l=h;l===(d.ownerDocument||y)&&o.push(l.defaultView||l.parentWindow||a)}n=0;while((h=o[n++])&&!b.isPropagationStopped())b.type=n>1?i:k.bindType||p,f=(m._data(h,"events")||{})[b.type]&&m._data(h,"handle"),f&&f.apply(h,c),f=g&&h[g],f&&f.apply&&m.acceptData(h)&&(b.result=f.apply(h,c),b.result===!1&&b.preventDefault());if(b.type=p,!e&&!b.isDefaultPrevented()&&(!k._default||k._default.apply(o.pop(),c)===!1)&&m.acceptData(d)&&g&&d[p]&&!m.isWindow(d)){l=d[g],l&&(d[g]=null),m.event.triggered=p;try{d[p]()}catch(r){}m.event.triggered=void 0,l&&(d[g]=l)}return b.result}},dispatch:function(a){a=m.event.fix(a);var b,c,e,f,g,h=[],i=d.call(arguments),j=(m._data(this,"events")||{})[a.type]||[],k=m.event.special[a.type]||{};if(i[0]=a,a.delegateTarget=this,!k.preDispatch||k.preDispatch.call(this,a)!==!1){h=m.event.handlers.call(this,a,j),b=0;while((f=h[b++])&&!a.isPropagationStopped()){a.currentTarget=f.elem,g=0;while((e=f.handlers[g++])&&!a.isImmediatePropagationStopped())(!a.namespace_re||a.namespace_re.test(e.namespace))&&(a.handleObj=e,a.data=e.data,c=((m.event.special[e.origType]||{}).handle||e.handler).apply(f.elem,i),void 0!==c&&(a.result=c)===!1&&(a.preventDefault(),a.stopPropagation()))}return k.postDispatch&&k.postDispatch.call(this,a),a.result}},handlers:function(a,b){var c,d,e,f,g=[],h=b.delegateCount,i=a.target;if(h&&i.nodeType&&(!a.button||"click"!==a.type))for(;i!=this;i=i.parentNode||this)if(1===i.nodeType&&(i.disabled!==!0||"click"!==a.type)){for(e=[],f=0;h>f;f++)d=b[f],c=d.selector+" ",void 0===e[c]&&(e[c]=d.needsContext?m(c,this).index(i)>=0:m.find(c,this,null,[i]).length),e[c]&&e.push(d);e.length&&g.push({elem:i,handlers:e})}return h<b.length&&g.push({elem:this,handlers:b.slice(h)}),g},fix:function(a){if(a[m.expando])return a;var b,c,d,e=a.type,f=a,g=this.fixHooks[e];g||(this.fixHooks[e]=g=Z.test(e)?this.mouseHooks:Y.test(e)?this.keyHooks:{}),d=g.props?this.props.concat(g.props):this.props,a=new m.Event(f),b=d.length;while(b--)c=d[b],a[c]=f[c];return a.target||(a.target=f.srcElement||y),3===a.target.nodeType&&(a.target=a.target.parentNode),a.metaKey=!!a.metaKey,g.filter?g.filter(a,f):a},props:"altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),fixHooks:{},keyHooks:{props:"char charCode key keyCode".split(" "),filter:function(a,b){return null==a.which&&(a.which=null!=b.charCode?b.charCode:b.keyCode),a}},mouseHooks:{props:"button buttons clientX clientY fromElement offsetX offsetY pageX pageY screenX screenY toElement".split(" "),filter:function(a,b){var c,d,e,f=b.button,g=b.fromElement;return null==a.pageX&&null!=b.clientX&&(d=a.target.ownerDocument||y,e=d.documentElement,c=d.body,a.pageX=b.clientX+(e&&e.scrollLeft||c&&c.scrollLeft||0)-(e&&e.clientLeft||c&&c.clientLeft||0),a.pageY=b.clientY+(e&&e.scrollTop||c&&c.scrollTop||0)-(e&&e.clientTop||c&&c.clientTop||0)),!a.relatedTarget&&g&&(a.relatedTarget=g===a.target?b.toElement:g),a.which||void 0===f||(a.which=1&f?1:2&f?3:4&f?2:0),a}},special:{load:{noBubble:!0},focus:{trigger:function(){if(this!==ca()&&this.focus)try{return this.focus(),!1}catch(a){}},delegateType:"focusin"},blur:{trigger:function(){return this===ca()&&this.blur?(this.blur(),!1):void 0},delegateType:"focusout"},click:{trigger:function(){return m.nodeName(this,"input")&&"checkbox"===this.type&&this.click?(this.click(),!1):void 0},_default:function(a){return m.nodeName(a.target,"a")}},beforeunload:{postDispatch:function(a){void 0!==a.result&&a.originalEvent&&(a.originalEvent.returnValue=a.result)}}},simulate:function(a,b,c,d){var e=m.extend(new m.Event,c,{type:a,isSimulated:!0,originalEvent:{}});d?m.event.trigger(e,null,b):m.event.dispatch.call(b,e),e.isDefaultPrevented()&&c.preventDefault()}},m.removeEvent=y.removeEventListener?function(a,b,c){a.removeEventListener&&a.removeEventListener(b,c,!1)}:function(a,b,c){var d="on"+b;a.detachEvent&&(typeof a[d]===K&&(a[d]=null),a.detachEvent(d,c))},m.Event=function(a,b){return this instanceof m.Event?(a&&a.type?(this.originalEvent=a,this.type=a.type,this.isDefaultPrevented=a.defaultPrevented||void 0===a.defaultPrevented&&a.returnValue===!1?aa:ba):this.type=a,b&&m.extend(this,b),this.timeStamp=a&&a.timeStamp||m.now(),void(this[m.expando]=!0)):new m.Event(a,b)},m.Event.prototype={isDefaultPrevented:ba,isPropagationStopped:ba,isImmediatePropagationStopped:ba,preventDefault:function(){var a=this.originalEvent;this.isDefaultPrevented=aa,a&&(a.preventDefault?a.preventDefault():a.returnValue=!1)},stopPropagation:function(){var a=this.originalEvent;this.isPropagationStopped=aa,a&&(a.stopPropagation&&a.stopPropagation(),a.cancelBubble=!0)},stopImmediatePropagation:function(){var a=this.originalEvent;this.isImmediatePropagationStopped=aa,a&&a.stopImmediatePropagation&&a.stopImmediatePropagation(),this.stopPropagation()}},m.each({mouseenter:"mouseover",mouseleave:"mouseout",pointerenter:"pointerover",pointerleave:"pointerout"},function(a,b){m.event.special[a]={delegateType:b,bindType:b,handle:function(a){var c,d=this,e=a.relatedTarget,f=a.handleObj;return(!e||e!==d&&!m.contains(d,e))&&(a.type=f.origType,c=f.handler.apply(this,arguments),a.type=b),c}}}),k.submitBubbles||(m.event.special.submit={setup:function(){return m.nodeName(this,"form")?!1:void m.event.add(this,"click._submit keypress._submit",function(a){var b=a.target,c=m.nodeName(b,"input")||m.nodeName(b,"button")?b.form:void 0;c&&!m._data(c,"submitBubbles")&&(m.event.add(c,"submit._submit",function(a){a._submit_bubble=!0}),m._data(c,"submitBubbles",!0))})},postDispatch:function(a){a._submit_bubble&&(delete a._submit_bubble,this.parentNode&&!a.isTrigger&&m.event.simulate("submit",this.parentNode,a,!0))},teardown:function(){return m.nodeName(this,"form")?!1:void m.event.remove(this,"._submit")}}),k.changeBubbles||(m.event.special.change={setup:function(){return X.test(this.nodeName)?(("checkbox"===this.type||"radio"===this.type)&&(m.event.add(this,"propertychange._change",function(a){"checked"===a.originalEvent.propertyName&&(this._just_changed=!0)}),m.event.add(this,"click._change",function(a){this._just_changed&&!a.isTrigger&&(this._just_changed=!1),m.event.simulate("change",this,a,!0)})),!1):void m.event.add(this,"beforeactivate._change",function(a){var b=a.target;X.test(b.nodeName)&&!m._data(b,"changeBubbles")&&(m.event.add(b,"change._change",function(a){!this.parentNode||a.isSimulated||a.isTrigger||m.event.simulate("change",this.parentNode,a,!0)}),m._data(b,"changeBubbles",!0))})},handle:function(a){var b=a.target;return this!==b||a.isSimulated||a.isTrigger||"radio"!==b.type&&"checkbox"!==b.type?a.handleObj.handler.apply(this,arguments):void 0},teardown:function(){return m.event.remove(this,"._change"),!X.test(this.nodeName)}}),k.focusinBubbles||m.each({focus:"focusin",blur:"focusout"},function(a,b){var c=function(a){m.event.simulate(b,a.target,m.event.fix(a),!0)};m.event.special[b]={setup:function(){var d=this.ownerDocument||this,e=m._data(d,b);e||d.addEventListener(a,c,!0),m._data(d,b,(e||0)+1)},teardown:function(){var d=this.ownerDocument||this,e=m._data(d,b)-1;e?m._data(d,b,e):(d.removeEventListener(a,c,!0),m._removeData(d,b))}}}),m.fn.extend({on:function(a,b,c,d,e){var f,g;if("object"==typeof a){"string"!=typeof b&&(c=c||b,b=void 0);for(f in a)this.on(f,b,c,a[f],e);return this}if(null==c&&null==d?(d=b,c=b=void 0):null==d&&("string"==typeof b?(d=c,c=void 0):(d=c,c=b,b=void 0)),d===!1)d=ba;else if(!d)return this;return 1===e&&(g=d,d=function(a){return m().off(a),g.apply(this,arguments)},d.guid=g.guid||(g.guid=m.guid++)),this.each(function(){m.event.add(this,a,d,c,b)})},one:function(a,b,c,d){return this.on(a,b,c,d,1)},off:function(a,b,c){var d,e;if(a&&a.preventDefault&&a.handleObj)return d=a.handleObj,m(a.delegateTarget).off(d.namespace?d.origType+"."+d.namespace:d.origType,d.selector,d.handler),this;if("object"==typeof a){for(e in a)this.off(e,b,a[e]);return this}return(b===!1||"function"==typeof b)&&(c=b,b=void 0),c===!1&&(c=ba),this.each(function(){m.event.remove(this,a,c,b)})},trigger:function(a,b){return this.each(function(){m.event.trigger(a,b,this)})},triggerHandler:function(a,b){var c=this[0];return c?m.event.trigger(a,b,c,!0):void 0}});function da(a){var b=ea.split("|"),c=a.createDocumentFragment();if(c.createElement)while(b.length)c.createElement(b.pop());return c}var ea="abbr|article|aside|audio|bdi|canvas|data|datalist|details|figcaption|figure|footer|header|hgroup|mark|meter|nav|output|progress|section|summary|time|video",fa=/ jQuery\d+="(?:null|\d+)"/g,ga=new RegExp("<(?:"+ea+")[\\s/>]","i"),ha=/^\s+/,ia=/<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,ja=/<([\w:]+)/,ka=/<tbody/i,la=/<|&#?\w+;/,ma=/<(?:script|style|link)/i,na=/checked\s*(?:[^=]|=\s*.checked.)/i,oa=/^$|\/(?:java|ecma)script/i,pa=/^true\/(.*)/,qa=/^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g,ra={option:[1,"<select multiple='multiple'>","</select>"],legend:[1,"<fieldset>","</fieldset>"],area:[1,"<map>","</map>"],param:[1,"<object>","</object>"],thead:[1,"<table>","</table>"],tr:[2,"<table><tbody>","</tbody></table>"],col:[2,"<table><tbody></tbody><colgroup>","</colgroup></table>"],td:[3,"<table><tbody><tr>","</tr></tbody></table>"],_default:k.htmlSerialize?[0,"",""]:[1,"X<div>","</div>"]},sa=da(y),ta=sa.appendChild(y.createElement("div"));ra.optgroup=ra.option,ra.tbody=ra.tfoot=ra.colgroup=ra.caption=ra.thead,ra.th=ra.td;function ua(a,b){var c,d,e=0,f=typeof a.getElementsByTagName!==K?a.getElementsByTagName(b||"*"):typeof a.querySelectorAll!==K?a.querySelectorAll(b||"*"):void 0;if(!f)for(f=[],c=a.childNodes||a;null!=(d=c[e]);e++)!b||m.nodeName(d,b)?f.push(d):m.merge(f,ua(d,b));return void 0===b||b&&m.nodeName(a,b)?m.merge([a],f):f}function va(a){W.test(a.type)&&(a.defaultChecked=a.checked)}function wa(a,b){return m.nodeName(a,"table")&&m.nodeName(11!==b.nodeType?b:b.firstChild,"tr")?a.getElementsByTagName("tbody")[0]||a.appendChild(a.ownerDocument.createElement("tbody")):a}function xa(a){return a.type=(null!==m.find.attr(a,"type"))+"/"+a.type,a}function ya(a){var b=pa.exec(a.type);return b?a.type=b[1]:a.removeAttribute("type"),a}function za(a,b){for(var c,d=0;null!=(c=a[d]);d++)m._data(c,"globalEval",!b||m._data(b[d],"globalEval"))}function Aa(a,b){if(1===b.nodeType&&m.hasData(a)){var c,d,e,f=m._data(a),g=m._data(b,f),h=f.events;if(h){delete g.handle,g.events={};for(c in h)for(d=0,e=h[c].length;e>d;d++)m.event.add(b,c,h[c][d])}g.data&&(g.data=m.extend({},g.data))}}function Ba(a,b){var c,d,e;if(1===b.nodeType){if(c=b.nodeName.toLowerCase(),!k.noCloneEvent&&b[m.expando]){e=m._data(b);for(d in e.events)m.removeEvent(b,d,e.handle);b.removeAttribute(m.expando)}"script"===c&&b.text!==a.text?(xa(b).text=a.text,ya(b)):"object"===c?(b.parentNode&&(b.outerHTML=a.outerHTML),k.html5Clone&&a.innerHTML&&!m.trim(b.innerHTML)&&(b.innerHTML=a.innerHTML)):"input"===c&&W.test(a.type)?(b.defaultChecked=b.checked=a.checked,b.value!==a.value&&(b.value=a.value)):"option"===c?b.defaultSelected=b.selected=a.defaultSelected:("input"===c||"textarea"===c)&&(b.defaultValue=a.defaultValue)}}m.extend({clone:function(a,b,c){var d,e,f,g,h,i=m.contains(a.ownerDocument,a);if(k.html5Clone||m.isXMLDoc(a)||!ga.test("<"+a.nodeName+">")?f=a.cloneNode(!0):(ta.innerHTML=a.outerHTML,ta.removeChild(f=ta.firstChild)),!(k.noCloneEvent&&k.noCloneChecked||1!==a.nodeType&&11!==a.nodeType||m.isXMLDoc(a)))for(d=ua(f),h=ua(a),g=0;null!=(e=h[g]);++g)d[g]&&Ba(e,d[g]);if(b)if(c)for(h=h||ua(a),d=d||ua(f),g=0;null!=(e=h[g]);g++)Aa(e,d[g]);else Aa(a,f);return d=ua(f,"script"),d.length>0&&za(d,!i&&ua(a,"script")),d=h=e=null,f},buildFragment:function(a,b,c,d){for(var e,f,g,h,i,j,l,n=a.length,o=da(b),p=[],q=0;n>q;q++)if(f=a[q],f||0===f)if("object"===m.type(f))m.merge(p,f.nodeType?[f]:f);else if(la.test(f)){h=h||o.appendChild(b.createElement("div")),i=(ja.exec(f)||["",""])[1].toLowerCase(),l=ra[i]||ra._default,h.innerHTML=l[1]+f.replace(ia,"<$1></$2>")+l[2],e=l[0];while(e--)h=h.lastChild;if(!k.leadingWhitespace&&ha.test(f)&&p.push(b.createTextNode(ha.exec(f)[0])),!k.tbody){f="table"!==i||ka.test(f)?"<table>"!==l[1]||ka.test(f)?0:h:h.firstChild,e=f&&f.childNodes.length;while(e--)m.nodeName(j=f.childNodes[e],"tbody")&&!j.childNodes.length&&f.removeChild(j)}m.merge(p,h.childNodes),h.textContent="";while(h.firstChild)h.removeChild(h.firstChild);h=o.lastChild}else p.push(b.createTextNode(f));h&&o.removeChild(h),k.appendChecked||m.grep(ua(p,"input"),va),q=0;while(f=p[q++])if((!d||-1===m.inArray(f,d))&&(g=m.contains(f.ownerDocument,f),h=ua(o.appendChild(f),"script"),g&&za(h),c)){e=0;while(f=h[e++])oa.test(f.type||"")&&c.push(f)}return h=null,o},cleanData:function(a,b){for(var d,e,f,g,h=0,i=m.expando,j=m.cache,l=k.deleteExpando,n=m.event.special;null!=(d=a[h]);h++)if((b||m.acceptData(d))&&(f=d[i],g=f&&j[f])){if(g.events)for(e in g.events)n[e]?m.event.remove(d,e):m.removeEvent(d,e,g.handle);j[f]&&(delete j[f],l?delete d[i]:typeof d.removeAttribute!==K?d.removeAttribute(i):d[i]=null,c.push(f))}}}),m.fn.extend({text:function(a){return V(this,function(a){return void 0===a?m.text(this):this.empty().append((this[0]&&this[0].ownerDocument||y).createTextNode(a))},null,a,arguments.length)},append:function(){return this.domManip(arguments,function(a){if(1===this.nodeType||11===this.nodeType||9===this.nodeType){var b=wa(this,a);b.appendChild(a)}})},prepend:function(){return this.domManip(arguments,function(a){if(1===this.nodeType||11===this.nodeType||9===this.nodeType){var b=wa(this,a);b.insertBefore(a,b.firstChild)}})},before:function(){return this.domManip(arguments,function(a){this.parentNode&&this.parentNode.insertBefore(a,this)})},after:function(){return this.domManip(arguments,function(a){this.parentNode&&this.parentNode.insertBefore(a,this.nextSibling)})},remove:function(a,b){for(var c,d=a?m.filter(a,this):this,e=0;null!=(c=d[e]);e++)b||1!==c.nodeType||m.cleanData(ua(c)),c.parentNode&&(b&&m.contains(c.ownerDocument,c)&&za(ua(c,"script")),c.parentNode.removeChild(c));return this},empty:function(){for(var a,b=0;null!=(a=this[b]);b++){1===a.nodeType&&m.cleanData(ua(a,!1));while(a.firstChild)a.removeChild(a.firstChild);a.options&&m.nodeName(a,"select")&&(a.options.length=0)}return this},clone:function(a,b){return a=null==a?!1:a,b=null==b?a:b,this.map(function(){return m.clone(this,a,b)})},html:function(a){return V(this,function(a){var b=this[0]||{},c=0,d=this.length;if(void 0===a)return 1===b.nodeType?b.innerHTML.replace(fa,""):void 0;if(!("string"!=typeof a||ma.test(a)||!k.htmlSerialize&&ga.test(a)||!k.leadingWhitespace&&ha.test(a)||ra[(ja.exec(a)||["",""])[1].toLowerCase()])){a=a.replace(ia,"<$1></$2>");try{for(;d>c;c++)b=this[c]||{},1===b.nodeType&&(m.cleanData(ua(b,!1)),b.innerHTML=a);b=0}catch(e){}}b&&this.empty().append(a)},null,a,arguments.length)},replaceWith:function(){var a=arguments[0];return this.domManip(arguments,function(b){a=this.parentNode,m.cleanData(ua(this)),a&&a.replaceChild(b,this)}),a&&(a.length||a.nodeType)?this:this.remove()},detach:function(a){return this.remove(a,!0)},domManip:function(a,b){a=e.apply([],a);var c,d,f,g,h,i,j=0,l=this.length,n=this,o=l-1,p=a[0],q=m.isFunction(p);if(q||l>1&&"string"==typeof p&&!k.checkClone&&na.test(p))return this.each(function(c){var d=n.eq(c);q&&(a[0]=p.call(this,c,d.html())),d.domManip(a,b)});if(l&&(i=m.buildFragment(a,this[0].ownerDocument,!1,this),c=i.firstChild,1===i.childNodes.length&&(i=c),c)){for(g=m.map(ua(i,"script"),xa),f=g.length;l>j;j++)d=i,j!==o&&(d=m.clone(d,!0,!0),f&&m.merge(g,ua(d,"script"))),b.call(this[j],d,j);if(f)for(h=g[g.length-1].ownerDocument,m.map(g,ya),j=0;f>j;j++)d=g[j],oa.test(d.type||"")&&!m._data(d,"globalEval")&&m.contains(h,d)&&(d.src?m._evalUrl&&m._evalUrl(d.src):m.globalEval((d.text||d.textContent||d.innerHTML||"").replace(qa,"")));i=c=null}return this}}),m.each({appendTo:"append",prependTo:"prepend",insertBefore:"before",insertAfter:"after",replaceAll:"replaceWith"},function(a,b){m.fn[a]=function(a){for(var c,d=0,e=[],g=m(a),h=g.length-1;h>=d;d++)c=d===h?this:this.clone(!0),m(g[d])[b](c),f.apply(e,c.get());return this.pushStack(e)}});var Ca,Da={};function Ea(b,c){var d,e=m(c.createElement(b)).appendTo(c.body),f=a.getDefaultComputedStyle&&(d=a.getDefaultComputedStyle(e[0]))?d.display:m.css(e[0],"display");return e.detach(),f}function Fa(a){var b=y,c=Da[a];return c||(c=Ea(a,b),"none"!==c&&c||(Ca=(Ca||m("<iframe frameborder='0' width='0' height='0'/>")).appendTo(b.documentElement),b=(Ca[0].contentWindow||Ca[0].contentDocument).document,b.write(),b.close(),c=Ea(a,b),Ca.detach()),Da[a]=c),c}!function(){var a;k.shrinkWrapBlocks=function(){if(null!=a)return a;a=!1;var b,c,d;return c=y.getElementsByTagName("body")[0],c&&c.style?(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),typeof b.style.zoom!==K&&(b.style.cssText="-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box;display:block;margin:0;border:0;padding:1px;width:1px;zoom:1",b.appendChild(y.createElement("div")).style.width="5px",a=3!==b.offsetWidth),c.removeChild(d),a):void 0}}();var Ga=/^margin/,Ha=new RegExp("^("+S+")(?!px)[a-z%]+$","i"),Ia,Ja,Ka=/^(top|right|bottom|left)$/;a.getComputedStyle?(Ia=function(b){return b.ownerDocument.defaultView.opener?b.ownerDocument.defaultView.getComputedStyle(b,null):a.getComputedStyle(b,null)},Ja=function(a,b,c){var d,e,f,g,h=a.style;return c=c||Ia(a),g=c?c.getPropertyValue(b)||c[b]:void 0,c&&(""!==g||m.contains(a.ownerDocument,a)||(g=m.style(a,b)),Ha.test(g)&&Ga.test(b)&&(d=h.width,e=h.minWidth,f=h.maxWidth,h.minWidth=h.maxWidth=h.width=g,g=c.width,h.width=d,h.minWidth=e,h.maxWidth=f)),void 0===g?g:g+""}):y.documentElement.currentStyle&&(Ia=function(a){return a.currentStyle},Ja=function(a,b,c){var d,e,f,g,h=a.style;return c=c||Ia(a),g=c?c[b]:void 0,null==g&&h&&h[b]&&(g=h[b]),Ha.test(g)&&!Ka.test(b)&&(d=h.left,e=a.runtimeStyle,f=e&&e.left,f&&(e.left=a.currentStyle.left),h.left="fontSize"===b?"1em":g,g=h.pixelLeft+"px",h.left=d,f&&(e.left=f)),void 0===g?g:g+""||"auto"});function La(a,b){return{get:function(){var c=a();if(null!=c)return c?void delete this.get:(this.get=b).apply(this,arguments)}}}!function(){var b,c,d,e,f,g,h;if(b=y.createElement("div"),b.innerHTML="  <link/><table></table><a href='/a'>a</a><input type='checkbox'/>",d=b.getElementsByTagName("a")[0],c=d&&d.style){c.cssText="float:left;opacity:.5",k.opacity="0.5"===c.opacity,k.cssFloat=!!c.cssFloat,b.style.backgroundClip="content-box",b.cloneNode(!0).style.backgroundClip="",k.clearCloneStyle="content-box"===b.style.backgroundClip,k.boxSizing=""===c.boxSizing||""===c.MozBoxSizing||""===c.WebkitBoxSizing,m.extend(k,{reliableHiddenOffsets:function(){return null==g&&i(),g},boxSizingReliable:function(){return null==f&&i(),f},pixelPosition:function(){return null==e&&i(),e},reliableMarginRight:function(){return null==h&&i(),h}});function i(){var b,c,d,i;c=y.getElementsByTagName("body")[0],c&&c.style&&(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),b.style.cssText="-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;display:block;margin-top:1%;top:1%;border:1px;padding:1px;width:4px;position:absolute",e=f=!1,h=!0,a.getComputedStyle&&(e="1%"!==(a.getComputedStyle(b,null)||{}).top,f="4px"===(a.getComputedStyle(b,null)||{width:"4px"}).width,i=b.appendChild(y.createElement("div")),i.style.cssText=b.style.cssText="-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box;display:block;margin:0;border:0;padding:0",i.style.marginRight=i.style.width="0",b.style.width="1px",h=!parseFloat((a.getComputedStyle(i,null)||{}).marginRight),b.removeChild(i)),b.innerHTML="<table><tr><td></td><td>t</td></tr></table>",i=b.getElementsByTagName("td"),i[0].style.cssText="margin:0;border:0;padding:0;display:none",g=0===i[0].offsetHeight,g&&(i[0].style.display="",i[1].style.display="none",g=0===i[0].offsetHeight),c.removeChild(d))}}}(),m.swap=function(a,b,c,d){var e,f,g={};for(f in b)g[f]=a.style[f],a.style[f]=b[f];e=c.apply(a,d||[]);for(f in b)a.style[f]=g[f];return e};var Ma=/alpha\([^)]*\)/i,Na=/opacity\s*=\s*([^)]*)/,Oa=/^(none|table(?!-c[ea]).+)/,Pa=new RegExp("^("+S+")(.*)$","i"),Qa=new RegExp("^([+-])=("+S+")","i"),Ra={position:"absolute",visibility:"hidden",display:"block"},Sa={letterSpacing:"0",fontWeight:"400"},Ta=["Webkit","O","Moz","ms"];function Ua(a,b){if(b in a)return b;var c=b.charAt(0).toUpperCase()+b.slice(1),d=b,e=Ta.length;while(e--)if(b=Ta[e]+c,b in a)return b;return d}function Va(a,b){for(var c,d,e,f=[],g=0,h=a.length;h>g;g++)d=a[g],d.style&&(f[g]=m._data(d,"olddisplay"),c=d.style.display,b?(f[g]||"none"!==c||(d.style.display=""),""===d.style.display&&U(d)&&(f[g]=m._data(d,"olddisplay",Fa(d.nodeName)))):(e=U(d),(c&&"none"!==c||!e)&&m._data(d,"olddisplay",e?c:m.css(d,"display"))));for(g=0;h>g;g++)d=a[g],d.style&&(b&&"none"!==d.style.display&&""!==d.style.display||(d.style.display=b?f[g]||"":"none"));return a}function Wa(a,b,c){var d=Pa.exec(b);return d?Math.max(0,d[1]-(c||0))+(d[2]||"px"):b}function Xa(a,b,c,d,e){for(var f=c===(d?"border":"content")?4:"width"===b?1:0,g=0;4>f;f+=2)"margin"===c&&(g+=m.css(a,c+T[f],!0,e)),d?("content"===c&&(g-=m.css(a,"padding"+T[f],!0,e)),"margin"!==c&&(g-=m.css(a,"border"+T[f]+"Width",!0,e))):(g+=m.css(a,"padding"+T[f],!0,e),"padding"!==c&&(g+=m.css(a,"border"+T[f]+"Width",!0,e)));return g}function Ya(a,b,c){var d=!0,e="width"===b?a.offsetWidth:a.offsetHeight,f=Ia(a),g=k.boxSizing&&"border-box"===m.css(a,"boxSizing",!1,f);if(0>=e||null==e){if(e=Ja(a,b,f),(0>e||null==e)&&(e=a.style[b]),Ha.test(e))return e;d=g&&(k.boxSizingReliable()||e===a.style[b]),e=parseFloat(e)||0}return e+Xa(a,b,c||(g?"border":"content"),d,f)+"px"}m.extend({cssHooks:{opacity:{get:function(a,b){if(b){var c=Ja(a,"opacity");return""===c?"1":c}}}},cssNumber:{columnCount:!0,fillOpacity:!0,flexGrow:!0,flexShrink:!0,fontWeight:!0,lineHeight:!0,opacity:!0,order:!0,orphans:!0,widows:!0,zIndex:!0,zoom:!0},cssProps:{"float":k.cssFloat?"cssFloat":"styleFloat"},style:function(a,b,c,d){if(a&&3!==a.nodeType&&8!==a.nodeType&&a.style){var e,f,g,h=m.camelCase(b),i=a.style;if(b=m.cssProps[h]||(m.cssProps[h]=Ua(i,h)),g=m.cssHooks[b]||m.cssHooks[h],void 0===c)return g&&"get"in g&&void 0!==(e=g.get(a,!1,d))?e:i[b];if(f=typeof c,"string"===f&&(e=Qa.exec(c))&&(c=(e[1]+1)*e[2]+parseFloat(m.css(a,b)),f="number"),null!=c&&c===c&&("number"!==f||m.cssNumber[h]||(c+="px"),k.clearCloneStyle||""!==c||0!==b.indexOf("background")||(i[b]="inherit"),!(g&&"set"in g&&void 0===(c=g.set(a,c,d)))))try{i[b]=c}catch(j){}}},css:function(a,b,c,d){var e,f,g,h=m.camelCase(b);return b=m.cssProps[h]||(m.cssProps[h]=Ua(a.style,h)),g=m.cssHooks[b]||m.cssHooks[h],g&&"get"in g&&(f=g.get(a,!0,c)),void 0===f&&(f=Ja(a,b,d)),"normal"===f&&b in Sa&&(f=Sa[b]),""===c||c?(e=parseFloat(f),c===!0||m.isNumeric(e)?e||0:f):f}}),m.each(["height","width"],function(a,b){m.cssHooks[b]={get:function(a,c,d){return c?Oa.test(m.css(a,"display"))&&0===a.offsetWidth?m.swap(a,Ra,function(){return Ya(a,b,d)}):Ya(a,b,d):void 0},set:function(a,c,d){var e=d&&Ia(a);return Wa(a,c,d?Xa(a,b,d,k.boxSizing&&"border-box"===m.css(a,"boxSizing",!1,e),e):0)}}}),k.opacity||(m.cssHooks.opacity={get:function(a,b){return Na.test((b&&a.currentStyle?a.currentStyle.filter:a.style.filter)||"")?.01*parseFloat(RegExp.$1)+"":b?"1":""},set:function(a,b){var c=a.style,d=a.currentStyle,e=m.isNumeric(b)?"alpha(opacity="+100*b+")":"",f=d&&d.filter||c.filter||"";c.zoom=1,(b>=1||""===b)&&""===m.trim(f.replace(Ma,""))&&c.removeAttribute&&(c.removeAttribute("filter"),""===b||d&&!d.filter)||(c.filter=Ma.test(f)?f.replace(Ma,e):f+" "+e)}}),m.cssHooks.marginRight=La(k.reliableMarginRight,function(a,b){return b?m.swap(a,{display:"inline-block"},Ja,[a,"marginRight"]):void 0}),m.each({margin:"",padding:"",border:"Width"},function(a,b){m.cssHooks[a+b]={expand:function(c){for(var d=0,e={},f="string"==typeof c?c.split(" "):[c];4>d;d++)e[a+T[d]+b]=f[d]||f[d-2]||f[0];return e}},Ga.test(a)||(m.cssHooks[a+b].set=Wa)}),m.fn.extend({css:function(a,b){return V(this,function(a,b,c){var d,e,f={},g=0;if(m.isArray(b)){for(d=Ia(a),e=b.length;e>g;g++)f[b[g]]=m.css(a,b[g],!1,d);return f}return void 0!==c?m.style(a,b,c):m.css(a,b)},a,b,arguments.length>1)},show:function(){return Va(this,!0)},hide:function(){return Va(this)},toggle:function(a){return"boolean"==typeof a?a?this.show():this.hide():this.each(function(){U(this)?m(this).show():m(this).hide()})}});function Za(a,b,c,d,e){
 return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,init:function(a,b,c,d,e,f){this.elem=a,this.prop=c,this.easing=e||"swing",this.options=b,this.start=this.now=this.cur(),this.end=d,this.unit=f||(m.cssNumber[c]?"":"px")},cur:function(){var a=Za.propHooks[this.prop];return a&&a.get?a.get(this):Za.propHooks._default.get(this)},run:function(a){var b,c=Za.propHooks[this.prop];return this.options.duration?this.pos=b=m.easing[this.easing](a,this.options.duration*a,0,1,this.options.duration):this.pos=b=a,this.now=(this.end-this.start)*b+this.start,this.options.step&&this.options.step.call(this.elem,this.now,this),c&&c.set?c.set(this):Za.propHooks._default.set(this),this}},Za.prototype.init.prototype=Za.prototype,Za.propHooks={_default:{get:function(a){var b;return null==a.elem[a.prop]||a.elem.style&&null!=a.elem.style[a.prop]?(b=m.css(a.elem,a.prop,""),b&&"auto"!==b?b:0):a.elem[a.prop]},set:function(a){m.fx.step[a.prop]?m.fx.step[a.prop](a):a.elem.style&&(null!=a.elem.style[m.cssProps[a.prop]]||m.cssHooks[a.prop])?m.style(a.elem,a.prop,a.now+a.unit):a.elem[a.prop]=a.now}}},Za.propHooks.scrollTop=Za.propHooks.scrollLeft={set:function(a){a.elem.nodeType&&a.elem.parentNode&&(a.elem[a.prop]=a.now)}},m.easing={linear:function(a){return a},swing:function(a){return.5-Math.cos(a*Math.PI)/2}},m.fx=Za.prototype.init,m.fx.step={};var $a,_a,ab=/^(?:toggle|show|hide)$/,bb=new RegExp("^(?:([+-])=|)("+S+")([a-z%]*)$","i"),cb=/queueHooks$/,db=[ib],eb={"*":[function(a,b){var c=this.createTween(a,b),d=c.cur(),e=bb.exec(b),f=e&&e[3]||(m.cssNumber[a]?"":"px"),g=(m.cssNumber[a]||"px"!==f&&+d)&&bb.exec(m.css(c.elem,a)),h=1,i=20;if(g&&g[3]!==f){f=f||g[3],e=e||[],g=+d||1;do h=h||".5",g/=h,m.style(c.elem,a,g+f);while(h!==(h=c.cur()/d)&&1!==h&&--i)}return e&&(g=c.start=+g||+d||0,c.unit=f,c.end=e[1]?g+(e[1]+1)*e[2]:+e[2]),c}]};function fb(){return setTimeout(function(){$a=void 0}),$a=m.now()}function gb(a,b){var c,d={height:a},e=0;for(b=b?1:0;4>e;e+=2-b)c=T[e],d["margin"+c]=d["padding"+c]=a;return b&&(d.opacity=d.width=a),d}function hb(a,b,c){for(var d,e=(eb[b]||[]).concat(eb["*"]),f=0,g=e.length;g>f;f++)if(d=e[f].call(c,b,a))return d}function ib(a,b,c){var d,e,f,g,h,i,j,l,n=this,o={},p=a.style,q=a.nodeType&&U(a),r=m._data(a,"fxshow");c.queue||(h=m._queueHooks(a,"fx"),null==h.unqueued&&(h.unqueued=0,i=h.empty.fire,h.empty.fire=function(){h.unqueued||i()}),h.unqueued++,n.always(function(){n.always(function(){h.unqueued--,m.queue(a,"fx").length||h.empty.fire()})})),1===a.nodeType&&("height"in b||"width"in b)&&(c.overflow=[p.overflow,p.overflowX,p.overflowY],j=m.css(a,"display"),l="none"===j?m._data(a,"olddisplay")||Fa(a.nodeName):j,"inline"===l&&"none"===m.css(a,"float")&&(k.inlineBlockNeedsLayout&&"inline"!==Fa(a.nodeName)?p.zoom=1:p.display="inline-block")),c.overflow&&(p.overflow="hidden",k.shrinkWrapBlocks()||n.always(function(){p.overflow=c.overflow[0],p.overflowX=c.overflow[1],p.overflowY=c.overflow[2]}));for(d in b)if(e=b[d],ab.exec(e)){if(delete b[d],f=f||"toggle"===e,e===(q?"hide":"show")){if("show"!==e||!r||void 0===r[d])continue;q=!0}o[d]=r&&r[d]||m.style(a,d)}else j=void 0;if(m.isEmptyObject(o))"inline"===("none"===j?Fa(a.nodeName):j)&&(p.display=j);else{r?"hidden"in r&&(q=r.hidden):r=m._data(a,"fxshow",{}),f&&(r.hidden=!q),q?m(a).show():n.done(function(){m(a).hide()}),n.done(function(){var b;m._removeData(a,"fxshow");for(b in o)m.style(a,b,o[b])});for(d in o)g=hb(q?r[d]:0,d,n),d in r||(r[d]=g.start,q&&(g.end=g.start,g.start="width"===d||"height"===d?1:0))}}function jb(a,b){var c,d,e,f,g;for(c in a)if(d=m.camelCase(c),e=b[d],f=a[c],m.isArray(f)&&(e=f[1],f=a[c]=f[0]),c!==d&&(a[d]=f,delete a[c]),g=m.cssHooks[d],g&&"expand"in g){f=g.expand(f),delete a[d];for(c in f)c in a||(a[c]=f[c],b[c]=e)}else b[d]=e}function kb(a,b,c){var d,e,f=0,g=db.length,h=m.Deferred().always(function(){delete i.elem}),i=function(){if(e)return!1;for(var b=$a||fb(),c=Math.max(0,j.startTime+j.duration-b),d=c/j.duration||0,f=1-d,g=0,i=j.tweens.length;i>g;g++)j.tweens[g].run(f);return h.notifyWith(a,[j,f,c]),1>f&&i?c:(h.resolveWith(a,[j]),!1)},j=h.promise({elem:a,props:m.extend({},b),opts:m.extend(!0,{specialEasing:{}},c),originalProperties:b,originalOptions:c,startTime:$a||fb(),duration:c.duration,tweens:[],createTween:function(b,c){var d=m.Tween(a,j.opts,b,c,j.opts.specialEasing[b]||j.opts.easing);return j.tweens.push(d),d},stop:function(b){var c=0,d=b?j.tweens.length:0;if(e)return this;for(e=!0;d>c;c++)j.tweens[c].run(1);return b?h.resolveWith(a,[j,b]):h.rejectWith(a,[j,b]),this}}),k=j.props;for(jb(k,j.opts.specialEasing);g>f;f++)if(d=db[f].call(j,a,k,j.opts))return d;return m.map(k,hb,j),m.isFunction(j.opts.start)&&j.opts.start.call(a,j),m.fx.timer(m.extend(i,{elem:a,anim:j,queue:j.opts.queue})),j.progress(j.opts.progress).done(j.opts.done,j.opts.complete).fail(j.opts.fail).always(j.opts.always)}m.Animation=m.extend(kb,{tweener:function(a,b){m.isFunction(a)?(b=a,a=["*"]):a=a.split(" ");for(var c,d=0,e=a.length;e>d;d++)c=a[d],eb[c]=eb[c]||[],eb[c].unshift(b)},prefilter:function(a,b){b?db.unshift(a):db.push(a)}}),m.speed=function(a,b,c){var d=a&&"object"==typeof a?m.extend({},a):{complete:c||!c&&b||m.isFunction(a)&&a,duration:a,easing:c&&b||b&&!m.isFunction(b)&&b};return d.duration=m.fx.off?0:"number"==typeof d.duration?d.duration:d.duration in m.fx.speeds?m.fx.speeds[d.duration]:m.fx.speeds._default,(null==d.queue||d.queue===!0)&&(d.queue="fx"),d.old=d.complete,d.complete=function(){m.isFunction(d.old)&&d.old.call(this),d.queue&&m.dequeue(this,d.queue)},d},m.fn.extend({fadeTo:function(a,b,c,d){return this.filter(U).css("opacity",0).show().end().animate({opacity:b},a,c,d)},animate:function(a,b,c,d){var e=m.isEmptyObject(a),f=m.speed(b,c,d),g=function(){var b=kb(this,m.extend({},a),f);(e||m._data(this,"finish"))&&b.stop(!0)};return g.finish=g,e||f.queue===!1?this.each(g):this.queue(f.queue,g)},stop:function(a,b,c){var d=function(a){var b=a.stop;delete a.stop,b(c)};return"string"!=typeof a&&(c=b,b=a,a=void 0),b&&a!==!1&&this.queue(a||"fx",[]),this.each(function(){var b=!0,e=null!=a&&a+"queueHooks",f=m.timers,g=m._data(this);if(e)g[e]&&g[e].stop&&d(g[e]);else for(e in g)g[e]&&g[e].stop&&cb.test(e)&&d(g[e]);for(e=f.length;e--;)f[e].elem!==this||null!=a&&f[e].queue!==a||(f[e].anim.stop(c),b=!1,f.splice(e,1));(b||!c)&&m.dequeue(this,a)})},finish:function(a){return a!==!1&&(a=a||"fx"),this.each(function(){var b,c=m._data(this),d=c[a+"queue"],e=c[a+"queueHooks"],f=m.timers,g=d?d.length:0;for(c.finish=!0,m.queue(this,a,[]),e&&e.stop&&e.stop.call(this,!0),b=f.length;b--;)f[b].elem===this&&f[b].queue===a&&(f[b].anim.stop(!0),f.splice(b,1));for(b=0;g>b;b++)d[b]&&d[b].finish&&d[b].finish.call(this);delete c.finish})}}),m.each(["toggle","show","hide"],function(a,b){var c=m.fn[b];m.fn[b]=function(a,d,e){return null==a||"boolean"==typeof a?c.apply(this,arguments):this.animate(gb(b,!0),a,d,e)}}),m.each({slideDown:gb("show"),slideUp:gb("hide"),slideToggle:gb("toggle"),fadeIn:{opacity:"show"},fadeOut:{opacity:"hide"},fadeToggle:{opacity:"toggle"}},function(a,b){m.fn[a]=function(a,c,d){return this.animate(b,a,c,d)}}),m.timers=[],m.fx.tick=function(){var a,b=m.timers,c=0;for($a=m.now();c<b.length;c++)a=b[c],a()||b[c]!==a||b.splice(c--,1);b.length||m.fx.stop(),$a=void 0},m.fx.timer=function(a){m.timers.push(a),a()?m.fx.start():m.timers.pop()},m.fx.interval=13,m.fx.start=function(){_a||(_a=setInterval(m.fx.tick,m.fx.interval))},m.fx.stop=function(){clearInterval(_a),_a=null},m.fx.speeds={slow:600,fast:200,_default:400},m.fn.delay=function(a,b){return a=m.fx?m.fx.speeds[a]||a:a,b=b||"fx",this.queue(b,function(b,c){var d=setTimeout(b,a);c.stop=function(){clearTimeout(d)}})},function(){var a,b,c,d,e;b=y.createElement("div"),b.setAttribute("className","t"),b.innerHTML="  <link/><table></table><a href='/a'>a</a><input type='checkbox'/>",d=b.getElementsByTagName("a")[0],c=y.createElement("select"),e=c.appendChild(y.createElement("option")),a=b.getElementsByTagName("input")[0],d.style.cssText="top:1px",k.getSetAttribute="t"!==b.className,k.style=/top/.test(d.getAttribute("style")),k.hrefNormalized="/a"===d.getAttribute("href"),k.checkOn=!!a.value,k.optSelected=e.selected,k.enctype=!!y.createElement("form").enctype,c.disabled=!0,k.optDisabled=!e.disabled,a=y.createElement("input"),a.setAttribute("value",""),k.input=""===a.getAttribute("value"),a.value="t",a.setAttribute("type","radio"),k.radioValue="t"===a.value}();var lb=/\r/g;m.fn.extend({val:function(a){var b,c,d,e=this[0];{if(arguments.length)return d=m.isFunction(a),this.each(function(c){var e;1===this.nodeType&&(e=d?a.call(this,c,m(this).val()):a,null==e?e="":"number"==typeof e?e+="":m.isArray(e)&&(e=m.map(e,function(a){return null==a?"":a+""})),b=m.valHooks[this.type]||m.valHooks[this.nodeName.toLowerCase()],b&&"set"in b&&void 0!==b.set(this,e,"value")||(this.value=e))});if(e)return b=m.valHooks[e.type]||m.valHooks[e.nodeName.toLowerCase()],b&&"get"in b&&void 0!==(c=b.get(e,"value"))?c:(c=e.value,"string"==typeof c?c.replace(lb,""):null==c?"":c)}}}),m.extend({valHooks:{option:{get:function(a){var b=m.find.attr(a,"value");return null!=b?b:m.trim(m.text(a))}},select:{get:function(a){for(var b,c,d=a.options,e=a.selectedIndex,f="select-one"===a.type||0>e,g=f?null:[],h=f?e+1:d.length,i=0>e?h:f?e:0;h>i;i++)if(c=d[i],!(!c.selected&&i!==e||(k.optDisabled?c.disabled:null!==c.getAttribute("disabled"))||c.parentNode.disabled&&m.nodeName(c.parentNode,"optgroup"))){if(b=m(c).val(),f)return b;g.push(b)}return g},set:function(a,b){var c,d,e=a.options,f=m.makeArray(b),g=e.length;while(g--)if(d=e[g],m.inArray(m.valHooks.option.get(d),f)>=0)try{d.selected=c=!0}catch(h){d.scrollHeight}else d.selected=!1;return c||(a.selectedIndex=-1),e}}}}),m.each(["radio","checkbox"],function(){m.valHooks[this]={set:function(a,b){return m.isArray(b)?a.checked=m.inArray(m(a).val(),b)>=0:void 0}},k.checkOn||(m.valHooks[this].get=function(a){return null===a.getAttribute("value")?"on":a.value})});var mb,nb,ob=m.expr.attrHandle,pb=/^(?:checked|selected)$/i,qb=k.getSetAttribute,rb=k.input;m.fn.extend({attr:function(a,b){return V(this,m.attr,a,b,arguments.length>1)},removeAttr:function(a){return this.each(function(){m.removeAttr(this,a)})}}),m.extend({attr:function(a,b,c){var d,e,f=a.nodeType;if(a&&3!==f&&8!==f&&2!==f)return typeof a.getAttribute===K?m.prop(a,b,c):(1===f&&m.isXMLDoc(a)||(b=b.toLowerCase(),d=m.attrHooks[b]||(m.expr.match.bool.test(b)?nb:mb)),void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=m.find.attr(a,b),null==e?void 0:e):null!==c?d&&"set"in d&&void 0!==(e=d.set(a,c,b))?e:(a.setAttribute(b,c+""),c):void m.removeAttr(a,b))},removeAttr:function(a,b){var c,d,e=0,f=b&&b.match(E);if(f&&1===a.nodeType)while(c=f[e++])d=m.propFix[c]||c,m.expr.match.bool.test(c)?rb&&qb||!pb.test(c)?a[d]=!1:a[m.camelCase("default-"+c)]=a[d]=!1:m.attr(a,c,""),a.removeAttribute(qb?c:d)},attrHooks:{type:{set:function(a,b){if(!k.radioValue&&"radio"===b&&m.nodeName(a,"input")){var c=a.value;return a.setAttribute("type",b),c&&(a.value=c),b}}}}}),nb={set:function(a,b,c){return b===!1?m.removeAttr(a,c):rb&&qb||!pb.test(c)?a.setAttribute(!qb&&m.propFix[c]||c,c):a[m.camelCase("default-"+c)]=a[c]=!0,c}},m.each(m.expr.match.bool.source.match(/\w+/g),function(a,b){var c=ob[b]||m.find.attr;ob[b]=rb&&qb||!pb.test(b)?function(a,b,d){var e,f;return d||(f=ob[b],ob[b]=e,e=null!=c(a,b,d)?b.toLowerCase():null,ob[b]=f),e}:function(a,b,c){return c?void 0:a[m.camelCase("default-"+b)]?b.toLowerCase():null}}),rb&&qb||(m.attrHooks.value={set:function(a,b,c){return m.nodeName(a,"input")?void(a.defaultValue=b):mb&&mb.set(a,b,c)}}),qb||(mb={set:function(a,b,c){var d=a.getAttributeNode(c);return d||a.setAttributeNode(d=a.ownerDocument.createAttribute(c)),d.value=b+="","value"===c||b===a.getAttribute(c)?b:void 0}},ob.id=ob.name=ob.coords=function(a,b,c){var d;return c?void 0:(d=a.getAttributeNode(b))&&""!==d.value?d.value:null},m.valHooks.button={get:function(a,b){var c=a.getAttributeNode(b);return c&&c.specified?c.value:void 0},set:mb.set},m.attrHooks.contenteditable={set:function(a,b,c){mb.set(a,""===b?!1:b,c)}},m.each(["width","height"],function(a,b){m.attrHooks[b]={set:function(a,c){return""===c?(a.setAttribute(b,"auto"),c):void 0}}})),k.style||(m.attrHooks.style={get:function(a){return a.style.cssText||void 0},set:function(a,b){return a.style.cssText=b+""}});var sb=/^(?:input|select|textarea|button|object)$/i,tb=/^(?:a|area)$/i;m.fn.extend({prop:function(a,b){return V(this,m.prop,a,b,arguments.length>1)},removeProp:function(a){return a=m.propFix[a]||a,this.each(function(){try{this[a]=void 0,delete this[a]}catch(b){}})}}),m.extend({propFix:{"for":"htmlFor","class":"className"},prop:function(a,b,c){var d,e,f,g=a.nodeType;if(a&&3!==g&&8!==g&&2!==g)return f=1!==g||!m.isXMLDoc(a),f&&(b=m.propFix[b]||b,e=m.propHooks[b]),void 0!==c?e&&"set"in e&&void 0!==(d=e.set(a,c,b))?d:a[b]=c:e&&"get"in e&&null!==(d=e.get(a,b))?d:a[b]},propHooks:{tabIndex:{get:function(a){var b=m.find.attr(a,"tabindex");return b?parseInt(b,10):sb.test(a.nodeName)||tb.test(a.nodeName)&&a.href?0:-1}}}}),k.hrefNormalized||m.each(["href","src"],function(a,b){m.propHooks[b]={get:function(a){return a.getAttribute(b,4)}}}),k.optSelected||(m.propHooks.selected={get:function(a){var b=a.parentNode;return b&&(b.selectedIndex,b.parentNode&&b.parentNode.selectedIndex),null}}),m.each(["tabIndex","readOnly","maxLength","cellSpacing","cellPadding","rowSpan","colSpan","useMap","frameBorder","contentEditable"],function(){m.propFix[this.toLowerCase()]=this}),k.enctype||(m.propFix.enctype="encoding");var ub=/[\t\r\n\f]/g;m.fn.extend({addClass:function(a){var b,c,d,e,f,g,h=0,i=this.length,j="string"==typeof a&&a;if(m.isFunction(a))return this.each(function(b){m(this).addClass(a.call(this,b,this.className))});if(j)for(b=(a||"").match(E)||[];i>h;h++)if(c=this[h],d=1===c.nodeType&&(c.className?(" "+c.className+" ").replace(ub," "):" ")){f=0;while(e=b[f++])d.indexOf(" "+e+" ")<0&&(d+=e+" ");g=m.trim(d),c.className!==g&&(c.className=g)}return this},removeClass:function(a){var b,c,d,e,f,g,h=0,i=this.length,j=0===arguments.length||"string"==typeof a&&a;if(m.isFunction(a))return this.each(function(b){m(this).removeClass(a.call(this,b,this.className))});if(j)for(b=(a||"").match(E)||[];i>h;h++)if(c=this[h],d=1===c.nodeType&&(c.className?(" "+c.className+" ").replace(ub," "):"")){f=0;while(e=b[f++])while(d.indexOf(" "+e+" ")>=0)d=d.replace(" "+e+" "," ");g=a?m.trim(d):"",c.className!==g&&(c.className=g)}return this},toggleClass:function(a,b){var c=typeof a;return"boolean"==typeof b&&"string"===c?b?this.addClass(a):this.removeClass(a):this.each(m.isFunction(a)?function(c){m(this).toggleClass(a.call(this,c,this.className,b),b)}:function(){if("string"===c){var b,d=0,e=m(this),f=a.match(E)||[];while(b=f[d++])e.hasClass(b)?e.removeClass(b):e.addClass(b)}else(c===K||"boolean"===c)&&(this.className&&m._data(this,"__className__",this.className),this.className=this.className||a===!1?"":m._data(this,"__className__")||"")})},hasClass:function(a){for(var b=" "+a+" ",c=0,d=this.length;d>c;c++)if(1===this[c].nodeType&&(" "+this[c].className+" ").replace(ub," ").indexOf(b)>=0)return!0;return!1}}),m.each("blur focus focusin focusout load resize scroll unload click dblclick mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave change select submit keydown keypress keyup error contextmenu".split(" "),function(a,b){m.fn[b]=function(a,c){return arguments.length>0?this.on(b,null,a,c):this.trigger(b)}}),m.fn.extend({hover:function(a,b){return this.mouseenter(a).mouseleave(b||a)},bind:function(a,b,c){return this.on(a,null,b,c)},unbind:function(a,b){return this.off(a,null,b)},delegate:function(a,b,c,d){return this.on(b,a,c,d)},undelegate:function(a,b,c){return 1===arguments.length?this.off(a,"**"):this.off(b,a||"**",c)}});var vb=m.now(),wb=/\?/,xb=/(,)|(\[|{)|(}|])|"(?:[^"\\\r\n]|\\["\\\/bfnrt]|\\u[\da-fA-F]{4})*"\s*:?|true|false|null|-?(?!0\d)\d+(?:\.\d+|)(?:[eE][+-]?\d+|)/g;m.parseJSON=function(b){if(a.JSON&&a.JSON.parse)return a.JSON.parse(b+"");var c,d=null,e=m.trim(b+"");return e&&!m.trim(e.replace(xb,function(a,b,e,f){return c&&b&&(d=0),0===d?a:(c=e||b,d+=!f-!e,"")}))?Function("return "+e)():m.error("Invalid JSON: "+b)},m.parseXML=function(b){var c,d;if(!b||"string"!=typeof b)return null;try{a.DOMParser?(d=new DOMParser,c=d.parseFromString(b,"text/xml")):(c=new ActiveXObject("Microsoft.XMLDOM"),c.async="false",c.loadXML(b))}catch(e){c=void 0}return c&&c.documentElement&&!c.getElementsByTagName("parsererror").length||m.error("Invalid XML: "+b),c};var yb,zb,Ab=/#.*$/,Bb=/([?&])_=[^&]*/,Cb=/^(.*?):[ \t]*([^\r\n]*)\r?$/gm,Db=/^(?:about|app|app-storage|.+-extension|file|res|widget):$/,Eb=/^(?:GET|HEAD)$/,Fb=/^\/\//,Gb=/^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,Hb={},Ib={},Jb="*/".concat("*");try{zb=location.href}catch(Kb){zb=y.createElement("a"),zb.href="",zb=zb.href}yb=Gb.exec(zb.toLowerCase())||[];function Lb(a){return function(b,c){"string"!=typeof b&&(c=b,b="*");var d,e=0,f=b.toLowerCase().match(E)||[];if(m.isFunction(c))while(d=f[e++])"+"===d.charAt(0)?(d=d.slice(1)||"*",(a[d]=a[d]||[]).unshift(c)):(a[d]=a[d]||[]).push(c)}}function Mb(a,b,c,d){var e={},f=a===Ib;function g(h){var i;return e[h]=!0,m.each(a[h]||[],function(a,h){var j=h(b,c,d);return"string"!=typeof j||f||e[j]?f?!(i=j):void 0:(b.dataTypes.unshift(j),g(j),!1)}),i}return g(b.dataTypes[0])||!e["*"]&&g("*")}function Nb(a,b){var c,d,e=m.ajaxSettings.flatOptions||{};for(d in b)void 0!==b[d]&&((e[d]?a:c||(c={}))[d]=b[d]);return c&&m.extend(!0,a,c),a}function Ob(a,b,c){var d,e,f,g,h=a.contents,i=a.dataTypes;while("*"===i[0])i.shift(),void 0===e&&(e=a.mimeType||b.getResponseHeader("Content-Type"));if(e)for(g in h)if(h[g]&&h[g].test(e)){i.unshift(g);break}if(i[0]in c)f=i[0];else{for(g in c){if(!i[0]||a.converters[g+" "+i[0]]){f=g;break}d||(d=g)}f=f||d}return f?(f!==i[0]&&i.unshift(f),c[f]):void 0}function Pb(a,b,c,d){var e,f,g,h,i,j={},k=a.dataTypes.slice();if(k[1])for(g in a.converters)j[g.toLowerCase()]=a.converters[g];f=k.shift();while(f)if(a.responseFields[f]&&(c[a.responseFields[f]]=b),!i&&d&&a.dataFilter&&(b=a.dataFilter(b,a.dataType)),i=f,f=k.shift())if("*"===f)f=i;else if("*"!==i&&i!==f){if(g=j[i+" "+f]||j["* "+f],!g)for(e in j)if(h=e.split(" "),h[1]===f&&(g=j[i+" "+h[0]]||j["* "+h[0]])){g===!0?g=j[e]:j[e]!==!0&&(f=h[0],k.unshift(h[1]));break}if(g!==!0)if(g&&a["throws"])b=g(b);else try{b=g(b)}catch(l){return{state:"parsererror",error:g?l:"No conversion from "+i+" to "+f}}}return{state:"success",data:b}}m.extend({active:0,lastModified:{},etag:{},ajaxSettings:{url:zb,type:"GET",isLocal:Db.test(yb[1]),global:!0,processData:!0,async:!0,contentType:"application/x-www-form-urlencoded; charset=UTF-8",accepts:{"*":Jb,text:"text/plain",html:"text/html",xml:"application/xml, text/xml",json:"application/json, text/javascript"},contents:{xml:/xml/,html:/html/,json:/json/},responseFields:{xml:"responseXML",text:"responseText",json:"responseJSON"},converters:{"* text":String,"text html":!0,"text json":m.parseJSON,"text xml":m.parseXML},flatOptions:{url:!0,context:!0}},ajaxSetup:function(a,b){return b?Nb(Nb(a,m.ajaxSettings),b):Nb(m.ajaxSettings,a)},ajaxPrefilter:Lb(Hb),ajaxTransport:Lb(Ib),ajax:function(a,b){"object"==typeof a&&(b=a,a=void 0),b=b||{};var c,d,e,f,g,h,i,j,k=m.ajaxSetup({},b),l=k.context||k,n=k.context&&(l.nodeType||l.jquery)?m(l):m.event,o=m.Deferred(),p=m.Callbacks("once memory"),q=k.statusCode||{},r={},s={},t=0,u="canceled",v={readyState:0,getResponseHeader:function(a){var b;if(2===t){if(!j){j={};while(b=Cb.exec(f))j[b[1].toLowerCase()]=b[2]}b=j[a.toLowerCase()]}return null==b?null:b},getAllResponseHeaders:function(){return 2===t?f:null},setRequestHeader:function(a,b){var c=a.toLowerCase();return t||(a=s[c]=s[c]||a,r[a]=b),this},overrideMimeType:function(a){return t||(k.mimeType=a),this},statusCode:function(a){var b;if(a)if(2>t)for(b in a)q[b]=[q[b],a[b]];else v.always(a[v.status]);return this},abort:function(a){var b=a||u;return i&&i.abort(b),x(0,b),this}};if(o.promise(v).complete=p.add,v.success=v.done,v.error=v.fail,k.url=((a||k.url||zb)+"").replace(Ab,"").replace(Fb,yb[1]+"//"),k.type=b.method||b.type||k.method||k.type,k.dataTypes=m.trim(k.dataType||"*").toLowerCase().match(E)||[""],null==k.crossDomain&&(c=Gb.exec(k.url.toLowerCase()),k.crossDomain=!(!c||c[1]===yb[1]&&c[2]===yb[2]&&(c[3]||("http:"===c[1]?"80":"443"))===(yb[3]||("http:"===yb[1]?"80":"443")))),k.data&&k.processData&&"string"!=typeof k.data&&(k.data=m.param(k.data,k.traditional)),Mb(Hb,k,b,v),2===t)return v;h=m.event&&k.global,h&&0===m.active++&&m.event.trigger("ajaxStart"),k.type=k.type.toUpperCase(),k.hasContent=!Eb.test(k.type),e=k.url,k.hasContent||(k.data&&(e=k.url+=(wb.test(e)?"&":"?")+k.data,delete k.data),k.cache===!1&&(k.url=Bb.test(e)?e.replace(Bb,"$1_="+vb++):e+(wb.test(e)?"&":"?")+"_="+vb++)),k.ifModified&&(m.lastModified[e]&&v.setRequestHeader("If-Modified-Since",m.lastModified[e]),m.etag[e]&&v.setRequestHeader("If-None-Match",m.etag[e])),(k.data&&k.hasContent&&k.contentType!==!1||b.contentType)&&v.setRequestHeader("Content-Type",k.contentType),v.setRequestHeader("Accept",k.dataTypes[0]&&k.accepts[k.dataTypes[0]]?k.accepts[k.dataTypes[0]]+("*"!==k.dataTypes[0]?", "+Jb+"; q=0.01":""):k.accepts["*"]);for(d in k.headers)v.setRequestHeader(d,k.headers[d]);if(k.beforeSend&&(k.beforeSend.call(l,v,k)===!1||2===t))return v.abort();u="abort";for(d in{success:1,error:1,complete:1})v[d](k[d]);if(i=Mb(Ib,k,b,v)){v.readyState=1,h&&n.trigger("ajaxSend",[v,k]),k.async&&k.timeout>0&&(g=setTimeout(function(){v.abort("timeout")},k.timeout));try{t=1,i.send(r,x)}catch(w){if(!(2>t))throw w;x(-1,w)}}else x(-1,"No Transport");function x(a,b,c,d){var j,r,s,u,w,x=b;2!==t&&(t=2,g&&clearTimeout(g),i=void 0,f=d||"",v.readyState=a>0?4:0,j=a>=200&&300>a||304===a,c&&(u=Ob(k,v,c)),u=Pb(k,u,v,j),j?(k.ifModified&&(w=v.getResponseHeader("Last-Modified"),w&&(m.lastModified[e]=w),w=v.getResponseHeader("etag"),w&&(m.etag[e]=w)),204===a||"HEAD"===k.type?x="nocontent":304===a?x="notmodified":(x=u.state,r=u.data,s=u.error,j=!s)):(s=x,(a||!x)&&(x="error",0>a&&(a=0))),v.status=a,v.statusText=(b||x)+"",j?o.resolveWith(l,[r,x,v]):o.rejectWith(l,[v,x,s]),v.statusCode(q),q=void 0,h&&n.trigger(j?"ajaxSuccess":"ajaxError",[v,k,j?r:s]),p.fireWith(l,[v,x]),h&&(n.trigger("ajaxComplete",[v,k]),--m.active||m.event.trigger("ajaxStop")))}return v},getJSON:function(a,b,c){return m.get(a,b,c,"json")},getScript:function(a,b){return m.get(a,void 0,b,"script")}}),m.each(["get","post"],function(a,b){m[b]=function(a,c,d,e){return m.isFunction(c)&&(e=e||d,d=c,c=void 0),m.ajax({url:a,type:b,dataType:e,data:c,success:d})}}),m._evalUrl=function(a){return m.ajax({url:a,type:"GET",dataType:"script",async:!1,global:!1,"throws":!0})},m.fn.extend({wrapAll:function(a){if(m.isFunction(a))return this.each(function(b){m(this).wrapAll(a.call(this,b))});if(this[0]){var b=m(a,this[0].ownerDocument).eq(0).clone(!0);this[0].parentNode&&b.insertBefore(this[0]),b.map(function(){var a=this;while(a.firstChild&&1===a.firstChild.nodeType)a=a.firstChild;return a}).append(this)}return this},wrapInner:function(a){return this.each(m.isFunction(a)?function(b){m(this).wrapInner(a.call(this,b))}:function(){var b=m(this),c=b.contents();c.length?c.wrapAll(a):b.append(a)})},wrap:function(a){var b=m.isFunction(a);return this.each(function(c){m(this).wrapAll(b?a.call(this,c):a)})},unwrap:function(){return this.parent().each(function(){m.nodeName(this,"body")||m(this).replaceWith(this.childNodes)}).end()}}),m.expr.filters.hidden=function(a){return a.offsetWidth<=0&&a.offsetHeight<=0||!k.reliableHiddenOffsets()&&"none"===(a.style&&a.style.display||m.css(a,"display"))},m.expr.filters.visible=function(a){return!m.expr.filters.hidden(a)};var Qb=/%20/g,Rb=/\[\]$/,Sb=/\r?\n/g,Tb=/^(?:submit|button|image|reset|file)$/i,Ub=/^(?:input|select|textarea|keygen)/i;function Vb(a,b,c,d){var e;if(m.isArray(b))m.each(b,function(b,e){c||Rb.test(a)?d(a,e):Vb(a+"["+("object"==typeof e?b:"")+"]",e,c,d)});else if(c||"object"!==m.type(b))d(a,b);else for(e in b)Vb(a+"["+e+"]",b[e],c,d)}m.param=function(a,b){var c,d=[],e=function(a,b){b=m.isFunction(b)?b():null==b?"":b,d[d.length]=encodeURIComponent(a)+"="+encodeURIComponent(b)};if(void 0===b&&(b=m.ajaxSettings&&m.ajaxSettings.traditional),m.isArray(a)||a.jquery&&!m.isPlainObject(a))m.each(a,function(){e(this.name,this.value)});else for(c in a)Vb(c,a[c],b,e);return d.join("&").replace(Qb,"+")},m.fn.extend({serialize:function(){return m.param(this.serializeArray())},serializeArray:function(){return this.map(function(){var a=m.prop(this,"elements");return a?m.makeArray(a):this}).filter(function(){var a=this.type;return this.name&&!m(this).is(":disabled")&&Ub.test(this.nodeName)&&!Tb.test(a)&&(this.checked||!W.test(a))}).map(function(a,b){var c=m(this).val();return null==c?null:m.isArray(c)?m.map(c,function(a){return{name:b.name,value:a.replace(Sb,"\r\n")}}):{name:b.name,value:c.replace(Sb,"\r\n")}}).get()}}),m.ajaxSettings.xhr=void 0!==a.ActiveXObject?function(){return!this.isLocal&&/^(get|post|head|put|delete|options)$/i.test(this.type)&&Zb()||$b()}:Zb;var Wb=0,Xb={},Yb=m.ajaxSettings.xhr();a.attachEvent&&a.attachEvent("onunload",function(){for(var a in Xb)Xb[a](void 0,!0)}),k.cors=!!Yb&&"withCredentials"in Yb,Yb=k.ajax=!!Yb,Yb&&m.ajaxTransport(function(a){if(!a.crossDomain||k.cors){var b;return{send:function(c,d){var e,f=a.xhr(),g=++Wb;if(f.open(a.type,a.url,a.async,a.username,a.password),a.xhrFields)for(e in a.xhrFields)f[e]=a.xhrFields[e];a.mimeType&&f.overrideMimeType&&f.overrideMimeType(a.mimeType),a.crossDomain||c["X-Requested-With"]||(c["X-Requested-With"]="XMLHttpRequest");for(e in c)void 0!==c[e]&&f.setRequestHeader(e,c[e]+"");f.send(a.hasContent&&a.data||null),b=function(c,e){var h,i,j;if(b&&(e||4===f.readyState))if(delete Xb[g],b=void 0,f.onreadystatechange=m.noop,e)4!==f.readyState&&f.abort();else{j={},h=f.status,"string"==typeof f.responseText&&(j.text=f.responseText);try{i=f.statusText}catch(k){i=""}h||!a.isLocal||a.crossDomain?1223===h&&(h=204):h=j.text?200:404}j&&d(h,i,j,f.getAllResponseHeaders())},a.async?4===f.readyState?setTimeout(b):f.onreadystatechange=Xb[g]=b:b()},abort:function(){b&&b(void 0,!0)}}}});function Zb(){try{return new a.XMLHttpRequest}catch(b){}}function $b(){try{return new a.ActiveXObject("Microsoft.XMLHTTP")}catch(b){}}m.ajaxSetup({accepts:{script:"text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"},contents:{script:/(?:java|ecma)script/},converters:{"text script":function(a){return m.globalEval(a),a}}}),m.ajaxPrefilter("script",function(a){void 0===a.cache&&(a.cache=!1),a.crossDomain&&(a.type="GET",a.global=!1)}),m.ajaxTransport("script",function(a){if(a.crossDomain){var b,c=y.head||m("head")[0]||y.documentElement;return{send:function(d,e){b=y.createElement("script"),b.async=!0,a.scriptCharset&&(b.charset=a.scriptCharset),b.src=a.url,b.onload=b.onreadystatechange=function(a,c){(c||!b.readyState||/loaded|complete/.test(b.readyState))&&(b.onload=b.onreadystatechange=null,b.parentNode&&b.parentNode.removeChild(b),b=null,c||e(200,"success"))},c.insertBefore(b,c.firstChild)},abort:function(){b&&b.onload(void 0,!0)}}}});var _b=[],ac=/(=)\?(?=&|$)|\?\?/;m.ajaxSetup({jsonp:"callback",jsonpCallback:function(){var a=_b.pop()||m.expando+"_"+vb++;return this[a]=!0,a}}),m.ajaxPrefilter("json jsonp",function(b,c,d){var e,f,g,h=b.jsonp!==!1&&(ac.test(b.url)?"url":"string"==typeof b.data&&!(b.contentType||"").indexOf("application/x-www-form-urlencoded")&&ac.test(b.data)&&"data");return h||"jsonp"===b.dataTypes[0]?(e=b.jsonpCallback=m.isFunction(b.jsonpCallback)?b.jsonpCallback():b.jsonpCallback,h?b[h]=b[h].replace(ac,"$1"+e):b.jsonp!==!1&&(b.url+=(wb.test(b.url)?"&":"?")+b.jsonp+"="+e),b.converters["script json"]=function(){return g||m.error(e+" was not called"),g[0]},b.dataTypes[0]="json",f=a[e],a[e]=function(){g=arguments},d.always(function(){a[e]=f,b[e]&&(b.jsonpCallback=c.jsonpCallback,_b.push(e)),g&&m.isFunction(f)&&f(g[0]),g=f=void 0}),"script"):void 0}),m.parseHTML=function(a,b,c){if(!a||"string"!=typeof a)return null;"boolean"==typeof b&&(c=b,b=!1),b=b||y;var d=u.exec(a),e=!c&&[];return d?[b.createElement(d[1])]:(d=m.buildFragment([a],b,e),e&&e.length&&m(e).remove(),m.merge([],d.childNodes))};var bc=m.fn.load;m.fn.load=function(a,b,c){if("string"!=typeof a&&bc)return bc.apply(this,arguments);var d,e,f,g=this,h=a.indexOf(" ");return h>=0&&(d=m.trim(a.slice(h,a.length)),a=a.slice(0,h)),m.isFunction(b)?(c=b,b=void 0):b&&"object"==typeof b&&(f="POST"),g.length>0&&m.ajax({url:a,type:f,dataType:"html",data:b}).done(function(a){e=arguments,g.html(d?m("<div>").append(m.parseHTML(a)).find(d):a)}).complete(c&&function(a,b){g.each(c,e||[a.responseText,b,a])}),this},m.each(["ajaxStart","ajaxStop","ajaxComplete","ajaxError","ajaxSuccess","ajaxSend"],function(a,b){m.fn[b]=function(a){return this.on(b,a)}}),m.expr.filters.animated=function(a){return m.grep(m.timers,function(b){return a===b.elem}).length};var cc=a.document.documentElement;function dc(a){return m.isWindow(a)?a:9===a.nodeType?a.defaultView||a.parentWindow:!1}m.offset={setOffset:function(a,b,c){var d,e,f,g,h,i,j,k=m.css(a,"position"),l=m(a),n={};"static"===k&&(a.style.position="relative"),h=l.offset(),f=m.css(a,"top"),i=m.css(a,"left"),j=("absolute"===k||"fixed"===k)&&m.inArray("auto",[f,i])>-1,j?(d=l.position(),g=d.top,e=d.left):(g=parseFloat(f)||0,e=parseFloat(i)||0),m.isFunction(b)&&(b=b.call(a,c,h)),null!=b.top&&(n.top=b.top-h.top+g),null!=b.left&&(n.left=b.left-h.left+e),"using"in b?b.using.call(a,n):l.css(n)}},m.fn.extend({offset:function(a){if(arguments.length)return void 0===a?this:this.each(function(b){m.offset.setOffset(this,a,b)});var b,c,d={top:0,left:0},e=this[0],f=e&&e.ownerDocument;if(f)return b=f.documentElement,m.contains(b,e)?(typeof e.getBoundingClientRect!==K&&(d=e.getBoundingClientRect()),c=dc(f),{top:d.top+(c.pageYOffset||b.scrollTop)-(b.clientTop||0),left:d.left+(c.pageXOffset||b.scrollLeft)-(b.clientLeft||0)}):d},position:function(){if(this[0]){var a,b,c={top:0,left:0},d=this[0];return"fixed"===m.css(d,"position")?b=d.getBoundingClientRect():(a=this.offsetParent(),b=this.offset(),m.nodeName(a[0],"html")||(c=a.offset()),c.top+=m.css(a[0],"borderTopWidth",!0),c.left+=m.css(a[0],"borderLeftWidth",!0)),{top:b.top-c.top-m.css(d,"marginTop",!0),left:b.left-c.left-m.css(d,"marginLeft",!0)}}},offsetParent:function(){return this.map(function(){var a=this.offsetParent||cc;while(a&&!m.nodeName(a,"html")&&"static"===m.css(a,"position"))a=a.offsetParent;return a||cc})}}),m.each({scrollLeft:"pageXOffset",scrollTop:"pageYOffset"},function(a,b){var c=/Y/.test(b);m.fn[a]=function(d){return V(this,function(a,d,e){var f=dc(a);return void 0===e?f?b in f?f[b]:f.document.documentElement[d]:a[d]:void(f?f.scrollTo(c?m(f).scrollLeft():e,c?e:m(f).scrollTop()):a[d]=e)},a,d,arguments.length,null)}}),m.each(["top","left"],function(a,b){m.cssHooks[b]=La(k.pixelPosition,function(a,c){return c?(c=Ja(a,b),Ha.test(c)?m(a).position()[b]+"px":c):void 0})}),m.each({Height:"height",Width:"width"},function(a,b){m.each({padding:"inner"+a,content:b,"":"outer"+a},function(c,d){m.fn[d]=function(d,e){var f=arguments.length&&(c||"boolean"!=typeof d),g=c||(d===!0||e===!0?"margin":"border");return V(this,function(b,c,d){var e;return m.isWindow(b)?b.document.documentElement["client"+a]:9===b.nodeType?(e=b.documentElement,Math.max(b.body["scroll"+a],e["scroll"+a],b.body["offset"+a],e["offset"+a],e["client"+a])):void 0===d?m.css(b,c,g):m.style(b,c,d,g)},b,f?d:void 0,f,null)}})}),m.fn.size=function(){return this.length},m.fn.andSelf=m.fn.addBack,"function"==typeof define&&define.amd&&define("jquery",[],function(){return m});var ec=a.jQuery,fc=a.$;return m.noConflict=function(b){return a.$===m&&(a.$=fc),b&&a.jQuery===m&&(a.jQuery=ec),m},typeof b===K&&(a.jQuery=a.$=m),m});
 
-function SpaceifyApp(){var e=this,t=window.angular.module("spaceifyApp",[]);t.controller("bodyController",["$scope","$window","$compile","$timeout",function(e,t,r,o){e.safeApply=function(e){var t=this.$root.$$phase;"$apply"==t||"$digest"==t?e&&"function"==typeof e&&e():this.$apply(e)},e.getString=function(e,t){return window.spLocales[n][e][t]},e.addTile=function(t){e.manifest=t.manifest?t.manifest:{},e.sp_src=t.sp_src?t.sp_src:"",e.id=t.id?t.id:"",e.safeApply(function(){var n=r(window.spTiles[t.type])(e);$("#"+t.container).append(n[0]),"function"==typeof t.callback&&o(t.callback,0)})}}]),t.directive("bodyDirective",["$rootScope","$compile","$timeout",function(e,t,n){return{restrict:"AE",bindToController:!0,controller:"bodyController",link:function(e,t,n,r,o){}}}]),t.filter("replace",function(){return function(e,t,n){return e.replace(t,n)}}),t.filter("capitalize",function(){return function(e){return e.charAt(0).toUpperCase()+e.slice(1)}}),t.filter("trustasresourceurl",["$sce",function(e){return function(t){return e.trustAsResourceUrl(t)}}]),e.getCookie=function(e){for(var t=e+"=",n=document.cookie.split(";"),r=0;r<n.length;r++){for(var o=n[r];" "==o.charAt(0);)o=o.substring(1);if(o.indexOf(t)!=-1)return o.substring(t.length,o.length)}return""},e.bootstrap=function(){angular.element(document).ready(function(){angular.bootstrap(document,["spaceifyApp"]),window.angularReady()})};var n=e.getCookie("locale")||"en_US"}var spaceifyApp=new SpaceifyApp;
+function SpaceifyApp()
+{
+var self = this;
 
-function Logger(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={SpaceifyError:e?require(t+"spaceifyerror"):SpaceifyError,SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig},r=this,i=new o.SpaceifyError,c=(new o.SpaceifyConfig,!0),a="/tmp/debug.txt";r.INFO=1,r.ERROR=2,r.WARN=4,r.FORCE=8,r.RETURN=16,r.STDOUT=32;var s={};s[r.INFO]="[i] ",s[r.STDOUT]="",s[r.ERROR]="[e] ",s[r.WARN]="[w] ",s[r.FORCE]="";var u=r.INFO|r.ERROR|r.WARN|r.FORCE|r.STDOUT,f=r.INFO|r.ERROR|r.WARN|r.FORCE|r.STDOUT;r.info=function(){p(r.INFO,!1,arguments)},r.error=function(){l.apply(this,arguments)},r.warn=function(){p(r.WARN,!1,arguments)},r.force=function(){p(r.FORCE,!1,arguments)},r.stdout=function(){p(r.STDOUT,!0,arguments)};var p=function(n,t){for(var o,i=arguments[2],a="",p=0;p<i.length;p++)o="string"==typeof i[p]?i[p]:JSON.stringify(i[p]),a+=(""!=a&&"\n"!=a&&"\r"!=a&&"\r\n"!=a?" ":"")+o;"string"==typeof a&&(a=a.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g,""));var l=u&n?s[n]:"";if(c&&f&n||n==r.FORCE){var d=l+a;e?process.stdout.write(d+(t?"":"\n")):console.log(d)}},l=function(e,n,t,o){var c=i.errorToString(e,n,t);return o==r.ERROR?p.call(r,r.ERROR,!1,[c]):o==r.FORCE&&r.force(c),c};r.setOptions=function(e){e.hasOwnProperty("output")&&(c=e.output),e.hasOwnProperty("infoLabel")&&(u[r.INFO]=e.infoLabel),e.hasOwnProperty("errorLabel")&&(u[r.ERROR]=e.errorLabel),e.hasOwnProperty("warnLabel")&&(u[r.WARN]=e.warnLabel),e.hasOwnProperty("forceLabel")&&(u[r.FORCE]=e.forceLabel),e.hasOwnProperty("labels")&&(u=e.labels),e.hasOwnProperty("fileName")&&(a=e.fileName),e.hasOwnProperty("levels")&&(f=e.levels)}}function BinaryRpcCommunicator(e){var n="undefined"!=typeof exports,t=!(!n||"undefined"==typeof process.env.IS_REAL_SPACEIFY),o=n&&t?"/api/":"/var/lib/spaceify/code/",r={Logger:n?require(o+"logger"):Logger,SpaceifyError:n?require(o+"spaceifyerror"):SpaceifyError,CallbackBuffer:n?require(o+"callbackbuffer"):CallbackBuffer,SpaceifyUtility:n?require(o+"spaceifyutility"):SpaceifyUtility},i=n?require(o+"fibrous"):function(e){return e},c=this,a=new r.Logger,s=new r.SpaceifyError,u=new r.SpaceifyUtility,f=new r.CallbackBuffer,p=1,l={},d=null,y=[],g=[],S={},R=null,h={debug:!0},m=0,v=1;c.exposeRpcMethod=function(e,n,t){try{l[e]={type:v,method:t}}catch(e){a.error(e,!0,!0,a.ERROR)}},c.exposeRpcMethodSync=function(e,n,t){try{l[e]={type:m,method:t}}catch(e){a.error(e,!0,!0,a.ERROR)}},c.setConnectionListener=function(e){"function"==typeof e&&y.push(e)},c.setDisconnectionListener=function(e){"function"==typeof e&&g.push(e)},c.setBinaryListener=function(e){d="function"==typeof e?e:null},c.connectionExists=function(e){return!("undefined"==typeof e||!S.hasOwnProperty(e))||!("undefined"!=typeof e||!S.hasOwnProperty(R))},c.getConnection=function(e){return S[e]},c.setOptions=function(e){h.debug="debug"in e&&e.debug,a.setOptions({output:h.debug})},c.callRpc=function(e,n,t,o,r){var i,u,l=[],d=!1,y="undefined"!=typeof r?r:R;if(a.info("BinaryRpcCommunicator::callRpc() connectionId: "+r),c.connectionExists(r)){try{e instanceof Array||(d=!1,n=[n],e=[e]),u=p;for(var g=0;g<e.length;g++)i="function"==typeof o?{jsonrpc:"2.0",method:e[g],params:n[g],id:p++}:{jsonrpc:"2.0",method:e[g],params:n[g]},l.push(i),a.info("  "+JSON.stringify(i));"function"==typeof o&&f.pushBack(u,t,o)}catch(e){return"function"==typeof o&&o(s.makeErrorObject(-32e3,"callRpc failed.","BinaryRpcCommunicator::callRpc"),null)}var S=d?l:l[0];C(S,y)}},c.notifyAll=function(e,n){try{for(var t in S)a.info("BinaryRpcCommunicator::notifyAll() sending message to "+t),C({jsonrpc:"2.0",method:e,params:n,id:null},t)}catch(e){a.error(e,!0,!0,a.ERROR)}},c.getBufferedAmount=function(e){return S[e].getBufferedAmount()},c.sendBinary=function(e,n){a.info("BinaryRpcCommunicator::sendBinary() "+e.byteLength);try{S[n].sendBinary(e)}catch(e){a.error(e,!0,!0,a.ERROR)}};var C=function(e,n){try{S[n].send(JSON.stringify(e))}catch(e){a.error(e,!0,!0,a.ERROR)}};c.sendMessage=C;var E=function(e,o){var r=!0;try{e instanceof Array||(e=[e],r=!1),e[0].method?(a.info("RpcCommunicator::handleRpcCall() connectionId: "+o),n&&!t?i.run(function(){O.sync(e,r,[],!0,o)},function(e,n){}):O(e,r,[],!0,o)):I(e,r)}catch(e){a.error(e,!0,!0,a.ERROR)}},O=function(e,n,o,r,i){var c,s=e.shift();if(s){var u=s.hasOwnProperty("id")?s.id:null,f=s.hasOwnProperty("params")?s.params:[];if(null!=u&&(r=!1),a.info((u?"   REQUEST -> ":"  NOTIFICATION -> ")+JSON.stringify(s)),!s.jsonrpc||"2.0"!=s.jsonrpc||!s.method)return w(u,{jsonrpc:"2.0",error:{code:-32600,message:"The JSON sent is not a valid Request object."},id:null},o),O(e,n,o,r,i);if("undefined"!==f&&f.constructor!==Array)return w(u,{jsonrpc:"2.0",error:{code:-32602,message:"Invalid method parameter(s). Parameters must be placed inside an array."},id:u},o),O(e,n,o,r,i);if(!l.hasOwnProperty(s.method))return w(u,{jsonrpc:"2.0",error:{code:-32601,message:"The method does not exist / is not available: "+s.method+"."},id:u},o),O(e,n,o,r,i);try{var p=l[s.method],d=f.length,y=p.type==m?(t?p.method.length:p.method.getLength())-1:p.method.length-2;if(y<d)f.splice(y-d,d-y);else if(y>d)for(y-=d;y--;)f.push(null);var g={requestId:u,connectionId:i,isSecure:S[i].getIsSecure()};t||(g.origin=S[i].getOrigin(),g.remotePort=S[i].getRemotePort(),g.remoteAddress=S[i].getRemoteAddress()),p.type!=m||t?p.type==m&&t?(f.push(g),c=p.method.apply(p.object,f),w(u,c,o),O(e,n,o,r,i)):null!=u?(f.push(g,function(t,c){b(t,c,u,e,n,o,r,i)}),p.method.apply(p.object,f)):(f.push(g),p.method.apply(p.object,f),O(e,n,o,r,i)):(f.push(g),c=p.method.sync.apply(p.object,f),w(u,c,o),O(e,n,o,r,i))}catch(t){A(u,t,o),O(e,n,o,r,i)}}else r||0!=o.length||o.push({jsonrpc:"2.0",error:{code:-32603,message:"Internal JSON-RPC error."},id:null}),o.length>0&&C(n?o:o[0],i)},b=function(e,n,t,o,r,i,c,a){e?(A(t,e,i),O(o,r,i,c,a)):(w(t,n,i),O(o,r,i,c,a))},w=function(e,n,t){null!=e&&(a.info("  RESPONSE <- "+JSON.stringify(n)),t.push({jsonrpc:"2.0",result:"undefined"==typeof n?null:n,id:e}))},A=function(e,n,t){null!=e&&(n=s.make(n),a.info("  ERROR RESPONSE <- "+JSON.stringify(n)),t.push({jsonrpc:"2.0",error:n,id:e}))},I=function(e,n){a.info("BinaryRpcCommunicator::handleReturnValue()");var t=null,o=null;try{if(n){var r=_(e);f.callMethodAndPop(r.smallestId,r.errors,r.results)}else{if(a.info("  RESPONSE: "+JSON.stringify(e[0])),!e[0].jsonrpc||"2.0"!=e[0].jsonrpc||!e[0].id||e[0].result&&e[0].error)return;e[0].hasOwnProperty("error")?(t=e[0].error,o=null):e[0].hasOwnProperty("result")&&(t=null,results=e[0].result),f.callMethodAndPop(e[0].id,t,o)}}catch(e){a.error(e,!0,!0,a.ERROR)}},_=function(e){for(var n=-1,t={},o={},r=0;r<e.length;r++)a.info("  RESPONSE: "+JSON.stringify(e[r])),!e[r].jsonrpc||"2.0"!=e[r].jsonrpc||!e[r].id||e[r].result&&e[r].error||(n=Math.max(n,e[r].id),e[r].hasOwnProperty("error")?(t[e[r].id]=e[r].error,o[e[r].id]=null):e[r].hasOwnProperty("result")&&(t[e[r].id]=null,o[e[r].id]=o[r].result));return{smallestId:n,errors:t,results:o}},e=function(e,n){var t=new DataView(e),o=new Uint8Array(e),r=(t.getUint32(4),t.getUint32(8),t.getUint32(12)),i=o.subarray(16,16+r),c=(String.fromCharCode.apply(null,i),t.getUint32(16+r)),a=o.subarray(16+r+4,16+r+4+c),s=(String.fromCharCode.apply(null,a),t.getUint32(16+r+4+c+4));o.subarray(16+r+4+c+4+4,16+r+4+c+4+4+s)};c.setupPipe=function(e,n){a.info("BinaryRpcCommunicator::setupPipe() between: "+e+" and "+n),S.hasOwnProperty(e)&&S.hasOwnProperty(n)&&(S[e].setPipedTo(n),S[n].setPipedTo(e))},c.onMessage=function(n,t){a.info("BinaryRpcCommunicator::onMessage("+typeof n+") "+n);try{var o=t.getPipedTo();if(null!=o)return void S[o].send(n);if(n instanceof ArrayBuffer)return void e(n,t.getId());try{n=JSON.parse(n),E(n,t.getId())}catch(e){C({jsonrpc:"2.0",error:{code:-32700,message:"Invalid JSON."},id:null},t.getId())}}catch(e){a.error(e,!0,!0,a.ERROR)}},c.addConnection=function(e){try{e.getId()||e.setId(u.generateRandomConnectionId(S)),S[e.getId()]=e,e.setEventListener(c);for(var n=0;n<y.length;n++)y[n](e.getId());return R=e.getId(),e.getId()}catch(e){a.error(e,!0,!0,a.ERROR)}},c.onDisconnected=function(e){try{c.closeConnection(e);for(var n=0;n<g.length;n++)g[n](e)}catch(e){a.error(e,!0,!0,a.ERROR)}},c.closeConnection=function(e){try{e in S&&(S[e].close(),delete S[e])}catch(e){a.error(e,!0,!0,a.ERROR)}}}function CallbackBuffer(e){var n=this,t=new Object;n.pushBack=function(e,n,o){t[e]=[n,o,Date.now()]},n.callMethodAndPop=function(e,n,o){if(!t.hasOwnProperty(e))throw{error:"CallbackBuffer::callMethodAndPop(). Callback not found"};t[e][1].call(t[e][0],n,o,e,Date.now()-t[e][2]),delete t[e]}}function RpcCommunicator(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={Logger:e?require(t+"logger"):Logger,SpaceifyError:e?require(t+"spaceifyerror"):SpaceifyError,CallbackBuffer:e?require(t+"callbackbuffer"):CallbackBuffer,SpaceifyUtility:e?require(t+"spaceifyutility"):SpaceifyUtility},r=e?require(t+"fibrous"):function(e){return e},i=this,c=new o.Logger,a=new o.SpaceifyError,s=new o.SpaceifyUtility,u=new o.CallbackBuffer,f=1,p={},l=null,d=[],y=[],g={},S=null,R={debug:!0},h=0,m=1;i.exposeRpcMethod=function(e,n,t){try{p[e]={type:m,method:t}}catch(e){c.error(e,!0,!0,c.ERROR)}},i.exposeRpcMethodSync=function(e,n,t){try{p[e]={type:h,method:t}}catch(e){c.error(e,!0,!0,c.ERROR)}},i.setConnectionListener=function(e){"function"==typeof e&&d.push(e)},i.setDisconnectionListener=function(e){"function"==typeof e&&y.push(e)},i.setBinaryListener=function(e){l="function"==typeof e?e:null},i.connectionExists=function(e){return!("undefined"==typeof e||!g.hasOwnProperty(e))||!("undefined"!=typeof e||!g.hasOwnProperty(S))},i.getConnection=function(e){return g[e]},i.setOptions=function(e){R.debug="debug"in e&&e.debug,c.setOptions({output:R.debug})},i.callRpc=function(e,n,t,o,r){var s,p,l=[],d=!1,y="undefined"!=typeof r?r:S;if(c.info("RpcCommunicator::callRpc() connectionId: "+r),i.connectionExists(r)){try{e instanceof Array||(d=!1,n=[n],e=[e]),p=f;for(var g=0;g<e.length;g++)s="function"==typeof o?{jsonrpc:"2.0",method:e[g],params:n[g],id:f++}:{jsonrpc:"2.0",method:e[g],params:n[g]},l.push(s),c.info("  "+JSON.stringify(s));"function"==typeof o&&u.pushBack(p,t,o)}catch(e){return"function"==typeof o&&o(a.makeErrorObject(-32e3,"callRpc failed.","RpcCommunicator::callRpc"),null)}v(d?l:l[0],y)}},i.notifyAll=function(e,n){try{for(var t in g)c.info("RpcCommunicator::notifyAll() sending message to "+t),v({jsonrpc:"2.0",method:e,params:n,id:null},t)}catch(e){c.error(e,!0,!0,c.ERROR)}},i.getBufferedAmount=function(e){return g[e].getBufferedAmount()},i.sendBinary=function(e,n){c.info("RPCCommunicator::sendBinary() "+e.byteLength);try{g[n].sendBinary(e)}catch(e){c.error(e,!0,!0,c.ERROR)}};var v=function(e,n){try{g[n].send(JSON.stringify(e))}catch(e){c.error(e,!0,!0,c.ERROR)}};i.sendMessage=v;var C=function(t,o){var i=!0;try{t instanceof Array||(t=[t],i=!1),t[0].method?(c.info("RpcCommunicator::handleRpcCall() connectionId: "+o),e&&!n?r.run(function(){E.sync(t,i,[],!0,o)},function(e,n){}):E(t,i,[],!0,o)):A(t,i)}catch(e){c.error(e,!0,!0,c.ERROR)}},E=function(e,t,o,r,i){var a,s=e.shift();if(s){var u=s.hasOwnProperty("id")?s.id:null,f=s.hasOwnProperty("params")?s.params:[];if(null!=u&&(r=!1),c.info((u?"   REQUEST -> ":"  NOTIFICATION -> ")+JSON.stringify(s)),!s.jsonrpc||"2.0"!=s.jsonrpc||!s.method)return b(u,{jsonrpc:"2.0",error:{code:-32600,message:"The JSON sent is not a valid Request object."},id:null},o),E(e,t,o,r,i);if("undefined"!==f&&f.constructor!==Array)return b(u,{jsonrpc:"2.0",error:{code:-32602,message:"Invalid method parameter(s). Parameters must be placed inside an array."},id:u},o),E(e,t,o,r,i);if(!p.hasOwnProperty(s.method))return b(u,{jsonrpc:"2.0",error:{code:-32601,message:"The method does not exist / is not available: "+s.method+"."},id:u},o),E(e,t,o,r,i);try{var l=p[s.method],d=f.length,y=l.type==h?(n?l.method.length:l.method.getLength())-1:l.method.length-2;if(y<d)f.splice(y-d,d-y);else if(y>d)for(y-=d;y--;)f.push(null);var S={requestId:u,connectionId:i,isSecure:g[i].getIsSecure()};n||(S.origin=g[i].getOrigin(),S.remotePort=g[i].getRemotePort(),S.remoteAddress=g[i].getRemoteAddress()),l.type!=h||n?l.type==h&&n?(f.push(S),a=l.method.apply(l.object,f),b(u,a,o),E(e,t,o,r,i)):null!=u?(f.push(S,function(n,c){O(n,c,u,e,t,o,r,i)}),l.method.apply(l.object,f)):(f.push(S),l.method.apply(l.object,f),E(e,t,o,r,i)):(f.push(S),a=l.method.sync.apply(l.object,f),b(u,a,o),E(e,t,o,r,i))}catch(n){w(u,n,o),E(e,t,o,r,i)}}else r||0!=o.length||o.push({jsonrpc:"2.0",error:{code:-32603,message:"Internal JSON-RPC error."},id:null}),o.length>0&&v(t?o:o[0],i)},O=function(e,n,t,o,r,i,c,a){e?(w(t,e,i),E(o,r,i,c,a)):(b(t,n,i),E(o,r,i,c,a))},b=function(e,n,t){null!=e&&(c.info("  RESPONSE <- "+JSON.stringify(n)),t.push({jsonrpc:"2.0",result:"undefined"==typeof n?null:n,id:e}))},w=function(e,n,t){null!=e&&(n=a.make(n),c.info("  ERROR RESPONSE <- "+JSON.stringify(n)),t.push({jsonrpc:"2.0",error:n,id:e}))},A=function(e,n){c.info("RpcCommunicator::handleReturnValue()");var t=null,o=null;try{if(n){var r=I(e);u.callMethodAndPop(r.smallestId,r.errors,r.results)}else{if(c.info("  RETURN VALUE: "+JSON.stringify(e[0])),!e[0].jsonrpc||"2.0"!=e[0].jsonrpc||!e[0].id||e[0].result&&e[0].error)return;e[0].hasOwnProperty("error")?(t=e[0].error,o=null):e[0].hasOwnProperty("result")&&(t=null,o=e[0].result),u.callMethodAndPop(e[0].id,t,o)}}catch(e){c.error(e,!0,!0,c.ERROR)}},I=function(e){for(var n=-1,t={},o={},r=0;r<e.length;r++)c.info("  RETURN VALUE: "+JSON.stringify(e[r])),!e[r].jsonrpc||"2.0"!=e[r].jsonrpc||!e[r].id||e[r].result&&e[r].error||(n=Math.max(n,e[r].id),e[r].hasOwnProperty("error")?(t[e[r].id]=e[r].error,o[e[r].id]=null):e[r].hasOwnProperty("result")&&(t[e[r].id]=null,o[e[r].id]=o[r].result));return{smallestId:n,errors:t,results:o}};i.setupPipe=function(e,n){c.info("RpcCommunicator::setupPipe() between: "+e+" and "+n),g.hasOwnProperty(e)&&g.hasOwnProperty(n)&&(g[e].setPipedTo(n),g[n].setPipedTo(e))},i.onMessage=function(e,n){try{var t=n.getPipedTo();if(null!=t)return void g[t].send(e);if(e instanceof ArrayBuffer)return void("function"==typeof l&&l.onBinary(e,n.getId()));try{e=JSON.parse(e),C(e,n.getId())}catch(e){v({jsonrpc:"2.0",error:{code:-32700,message:"Invalid JSON."},id:null},n.getId())}}catch(e){c.error(e,!0,!0,c.ERROR)}},i.addConnection=function(e){try{e.getId()||e.setId(s.generateRandomConnectionId(g)),g[e.getId()]=e,e.setEventListener(i);for(var n=0;n<d.length;n++)d[n](e.getId());return S=e.getId(),e.getId()}catch(e){c.error(e,!0,!0,c.ERROR)}},i.onDisconnected=function(e){try{i.closeConnection(e);for(var n=0;n<y.length;n++)y[n](e)}catch(e){c.error(e,!0,!0,c.ERROR)}},i.closeConnection=function(e){try{e in g&&(g[e].close(),delete g[e])}catch(e){c.error(e,!0,!0,c.ERROR)}}}function WebRtcClient(e){var n="undefined"!=typeof exports,t=!(!n||"undefined"==typeof process.env.IS_REAL_SPACEIFY),o=n&&t?"/api/":"/var/lib/spaceify/code/",r={Logger:n?require(o+"logger"):Logger,SpaceifyConfig:n?require(o+"spaceifyconfig"):SpaceifyConfig,RpcCommunicator:n?require(o+"rpccommunicator"):RpcCommunicator,WebSocketConnection:n?require(o+"websocketconnection"):WebSocketConnection},i=this,c=new r.Logger,a=(new r.SpaceifyConfig,new r.RpcCommunicator),s=new r.WebSocketConnection,u=null,f=new Object;i.setConnectionListener=function(e){u=e},i.onIceCandidate=function(e,n){c.info("WebRtcClient::onIceCandidate - Got it, sending it to the other client"),a.callRpc("offerIce",[e,n])};var p=function(n){f[n]=new WebRtcConnection(e),f[n].setPartnerId(n),f[n].setIceListener(i),f[n].setStreamListener(i),f[n].setConnectionListener(i),f[n].setDataChannelListener(i)};i.shutdown=function(e){c.info("WebRtcClient::onbeforeunload");for(var n in f)f.hasOwnProperty(n)&&(f[n].close(),delete f[n])},i.handleRtcOffer=function(e,n,t){c.info("WebRtcClient::handleRtcOffer descriptor:",e),f.hasOwnProperty(n)||p(n),f[n].onConnectionOfferReceived(e,t,function(e){c.info("WebRtcClient::handleRtcOffer - onConnectionOfferReceived returned"),a.callRpc("acceptConnectionOffer",[e,n])})},i.handleRtcAnswer=function(e,n,t){c.info("WebRtcClient::handleRtcAnswer"),f[n].onConnectionAnswerReceived(e)},i.handleIceCandidate=function(e,n,t){c.info("WebRtcClient::handleIceCandidate"),f.hasOwnProperty(n)||p(n),f[n].onIceCandidateReceived(e)};var l=function(e,n){c.info("WebRtcClient::connectToCoordinator","> Websocket connecting to the coordinator"),s.connect(e,function(){c.info("WebRtcClient::connectToCoordinator - Websocket Connected to the Coordinator"),c.info("> Creating RPCCommunicator for the Websocket"),a.addConnection(s),n()})};i.onDisconnected=function(e){if(c.info("WebRtcClient::onDisconnected"),f.hasOwnProperty(e)){var n=f[e];u.onDisconnected(n.getId()),n.close(),delete f[e]}},i.onDataChannelOpen=function(e){c.info("WebRtcClient::onDataChannelOpen"),u.addConnection(e)},i.onStream=function(e,n){c.info("WebRtcClient::onStream")},i.onRemoveStream=function(e,n){c.info("WebRtcClient::onRemoveStream"),i.onDisconnected(n)};var d=function(e,n){c.info("WebRtcClient::connectToPeers - Announcing to the Coordinator"),a.callRpc("announce",[e],i,i.onPeerIdsArrived)};i.onPeerIdsArrived=function(e,n,t){c.info("WebRtcClient::onPeerIdsArrived - data.length:",n.length);for(var o=0,r=0;r<n.length;r++)o=n[r],p(o),c.info("WebRtcClient::onPeerIdsArrived - Trying to create offer to client id",o),f[o].createConnectionOffer(function(e,n){c.info("WebRtcClient::onPeerIdsArrived - Offer created, sending it to the other client",n),a.callRpc("offerConnection",[e,n])});0===n.length&&c.info("> Announce returned 0 client ids, not connecting")},i.run=function(e,n){c.info("WebRtcClient::run"),window.onbeforeunload=i.shutdown,a.exposeRpcMethod("handleRtcOffer",i,i.handleRtcOffer),a.exposeRpcMethod("handleRtcAnswer",i,i.handleRtcAnswer),a.exposeRpcMethod("handleIceCandidate",i,i.handleIceCandidate),l(e,function(){c.info("WebRtcClient::run - Connected to the coordinator"),d(e.announceId,function(){c.info("WebRtcClient::run - connectToPeers returned")}),n&&n(a)})}}function WebRtcConnection(e){var n="undefined"!=typeof exports,t=!(!n||"undefined"==typeof process.env.IS_REAL_SPACEIFY),o=n&&t?"/api/":"/var/lib/spaceify/code/",r={Logger:n?require(o+"logger"):Logger},i=this,c=new r.Logger,a=null,s=null,u=null,f=null,p=null,l=null,d=null,y=null,g={optional:[{DtlsSrtpKeyAgreement:!0}]},S=new RTCPeerConnection(e,g),R=null;S.ondatachannel=function(e){var n=e.channel||e;c.info("WebRtcConnection::peerConnection.ondatachannel",e),R=n,R.binaryType="arraybuffer",R.onopen=i.onDataChannelOpen,R.onmessage=i.onMessage};var h=function(e){c.info("WebRtcConnection::onsignalingstatechange",e)},m=function(e){c.info("WebRtcConnection::oniceconnectionstatechange",e),"function"!=d||"disconnected"!=S.iceConnectionState&&"closed"!=S.iceConnectionState||d.onDisconnected(u)},v=function(e){c.info("WebRtcConnection::onicegatheringstatechange",e)},C=function(e){c.info("WebRtcConnection::onIceCanditate - partnerId:",u,", event:",e,"> iceListener was",f),null==e.candidate?c.info("> All Ice candidates listed"):f.onIceCandidate(e.candidate,u)};S.onsignalingstatechange=h,S.oniceconnectionstatechange=m,S.onicegatheringstatechange=v,S.onicecandidate=C,i.close=function(){c.info("WebRtcConnection::close"),R.close(),"closed"!=S.signalingState&&S.close()},i.send=function(e){try{"open"==R.readyState&&R.send(e)}catch(e){c.error(e,!0,!0,c.ERROR)}},i.getBufferedAmount=function(){return R.bufferedAmount},i.sendBinary=function(e){try{"open"==R.readyState&&R.send(e)}catch(e){c.error(e,!0,!0,c.ERROR)}},i.onDataChannelClosed=function(e){c.info("WebRtcConnection::onDataChannelClosed",e),d.onDisconnected(i)},i.onDataChannelOpen=function(e){c.info("WebRtcConnection::onDataChannelOpen",e),R.binaryType="arraybuffer",R.onclose=i.onDataChannelClosed,R.onmessage=i.onMessage,y&&y.onDataChannelOpen(i)},i.onMessage=function(e){try{l&&l.onMessage(e.data,i)}catch(e){c.error(e,!0,!0,c.ERROR)}},i.setId=function(e){a=e},i.getId=function(){return a},i.getPartnerId=function(){return u},i.setPartnerId=function(e){u=e},i.setDataChannelListener=function(e){y=e},i.setListener=function(e){l=e},i.setIceListener=function(e){f=e,c.info("WebRtcConnection::setIceListener",e)},i.setStreamListener=function(e){p=e,S.onaddstream=function(e){i.onStream(e)},S.onremovestream=function(e){i.onRemoveStream(e)}},i.setEventListener=function(e){d=e},i.onStream=function(e){c.info("WebRtcConnection::onStream",e),p.onStream(e.stream,u)},i.onRemoveStream=function(e){c.info("WebRtcConnection::onStream",e),p.onRemoveStream(e.stream,u)},i.addStream=function(e){s=e,S.addStream(e)},i.createConnectionOffer=function(e){var n=null;R=S.createDataChannel("jsonrpcchannel",{reliable:!0}),R.binaryType="arraybuffer",R.onopen=i.onDataChannelOpen,R.onmessage=i.onMessage,S.createOffer(function(t){c.info("WebRtcConnection::peerConnectio.createOffer - Called its callback:",t),n=t,S.setLocalDescription(t,function(){e(S.localDescription,u)},function(e){c.error(e,!0,!0,c.ERROR)},{})},function(e){c.error(e,!0,!0,c.ERROR)})},i.onConnectionAnswerReceived=function(e){c.info("WebRtcConnection::onConnectionAnswerReceived, descriptor:",e),S.setRemoteDescription(new RTCSessionDescription(e),function(){c.info("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK")},function(e){c.error(e,!0,!0,c.ERROR)})},i.onConnectionOfferReceived=function(e,n,t){c.info("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");var o=new RTCSessionDescription(e);S.setRemoteDescription(o,function(){c.info("WebRtcConnection::onConnectionOfferReceived Remote description set"),S.createAnswer(function(e){S.setLocalDescription(e,function(){t(S.localDescription)},function(e){c.error(e,!0,!0,c.ERROR)})},function(e){c.error(e,!0,!0,c.ERROR)})},function(e){c.error(e,!0,!0,c.ERROR)})},i.onIceCandidateReceived=function(e){S.addIceCandidate(new RTCIceCandidate(e),function(){c.info("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded")},function(e){c.error(e,!0,!0,c.ERROR)})},i.setPipedTo=function(e){},i.getPipedTo=function(){return null}}function WebSocketConnection(){"undefined"!=typeof exports&&(global.fs=require("fs"),global.WebSocket=require("websocket").w3cwebsocket);var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={Logger:e?require(t+"logger"):Logger,SpaceifyError:e?require(t+"spaceifyerror"):SpaceifyError},r=this,i=new o.Logger,c=new o.SpaceifyError,a="",s=null,u=null,f=null,p=null,l=null,d=!1,y=!1,g=null,S=null,R=null;r.connect=function(n,t){s=n.id||null,u=n.port||"",y=n.isSecure||!1;var o=n.caCrt||"",p=n.hostname||null,l=y?"wss":"ws",g=(n.subprotocol||"json-rpc","debug"in n&&n.debug);i.setOptions({output:g});try{a=l+"://"+p+(u?":"+u:"")+(s?"?id="+s:"");var S=e&&y?{tlsOptions:{ca:[fs.readFileSync(o,"utf8")]}}:null;f=new WebSocket(a,"json-rpc",null,null,null,S),f.binaryType="arraybuffer",f.onopen=function(){i.info("WebSocketConnection::onOpen() "+a),d=!0,t(null,!0)},f.onerror=function(e){i.error("WebSocketConnection::onError() "+a,!0,!0,i.ERROR),d=!1,t(c.makeErrorObject("wsc","Failed to open WebsocketConnection.","WebSocketConnection::connect"),null)},f.onclose=function(e,n){v(e,n,r)},f.onmessage=m}catch(e){t(e,null)}},r.setSocket=function(e){try{f=e,f.on("message",h),f.on("close",function(e,n){v(e,n,r)}),d=!0}catch(e){i.error(e,!0,!0,i.ERROR)}},r.setId=function(e){s=e},r.setPipedTo=function(e){l=e},r.setRemoteAddress=function(e){S=e},r.setRemotePort=function(e){g=e},r.setOrigin=function(e){p=e},r.setIsSecure=function(e){y=e},r.setEventListener=function(e){R=e},r.getId=function(){return s},r.getRemoteAddress=function(){return S},r.getRemotePort=function(){return g},r.getOrigin=function(){return p},r.getIsSecure=function(){return y},r.getPipedTo=function(){return l},r.getIsOpen=function(){return d},r.getPort=function(){return u};var h=function(e){try{R&&("utf8"==e.type&&R.onMessage(e.utf8Data,r),"binary"==e.type&&R.onMessage(e.binaryData,r))}catch(e){i.error(e,!0,!0,i.ERROR)}},m=function(e){try{R&&R.onMessage(e.data,r)}catch(e){i.error(e,!0,!0,i.ERROR)}},v=function(e,n,t){i.info("WebSocketConnection::onSocketClosed() "+a);try{d=!1,R&&R.onDisconnected(t.getId())}catch(e){i.error(e,!0,!0,i.ERROR)}};r.send=function(e){try{f.send(e)}catch(e){i.error(e,!0,!0,i.ERROR)}},r.sendBinary=r.send,r.close=function(){try{f.close()}catch(e){i.error(e,!0,!0,i.ERROR)}}}function WebSocketRpcConnection(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={SpaceifyError:e?require(t+"spaceifyerror"):SpaceifyError,SpaceifyUtility:e?require(t+"spaceifyutility"):SpaceifyUtility,RpcCommunicator:e?require(t+"rpccommunicator"):RpcCommunicator,WebSocketConnection:e?require(t+"websocketconnection"):WebSocketConnection},r=this,i=new o.SpaceifyError,c=(new o.SpaceifyUtility,new o.RpcCommunicator),a=new o.WebSocketConnection;r.connect=function(e,n){a.connect(e,function(t,o){if(t)n&&n(i.makeErrorObject("wsrpcc","Failed to open WebsocketRpcConnection.","WebSocketRpcConnection::connect"),null);else{c.addConnection(a);var r="debug"in e&&e.debug;c.setOptions({debug:r}),n&&n(null,!0)}})},r.close=function(){},r.getCommunicator=function(){return c},r.getConnection=function(){return a},r.exposeRpcMethod=function(e,n,t){c.exposeRpcMethod(e,n,t)},r.exposeRpcMethodSync=function(e,n,t){c.exposeRpcMethodSync(e,n,t)},r.callRpc=function(e,n,t,o){return c.callRpc(e,n,t,o,a.getId())},r.getIsOpen=function(){return a.getIsOpen()},r.getIsSecure=function(){return a.getIsSecure()},r.getPort=function(){return a.getPort()},r.getId=function(){return a.getId()},r.setConnectionListener=function(e){c.setConnectionListener(e)},r.setDisconnectionListener=function(e){c.setDisconnectionListener(e)}}function WebSocketServer(){"undefined"!=typeof exports&&(global.fs=require("fs"),global.URL=require("url"),global.http=require("http"),global.https=require("https"),global.WSServer=require("websocket").server);var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={Logger:e?require(t+"logger"):Logger,SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig,SpaceifyUtility:e?require(t+"spaceifyutility.js"):SpaceifyUtility,WebSocketConnection:e?require(t+"websocketconnection"):WebSocketConnection},r=this,i=new o.Logger,c=new o.SpaceifyConfig,a=new o.SpaceifyUtility,s={},u=!1,f=null,p=null,l=null,d=null,y=null,g=null;r.listen=function(e,n){try{if("id"in s||(s.hostname=e.hostname||null,s.port=e.port||0,s.key=e.key||"",s.crt=e.crt||"",s.caCrt=e.caCrt||"",s.isSecure=e.isSecure||!1,s.keepUp=e.keepUp||"",s.protocol=s.isSecure?"wss":"ws",s.subprotocol=e.subprotocol||"json-rpc",s.debug="debug"in e&&e.debug,s.id=e.id||a.generateRandomConnectionId({})),i.setOptions({output:s.debug}),i.info(a.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",{"~pr":s.protocol,"~s":s.subprotocol,"~h":s.hostname,"~po":s.port})),u=!1,s.isSecure){var t=fs.readFileSync(s.key),r=fs.readFileSync(s.crt),c=fs.readFileSync(s.caCrt,"utf8");l=https.createServer({key:t,cert:r,ca:c},function(e,n){n.writeHead(501),n.end("Not implemented")})}else l=http.createServer(function(e,n){n.writeHead(501),n.end("Not implemented")});l.listen(s.port,s.hostname,511,function(){s.port=l.address().port,S(),"function"==typeof n&&n(null,!0)}),l.on("error",function(e){i.error("WebSocketServer::onError()",!0,!0,i.ERROR),R(),"function"==typeof n&&n(e,null)}),l.on("close",function(){R()}),p=new WSServer({httpServer:l,autoAcceptConnections:!1,keepalive:!0,keepaliveInterval:6e4,dropConnectionOnKeepaliveTimeout:!0,keepaliveGracePeriod:1e4}),p.on("request",function(e){try{var n=new o.WebSocketConnection;n.setSocket(e.accept(s.subprotocol,e.origin)),n.setRemoteAddress(e.remoteAddress),n.setRemotePort(e.remotePort),n.setOrigin(e.origin),n.setIsSecure(s.isSecure);var t=URL.parse(e.resourceURL,!0).query;t&&t.id&&n.setId(t.id),d.addConnection(n),i.info(a.replace("WebSocketServer::request() protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",{"~p":s.protocol,"~ra":e.remoteAddress,"~rp":e.remotePort,"~o":e.origin,"~i":n.getId()},"-"))}catch(e){return void i.error(e,!0,!0,i.ERROR)}}),p.on("connect",function(e){}),p.on("close",function(e,n,t){})}catch(e){i.error(e,!0,!0,i.ERROR)}},r.close=function(){try{i.info(a.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",{":pr":s.protocol,":s":s.subprotocol,":h":s.hostname,":po":s.port})),u=!0,p&&(p.shutDown(),p=null),l&&(l.close(),l=null)}catch(e){i.error(e,!0,!0,i.ERROR)}},r.getPort=function(){return s.port},r.getIsOpen=function(){return!(!l||!p)},r.getIsSecure=function(){return s.isSecure},r.getId=function(){return s.id},r.setEventListener=function(e){d=e};var S=function(){y&&y(s.id)},R=function(){g&&g(s.id),s.keepUp&&null==f&&!u&&(f=setTimeout(function(){f=null,r.listen(s,null)},c.RECONNECT_WAIT))};r.setServerUpListener=function(e){y="function"==typeof e?e:null},r.setServerDownListener=function(e){g="function"==typeof e?e:null}}function WebSocketRpcServer(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig,RpcCommunicator:e?require(t+"rpccommunicator"):RpcCommunicator,WebSocketServer:e?require(t+"websocketserver"):WebSocketServer},r=this,i=(new o.SpaceifyConfig,new o.RpcCommunicator),c=new o.WebSocketServer;c.setEventListener(i);var a=null,s=null;r.listen=function(e,n){var t="debug"in e&&e.debug;i.setOptions({debug:t}),i.setConnectionListener(u),i.setDisconnectionListener(f);try{c.listen(e,n)}catch(e){}},r.close=function(){c.close()},r.getCommunicator=function(){return i},r.getServer=function(){return c},r.getPort=function(){return c.getPort()},r.getIsOpen=function(){return c.getIsOpen()},r.getIsSecure=function(){return c.getIsSecure()},r.getId=function(){return c.getId()},r.exposeRpcMethod=function(e,n,t){i.exposeRpcMethod(e,n,t)},r.exposeRpcMethodSync=function(e,n,t){i.exposeRpcMethodSync(e,n,t)},r.nofifyAll=function(e,n){i.nofifyAll(e,n)},r.callRpc=function(){i.callRpc.apply(this,arguments)},r.closeConnection=function(e){i.closeConnection(e)},r.setConnectionListener=function(e){a="function"==typeof e?e:null},r.setDisconnectionListener=function(e){s="function"==typeof e?e:null},r.setServerUpListener=function(e){c.setServerUpListener("function"==typeof e?e:null)},r.setServerDownListener=function(e){c.setServerDownListener("function"==typeof e?e:null)};var u=function(e){"function"==typeof a&&a(e,r.getId(),r.getIsSecure())},f=function(e){"function"==typeof s&&s(e,r.getId(),r.getIsSecure())}}function SpaceifyApplicationManager(){var e=this,n=new SpaceifyError,t=new SpaceifyConfig,o=new SpaceifyNetwork,r=new SpaceifyUtility,i=-1,c=-1,a=!1,s=0,u=null,f=null,p=null,l=null,d=null,y=null,g=new SpaceifyMessages;e.installApplication=function(e,n,t,o,r,i){S("installApplication",{package:e,username:n,password:t,force:o},r,i,!0)},e.removeApplication=function(e,n,t){S("removeApplication",{unique_name:e},n,t,!0)},e.purgeApplication=function(e,n,t){S("purgeApplication",{unique_name:e},n,t,!0)},e.startApplication=function(e,n,t){S("startApplication",{unique_name:e},n,t,!0)},e.stopApplication=function(e,n,t){S("stopApplication",{unique_name:e},n,t,!0)},e.restartApplication=function(e,n,t){S("restartApplication",{unique_name:e},n,t,!0)},e.logIn=function(e,n,t){S("logIn",{password:e},n,t,!1)},e.logOut=function(e,n){S("logOut",{},e,n,!1)},e.isAdminLoggedIn=function(e,n){S("isAdminLoggedIn",{},e,n,!0)},e.getCoreSettings=function(e,n){S("getCoreSettings",{},e,n,!0)},e.saveCoreSettings=function(e,n,t){S("saveCoreSettings",{settings:e},n,t,!0)},e.getEdgeSettings=function(e,n){S("getEdgeSettings",{},e,n,!0);
-},e.saveEdgeSettings=function(e,n,t){S("saveEdgeSettings",{settings:e},n,t,!0)},e.getServiceRuntimeStates=function(e,n){S("getServiceRuntimeStates",{},e,n,!0)},e.getApplications=function(e,n,t){S("getApplications",{types:e},n,t,!0)},e.appStoreGetPackages=function(e,r){var e=JSON.stringify(e),i='Content-Disposition: form-data; name="search";\r\nContent-Type: plain/text; charset=utf-8';o.POST_FORM(t.EDGE_APPSTORE_GET_PACKAGES_URL,[{content:i,data:e}],"application/json",function(e,t){var e=null,o=null;try{o=JSON.parse(t.replace(/&quot;/g,'"')),o.error&&(e=o.error,o=null)}catch(e){e=n.makeErrorObject("JSON","Failed to get packages: JSON.parse failed","SpaceifyApplicationManager::appStoreGetPackages")}r(e,o)})};var S=function(t,o,s,l,d){u=t,c=Date.now(),f=o,p=s,y=l,i=r.randomString(16,!0),a?p.error(n.makeErrorObject("locked","Application manager is locked.","SpaceifyApplicationManager::setup"),null):d&&!g.isConnected()?g.connect(e,p):e.connected()};e.connected=function(){a=!0,s=1;var n={type:u};for(var t in f)n[t]=f[t];o.doOperation(n,function(n,t){l=n,d=t,e.end(1)})},e.fail=function(n){a=!1,l=n,d=null,e.end(2)},e.end=function(e){if(s+=e,2==s){a=!1;var n=g.getErrors();l||n.length>0?p.error(l?[l]:n,i,Date.now()-c):"function"==typeof y&&y(d,i,Date.now()-c)}},e.answer=function(e,n){g.answer(e,n)}}function SpaceifySynchronous(){var e=this,n=0,t=[],o={},r=null,i=null;e.waterFall=function(e,n){if(e&&0!=e.length||"function"!=typeof n){if(!e||0==e.length||"function"!=typeof n)return}else n(o);i=n,t=e,c()};var c=function(){if(0==t.length)return i();var e=t.shift();"async"==e.type?(r=e.params[e.params.length-1],e.params[e.params.length-1]=a,e.method.apply(e.object,e.params)):(o[++n]=e.method.apply(e.object,e.params),c())},a=function(){o[++n]=Array.prototype.slice.call(arguments),"function"==typeof r&&r.apply(this,arguments),c()};e.getResult=function(e){return o[e]?o[e]:null},e.getResults=function(){return o}}function SpaceifyCache(){var e=this,n={},t=6e4,o=new SpaceifyConfig;e.setApplication=function(e){n[e.unique_name]||(n[e.unique_name]={}),n[e.unique_name].manifest=e,n[e.unique_name].isRunning=e.isRunning},e.getApplication=function(e){return e in n?n[e]:null},e.setService=function(e,t){e.service_type==o.HTTP&&(n[t]||(n[t]={}),n[t].services||(n[t].services=[]),n[t].services.push(e))},e.getService=function(e,t){for(var r in n)for(var i=n[r].services?n[r].services:[],c=0;c<i.length;c++){var a=i[c].service_name;if(!t&&e==a&&e!=o.HTTP||t&&t==r&&e==a)return i[c]}return null},e.setManifest=function(e,t){n[e]||(n[e]={}),n[e].manifest=t},e.getManifest=function(e){return n[e]&&n[e].manifest?n[e].manifest:null},e.setRunning=function(e,t){n[e]||(n[e]={}),n[e].isRunning=t,n[e].isRunningStart=Date.now()},e.isRunning=function(e){if(!n[e]||!n[e].hasOwnProperty("isRunning"))return null;var o=Date.now()-n[e].isRunningStart;return o>t?null:n[e].isRunning},e.setApplicationURL=function(e,t){n[e]||(n[e]={}),n[e].urls=t,n[e].urls_start=Date.now()},e.getApplicationURL=function(e){if(!n[e]||!n[e].hasOwnProperty("urls"))return null;var o=Date.now()-n[e].urls_start;return o>t?null:n[e].urls}}function SpaceifyConfig(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={SpaceifyUnique:e?require(t+"spaceifyunique"):SpaceifyUnique},r=this,i=new o.SpaceifyUnique;if("undefined"!=typeof exports){var c,a=require("fs").readFileSync("/var/lib/spaceify/code/www/libs/config.json","utf8"),s=JSON.parse(a);for(c in s)r[c]=s[c]}else for(c in window.spConfig)r[c]=window.spConfig[c];r.makeRealApplicationPaths=function(){if("undefined"!=typeof process){var e,n,t,o=process.cwd();r.API_PATH=r.SPACEIFY_CODE_PATH,r.API_WWW_PATH=r.SPACEIFY_WWW_PATH,r.API_NODE_MODULES_DIRECTORY=r.SPACEIFY_NODE_MODULES_PATH,n=o.split("/"),n[n.length-1]==r.APPLICATION_ROOT?(e=u(o+r.APPLICATION_PATH),e&&(t=o.replace("/"+r.APPLICATION_DIRECTORY,"/"),r.VOLUME_PATH=t,r.VOLUME_TLS_PATH=t+r.TLS_DIRECTORY,r.VOLUME_APPLICATION_PATH=t+r.APPLICATION_DIRECTORY,r.VOLUME_APPLICATION_WWW_PATH=t+r.APPLICATION_DIRECTORY+r.WWW_DIRECTORY)):(t=o+"/",e=u(o),e&&(r.VOLUME_PATH=t,r.VOLUME_APPLICATION_PATH=t,r.VOLUME_APPLICATION_WWW_PATH=t+r.WWW_DIRECTORY,r.VOLUME_TLS_PATH=r.APP_TYPE_PATHS[e.type]+i.makeUniqueDirectory(e.unique_name,!0)+r.VOLUME_TLS_PATH))}};var u=function(e){var n=null;try{n=require("fs").readFileSync(e+"/"+r.MANIFEST,"utf8"),n=JSON.parse(n)}catch(e){}return n}}function SpaceifyCore(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o=!("undefined"==typeof window||!window.isSpaceifyNetwork)&&window.isSpaceifyNetwork,r={SpaceifyNetwork:e?function(){}:SpaceifyNetwork,SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig,WebSocketRpcConnection:e?require(t+"websocketrpcconnection"):WebSocketRpcConnection},i=this,c=new r.SpaceifyConfig,a=new r.SpaceifyNetwork,s=null,u=!1,f=o?new r.WebSocketRpcConnection:piperClient,p=!!e||a.isSecure(),l=e?t+c.SPACEIFY_CRT_WWW:"";i.startSpacelet=function(e,n){d("startSpacelet",[e],function(e,t,o,r){if(e)n(e,null);else{for(var i=[],c=0;c<t.length;c++)i.push(t[c].service_name);n(null,{services:t,serviceNames:i},o,r)}})},i.registerService=function(e,n,t){d("registerService",[e,n],t)},i.unregisterService=function(e,n,t){d("unregisterService",[e,n],t)},i.getService=function(e,n,t){d("getService",[e,n],t)},i.getServices=function(e,n){d("getServices",[e],n)},i.getOpenServices=function(e,n,t){d("getOpenServices",[e,n],t)},i.getManifest=function(e,n){var t=R()?S().getManifest(e):null;t?n(null,t,-1,0):d("getManifest",[e,!0],function(t,o,r,i){!t&&R()&&S().setManifest(e,o),n(t,o,r,i)})},i.isAdminLoggedIn=function(e){a.doOperation({type:"isAdminLoggedIn"},function(n,t,o,r){e(n?n:null,!n&&t,o,r)})},i.getApplicationStatus=function(e,n){d("getApplicationStatus",[e],n)},i.isApplicationRunning=function(e,n){d("isApplicationRunning",[e],n)},i.getServiceRuntimeStates=function(e,n){d("getServiceRuntimeStates",[e],n)},i.getApplicationData=function(e){var n;d("getApplicationData",[],function(t,o,r,i){if(!t&&R()){for(n=0;n<o.spacelet.length;n++)S().setApplication(o.spacelet[n]);for(n=0;n<o.sandboxed.length;n++)S().setApplication(o.sandboxed[n]);for(n=0;n<o.sandboxed_debian.length;n++)S().setApplication(o.sandboxed_debian[n]);for(n=0;n<o.native_debian.length;n++)S().setApplication(o.native_debian[n])}e(t,o,r,i)})},i.getApplicationURL=function(e,n){d("getApplicationURL",[e],n)},i.setSplashAccepted=function(e){d("setSplashAccepted",[],e)},i.setEventListeners=function(e,n,t,o,r){d("setEventListeners",[e],function(o,i,c,a){if(!o)for(var s=0;s<e.length;s++)f.exposeRpcMethod(e[s],t,n[s]);r(o,i,c,a)})};var d=function(e,n,t){u?y(e,n,t):g(e,n,t)},y=function(e,n,t){o?f.callRpc(e,n,i,function(e,n,o,r){t(e,n,o,r)}):f.callClientRpc(s,e,n,i,function(e,n){t(e,n)})},g=function(t,r,i){var a,d=p?c.CORE_PORT_SECURE:c.CORE_PORT,g=p?"wss":"ws";o?(a=e?n?c.EDGE_IP:c.CONNECTION_HOSTNAME:c.EDGE_HOSTNAME,f.connect({hostname:a,port:d,isSecure:p,caCrt:l},function(e,n,o,c){e?(u=!0,i(e,n,o,c)):y(t,r,i)})):f.createWebSocketPipe({host:c.EDGE_HOSTNAME,port:d,protocol:g},null,function(e){s=e,u=!0,y(t,r,i)})};i.close=function(){f&&f.close&&f.close(),f=null};var S=function(){return!e&&window&&window.spaceifyCache?window.spaceifyCache:null},R=function(){var e=S();return"undefined"!=e&&null!=e}}function SpaceifyMessages(){var e,n=this,t=(new SpaceifyError,new SpaceifyConfig),o=(new SpaceifyUtility,new SpaceifyNetwork),r=null,i=[],c=[],a=null,s=null,u="undefined"!=typeof window.isSpaceifyNetwork&&window.isSpaceifyNetwork,f=!1,p=u?new WebSocketRpcConnection:piperClient;n.connect=function(C,E){return i=[],c=[],a=E,s=C,f?s.connected():void o.doOperation({type:"requestMessageId"},function(o,i){return o?l(o):(e=i,p.exposeRpcMethod("stdout",n,R),p.exposeRpcMethod("fail",n,l),p.exposeRpcMethod("error",n,d),p.exposeRpcMethod("warning",n,y),p.exposeRpcMethod("notify",n,g),p.exposeRpcMethod("message",n,S),p.exposeRpcMethod("question",n,h),p.exposeRpcMethod("questionTimedOut",n,m),p.exposeRpcMethod("end",n,v),void(u?p.connect({hostname:t.EDGE_HOSTNAME,port:t.APPMAN_MESSAGE_PORT_SECURE,isSecure:!0},function(n,t){return n?l(n):(f=!0,p.callRpc("confirm",[e]),void s.connected())}):p.createWebSocketPipe({host:t.EDGE_HOSTNAME,port:t.APPMAN_MESSAGE_PORT_SECURE,isSsl:!0},null,function(n){r=n,f=!0,piperClient.callClientRpc(r,"confirm",[e]),s.connected()})))})},n.isConnected=function(){return f},n.getErrors=function(){return i},n.getWarnings=function(){return c};var l=function(e,n,t){f=!1,a.fail&&a.fail(e),s.fail(e),t(null,!0)},d=function(e,n,t){i.push(e),t(null,!0)},y=function(e,n,t,o){y.push({message:e,code:n}),a.warning&&a.warning(e,n),o(null,!0)},g=function(e,n,t,o){a.notify&&a.notify(e,n,t,o),o(null,!0)},S=function(e,n,t){a.message&&a.message(e),t(null,!0)},R=function(e,n,t){a.stdout&&a.stdout(e),t(null,!0)},h=function(e,n,t,o,r,i){a.question&&a.question(e,n,t,o),i(null,!0)},m=function(e,n,t,o,r){a.questionTimedOut&&a.questionTimedOut(e,n,t),r(null,!0)},v=function(e,n,t){s.ready(1),t(null,!0)};n.sendAnswer=function(n,t){u?p.callRpc("answer",[e,n,t]):p.callClientRpc(r,"answer",[e,n,t])}}function SpaceifyNet(){var e=this,n=0,t={spacelet:{},sandboxed:{},sandboxed_debian:{},native_debian:{},spaceletCount:0,sandboxedCount:0,sandboxedDebianCount:0,nativeDebianCount:0},o=new SpaceifyCore,r=new SpaceifyConfig,i=(new SpaceifyUtility,new SpaceifyNetwork);e.showLoading=function(e){e?(0==n&&$("#loading").show(),n++):(n=Math.max(0,--n),0==n&&$("#loading").hide())},e.showError=function(e){c(e,"error")},e.showSuccess=function(e){c(e,"success")};var c=function(e,n){var t;(t=$("#alerting")).length>0&&t.remove(),t=$('<span class="edgeAlert '+n+'" id="alerting">'+e+"</span>"),$(document.body).append(t),t.css("left",($(window).width()-t.width())/2),t.css("visibility","visible"),window.setTimeout(function(){t.remove()},5e3)};e.onEnterPress=function(e){var n=null==typeof e?window.event.keyCode:e.keyCode;return 13==n||10==n},e.isArray=function(e){return"[object Array]"===Object.prototype.toString.call(e)};var a=function(e){return angular.element(document.getElementById(e)).scope()};e.setSplashAccepted=function(){try{o.setSplashAccepted(function(e,n){n&&1==n&&window.location.reload(!0)})}catch(e){logger.error(e,!0,!0,0,logger.ERROR)}},e.loadCertificate=function(){return document.getElementById("certIframe").src=i.getEdgeURL(!1,!1,!0)+"spaceify.crt",!0},e.openAdminPages=function(){spaceifyLoader.loadPage(r.APPSTORE_INDEX_URL,r.APPSTORE_URL,r.EDGE_HTTPS_URL)},e.showInstalledApplications=function(n){$("#spacelet").empty(),$("#sandboxed").empty(),$("#sandboxedDebian").empty(),$("#nativeDebian").empty();var t,r=[];o.getApplicationData(function(o,i){if(!i)return"function"==typeof n&&n();for(t=0;t<i.spacelet.length;t++)r.push({object:e,method:e.renderTile,params:[i.spacelet[t],null],type:"async"});for(t=0;t<i.sandboxed.length;t++)r.push({object:e,method:e.renderTile,params:[i.sandboxed[t],null],type:"async"});for(t=0;t<i.sandboxed_debian.length;t++)r.push({object:e,method:e.renderTile,params:[i.sandboxed_debian[t],null],type:"async"});for(t=0;t<i.native_debian.length;t++)r.push({object:e,method:e.renderTile,params:[i.native_debian[t],null],type:"async"});(new SpaceifySynchronous).waterFall(r,function(){"function"==typeof n&&n()})})},e.renderTile=function(n,t){var c,u,f,p,l,d,y;if(n.hasTile)o.getApplicationURL(n.unique_name,function(o,s){c=i.isSecure()?s.securePort:s.port,p=i.getEdgeURL(!1,!1,!0),s.implementsWebServer&&c?(f=i.getEdgeURL(!1,c,!0),l=r.TILEFILE):(f=e.externalResourceURL(n.unique_name),l=r.TILEFILE),u=p+"spaceifyloader/index.html?sp_host="+encodeURIComponent(f)+"&sp_path="+encodeURIComponent(l)+"&spe_host="+encodeURIComponent(p),y="apptile_"+n.unique_name.replace("/","_"),a("edgeBody").addTile({type:"appTile",container:n.type,manifest:n,id:y,callback:function(){var e=document.getElementById(y);e.src=u,t()}})});else{if(f=i.getEdgeURL(!1,!1,!0),l="images/icon.png",n.images)for(d=0;d<n.images.length;d++)if(n.images[d].file.search(!0)){f=e.externalResourceURL(n.unique_name),l="images/"+("directory"in n.images[d]?n.images[d].directory+"/":"")+n.images[d].file;break}y="iconimage_"+n.unique_name.replace("/","_"),a("edgeBody").addTile({type:"tile",container:n.type,manifest:n,id:y,sp_src:f+l,callback:function(){spaceifyLoader.loadData(document.getElementById(y),t)}})}s(n)},e.removeTile=function(e){var n=e.unique_name.replace(/\//,"_");$("#"+n).remove(),u(e)};var s=function(e){e.type==r.SPACELET?(t.spacelet[e.unique_name]=e,t.spaceletCount++):e.type==r.SANDBOXED?(t.sandboxed[e.unique_name]=e,t.sandboxedCount++):e.type==r.SANDBOXED_DEBIAN?(t.sandboxed_debian[e.unique_name]=e,t.sandboxedDebianCount++):e.type==r.NATIVE_DEBIAN&&(t.native_debian[e.unique_name]=e,t.nativeDebianCount++)},u=function(e){e.type==r.SPACELET?(delete t.spacelet[e.unique_name],t.spaceletCount--):e.type==r.SANDBOXED?(delete t.sandboxed[e.unique_name],t.sandboxedCount--):e.type==r.SANDBOXED_DEBIAN?(delete t.sandboxed_debian[e.unique_name],t.sandboxedDebianCount--):e.type==r.NATIVE_DEBIAN&&(delete t.native_debian[e.unique_name],t.nativeDebianCount--)};e.getApplications=function(){return t},e.externalResourceURL=function(e){return i.getEdgeURL(!1,!1,!0)+e+"/"}}function SpaceifyNetwork(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={SpaceifyError:e?require(t+"spaceifyerror"):SpaceifyError,SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig,SpaceifyUtility:e?require(t+"spaceifyutility"):SpaceifyUtility},r=this,i=new o.SpaceifyError,c=new o.SpaceifyConfig,a=new o.SpaceifyUtility;r.getEdgeURL=function(e,n,t){return(e?"https:":location.protocol)+"//"+c.EDGE_HOSTNAME+(n?":"+n:"")+(t?"/":"")},r.getPort=function(e,n,t){return r.isSecure()||t?n:e},r.isSecure=function(){return"http:"!=location.protocol},r.getProtocol=function(e){return("http:"==location.protocol?"http":"https")+(e?"://":"")},r.parseQuery=function(e){var n,t,o={},r=new RegExp("=","i");if(2!=(n=e.split("?")).length)return o;t=n[1].split("&");for(var i=0;i<t.length;i++)r.exec(t[i])?o[RegExp.leftContext]=RegExp.rightContext:o[t[i]]=null;return o},r.remakeQueryString=function(e,n,t,o){var r,i="";for(r in e)n.indexOf(r)||(i+=(""!=i?"&":"")+r+(e[r]?"="+e[r]:""));for(r in t)i+=(""!=i?"&":"")+r+"="+t[r];return Object.keys(e).length>0?(o?o:"")+"?"+i:""},r.parseURL=function(e){for(var n={strictMode:!1,key:["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],q:{name:"queryKey",parser:/(?:^|&)([^&=]*)=?([^&]*)/g},parser:{strict:/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,loose:/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/}},t=n.parser[n.strictMode?"strict":"loose"].exec(e),o={},r=14;r--;)o[n.key[r]]=t[r]||"";return o[n.q.name]={},o[n.key[12]].replace(n.q.parser,function(e,t,r){t&&(o[n.q.name][t]=r)}),o},r.implementsWebServer=function(e){return!(!e.implements||e.implements.indexOf(c.WEB_SERVER)==-1)},r.isPortInUse=function(e,n){if(!e)return n(null,!0);var t=require("net"),o=t.createServer();o.once("error",function(e){n("EADDRINUSE"!=e.code?e:null,!0)}),o.once("listening",function(){o.once("close",function(){n(null,!1)}),o.close()}),o.listen(e)},r.GET=function(e,n,t){var o=Date.now(),r=a.randomString(16,!0),i=s();i.onreadystatechange=function(){u(i,r,o,n)},i.open("GET",e,!0),i.responseType=t?t:"",i.send()},r.POST_FORM=function(e,n,t,o){if("undefined"!=typeof spaceifyLoader)spaceifyLoader.postData(e,n,t,o);else{for(var r="---------------------------"+Date.now().toString(16),i="",c=0;c<n.length;c++)i+="\r\n--"+r+"\r\n",i+=n[c].content,i+="\r\n\r\n"+n[c].data+"\r\n";i+="\r\n--"+r+"--";var f=s();f.open("POST",e,!0),f.responseType=t?t:"text",f.setRequestHeader("Content-Type","multipart/form-data; boundary="+r),f.onreadystatechange=function(){u(f,a.randomString(16,!0),Date.now(),o)},f.send(i)}},r.doOperation=function(e,n){var t,o,a=null;try{o="Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8",r.POST_FORM(c.OPERATION_URL,[{content:o,data:JSON.stringify(e)}],"json",function(e,o,r,c){try{"string"!=typeof o&&(o=JSON.stringify(o)),t=JSON.parse(o.replace(/&quot;/g,'"'))}catch(e){t={err:i.makeErrorObject("doOperation1","Invalid JSON received.","SpaceifyNetwork::doOperation")}}t.err?a=t.err:t.error&&(a=t.error),n(a,t.data,r,c)})}catch(e){n(e,null)}};var s=function(){return window.XMLHttpRequest?new XMLHttpRequest:new ActiveXObject("Microsoft.XMLHTTP")},u=function(e,n,t,o){4==e.readyState&&o(200!=e.status?e.status:null,200==e.status?e.response:null,n,Date.now()-t)}}function SpaceifyService(){function e(e,n,t,o){var i,c="object"==typeof e?e.service_name:e;n[c]||(n[c]=new r.Service(c,!1,new r.WebSocketRpcConnection),n[c].setConnectionListener(O),n[c].setDisconnectionListener(b)),"object"==typeof e?(i=t?e.securePort:e.port,E(n[c],i,t,function(){"function"==typeof o&&o(null,n[c])})):a.getService(c,"",function(e,r){!r||e?(n[c].getIsOpen()||b(-1,c,t),"function"==typeof o&&o(C,null)):(i=t?r.securePort:r.port,E(n[c],i,t,function(){"function"==typeof o&&o(null,n[c])}))})}var n="undefined"!=typeof exports,t=!(!n||"undefined"==typeof process.env.IS_REAL_SPACEIFY),o=n&&t?"/api/":"/var/lib/spaceify/code/",r={Service:n?require(o+"service"):Service,SpaceifyCore:n?require(o+"spaceifycore"):SpaceifyCore,SpaceifyError:n?require(o+"spaceifyerror"):SpaceifyError,WebSocketRpcServer:n?require(o+"websocketrpcserver"):null,SpaceifyConfig:n?require(o+"spaceifyconfig"):SpaceifyConfig,SpaceifyNetwork:n?require(o+"spaceifynetwork"):SpaceifyNetwork,WebSocketRpcConnection:n?require(o+"websocketrpcconnection"):WebSocketRpcConnection},i=n?require(o+"fibrous"):function(e){return e},c=this,a=new r.SpaceifyCore,s=new r.SpaceifyError,u=new r.SpaceifyConfig,f=new r.SpaceifyNetwork;u.makeRealApplicationPaths();var p={},l={},d={},y={},g=!0,S=!0,R={},h=o+u.SPACEIFY_CRT_WWW,m=u.VOLUME_TLS_PATH+u.SERVER_KEY,v=u.VOLUME_TLS_PATH+u.SERVER_CRT,C=s.makeErrorObject("not_open","Connection is not ready.","SpaceifyService::connect");c.connect=function(t,o,r){var i="object"==typeof t?t.service_name:t;return i==u.HTTP?r(C,null):("function"==typeof o?(r=o,o=!n&&f.isSecure()):o=n?o:f.isSecure(),void e(t,o?l:p,o,r))};var E=function(e,n,t,o){return e.getIsOpen()?o():void e.getConnection().connect({hostname:u.EDGE_HOSTNAME,port:n,isSecure:t,caCrt:h,debug:!0},o)};c.disconnect=function(e,n){var t;e?service_name.constructor!==Array&&(t=[e]):t=Object.keys(p);for(var o=0;o<t.length;o++)t[o]in p&&p[t[o]].getConnection().close(),t[o]in l&&l[t[o]].getConnection().close()};var O=function(e,n,t){},b=function(e,n,t){if(S){var o=n+(t?"T":"F");if(!(o in R)){var r=t?l[n]:p[n];R[o]=setTimeout(w,u.RECONNECT_WAIT,e,n,t,o,r)}}},w=function(e,n,t,o,r){a.getService(n,"",function(i,c){delete R[o],c?E(r,t?c.securePort:c.port,t,function(){}):b(e,n,t)})};c.getRequiredService=function(e){return p[e]?p[e]:null},c.getRequiredServiceSecure=function(e){return l[e]?l[e]:null},c.keepConnectionUp=function(e){S="boolean"==typeof e&&e},c.listen=i(function(e,n,t,o,i,c){"undefined"==typeof i&&(i=!0),"undefined"==typeof c&&(c=!0),d[e]||(d[e]=new r.Service(e,!0,new r.WebSocketRpcServer)),y[e]||(y[e]=new r.Service(e,!0,new r.WebSocketRpcServer)),i&&A.sync(d[e],t,!1),c&&A.sync(y[e],o,!0),t&&o||(i&&(t=d[e].getServer().getPort()),c&&(o=y[e].getServer().getPort()),console.log("    LISTEN -----> "+e+" - port: "+t+", secure port: "+o)),a.sync.registerService(e,{unique_name:n,port:t,securePort:o})});var A=i(function(e,n,t){e.getIsOpen()||e.getServer().sync.listen({hostname:null,port:n,isSecure:t,key:m,crt:v,caCrt:h,keepUp:g,debug:!0})});c.close=function(e){var n;"undefined"==typeof service_names?n=Object.keys(d):"undefined"!=typeof service_names&&e.constructor!==Array&&(n=[service_names]);for(var t=0;t<n.length;t++)n[t]in d&&d[n[t]].getServer().close(),n[t]in y&&y[n[t]].getServer().close()},c.getProvidedService=function(e){return d[e]?d[e]:null},c.getProvidedServiceSecure=function(e){return y[e]?y[e]:null},c.keepServerUp=function(e){g="boolean"==typeof e&&e}}function SpaceifyUtility(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={Logger:e?require(t+"logger"):Logger,Language:e?require(t+"language"):{},SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig};"undefined"!=typeof exports&&(global.os=require("os"),global.fs=require("fs"),global.path=require("path"),global.mkdirp=require("mkdirp"),global.AdmZip=require("adm-zip"),global.request=require("request"),global.spawn=require("child_process").spawn);var r=e?require(t+"fibrous"):function(e){return e},i=this,c=new o.Logger,a=o.Language,s=new o.SpaceifyConfig;i.loadRemoteFile=r(function(e){var n;try{n=request.sync.get(e,{encoding:null,rejectUnauthorized:!1,agent:!1})}catch(e){throw a.E_LOAD_REMOTE_FILE_FAILED_TO_INITIATE_HTTP_GET.pre("SpaceifyUtility::loadRemoteFile",e)}if(200!=n.statusCode)throw a.E_LOAD_REMOTE_FILE_FAILED_TO_LOAD_REMOTE_FILE.preFmt("SpaceifyUtility::loadRemoteFile",{"~file":e,"~code":n.statusCode});return n}),i.loadRemoteFileToLocalFile=r(function(e,n,t,o){try{var r=i.sync.loadRemoteFile(e);return 200==r.statusCode&&i.sync.writeFile(n,t,r.body),!0}catch(e){if(o)throw a.E_LOAD_REMOTE_FILE_TO_LOCAL_FILE_FAILED.pre("SpaceifyUtility::loadRemoteFileToLocalFile",e)}return!1}),i.isLocal=r(function(e,n){try{var t=fs.sync.stat(e);if(t&&"file"==n&&t.isFile())return!0;if(t&&"directory"==n&&t.isDirectory())return!0}catch(e){}return!1}),i.getPathType=r(function(e){try{var n=fs.sync.stat(e);if(n&&n.isFile())return"file";if(n&&n.isDirectory())return"directory"}catch(e){}return"undefined"}),i.deleteDirectory=r(function(e,n){try{var t=fs.sync.stat(e);"undefined"!=typeof t&&t.isDirectory()&&(fs.sync.readdir(e).forEach(function(t,o){var r=e+"/"+t;fs.sync.stat(r).isDirectory()?i.sync.deleteDirectory(r,n):fs.sync.unlink(r)}),fs.sync.rmdir(e))}catch(e){if(n)throw a.E_DELETE_DIRECTORY_FAILED.pre("SpaceifyUtility::deleteDirectory",e)}}),i.copyDirectory=r(function(e,n,t,o){try{e+=e.search(/\/$/)!=-1?"":"/",n+=n.search(/\/$/)!=-1?"":"/";var r=fs.sync.stat(e);if("undefined"==typeof r||!r.isDirectory()||o.indexOf(e)!=-1)return;var c=parseInt("0"+(511&r.mode).toString(8),8);mkdirp.sync(n,c),fs.sync.readdir(e).forEach(function(a,s){var u=e+a,f=n+a;if(r=fs.sync.stat(u),r.isDirectory())i.sync.copyDirectory(u+"/",f+"/",t,o);else{c=parseInt("0"+(511&r.mode).toString(8),8);var p=fs.createReadStream(u,{autoClose:!0}),l=fs.createWriteStream(f,{mode:c});p.pipe(l)}})}catch(e){if(t)throw a.E_COPY_DIRECTORY_FAILED.pre("SpaceifyUtility::copyDirectory",e)}}),i.moveDirectory=r(function(e,n,t){try{i.sync.copyDirectory(e,n,!0,[]),i.sync.deleteDirectory(e,!0)}catch(e){if(t)throw a.E_MOVE_DIRECTORY_FAILED.pre("SpaceifyUtility::moveDirectory",e)}}),i.deleteFile=r(function(e,n){try{var t=fs.sync.stat(e);"undefined"==typeof t||t.isDirectory()||fs.sync.unlink(e)}catch(e){if(n)throw a.E_DELETE_FILE_FAILED.pre("SpaceifyUtility::deleteFile",e)}}),i.copyFile=r(function(e,n,t){try{var o=fs.sync.stat(e);if("undefined"!=typeof o&&!o.isDirectory()){var r=parseInt("0"+(511&o.mode).toString(8),8),i=fs.createReadStream(e,{autoClose:!0}),c=fs.createWriteStream(n,{mode:r});i.pipe(c)}}catch(e){if(t)throw a.E_COPY_FILE_FAILED.pre("SpaceifyUtility::copyFile",e)}}),i.moveFile=r(function(e,n,t){try{i.sync.copyFile(e,n,!0),i.sync.deleteFile(e,!0)}catch(e){if(t)throw a.E_MOVE_FILE_FAILED.pre("SpaceifyUtility::moveFile",e)}}),i.zipDirectory=r(function(e,n){e+=""!=e&&e.search(/\/$/)==-1?"/":"";try{i.execute.sync("zip",["-r","-q",n,".","-i","*"],{cwd:e},null)}catch(e){throw a.E_ZIP_DIRECTORY_FAILED.pre("SpaceifyUtility::zipDirectory",e)}}),i.getFileFromZip=function(e,n,t,o){var r=new RegExp(n+"$","i"),c=new AdmZip(e),a=c.getEntries();for(var s in a)if(a[s].entryName.search(r)!=-1)return t&&c.extractAllTo(t,!0),c.readAsText(a[s].entryName);return o&&i.sync.deleteFile(e),null},i.unZip=function(e,n,t){var o=new AdmZip(e);return o.extractAllTo(n,!0),t&&i.sync.deleteFile(e),!0},i.writeFile=r(function(e,n,t){mkdirp.sync(e),fs.sync.writeFile(e+n,t)}),i.preparePath=function(e){return e+(e.match(/^$/)||e.match(/\/$/)?"":"/")},i.postForm=r(function(e,n){var t;try{t=request.sync.post(e,n)}catch(e){throw a.E_POST_FORM_FAILED_TO_INITIATE_HTTP_POST.pre("SpaceifyUtility::postForm",e)}if(200!=t.statusCode)throw a.E_POST_FORM_FAILED_TO_POST_FORM.preFmt("SpaceifyUtility::postForm",{"~url":e,"~code":t.statusCode});return t}),i.remakeQueryString=function(e,n,t,o){var r,i="";for(r in e)n.indexOf(r)==-1&&(i+=(""!=i?"&":"")+r+(e[r]?"="+e[r]:""));for(r in t)i+=(""!=i?"&":"")+r+(t[r]?"="+t[r]:"");return Object.keys(e).length>0?(o?o:"")+"?"+i:""},i.postPublish=function(e,n,t,o,r){c.force(a.PACKAGE_POSTING),request({url:s.REGISTRY_PUBLISH_URL,headers:{"content-type":"multipart/form-data"},method:"POST",multipart:[{"Content-Disposition":'form-data; name="username"',body:n},{"Content-Disposition":'form-data; name="password"',body:t},{"Content-Disposition":'form-data; name="release"',body:o},{"Content-Disposition":'form-data; name="package"; filename="'+s.PUBLISH_ZIP+'"',"Content-Type":"application/zip",body:fs.readFileSync(e)}]},function(e,n,t){r(e?e:null,e?null:200!=n.statusCode?n.statusCode:t)})},i.postRegister=function(e,n,t,o){request.post({url:s.EDGE_REGISTER_URL,headers:{"content-type":"multipart/form-data"},multipart:[{"Content-Disposition":'form-data; name="edge_id"',body:e},{"Content-Disposition":'form-data; name="edge_name"',body:n},{"Content-Disposition":'form-data; name="edge_password"',body:t}]},function(e,n,t){o(e?e:null,e?null:200!=n.statusCode?n.statusCode:t)})};i.parseURLFromURLObject=function(e,n,t,o){return e.hostname=n+(o?":"+o:""),e.protocol=t,e.format(e)},i.parseMultiPartData=function(e,n,t){var o,r,c,a,s,u,f={},p={};try{if(i.parseMultipartLine(e,f),!(o=f.boundary))throw"";for(r="--"+o,c="--"+o+"--",n=n.split("\r\n"),n.shift();n.length>0;){for(s=0,u={body:""},a=n.shift();n.length>0&&a!=r&&a!=c;)""==a?s++:0==s?i.parseMultipartLine(a,u):u.body+=a,a=n.shift();u.name&&(p[u.name]=u)}}catch(e){if(t)throw e}return p},i.parseMultipartLine=function(e,n){for(var t=e.split(";"),o=0;o<t.length;o++)if(t[o]){var r=t[o].match(/[:=]/);if(r){var i=t[o].substr(0,r.index),c=t[o].substr(r.index+1);n[i.trim().toLowerCase()]=c.trim()}else n[t[o].trim()]=""}},i.loadJSON=r(function(e,n,t){var o=null;try{o=fs.sync.readFile(e,{encoding:"utf8"}),n&&(o=i.parseJSON(o,t))}catch(e){if(o=null,t)throw a.E_LOAD_JSON_FAILED.pre("SpaceifyUtility::loadJSON",e)}return o}),i.saveJSON=r(function(e,n,t){var o=!1;try{var r=JSON.stringify(n,null,2);fs.sync.writeFile(e,r,{encoding:"utf8"}),o=!0}catch(e){if(t)throw a.E_SAVE_JSON_FAILED.pre("SpaceifyUtility::saveJSON",e)}return o}),i.parseJSON=function(n,t){var o;try{o=JSON.parse(n)}catch(n){if(t)throw e?a.E_PARSE_JSON_FAILED.pre("SpaceifyUtility::parseJSON",n):i.makeErrorObject("JSON","Failed to parse JSON.","SpaceifyUtility::parseJSON")}return o},i.replaces=function(e,n){for(var t=n.length-1;t>=0;t--){var o=new RegExp("%"+t,"g");e=e.replace(o,"undefined"==typeof n[t]?"?":n[t])}return e},i.replace=function(e,n,t){var o,r=t?t:"";for(o in n)"undefined"!=typeof n[o]&&(e=e.replace(o,n[o]));return e=e.replace(/\s~[a-zA-Z0-9]*\s/g," "+r+" "),e=e.replace(/~[a-zA-Z0-9]+\s/g," "+r+" "),e=e.replace(/\s~[a-zA-Z0-9]+/g,r),e=e.replace(/~[a-zA-Z0-9]+/g,r)},i.execute=function(e,n,t,o,r){var i=!1,c="",a="",s=spawn(e,n,t);s.stdout.on("data",function(e){o&&o(!1,e),c+=e}),s.stderr.on("data",function(e){o&&o(!0,e),a+=e}),s.on("error",function(e){i||(r(e,null),i=!0)}),s.on("close",function(e){i||(r(null,{code:e,signal:null,stdout:c,stderr:a}),i=!0)}),s.on("exit",function(e,n){i||(r(null,{code:e,signal:n,stdout:c,stderr:a}),i=!0)})},i.ucfirst=function(e){return e.charAt(0).toUpperCase()+e.slice(1)},i.randomString=function(e,n){var t,o="";o=n?"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789":"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!�$#%&/(){}[]<>|��=+?*,.;:-_";var r="";for(t=e;t>0;--t)r+=o[Math.round(Math.random()*(o.length-1))];return r},i.generateRandomConnectionId=function(e){for(var n;;)if(n=Math.floor(4294967296*Math.random()),!e.hasOwnProperty(n))break;return n},i.bytesToHexString=function(e){for(var n=[],t=0;t<e.length;t++)n.push((e[t]>>>4).toString(16)),n.push((15&e[t]).toString(16));return n.join("")},i.getLocalDateTime=function(){var e;return e=new Date,e=e.getFullYear()+"-"+("00"+(e.getMonth()+1)).slice(-2)+"-"+("00"+e.getDate()).slice(-2)+" "+("00"+e.getHours()).slice(-2)+":"+("00"+e.getMinutes()).slice(-2)+":"+("00"+e.getSeconds()).slice(-2)},i.isObjectEmpty=function(e){return"object"!=typeof e||0==Object.keys(e).length},i.assoc=function(e,n,t){return n in e?e[n]=[t]:e[key].push(t),e},i.toBuffer=function(e){return e instanceof Buffer?e:e instanceof Array||e instanceof Object?new Buffer(JSON.stringify(e),"utf8"):"string"==typeof e?new Buffer(e,"utf8"):new Buffer(e.toString(),"utf8")},i.setCookie=function(e,n,t){var o="";if(t){var r=Date.now()+1e3*t,i=new Date(r);o="expires="+i.toGMTString()}document.cookie=e+"="+n+(""!=o?"; "+o:"")},i.getCookie=function(e){for(var n=e+"=",t=document.cookie.split(";"),o=0;o<t.length;o++){for(var r=t[o];" "==r.charAt(0);)r=r.substring(1);if(r.indexOf(n)!=-1)return r.substring(n.length,r.length)}return""},i.deleteCookie=function(e){document.cookie=e+"=; expires=Thu, 01 Jan 1970 00:00:00 GMT"}}function Spacelet(){var e=this,n=new SpaceifyCore,t=new SpaceifyService;e.start=function(e,o,r){try{n.startSpacelet(o,function(n,o){if(n)throw n;for(var r=0;r<o.serviceNames.length;r++)t.connect(o.serviceNames[r],r+1!=o.serviceNames.length?null:function(n,t){"function"==typeof e?e(null,!0):e&&e.start&&e.start()})})}catch(n){"function"==typeof e?e(n,!1):e&&e.fail&&e.fail(n)}},e.getRequiredService=function(e){return t.getRequiredService(e)},e.getRequiredServiceSecure=function(e){return t.getRequiredServiceSecure(e)}}function SpaceifyApplication(){var e="undefined"!=typeof exports,n=!(!e||"undefined"==typeof process.env.IS_REAL_SPACEIFY),t=e&&n?"/api/":"/var/lib/spaceify/code/",o={Logger:e?require(t+"logger"):Logger,WebServer:e?require(t+"webserver"):function(){},SpaceifyCore:e?require(t+"spaceifycore"):SpaceifyCore,SpaceifyConfig:e?require(t+"spaceifyconfig"):SpaceifyConfig,SpaceifyUtility:e?require(t+"spaceifyutility"):SpaceifyUtility,SpaceifyService:e?require(t+"spaceifyservice"):SpaceifyService},r=e?require(t+"fibrous"):function(e){return e},i=this,c=new o.Logger,a=new o.WebServer,s=new o.WebServer,u=new o.SpaceifyConfig,f=new o.SpaceifyUtility,p=new o.SpaceifyCore,l=new o.SpaceifyService;u.makeRealApplicationPaths();var d=null,y=null,g=n?80:null,S=n?443:null;i.start=function(){e?R.apply(i,arguments):i.connect.apply(i,arguments)};var R=function(e,t){r.run(function(){var o,r,i,c,R,h=!1,v=!1,E=!0,O=!0;y=e,t=t||{},R=!(!t.webservers&&!t.webServers),R&&(o=t.webservers||t.webServers,h="http"in o&&o.http,v="https"in o&&o.https),(t.websocketservers||t.webSocketServers)&&(o=t.websocketservers||t.webSocketServers,E="secure"in o&&o.secure,O="unsecure"in o&&o.unsecure);try{if(d=f.sync.loadJSON(u.VOLUME_APPLICATION_PATH+u.MANIFEST,!0,!0),d.provides_services)for(var b=d.provides_services,w=0;w<b.length;w++)b.service_type!=u.ALIEN&&(r=n?u.FIRST_SERVICE_PORT+w:null,i=n?u.FIRST_SERVICE_PORT_SECURE+w:null,l.sync.listen(b[w].service_name,d.unique_name,r,i,O,E));if(d.requires_services&&(C.sync(d.requires_services,0,!1),C.sync(d.requires_services,0,!0)),R){var A={hostname:u.ALL_IPV4_LOCAL,key:u.VOLUME_TLS_PATH+u.SERVER_KEY,crt:u.VOLUME_TLS_PATH+u.SERVER_CRT,caCrt:u.API_WWW_PATH+u.SPACEIFY_CRT,wwwPath:u.VOLUME_APPLICATION_WWW_PATH,
-indexFile:u.INDEX_HTML,serverName:d.name+" Server"};c=!1,h&&!a.getIsOpen()&&(A.isSecure=!1,A.port=g,a.listen.sync(A),g=a.getPort(),c=!0),v&&!s.getIsOpen()&&(A.isSecure=!0,A.port=S,s.listen.sync(A),S=s.getPort(),c=!0),c&&!n&&(p.sync.registerService("http",{unique_name:d.unique_name,port:g,securePort:S}),console.log("    LISTEN -----> "+u.HTTP+" - port: "+g+", secure port: "+S))}y&&y.start&&"function"==typeof y.start&&y.start(),console.log(u.APPLICATION_INITIALIZED,"---",d.unique_name)}catch(e){m.sync(e)}},function(e,n){})};i.connect=function(e,n,t){try{y=e,n.constructor!==Array&&(n=[n]),p.getOpenServices(n,!1,function(e,n){if(e)throw e;h(y,n)})}catch(e){"function"==typeof y?y(e,!1):y&&y.fail&&"function"==typeof y.fail&&y.fail(e)}};var h=function(e,n){var t=n.shift();return y=e,"undefined"==typeof t?void("function"==typeof y?y(null,!0):y&&y.start&&"function"==typeof y.start&&y.start()):void l.connect(t.service_name,function(e,t){h(y,n)})},m=r(function(e){c.error([";;",e,"::"],!0,!0,c.ERROR),console.log(d.unique_name+u.APPLICATION_UNINITIALIZED),v.sync(e)}),v=r(function(e){a.close(),s.close(),l.disconnect(),l.close(),p.close(),y&&y.fail&&"function"==typeof y.fail&&y.fail(e)}),C=function(e,n,t,o){n==e.length?o():l.connect(e[n++].service_name,t,function(r,i){C(e,n,t,o)})};i.getOwnUrl=function(n){if(!e)return null;var t=(n?"https://":"http://")+u.EDGE_HOSTNAME+":"+(n?S:g);return t},i.getManifest=function(){return d},i.getRequiredService=function(e){return l.getRequiredService(e)},i.getRequiredServiceSecure=function(e){return l.getRequiredServiceSecure(e)},i.getProvidedService=function(e){return l.getProvidedService(e)},i.getProvidedServiceSecure=function(e){return l.getProvidedServiceSecure(e)}}function SpaceifyError(e){var n="undefined"!=typeof exports,t=!(!n||"undefined"==typeof process.env.IS_REAL_SPACEIFY),o=n&&t?"/api/":"/var/lib/spaceify/code/",r={SpaceifyConfig:n?require(o+"spaceifyconfig"):SpaceifyConfig},i=this;new r.SpaceifyConfig;i.path=e&&e.path?e.path:"",i.code=e&&e.code?e.code:"",i.message=e&&e.message?e.message:"";var c=", ",a=", ",s=" ";i.set=function(e){i.path=e.path||"",i.code=e.code||"",i.message=e.message||""},i.getAsObject=function(){return{code:i.code,codes:[i.code],message:i.message,messages:[i.message],path:i.path,paths:[i.path]}},i.getMessage=function(){return i.message},i.getCode=function(){return i.code},i.getPath=function(){return i.path},i.pre=function(e){i.path=e;var n=Array.prototype.slice.call(arguments);return n[0]=i.getAsObject(),i.make.apply(this,n)},i.preFmt=function(e,n){return i.path=e,i.makeFmt(i.getAsObject(),n)},i.make=function(){var e,n="",t=[],o="",r=[],i="",u=[];for(e=0;e<arguments.length;e++){var f=arguments[e];f.messages?(t=t.concat(f.paths),r=r.concat(f.codes),u=u.concat(f.messages)):(t.push(f.path?f.path:""),r.push(f.code?f.code:""),u.push(f.message?f.message:f.toString()))}for(e=0;e<u.length;e++)r[e]&&(o+=(""!=o?c:"")+r[e]),t[e]&&(n+=(""!=n?a:"")+t[e]),i+=(""!=i?s:"")+u[e];return{code:o,message:i,path:n,codes:r,paths:t,messages:u}},i.makeFmt=function(e,n){return e.message=i.replace(e.message,n),e.messages&&e.messages.length>0&&(e.messages[0]=e.message),i.make(e)},i.makeErrorObject=function(e,n,t){var o="undefined"!=typeof e?e:"",r="undefined"!=typeof t?t:"",i="undefined"!=typeof n?n:"";return{code:o,codes:[o],message:i,messages:[i],path:r,paths:[r]}},i.errorFromObject=function(e){return"string"==typeof e&&(e=JSON.parse(e)),i.make(i.makeErrorObject(e.code,e.message,e.path))},i.typeToErrorObject=function(e){return e?"string"==typeof e?e=i.makeErrorObject("",e,""):e.codes||e.messages||e.paths||(e=i.make(e)):e=i.makeErrorObject("###","###","###"),e},i.errorToString=function(e,n,t){var o="",r="",c="",a="";if("string"==typeof e)o+=e;else if(e.message&&!e.messages)o+=e.message;else if(e.pop)for(;e.length>0;)o+=(""!=o?s:"")+i.errorToString(e.shift());else if(e.messages)for(var u=0;u<e.messages.length;u++)r=t&&e.codes[u]?e.codes[u]:null,c=n&&e.paths[u]?e.paths[u]:null,a=i.ucfirst(e.messages[u]),a=i.endWithDot(a),o+=""!=o?" ":"",o+=c?c:"",o+=r?(c?" - ":"")+r:"",o+=(r||c?" ":"")+a;return o},i.replace=function(e,n,t){var o=t?t:"";for(var r in n)"undefined"!=typeof n[r]&&(e=e.replace(r,n[r]));return e=e.replace(/\s~[a-zA-Z0-9]*\s/g," "+o+" "),e=e.replace(/~[a-zA-Z0-9]*\s/g," "+o+" "),e=e.replace(/\s~[a-zA-Z0-9]*/g,o),e=e.replace(/~[a-zA-Z0-9]+/g,o)},i.ucfirst=function(e){return e=e.trim(),e.charAt(0).toUpperCase()+e.slice(1)},i.endWithDot=function(e){return e=e.trim(),"."!=e.charAt(e.length-1)&&(e+="."),e}}function Service(e,n,t){var o="undefined"!=typeof exports,r=!(!o||"undefined"==typeof process.env.IS_REAL_SPACEIFY),i=o&&r?"/api/":"/var/lib/spaceify/code/",c={SpaceifyConfig:o?require(i+"spaceifyconfig"):SpaceifyConfig,SpaceifyUtility:o?require(i+"spaceifyutility"):SpaceifyUtility},a=(o?require(i+"fibrous"):function(e){return e},this),s=(new c.SpaceifyConfig,new c.SpaceifyUtility,null),u=null,f=[],p=[];a.REQUIRED=0,a.PROVIDED=1;var l=function(n){for(var t=0;t<f.length;t++)f[t](n,e,a.getIsSecure())},d=function(n){for(var t=0;t<p.length;t++)p[t](n,e,a.getIsSecure())},y=function(n){s&&s(n,e,a.getIsSecure())},g=function(n){u&&g(n,e,a.getIsSecure())};a.setConnectionListener=function(e){"function"==typeof e&&f.push(e)},a.setDisconnectionListener=function(e){"function"==typeof e&&p.push(e)},a.setServerUpListener=function(e){s="function"==typeof e?e:null},a.setServerDownListener=function(e){u="function"==typeof e?e:null},a.getPort=function(){return t.getPort()},a.getIsOpen=function(){return t.getIsOpen()},a.getServiceName=function(){return e},a.getType=function(){return n?a.PROVIDED:a.REQUIRED},a.getId=function(){return t.getId()},a.getServer=function(){return n?t:null},a.getConnection=function(){return n?null:t},a.getIsSecure=function(){return t.getIsSecure()},a.exposeRpcMethod=function(e,n,o){t.exposeRpcMethod(e,n,o)},a.exposeRpcMethodSync=function(e,n,o){t.exposeRpcMethodSync(e,n,o)},a.callRpc=function(){t.callRpc.apply(this,arguments)},t.setConnectionListener(l),t.setDisconnectionListener(d),n&&(t.setServerUpListener(y),t.setServerDownListener(g))}function SpaceifyUnique(){var e=this;e.makeUniqueDirectory=function(e,n){return e=e.toLowerCase(),e=e.replace(/[^a-z0-9\/_]/g,"/"),e=e.replace(/^\/+/,""),e+=e.search(/\/$/)!=-1?"":"/",n&&(e=e.replace(/\/$/,"")),e},e.makeSystemctlServiceName=function(e){return e.replace(/_\//g,"")+".service"}}"undefined"!=typeof exports&&(module.exports=Logger),"undefined"!=typeof exports&&(module.exports=BinaryRpcCommunicator),"undefined"!=typeof exports&&(module.exports=CallbackBuffer),"undefined"!=typeof exports&&(module.exports=RpcCommunicator),navigator.getUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia;var RTCPeerConnection=window.RTCPeerConnection||window.mozRTCPeerConnection||window.webkitRTCPeerConnection,RTCSessionDescription=window.RTCSessionDescription||window.mozRTCSessionDescription||window.webkitRTCSessionDescription,RTCIceCandidate=window.RTCIceCandidate||window.mozRTCIceCandidate||window.webkitRTCIceCandidate;"undefined"!=typeof exports&&(module.exports=WebSocketConnection),"undefined"!=typeof exports&&(module.exports=WebSocketRpcConnection),"undefined"!=typeof exports&&(module.exports=WebSocketServer),"undefined"!=typeof exports&&(module.exports=WebSocketRpcServer),"undefined"!=typeof exports&&(module.exports=SpaceifySynchronous),"undefined"!=typeof exports&&(module.exports=SpaceifyConfig),"undefined"!=typeof exports&&(module.exports=SpaceifyCore),"undefined"!=typeof exports&&(module.exports=SpaceifyNetwork),"undefined"!=typeof exports&&(module.exports=SpaceifyService),"undefined"!=typeof exports&&(module.exports=SpaceifyUtility),"undefined"!=typeof exports&&(module.exports=new SpaceifyApplication),"undefined"!=typeof exports&&(module.exports=SpaceifyError),"undefined"!=typeof exports&&(module.exports=Service),"undefined"!=typeof exports&&(module.exports=SpaceifyUnique);
+var spaceifyApp = window.angular.module("spaceifyApp", []);
+
+	// BOOTSTRAPPED IN js/spaceify.edge.js!!! -- -- -- -- -- -- -- -- -- -- //
+
+	// CONTROLLERS -- -- -- -- -- -- -- -- -- -- //
+spaceifyApp.controller("bodyController", ["$scope", "$window", "$compile", "$timeout", function($scope, $window, $compile, $timeout)
+	{
+	$scope.safeApply = function(fn)
+		{ // Get rid of "$apply already in progress errors" - https://coderwall.com/p/ngisma/safe-apply-in-angular-js
+		var phase = this.$root.$$phase;
+		if(phase == '$apply' || phase == '$digest')
+			{
+			if(fn && (typeof(fn) === 'function'))
+				fn();
+			}
+		else
+			this.$apply(fn);
+		};
+
+	$scope.getString = function(section, index)
+		{
+		return window.spLocales[spLocale][section][index];
+		}
+
+	$scope.addTile = function(detail)
+		{
+		$scope.manifest = (detail.manifest ? detail.manifest : {});
+		$scope.sp_src = (detail.sp_src ? detail.sp_src : "");
+		$scope.id = (detail.id ? detail.id : "");
+
+		$scope.safeApply(function()
+			{
+			var content = $compile(window.spTiles[detail.type])($scope);	// compile, bind to scope and append
+
+			$("#" + detail.container).append(content[0]);
+
+			if(typeof detail.callback == "function")
+				$timeout(detail.callback, 0);
+			});
+		};
+	}]);
+
+	// DIRECTIVES -- -- -- -- -- -- -- -- -- -- //
+spaceifyApp.directive("bodyDirective", ["$rootScope", "$compile", "$timeout", function($rootScope, $compile, $timeout)
+	{
+	return {
+			restrict: "AE",
+			bindToController: true,
+			controller: "bodyController",
+			link: function(scope, element, attr, controller, transcludeFn) {}
+		};
+	}]);
+
+	// FILTERS -- -- -- -- -- -- -- -- -- -- //
+spaceifyApp.filter("replace", function()
+	{
+	return function(input, find, replace_)
+		{
+		return input.replace(find, replace_);
+		};
+	});
+
+spaceifyApp.filter("capitalize", function()
+	{
+	return function(input)
+		{
+		return input.charAt(0).toUpperCase() + input.slice(1);
+		};
+	});
+
+spaceifyApp.filter("trustasresourceurl", ["$sce", function($sce)
+	{
+	return function(input)
+		{
+		return $sce.trustAsResourceUrl(input);
+		};
+	}]);
+
+self.getCookie = function(cname)
+	{
+	var name = cname + "=";
+	var ca = document.cookie.split(";");
+	for(var i = 0; i < ca.length; i++)
+		{
+		var c = ca[i];
+		while(c.charAt(0) == " ")
+			c = c.substring(1);
+
+		if(c.indexOf(name) != -1)
+			return c.substring(name.length, c.length);
+		}
+
+	return "";
+	}
+
+self.bootstrap = function()
+	{
+	//window.addEventListener("load", function()
+	angular.element(document).ready(function()
+		{
+		angular.bootstrap(document, ["spaceifyApp"]);
+		window.angularReady();
+		});
+	}
+
+var spLocale = self.getCookie("locale") || "en_US";
+}
+
+var spaceifyApp = new SpaceifyApp();
+
+
+"use strict";
+
+/**
+ * Logger, 18.12.2013 Spaceify Oy
+ *
+ * @class Logger
+ */
+
+function Logger()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var errorc = new classes.SpaceifyError();
+var config = new classes.SpaceifyConfig();
+
+var output = true;
+
+var fileName = "/tmp/debug.txt";
+
+self.INFO = 1;
+self.ERROR = 2;
+self.WARN = 4;
+self.FORCE = 8;
+self.RETURN = 16;
+self.STDOUT = 32;
+
+var labelStr = {};
+labelStr[self.INFO] = "[i] ";
+labelStr[self.STDOUT] = "";
+labelStr[self.ERROR] = "[e] ";
+labelStr[self.WARN] = "[w] ";
+labelStr[self.FORCE] = "";
+var labels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
+
+var levels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
+
+self.info = function() { out(self.INFO, false, arguments); }
+self.error = function() { printErrors.apply(this, arguments); }
+self.warn = function() { out(self.WARN, false, arguments); }
+self.force = function() { out(self.FORCE, false, arguments); }
+self.stdout = function() { out(self.STDOUT, true, arguments); }
+
+var out = function(level, fromStdout)
+	{
+	var strp, strs = arguments[2];
+
+	var str = "";																			// Concatenate strings passed in the arguments, separate strings with space
+	for(var i = 0; i < strs.length; i++)
+		{
+		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
+		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+		}
+
+	if(typeof str == "string")																// Replace control characters 0-9, 11-12, 14-31
+		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");
+
+	var label = ((labels & level) ? labelStr[level] : "");									// Show label only if allowed
+
+	if((output && (levels & level)) || level == self.FORCE)
+		{
+		var txt = label + str;
+		isNodeJs ? process.stdout.write(txt + (fromStdout ? "" : "\n")) : console.log(txt);
+		}
+	}
+
+var printErrors = function(err, printPath, printCode, printType)
+	{
+	var message = errorc.errorToString(err, printPath, printCode);
+
+	if(printType == self.ERROR)
+		out.call(self, self.ERROR, false, [message]);
+	else if(printType == self.FORCE)
+		self.force(message);
+
+	return message;
+	}
+
+self.setOptions = function(options)
+	{
+	if(options.hasOwnProperty("output"))
+		output = options.output;
+
+	if(options.hasOwnProperty("infoLabel"))
+		labels[self.INFO] = options.infoLabel;
+	if(options.hasOwnProperty("errorLabel"))
+		labels[self.ERROR] = options.errorLabel;
+	if(options.hasOwnProperty("warnLabel"))
+		labels[self.WARN] = options.warnLabel;
+	if(options.hasOwnProperty("forceLabel"))
+		labels[self.FORCE] = options.forceLabel;
+
+	if(options.hasOwnProperty("labels"))
+		labels = options.labels;
+
+	if(options.hasOwnProperty("fileName"))
+		fileName = options.fileName;
+
+	if(options.hasOwnProperty("levels"))
+		levels = options.levels;
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = Logger;
+
+"use strict";
+
+/**
+ * BinaryRpcCommunicator, 21.6.2016 Spaceify Oy
+ *
+ * A class that implements the JSON-RPC 2.0 protocol supporting single, batch and notification requests.
+ * Communicates with the outside world with WebSocketConnection or WebRTCConnection objects
+ * on the layer below. This is a two-way class that implements both client and server functionality.
+ *
+ * BinaryRpcCommunicator is a version of the RPCCommunicator class that supports
+ * transmitting RPC calls in a binary format over-the-wire. This functionality is
+ * turned on if handleBinary contructor parameter is set to "true".
+ * The over-the-wire binary format for request is the following:
+ *
+ * | Message Length | MessageType | ID Length |   ID     | Method length | Method   | Params length | Params
+ * | (Uint64)       | (Uint32) =0 | (Uint32)  | (string) | (Uint32)      | (string) | (Uint64)      | (byte[])
+ * |----------------|-------------|-----------|----------|---------------|----------|---------------|-------
+ * 0                8             12         16
+ *
+ * The reply format is the following
+ *
+ * | Message Length | MessageType | ID Length |   ID     | Error length  | Error    | Result length | Result
+ * | (Uint64)       | (Uint32) =1 | (Uint32)  |(string)  | (Uint32)      | (string) | (Uint64)      | (byte[])
+ * |----------------|-------------|-----------|----------|---------------|----------|---------------|----
+ * 0                8            12          16
+ *
+ * In Javascript, the Params and Result fields are handled as ArrayBuffers, and their interpretation
+ * is left to the corresponding RPC methods.
+ *
+ * class @BinaryRpcCommunicator
+ */
+
+function BinaryRpcCommunicator(handleBinary)
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var errorc = new classes.SpaceifyError();
+var utility = new classes.SpaceifyUtility();
+var callbackBuffer = new classes.CallbackBuffer();
+
+var callSequence = 1;
+var exposedRpcMethods = {};
+
+var eventListener = null;
+var binaryListener = null;
+var connectionListeners = [];
+var disconnectionListeners = [];
+
+var connections = {};
+var latestConnectionId = null;
+
+var options = { debug: true };
+
+var EXPOSE_SYNC = 0;
+var EXPOSE_TRADITIONAL = 1;
+
+//** Upwards interface towards business logic
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	try	{
+		exposedRpcMethods[name] = {type: EXPOSE_TRADITIONAL, method: method};
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	try	{
+		exposedRpcMethods[name] = {type: EXPOSE_SYNC, method: method};
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.setConnectionListener = function(listener)
+	{
+	if (typeof listener == "function")
+		connectionListeners.push(listener);
+	};
+
+self.setDisconnectionListener = function(listener)
+	{
+	if (typeof listener == "function")
+		disconnectionListeners.push(listener);
+	};
+
+self.setBinaryListener = function(listener)
+	{
+	binaryListener = (typeof listener == "function" ? listener : null);
+	};
+
+self.connectionExists = function(connectionId)
+	{
+	if (typeof connectionId !== "undefined" && connections.hasOwnProperty(connectionId) )
+		return true;
+	else if (typeof connectionId === "undefined" && connections.hasOwnProperty(latestConnectionId))
+		return true;
+	else
+		return false;
+	};
+
+self.getConnection = function(connectionId)
+	{
+	return connections[connectionId];
+	};
+
+self.setOptions = function(opts)
+	{
+	options.debug = ("debug" in opts ? opts.debug : false);
+
+	logger.setOptions({output: options.debug});
+	}
+	
+// Outgoing RPC call
+
+self.callRpc = function(methods, params, object, callback, connectionId)
+	{
+	var callObject;
+	var callObjects = [];
+	var isBatch = false, currentId;
+	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
+
+	logger.info("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
+
+	if (!self.connectionExists(connectionId))
+		return;
+
+	try	{
+		if (!(methods instanceof Array))													// Process single request as "a single batch request"
+			{
+			isBatch = false;
+			params = [params];
+			methods = [methods];
+			}
+
+		currentId = callSequence;															// Batch requests have only one callback and the id in
+																							// the callbackBuffer is the id of the first request
+		for(var i=0; i<methods.length; i++)
+			{
+			if (typeof callback == "function")												// Call: expects a response object
+				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i], id: callSequence++};
+			else																			// Notification: doesn't expect a response object
+				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i]};
+
+			callObjects.push(callObject);
+
+			logger.info("  " + JSON.stringify(callObject));
+			}
+
+		if (typeof callback == "function")
+			callbackBuffer.pushBack(currentId, object, callback);
+		}
+	catch(err)
+		{
+		return (typeof callback == "function" ? callback(errorc.makeErrorObject(-32000, "callRpc failed.", "BinaryRpcCommunicator::callRpc"), null) : false);
+		}
+
+	var request = isBatch ? callObjects : callObjects[0];									// Send as batch only if call was originally batch
+
+	sendMessage(request, id);
+	};
+
+// Sends a RPC notification to all connections
+self.notifyAll = function(method, params)
+	{
+	try	{
+		for (var key in connections)
+			{
+			logger.info("BinaryRpcCommunicator::notifyAll() sending message to " + key);
+
+			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.getBufferedAmount = function(connectionId)
+	{
+	return connections[connectionId].getBufferedAmount();
+	};
+
+self.sendBinary = function(data, connectionId)
+	{
+	logger.info("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
+
+	try	{
+		connections[connectionId].sendBinary(data);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** Private methods
+
+var sendBinaryCall = function(callId, method, params, connectionId)
+	{
+	var messageBuffer = new ArrayBuffer(8+4+callId.length+4+method.length+8+params.byteLength);
+	var view = new DataView(messageBuffer);
+	var messageArray = new Uint8Array(messageBuffer);
+
+	view.setUint32(4, messageBuffer.byteLength-8);
+	view.setUint32(8, callId.length);
+	view.setUint32(8+4+callId.length, method.length);
+
+	//messageArray.subarray(8+4, 8+4+4+callId.length).set(params);
+	//messageArray.subarray(8+4+callId.length+4+method.length+8, messageBuffer.byteLength).set(params);
+
+	messageArray.subarray(8+4+callId.length+4+method.length+8, messageBuffer.byteLength).set(params);
+	};
+
+var sendMessage = function(message, connectionId)
+	{
+	try	{
+		connections[connectionId].send(JSON.stringify(message));
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+self.sendMessage = sendMessage;	//for testing, remove this later
+
+// Send the return value of the RPC call to the caller
+var sendResponse = function(err, result, id, connectionId)
+	{
+	try	{
+		if (err)
+			{
+			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
+
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			}
+		else
+			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var handleMessage = function(requestsOrResponses, connectionId)
+	{
+	var isBatch = true;
+
+	try	{
+		if (!(requestsOrResponses instanceof Array))									// Process single request/response as "a single batch request/response"
+			{ requestsOrResponses = [requestsOrResponses]; isBatch = false; }
+
+		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
+			{
+			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+
+			if (isNodeJs && !isRealSpaceify)
+				{
+				fibrous.run( function()
+					{
+					handleRPCCall.sync(requestsOrResponses, isBatch, [], true, connectionId);
+					}, function(err, data) { } );
+				}
+			else
+				handleRPCCall(requestsOrResponses, isBatch, [], true, connectionId);
+			}
+		else																			// Received a return value(s) to an RPC call made by us
+			handleReturnValue(requestsOrResponses, isBatch);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
+	{
+	var result;
+	var request = requests.shift();
+
+	if (!request)
+		{
+		if (!onlyNotifications && responses.length == 0)
+			responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
+
+		if (responses.length > 0)															// Batch -> [response objects] || Single -> response object
+			sendMessage((isBatch ? responses : responses[0]), connectionId);
+		}
+	else
+		{
+		var requestId = (request.hasOwnProperty("id") ? request.id : null);
+		var rpcParams = (request.hasOwnProperty("params") ? request.params : []);
+
+		if (requestId != null)
+			onlyNotifications = false;
+
+		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+
+		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
+			{				
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "The JSON sent is not a valid Request object."}, "id": null}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		if (rpcParams !== "undefined" && rpcParams.constructor !== Array )
+			{
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid method parameter(s). Parameters must be placed inside an array."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		if (!exposedRpcMethods.hasOwnProperty(request.method))								// Unknown method
+			{
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "The method does not exist / is not available: " + request.method + "."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		try	{
+			var rpcMethod = exposedRpcMethods[request.method];
+
+			var got = rpcParams.length;														// Check parameter count
+			var expected = (rpcMethod.type == EXPOSE_SYNC ? (isRealSpaceify ? rpcMethod.method.length : rpcMethod.method.getLength()) - 1 : rpcMethod.method.length - 2);
+																							// Synchronous: ..., connObj
+			if (expected < got)																// Traditional: ..., connObj, callback
+				rpcParams.splice(expected - got, got - expected);
+			else if (expected > got)
+				{
+				expected = expected - got;
+				while(expected--)
+					rpcParams.push(null);
+				}
+
+			var connObj =	{
+							requestId: requestId,
+							connectionId: connectionId,
+							isSecure: connections[connectionId].getIsSecure()
+							};
+
+			if (!isRealSpaceify)
+				{
+				connObj.origin = connections[connectionId].getOrigin(),
+				connObj.remotePort = connections[connectionId].getRemotePort(),
+				connObj.remoteAddress = connections[connectionId].getRemoteAddress()
+				}
+
+			if (rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
+				{
+				//result = rpcMethod.method.sync(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.sync.apply(rpcMethod.object, rpcParams);
+
+				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+				}
+			else if (rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
+				{
+				//result = rpcMethod.method(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.apply(rpcMethod.object, rpcParams);
+
+				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+				}
+			else																			// Traditional callback based methods
+				{
+				if (requestId != null)															// Request
+					{
+					/*rpcMethod.method(...rpcParams, connObj, function(err, data)
+						{
+						if (err)
+							{
+							addError(requestId, err, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
+						else
+							{
+							addResponse(requestId, data, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
+						});*/
+
+					rpcParams.push(connObj, function(err, data)
+						{
+						callbackReturns(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId);
+						});
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
+					}
+				else																			// Notification
+					{
+					//rpcMethod.method(...rpcParams, connObj, null);
+
+					rpcParams.push(connObj);
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
+
+					handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+					}
+				}
+			}
+		catch(err)
+			{
+			addError(requestId, err, responses);
+
+			handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+		}
+	};
+
+var callbackReturns = function(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId)
+	{
+	if (err)
+		{
+		addError(requestId, err, responses);
+
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	else
+		{
+		addResponse(requestId, data, responses);
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	}
+
+var addResponse = function(requestId, result, responses)
+	{
+	if (requestId != null)																	// Requests send responses
+		{
+		logger.info("  RESPONSE <- " + JSON.stringify(result));
+
+		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		}
+	//else																					// Notifications can't send responses
+	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	}
+
+var addError = function(requestId, err, responses)
+	{
+	if (requestId != null)																	// Requests send responses
+		{
+		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
+
+		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+
+		responses.push({jsonrpc: "2.0", error: err, id: requestId});
+		}
+	//else																					// Notifications can't send responses
+	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
+	}
+
+// Handle incoming return values for a RPC call that we have made previously
+var handleReturnValue = function(responses, isBatch)
+	{
+	logger.info("BinaryRpcCommunicator::handleReturnValue()");
+
+	var error = null, result = null;
+
+	try	{
+		if (isBatch)
+			{
+			var processed = processBatchResponse(responses);
+			callbackBuffer.callMethodAndPop(processed.smallestId, processed.errors, processed.results);
+			}
+		else
+			{
+			logger.info("  RESPONSE: " + JSON.stringify(responses[0]));
+
+			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
+				return;
+
+			if (responses[0].hasOwnProperty("error"))
+				{
+				error = responses[0].error;
+				result = null;
+				}
+			else if (responses[0].hasOwnProperty("result"))
+				{
+				error = null;
+				results = responses[0].result;
+				}
+
+			callbackBuffer.callMethodAndPop(responses[0].id, error, result);
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var processBatchResponse = function(responses)
+	{ // Process raw JSON-RPC objects returned by batch JSON-RPC call. Returns an array containing
+	  // [{error: .., result: ...}, {error: ..., result: ....}, ...] objects.
+	var smallestId = -1;
+	var errors = {}, results = {}
+
+	for(var r=0; r<responses.length; r++)
+		{
+		logger.info("  RESPONSE: " + JSON.stringify(responses[r]));
+
+		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
+			continue;
+
+		smallestId = Math.max(smallestId, responses[r].id);
+
+		if (responses[r].hasOwnProperty("error"))
+			{
+			errors[responses[r].id] = responses[r].error;
+			results[responses[r].id] = null;
+			}
+		else if (responses[r].hasOwnProperty("result"))
+			{
+			errors[responses[r].id] = null;
+			results[responses[r].id] = results[r].result;
+			}
+		}
+
+	return {smallestId: smallestId, errors: errors, results: results};
+	}
+
+var handleBinary = function(data, connectionId)
+	{
+	var view = new DataView(data);
+	var dataArray = new Uint8Array(data);
+
+	var messageSize = view.getUint32(4);
+	var messageType = view.getUint32(8);
+	var idSize = view.getUint32(12);
+
+	var id = dataArray.subarray(16, 16+idSize);
+	var idString = String.fromCharCode.apply(null, id);
+
+	var methodSize = view.getUint32(16+idSize);
+
+	var method = dataArray.subarray(16+idSize+4, 16+idSize+4+methodSize);
+	var methodString = String.fromCharCode.apply(null, method);
+
+	var paramsSize = view.getUint32( 16+idSize+4+methodSize+4);
+	var params = dataArray.subarray(16+idSize+4+methodSize+4+4, 16+idSize+4+methodSize+4+4+paramsSize);
+	}
+
+self.setupPipe = function(firstId, secondId)
+	{
+	logger.info("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+
+	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
+		return;
+
+	connections[firstId].setPipedTo(secondId);
+	connections[secondId].setPipedTo(firstId);
+	};
+
+//** Downwards interface towards a connection
+
+//** MessageListener interface implementation
+
+self.onMessage = function(messageData, connection)
+	{
+	logger.info("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
+
+	try	{
+		var pipeTarget = connection.getPipedTo();
+
+		if (pipeTarget != null)
+			{
+			connections[pipeTarget].send(messageData);
+
+			return;
+			}
+
+		if (messageData instanceof ArrayBuffer)
+			{
+			handleBinary(messageData, connection.getId());
+
+			return;
+			}
+
+		// JSON-RPC
+		try {
+			messageData = JSON.parse(messageData);
+
+			handleMessage(messageData, connection.getId());
+			}
+		catch (err)
+			{
+			sendMessage({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Invalid JSON."}, "id": null}, connection.getId());
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** EventListener interface implementation (events originate from server)
+
+self.addConnection = function(conn)
+	{
+	try	{
+		if (!conn.getId())
+			conn.setId(utility.generateRandomConnectionId(connections));	// Use random connectionId to make ddos a little more difficult
+
+		connections[conn.getId()] = conn;
+		conn.setEventListener(self);
+
+		for(var i=0; i<connectionListeners.length; i++)						// Bubble the event to client
+			connectionListeners[i](conn.getId());
+
+		latestConnectionId = conn.getId();
+		return conn.getId();
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.onDisconnected = function(connectionId)
+	{
+	try	{
+		self.closeConnection(connectionId);
+
+		for(var i=0; i<disconnectionListeners.length; i++)			// Bubble the event to clients
+			disconnectionListeners[i](connectionId);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** ---------------------------------------
+
+self.closeConnection = function(connectionId)
+	{
+	try	{
+		if (connectionId in connections)
+			{
+			connections[connectionId].close();
+			delete connections[connectionId];
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+}
+
+// Do this only in node.js, not in the browser
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = BinaryRpcCommunicator;
+	}
+
+"use strict";
+
+/**
+ * CallbackBuffer, 12.5.2016 Spaceify Oy
+ * 
+ * @class CallbackBuffer
+ */
+
+function CallbackBuffer(initialListSize)
+{
+var self = this;
+
+var callbacks = new Object();
+
+self.pushBack = function(id, object, method)
+	{
+	callbacks[id] = [object, method, Date.now()];
+	};
+
+self.callMethodAndPop = function(id, error, result)
+	{
+	if (callbacks.hasOwnProperty(id))
+		{
+		(callbacks[id][1]).call(callbacks[id][0], error, result, id, Date.now() - callbacks[id][2]);
+		delete callbacks[id];
+		}
+	else
+		throw {error: "CallbackBuffer::callMethodAndPop(). Callback not found"};
+	};
+}
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = CallbackBuffer;
+	}
+
+"use strict";
+
+/**
+ * RpcCommunicator, 21.6.2016 Spaceify Oy
+ *
+ * A class that implements the JSON-RPC 2.0 protocol supporting single, batch and notification requests.
+ * Communicates with the outside world with WebSocketConnection or WebRTCConnection objects
+ * on the layer below. This is a two-way class that implements both client and server functionality.
+ *
+ * class @RpcCommunicator
+ */
+
+function RpcCommunicator()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var errorc = new classes.SpaceifyError();
+var utility = new classes.SpaceifyUtility();
+var callbackBuffer = new classes.CallbackBuffer();
+
+var callSequence = 1;
+var exposedRpcMethods = {};
+
+var eventListener = null;
+var binaryListener = null;
+var connectionListeners = [];
+var disconnectionListeners = [];
+
+var connections = {};
+var latestConnectionId = null;
+
+var options = { debug: true };
+
+var EXPOSE_SYNC = 0;
+var EXPOSE_TRADITIONAL = 1;
+
+//** Upwards interface towards business logic
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	try	{
+		exposedRpcMethods[name] = {type: EXPOSE_TRADITIONAL, method: method};
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	try	{
+		exposedRpcMethods[name] = {type: EXPOSE_SYNC, method: method};
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.setConnectionListener = function(listener)
+	{
+	if (typeof listener == "function")
+		connectionListeners.push(listener);
+	};
+
+self.setDisconnectionListener = function(listener)
+	{
+	if (typeof listener == "function")
+		disconnectionListeners.push(listener);
+	};
+
+self.setBinaryListener = function(listener)
+	{
+	binaryListener = (typeof listener == "function" ? listener : null);
+	};
+
+self.connectionExists = function(connectionId)
+	{
+	if (typeof connectionId !== "undefined" && connections.hasOwnProperty(connectionId) )
+		return true;
+	else if (typeof connectionId === "undefined" && connections.hasOwnProperty(latestConnectionId))
+		return true;
+	else
+		return false;
+	};
+
+self.getConnection = function(connectionId)
+	{
+	return connections[connectionId];
+	};
+
+self.setOptions = function(opts)
+	{
+	options.debug = ("debug" in opts ? opts.debug : false);
+
+	logger.setOptions({output: options.debug});
+	}
+
+// Outgoing RPC call
+
+self.callRpc = function(methods, params, object, callback, connectionId)
+	{
+	var callObject;
+	var callObjects = [];
+	var isBatch = false, currentId;
+	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
+
+	logger.info("RpcCommunicator::callRpc() connectionId: " + connectionId);
+
+	if (!self.connectionExists(connectionId))
+		return;
+
+	try	{
+		if (!(methods instanceof Array))													// Process single request as "a single batch request"
+			{
+			isBatch = false;
+			params = [params];
+			methods = [methods];
+			}
+
+		currentId = callSequence;															// Batch requests have only one callback and the id in
+																							// the callbackBuffer is the id of the first request
+		for(var i=0; i<methods.length; i++)
+			{
+			if (typeof callback == "function")												// Call: expects a response object
+				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i], id: callSequence++};
+			else																			// Notification: doesn't expect a response object
+				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i]};
+
+			callObjects.push(callObject);
+
+			logger.info("  " + JSON.stringify(callObject));
+			}
+
+		if (typeof callback == "function")
+			callbackBuffer.pushBack(currentId, object, callback);
+		}
+	catch(err)
+		{
+		return (typeof callback == "function" ? callback(errorc.makeErrorObject(-32000, "callRpc failed.", "RpcCommunicator::callRpc"), null) : false);
+		}
+
+	sendMessage(isBatch ? callObjects : callObjects[0], id);								// Send as batch only if call was originally batch
+	};
+
+// Sends a RPC notification to all connections
+self.notifyAll = function(method, params)
+	{
+	try	{
+		for (var key in connections)
+			{
+			logger.info("RpcCommunicator::notifyAll() sending message to " + key);
+
+			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.getBufferedAmount = function(connectionId)
+	{
+	return connections[connectionId].getBufferedAmount();
+	};
+
+self.sendBinary = function(data, connectionId)
+	{
+	logger.info("RPCCommunicator::sendBinary() " + data.byteLength);
+
+	try	{
+		connections[connectionId].sendBinary(data);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** Private methods
+
+var sendBinaryCall = function(callId, method, params, connectionId)
+	{
+	var messageBuffer = new ArrayBuffer(8+4+callId.length+4+method.length+8+params.byteLength);
+	var view = new DataView(messageBuffer);
+	var messageArray = new Uint8Array(messageBuffer);
+
+	view.setUint32(4, messageBuffer.byteLength-8);
+	view.setUint32(8, callId.length);
+	view.setUint32(8+4+callId.length, method.length);
+
+	//messageArray.subarray(8+4, 8+4+4+callId.length).set(params);
+	//messageArray.subarray(8+4+callId.length+4+method.length+8, messageBuffer.byteLength).set(params);
+
+	messageArray.subarray(8+4+callId.length+4+method.length+8, messageBuffer.byteLength).set(params);
+	};
+
+var sendMessage = function(message, connectionId)
+	{
+	try	{
+		connections[connectionId].send(JSON.stringify(message));
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+self.sendMessage = sendMessage;	//for testing, remove this later
+
+// Send the return value of the RPC call to the caller
+var sendResponse = function(err, result, id, connectionId)
+	{
+	try	{
+		if (err)
+			{
+			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
+
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			}
+		else
+			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var handleMessage = function(requestsOrResponses, connectionId)
+	{
+	var isBatch = true;
+
+	try	{
+		if (!(requestsOrResponses instanceof Array))									// Process single request/response as "a single batch request/response"
+			{ requestsOrResponses = [requestsOrResponses]; isBatch = false; }
+
+		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
+			{
+			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+
+			if (isNodeJs && !isRealSpaceify)
+				{
+				fibrous.run( function()
+					{
+					handleRPCCall.sync(requestsOrResponses, isBatch, [], true, connectionId);
+					}, function(err, data) { } );
+				}
+			else
+				handleRPCCall(requestsOrResponses, isBatch, [], true, connectionId);
+			}
+		else																			// Received a return value(s) to an RPC call made by us
+			handleReturnValue(requestsOrResponses, isBatch);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
+	{
+	var result;
+	var request = requests.shift();
+
+	if (!request)
+		{
+		if (!onlyNotifications && responses.length == 0)
+			responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
+
+		if (responses.length > 0)															// Batch -> [response objects] || Single -> response object
+			sendMessage((isBatch ? responses : responses[0]), connectionId);
+		}
+	else
+		{
+		var requestId = (request.hasOwnProperty("id") ? request.id : null);
+		var rpcParams = (request.hasOwnProperty("params") ? request.params : []);
+
+		if (requestId != null)
+			onlyNotifications = false;
+
+		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+
+		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
+			{				
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "The JSON sent is not a valid Request object."}, "id": null}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		if (rpcParams !== "undefined" && rpcParams.constructor !== Array )
+			{
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid method parameter(s). Parameters must be placed inside an array."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		if (!exposedRpcMethods.hasOwnProperty(request.method))								// Unknown method
+			{
+			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "The method does not exist / is not available: " + request.method + "."}, "id": requestId}, responses);
+
+			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+
+		try	{
+			var rpcMethod = exposedRpcMethods[request.method];
+
+			var got = rpcParams.length;														// Check parameter count
+			var expected = (rpcMethod.type == EXPOSE_SYNC ? (isRealSpaceify ? rpcMethod.method.length : rpcMethod.method.getLength()) - 1 : rpcMethod.method.length - 2);
+																							// Synchronous: ..., connObj
+			if (expected < got)																// Traditional: ..., connObj, callback
+				rpcParams.splice(expected - got, got - expected);
+			else if (expected > got)
+				{
+				expected = expected - got;
+				while(expected--)
+					rpcParams.push(null);
+				}
+
+			var connObj =	{
+							requestId: requestId,
+							connectionId: connectionId,
+							isSecure: connections[connectionId].getIsSecure(),
+							};
+
+			if (!isRealSpaceify)
+				{
+				connObj.origin = connections[connectionId].getOrigin(),
+				connObj.remotePort = connections[connectionId].getRemotePort(),
+				connObj.remoteAddress = connections[connectionId].getRemoteAddress()
+				}
+
+			if (rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
+				{
+				//result = rpcMethod.method.sync(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.sync.apply(rpcMethod.object, rpcParams);
+
+				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+				}
+			else if (rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
+				{
+				//result = rpcMethod.method(...rpcParams, connObj);
+
+				rpcParams.push(connObj);
+				result = rpcMethod.method.apply(rpcMethod.object, rpcParams);
+
+				addResponse(requestId, result, responses);
+
+				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+				}
+			else																			// Traditional callback based methods
+				{
+				if (requestId != null)															// Request
+					{
+					/*rpcMethod.method(...rpcParams, connObj, function(err, data)
+						{
+						if (err)
+							{
+							addError(requestId, err, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
+						else
+							{
+							addResponse(requestId, data, responses);
+
+							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+							}
+						});*/
+
+					rpcParams.push(connObj, function(err, data)
+						{
+						callbackReturns(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId);
+						});
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
+					}
+				else																			// Notification
+					{
+					//rpcMethod.method(...rpcParams, connObj, null);
+
+					rpcParams.push(connObj);
+					rpcMethod.method.apply(rpcMethod.object, rpcParams);
+
+					handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+					}
+				}
+			}
+		catch(err)
+			{
+			addError(requestId, err, responses);
+
+			handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+			}
+		}
+	};
+
+var callbackReturns = function(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId)
+	{
+	if (err)
+		{
+		addError(requestId, err, responses);
+
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	else
+		{
+		addResponse(requestId, data, responses);
+		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
+		}
+	}
+
+var addResponse = function(requestId, result, responses)
+	{
+	if (requestId != null)																	// Requests send responses
+		{
+		logger.info("  RESPONSE <- " + JSON.stringify(result));
+
+		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		}
+	//else																					// Notifications can't send responses
+	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	}
+
+var addError = function(requestId, err, responses)
+	{
+	if (requestId != null)																	// Requests send responses
+		{
+		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
+
+		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+
+		responses.push({jsonrpc: "2.0", error: err, id: requestId});
+		}
+	//else																					// Notifications can't send responses
+	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
+	}
+
+// Handle incoming return values for a RPC call that we have made previously
+var handleReturnValue = function(responses, isBatch)
+	{
+	logger.info("RpcCommunicator::handleReturnValue()");
+
+	var error = null, result = null;
+
+	try	{
+		if (isBatch)
+			{
+			var processed = processBatchResponse(responses);
+			callbackBuffer.callMethodAndPop(processed.smallestId, processed.errors, processed.results);
+			}
+		else
+			{
+			logger.info("  RETURN VALUE: " + JSON.stringify(responses[0]));
+
+			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
+				return;
+
+			if (responses[0].hasOwnProperty("error"))
+				{
+				error = responses[0].error;
+				result = null;
+				}
+			else if (responses[0].hasOwnProperty("result"))
+				{
+				error = null;
+				result = responses[0].result;
+				}
+
+			callbackBuffer.callMethodAndPop(responses[0].id, error, result);
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var processBatchResponse = function(responses)
+	{ // Process raw JSON-RPC objects returned by batch JSON-RPC call. Returns an array containing
+	  // [{error: .., result: ...}, {error: ..., result: ....}, ...] objects.
+	var smallestId = -1;
+	var errors = {}, results = {}
+
+	for(var r=0; r<responses.length; r++)
+		{
+		logger.info("  RETURN VALUE: " + JSON.stringify(responses[r]));
+
+		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
+			continue;
+
+		smallestId = Math.max(smallestId, responses[r].id);
+
+		if (responses[r].hasOwnProperty("error"))
+			{
+			errors[responses[r].id] = responses[r].error;
+			results[responses[r].id] = null;
+			}
+		else if (responses[r].hasOwnProperty("result"))
+			{
+			errors[responses[r].id] = null;
+			results[responses[r].id] = results[r].result;
+			}
+		}
+
+	return {smallestId: smallestId, errors: errors, results: results};
+	}
+
+self.setupPipe = function(firstId, secondId)
+	{
+	logger.info("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+
+	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
+		return;
+
+	connections[firstId].setPipedTo(secondId);
+	connections[secondId].setPipedTo(firstId);
+	};
+
+//** Downwards interface towards a connection
+
+//** MessageListener interface implementation
+
+self.onMessage = function(messageData, connection)
+	{
+	//logger.info("RpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
+
+	try	{
+		var pipeTarget = connection.getPipedTo();
+
+		if (pipeTarget != null)
+			{
+			connections[pipeTarget].send(messageData);
+
+			return;
+			}
+
+		if (messageData instanceof ArrayBuffer)
+			{
+			if (typeof binaryListener == "function")
+				binaryListener.onBinary(messageData, connection.getId());
+
+			return;
+			}
+
+		// JSON-RPC
+		try {
+			messageData = JSON.parse(messageData);
+
+			handleMessage(messageData, connection.getId());
+			}
+		catch (err)
+			{
+			sendMessage({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Invalid JSON."}, "id": null}, connection.getId());
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** EventListener interface implementation (events originate from server)
+
+self.addConnection = function(conn)
+	{
+	try	{
+		if (!conn.getId())
+			conn.setId(utility.generateRandomConnectionId(connections));	// Use random connectionId to make ddos a little more difficult
+
+		connections[conn.getId()] = conn;
+		conn.setEventListener(self);
+
+		for(var i=0; i<connectionListeners.length; i++)						// Bubble the event to client
+			connectionListeners[i](conn.getId());
+
+		latestConnectionId = conn.getId();
+		return conn.getId();
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.onDisconnected = function(connectionId)
+	{
+	try	{
+		self.closeConnection(connectionId);
+
+		for(var i=0; i<disconnectionListeners.length; i++)			// Bubble the event to clients
+			disconnectionListeners[i](connectionId);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+//** ---------------------------------------
+
+self.closeConnection = function(connectionId)
+	{
+	try	{
+		if (connectionId in connections)
+			{
+			connections[connectionId].close();
+			delete connections[connectionId];
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+}
+
+// Do this only in node.js, not in the browser
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = RpcCommunicator;
+	}
+
+"use strict";
+
+navigator.getUserMedia = (	navigator.getUserMedia ||
+							navigator.webkitGetUserMedia ||
+							navigator.mozGetUserMedia ||
+							navigator.msGetUserMedia);
+
+function WebRtcClient(rtcConfig)
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
+	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+var logger = new classes.Logger();
+var config = new classes.SpaceifyConfig();
+var communicator = new classes.RpcCommunicator();
+var connection = new classes.WebSocketConnection();
+
+var ownStream = null;
+var connectionListener = null;
+var rtcConnections = new Object();
+
+self.setConnectionListener = function(lis)
+	{
+	connectionListener = lis;
+	}
+
+self.onIceCandidate = function(iceCandidate, partnerId)
+	{
+	logger.info("WebRtcClient::onIceCandidate - Got it, sending it to the other client");
+
+	communicator.callRpc("offerIce", [iceCandidate, partnerId]);
+	};
+
+var createConnection = function(partnerId)
+	{
+	rtcConnections[partnerId] = new WebRtcConnection(rtcConfig);
+	rtcConnections[partnerId].setPartnerId(partnerId);
+
+	rtcConnections[partnerId].setIceListener(self);
+	rtcConnections[partnerId].setStreamListener(self);
+	rtcConnections[partnerId].setConnectionListener(self);
+	rtcConnections[partnerId].setDataChannelListener(self);
+	}
+
+self.shutdown = function(e)
+	{
+	logger.info("WebRtcClient::onbeforeunload");
+
+	for (var id in rtcConnections)
+		{
+		if (rtcConnections.hasOwnProperty(id))
+			{
+			rtcConnections[id].close();
+			delete rtcConnections[id];
+			}
+		}
+	}
+
+// RPC methods
+
+self.handleRtcOffer = function(descriptor, partnerId, connectionId)
+	{
+	logger.info("WebRtcClient::handleRtcOffer descriptor:", descriptor);
+
+	if (!rtcConnections.hasOwnProperty(partnerId))
+		{
+		createConnection(partnerId);
+		}
+
+	rtcConnections[partnerId].onConnectionOfferReceived(descriptor, connectionId, function(answer)
+		{
+		logger.info("WebRtcClient::handleRtcOffer - onConnectionOfferReceived returned");
+
+		communicator.callRpc("acceptConnectionOffer",[answer, partnerId]);
+		});
+
+	};
+
+self.handleRtcAnswer = function(descriptor, partnerId, connectionId)
+	{
+	logger.info("WebRtcClient::handleRtcAnswer");
+
+	rtcConnections[partnerId].onConnectionAnswerReceived(descriptor);
+	};
+
+self.handleIceCandidate = function(iceCandidate, partnerId, connectionId)
+	{
+	logger.info("WebRtcClient::handleIceCandidate");
+
+	if (!rtcConnections.hasOwnProperty(partnerId))
+		{
+		createConnection(partnerId);
+		}
+
+	rtcConnections[partnerId].onIceCandidateReceived(iceCandidate);
+	};
+
+// Private methods
+
+var connectToCoordinator = function(config, callback)
+	{
+	logger.info("WebRtcClient::connectToCoordinator", "> Websocket connecting to the coordinator");
+
+	connection.connect(config, function()
+		{
+		logger.info("WebRtcClient::connectToCoordinator - Websocket Connected to the Coordinator");
+		logger.info("> Creating RPCCommunicator for the Websocket");
+
+		communicator.addConnection(connection);
+		callback();
+		});
+	};
+
+self.onDisconnected = function(partnerId)
+	{
+	logger.info("WebRtcClient::onDisconnected");
+
+	if (rtcConnections.hasOwnProperty(partnerId))
+		{
+		var connection = rtcConnections[partnerId];
+		connectionListener.onDisconnected(connection.getId());
+
+		connection.close();
+		delete rtcConnections[partnerId];
+		}
+	};
+
+self.onDataChannelOpen = function(connection)
+	{
+	logger.info("WebRtcClient::onDataChannelOpen");
+
+	connectionListener.addConnection(connection);
+	};
+
+self.onStream = function(stream, partnerId)
+	{
+	logger.info("WebRtcClient::onStream");
+	};
+
+self.onRemoveStream = function(stream, partnerId)
+	{
+	logger.info("WebRtcClient::onRemoveStream");
+
+	self.onDisconnected(partnerId);
+	};
+
+var connectToPeers = function(announceId, callback)
+	{
+	logger.info("WebRtcClient::connectToPeers - Announcing to the Coordinator");
+
+	communicator.callRpc("announce", [announceId], self, self.onPeerIdsArrived);
+	};
+
+//Callback of the connectToPeers RPC call
+
+self.onPeerIdsArrived = function(err, data, id)
+	{
+	logger.info("WebRtcClient::onPeerIdsArrived - data.length:", data.length);
+
+	var partnerId = 0;
+
+	for (var i=0; i<data.length; i++)
+		{
+		partnerId = data[i];
+
+		//Create a WebRTC connection and
+
+		createConnection(partnerId);
+
+		logger.info("WebRtcClient::onPeerIdsArrived - Trying to create offer to client id", partnerId);
+
+		//Creating a connection offer
+
+		rtcConnections[partnerId].createConnectionOffer(function(offer, peerId)
+			{
+			logger.info("WebRtcClient::onPeerIdsArrived - Offer created, sending it to the other client", peerId);
+
+			communicator.callRpc("offerConnection", [offer, peerId]);
+			});
+		}
+
+	if (data.length === 0)
+		logger.info("> Announce returned 0 client ids, not connecting");
+	};
+
+self.run = function(config, callback)
+	{
+	logger.info("WebRtcClient::run");
+
+	window.onbeforeunload = self.shutdown;
+
+	communicator.exposeRpcMethod("handleRtcOffer", self, self.handleRtcOffer);
+	communicator.exposeRpcMethod("handleRtcAnswer", self, self.handleRtcAnswer);
+	communicator.exposeRpcMethod("handleIceCandidate", self, self.handleIceCandidate);
+
+	connectToCoordinator(config, function()
+		{
+		logger.info("WebRtcClient::run - Connected to the coordinator");
+
+		connectToPeers(config.announceId, function()
+			{
+			logger.info("WebRtcClient::run - connectToPeers returned");
+			});
+
+		if (callback)
+			callback(communicator);
+		});
+
+	};
+}
+"use strict";
+
+var RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
+var RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate || window.webkitRTCIceCandidate;
+
+function WebRtcConnection(rtcConfig)
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+
+var id = null;
+var ownStream = null;
+var partnerId = null;
+var iceListener = null;
+var streamListener = null;
+var listener = null;
+var eventListener = null;
+var dataChannelListener = null;
+
+var rtcOptions = { "optional": [{"DtlsSrtpKeyAgreement": true}] };
+
+var peerConnection = new RTCPeerConnection(rtcConfig, rtcOptions);
+
+var dataChannel = null;
+
+// If we receive a data channel from somebody else, this gets called
+
+peerConnection.ondatachannel = function(e)
+	{
+	var temp = e.channel || e; // Chrome sends event, FF sends raw channel
+
+	logger.info("WebRtcConnection::peerConnection.ondatachannel", e);
+
+	dataChannel = temp;
+	dataChannel.binaryType = "arraybuffer";
+	dataChannel.onopen = self.onDataChannelOpen;
+	dataChannel.onmessage = self.onMessage;
+	};
+
+var onsignalingstatechange = function(state)
+	{
+	logger.info("WebRtcConnection::onsignalingstatechange", state);
+
+	//if ( eventListener == "function" && peerConnection.signalingState == "closed")
+	//	eventListener.onDisconnected(partnerId);
+	}
+
+var oniceconnectionstatechange = function(state)
+	{
+	logger.info("WebRtcConnection::oniceconnectionstatechange", state);
+
+	if ( eventListener == "function" && (peerConnection.iceConnectionState == "disconnected" || peerConnection.iceConnectionState == "closed"))
+		eventListener.onDisconnected(partnerId);
+	};
+
+var onicegatheringstatechange = function(state)
+	{
+	logger.info("WebRtcConnection::onicegatheringstatechange", state);
+	};
+
+var onIceCandidate = function(e)
+	{
+	logger.info("WebRtcConnection::onIceCanditate - partnerId:", partnerId, ", event:", e, "> iceListener was", iceListener);
+
+	// A null ice canditate means that all canditates have been given
+	if (e.candidate == null)
+		{
+		logger.info("> All Ice candidates listed");
+		//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
+		}
+	else
+		{
+		iceListener.onIceCandidate(e.candidate, partnerId);
+		}
+	};
+
+peerConnection.onsignalingstatechange = onsignalingstatechange;
+peerConnection.oniceconnectionstatechange = oniceconnectionstatechange;
+peerConnection.onicegatheringstatechange = onicegatheringstatechange;
+peerConnection.onicecandidate = onIceCandidate;
+
+self.close = function()
+	{
+	logger.info("WebRtcConnection::close");
+
+	//peerConnection.removeStream(ownStream);
+	dataChannel.close();
+	if (peerConnection.signalingState != "closed")
+		peerConnection.close();
+	}
+
+self.send = function(message)
+	{
+	try	{
+		if (dataChannel.readyState == "open")
+			dataChannel.send(message);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.getBufferedAmount = function()
+	{
+	return dataChannel.bufferedAmount;
+	};
+
+self.sendBinary = function(data)
+	{
+	try	{
+		if (dataChannel.readyState == "open")
+			dataChannel.send(data);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.onDataChannelClosed = function(e)
+	{
+	logger.info("WebRtcConnection::onDataChannelClosed", e);
+
+	eventListener.onDisconnected(self);
+	}
+
+self.onDataChannelOpen = function(e)
+	{
+	logger.info("WebRtcConnection::onDataChannelOpen", e);
+
+	dataChannel.binaryType = "arraybuffer";
+	dataChannel.onclose = self.onDataChannelClosed;
+	dataChannel.onmessage = self.onMessage;
+	if (dataChannelListener)
+		dataChannelListener.onDataChannelOpen(self);
+	}
+
+self.onMessage = function(message)
+	{
+	//logger.info("WebRtcConnection::onMessage", message.data);
+
+	try	{
+		if (listener)
+			listener.onMessage(message.data, self);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.setId = function(id_)
+	{
+	id = id_;
+	//logger.info("WebRtcConnection::setId", id);
+	};
+
+self.getId = function()
+	{
+	//logger.info("WebRtcConnection::getId", id);
+
+	return id;
+	};
+
+self.getPartnerId = function()
+	{
+	//logger.info("WebRtcConnection::getPartnerId", partnerId);
+
+	return partnerId;
+	};
+
+self.setPartnerId = function(id_)
+	{
+	partnerId = id_;
+	};
+
+self.setDataChannelListener = function(lis)
+	{
+	dataChannelListener = lis;
+	};
+
+self.setListener = function(lis)
+	{
+	listener = lis;
+	};
+
+self.setIceListener = function(lis)
+	{
+	iceListener = lis;
+	//peerConnection.onicecandidate = function(cand) {self.onIceCandidate(cand);};
+
+	logger.info("WebRtcConnection::setIceListener", lis);
+	};
+
+self.setStreamListener = function(lis)
+	{
+	streamListener = lis;
+	peerConnection.onaddstream = function(e) {self.onStream(e);};
+	peerConnection.onremovestream = function(e) {self.onRemoveStream(e);};
+	};
+
+self.setEventListener = function(lis)
+	{
+	eventListener = lis;
+	//peerConnection.onaddstream = function(e) {self.onStream(e);};
+	};
+
+self.onStream = function(e)
+	{
+	logger.info("WebRtcConnection::onStream", e);
+
+	streamListener.onStream(e.stream, partnerId);
+	}
+
+self.onRemoveStream = function(e)
+	{
+	logger.info("WebRtcConnection::onStream", e);
+
+	streamListener.onRemoveStream(e.stream, partnerId);
+	}
+
+self.addStream = function(stream)
+	{
+	ownStream = stream;
+	peerConnection.addStream(stream);
+	}
+
+self.createConnectionOffer = function(callback)
+	{
+	var localDescription = null;
+
+	dataChannel = peerConnection.createDataChannel("jsonrpcchannel", {reliable: true});
+	dataChannel.binaryType = "arraybuffer";
+	dataChannel.onopen = self.onDataChannelOpen;
+	dataChannel.onmessage = self.onMessage;
+
+	peerConnection.createOffer(function (desc)
+		{
+		logger.info("WebRtcConnection::peerConnectio.createOffer - Called its callback:", desc);
+
+		localDescription = desc;
+
+		/*
+		peerConnection.onicecandidate = function(e)
+			{
+			logger.info(e.candidate);
+
+			if (e.candidate == null)
+				{
+				logger.info("> All Ice candidates listed");
+
+				//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
+				callback(peerConnection.localDescription, partnerId);
+				}
+			};
+		*/
+
+		peerConnection.setLocalDescription(desc,
+			function()
+				{
+				callback(peerConnection.localDescription, partnerId);
+				},
+			function(err)
+				{ // "WebRtcConnection::createConnectionOffer - setLocalDescription error"
+				logger.error(err, true, true, logger.ERROR);
+				},
+			{});
+		},
+		function(err)
+			{
+			logger.error(err, true, true, logger.ERROR);
+			});
+	};
+
+//Interface for messages coming from the partner ove websocket
+
+self.onConnectionAnswerReceived = function(descriptor)
+	{
+	logger.info("WebRtcConnection::onConnectionAnswerReceived, descriptor:", descriptor);
+
+	peerConnection.setRemoteDescription(new RTCSessionDescription(descriptor), function()
+		{
+		logger.info("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK");
+		},
+		function(err)
+			{ // "WebRtcConnection::onConnectionAnswerReceived() setRemoteDescription returned error " + err
+			logger.error(err, true, true, logger.ERROR);
+			});
+
+	};
+
+
+self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
+	{
+	logger.info("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");
+
+	var desc = new RTCSessionDescription(descriptor);
+	peerConnection.setRemoteDescription(desc, function()
+		{
+		logger.info("WebRtcConnection::onConnectionOfferReceived Remote description set");
+
+		peerConnection.createAnswer(function (answer)
+				{
+				/*
+				peerConnection.onicecandidate = function(e)
+					{
+					if (e.candidate == null)
+						{
+						logger.info("> All Ice candidates listed");
+
+						//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
+						callback(peerConnection.localDescription);
+						}
+					};
+				*/
+				peerConnection.setLocalDescription(answer, function ()
+					{
+					callback(peerConnection.localDescription);
+					//callback(answer);
+					},
+					function(err)
+						{
+						logger.error(err, true, true, logger.ERROR);
+						}
+					);
+				},
+				function(err)
+					{
+					logger.error(err, true, true, logger.ERROR);
+					});
+		},
+		function(err)
+			{ // "WebRtcConnection::onConnectionOfferReceived setting remote description failed " + err
+			logger.error(err, true, true, logger.ERROR);
+			});
+
+	};
+
+self.onIceCandidateReceived = function(iceCandidate)
+	{
+	peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate),
+			function()
+				{
+				logger.info("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded");
+				},
+			function(err)
+				{ // "WebRtcConnection::onIceCandidateReceived adding Ice candidate failed " + err
+				logger.error(err, true, true, logger.ERROR);
+				});
+	};
+
+// Dummy implementation for websocket compatibility
+
+self.setPipedTo = function(targetId)
+	{
+	};
+
+self.getPipedTo = function()
+	{
+	return null;
+	};
+
+}
+"use strict";
+
+/**
+ * WebSocketConnection, 12.5.2016 Spaceify Oy
+ * 
+ * @class WebSocketConnection
+ */
+
+function WebSocketConnection()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+if (typeof exports !== "undefined")
+	{
+	global.fs = require("fs");
+	global.WebSocket = require("websocket").w3cwebsocket;
+	}
+
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var errorc = new classes.SpaceifyError();
+
+var url = "";
+var id = null;
+var port = null;
+var socket = null;
+var origin = null;
+var pipedTo = null;
+var isOpen = false;
+var isSecure = false;
+var remotePort = null;
+var remoteAddress = null;
+var eventListener = null;
+
+// For client-side use, in both Node.js and the browser
+
+self.connect = function(opts, callback)
+	{
+	id = opts.id || null;
+	port = opts.port || "";
+	isSecure = opts.isSecure || false;
+
+	var caCrt = opts.caCrt || "";
+	var hostname = opts.hostname || null;
+	var protocol = (!isSecure ? "ws" : "wss");
+	var subprotocol = opts.subprotocol || "json-rpc";
+	var debug = ("debug" in opts ? opts.debug : false);
+
+	logger.setOptions({output: debug});
+
+	try	{
+		url = protocol + "://" + hostname + (port ? ":" + port : "") + (id ? "?id=" + id : "");
+
+		var cco = (isNodeJs && isSecure ? { tlsOptions: { ca: [fs.readFileSync(caCrt, "utf8")] } } : null);
+
+		socket = new WebSocket(url, "json-rpc", null, null, null, cco);
+
+		socket.binaryType = "arraybuffer";
+
+		socket.onopen = function()
+			{
+			logger.info("WebSocketConnection::onOpen() " + url);
+
+			isOpen = true;
+
+			callback(null, true);
+			};
+
+		socket.onerror = function(err)
+			{
+			logger.error("WebSocketConnection::onError() " + url, true, true, logger.ERROR);
+
+			isOpen = false;
+
+			callback(errorc.makeErrorObject("wsc", "Failed to open WebsocketConnection.", "WebSocketConnection::connect"), null);
+			}
+
+		socket.onclose = function(reasonCode, description)
+			{
+			onSocketClosed(reasonCode, description, self);
+			};
+
+		socket.onmessage = onMessageEvent;
+		}
+	catch(err)
+		{
+		callback(err, null);
+		}
+	};
+
+// For server-side Node.js use only
+
+self.setSocket = function(val)
+	{
+	try	{
+		socket = val;
+
+		socket.on("message", onMessage);
+
+		socket.on("close", function(reasonCode, description)
+			{
+			onSocketClosed(reasonCode, description, self);
+			});
+
+		isOpen = true;
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.setId = function(val)
+	{
+	id = val;
+	};
+
+self.setPipedTo = function(targetId)
+	{
+	pipedTo = targetId;
+	};
+
+self.setRemoteAddress = function(val)
+	{
+	remoteAddress = val;
+	};
+
+self.setRemotePort = function(val)
+	{
+	remotePort = val;
+	};
+
+self.setOrigin = function(val)
+	{
+	origin = val;
+	};
+
+self.setIsSecure = function(val)
+	{
+	isSecure = val;
+	}
+
+self.setEventListener = function(listener)
+	{
+	eventListener = listener;
+	};
+
+self.getId = function()
+	{
+	return id;
+	};
+
+self.getRemoteAddress = function()
+	{
+	return remoteAddress;
+	};
+
+self.getRemotePort = function()
+	{
+	return remotePort;
+	};
+
+self.getOrigin = function()
+	{
+	return origin;
+	};
+
+self.getIsSecure = function()
+	{
+	return isSecure;
+	}
+
+self.getPipedTo = function()
+	{
+	return pipedTo;
+	}
+
+self.getIsOpen = function()
+	{
+	return isOpen;
+	}
+
+self.getPort = function()
+	{
+	return port;
+	}
+
+var onMessage = function(message)
+	{
+	try	{
+		if (eventListener)
+			{
+			if (message.type == "utf8")
+				{
+				//logger.info("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
+
+				eventListener.onMessage(message.utf8Data, self);
+				}
+			if (message.type == "binary")
+				{
+				//logger.info("WebSocketConnection::onMessage(binary): " + binaryData.length);
+
+				eventListener.onMessage(message.binaryData, self);
+				}
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var onMessageEvent = function(event)
+	{
+	//logger.info("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
+
+	try	{
+		if (eventListener)
+			eventListener.onMessage(event.data, self);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+var onSocketClosed = function(reasonCode, description, obj)
+	{
+	logger.info("WebSocketConnection::onSocketClosed() " + url);
+
+	try	{
+		isOpen = false;
+
+		if (eventListener)
+			eventListener.onDisconnected(obj.getId());
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.send = function(message)
+	{
+	try	{
+		socket.send(message);
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.sendBinary = self.send;
+
+self.close = function()
+	{
+	try	{
+		socket.close();
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+}
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = WebSocketConnection;
+	}
+
+"use strict";
+
+/**
+ * WebSocketRpcConnection, 12.5.2016 Spaceify Oy
+ * 
+ * @class WebSocketRpcConnection
+ */
+
+function WebSocketRpcConnection()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
+	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
+	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var errorc = new classes.SpaceifyError();
+var utility = new classes.SpaceifyUtility();
+var communicator = new classes.RpcCommunicator();
+var connection = new classes.WebSocketConnection();
+
+self.connect = function(options, callback)
+	{
+	connection.connect(options, function(err, data)
+		{
+		if(!err)
+			{
+			communicator.addConnection(connection);
+
+			var debug = ("debug" in options ? options.debug : false);
+			communicator.setOptions({ debug: debug });
+
+			if(callback)
+				callback(null, true);
+			}
+		else
+			{
+			if(callback)
+				callback(errorc.makeErrorObject("wsrpcc", "Failed to open WebsocketRpcConnection.", "WebSocketRpcConnection::connect"), null);
+			}
+		});
+	};
+
+self.close = function()
+	{
+	};
+
+self.getCommunicator = function()
+	{
+	return communicator;
+	};
+
+self.getConnection = function()
+	{
+	return connection;
+	};
+
+// Inherited methods
+self.exposeRpcMethod = function(name, object, method)
+	{
+	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
+	}
+
+self.callRpc = function(method, params, object, listener)
+	{
+	return communicator.callRpc(method, params, object, listener, connection.getId());
+	}
+
+self.getIsOpen = function()
+	{
+	return connection.getIsOpen();
+	}
+
+self.getIsSecure = function()
+	{
+	return connection.getIsSecure();
+	}
+
+self.getPort = function()
+	{
+	return connection.getPort();
+	}
+
+self.getId = function()
+	{
+	return connection.getId();
+	}
+
+// External event listeners
+self.setConnectionListener = function(listener)
+	{
+	communicator.setConnectionListener(listener);
+	};
+
+self.setDisconnectionListener = function(listener)
+	{
+	communicator.setDisconnectionListener(listener);
+	};
+
+}
+
+if(typeof exports !== "undefined")
+	{
+	module.exports = WebSocketRpcConnection;
+	}
+
+"use strict";
+
+/**
+ * WebSocketServer, 21.6.2016 Spaceify Oy
+ * 
+ * @class WebSocketServer
+ */
+
+function WebSocketServer()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+if (typeof exports !== "undefined")
+	{
+	global.fs = require("fs");
+	global.URL = require("url");
+	global.http = require("http");
+	global.https = require("https");
+	global.WSServer = require("websocket").server;
+	}
+
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility),
+	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
+
+var options = {};
+var manuallyClosed = false;
+var serverDownTimerId = null;
+
+var wsServer = null;
+var webServer = null;
+
+var eventListener = null;
+var externalServerUpListener = null;
+var externalServerDownListener = null;
+
+self.listen = function(opts, callback)
+	{
+	try	{
+		if(!("id" in options))														// Set only once
+			{
+			options.hostname = opts.hostname || null;
+			options.port = opts.port || 0;
+			options.key = opts.key || "";
+			options.crt = opts.crt || "";
+			options.caCrt = opts.caCrt || "";
+			options.isSecure = opts.isSecure || false;
+			options.keepUp = opts.keepUp || "";
+			options.protocol = (!options.isSecure ? "ws" : "wss");
+			options.subprotocol = opts.subprotocol || "json-rpc";
+			options.debug = ("debug" in opts ? opts.debug : false);
+			options.id = opts.id || utility.generateRandomConnectionId({});
+			}
+
+		logger.setOptions({output: options.debug});
+
+		logger.info(utility.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",
+									{"~pr": options.protocol, "~s": options.subprotocol, "~h": options.hostname, "~po": options.port}));
+
+		manuallyClosed = false;
+
+			// CREATE HTTP SERVER -- -- -- -- -- -- -- -- -- -- //
+		if (!options.isSecure)																// Start a http server
+			{
+			webServer = http.createServer(function(request, response)
+				{
+				response.writeHead(501);
+				response.end("Not implemented");
+				});
+			}
+		else																				// Start a https server
+			{
+			var key = fs.readFileSync(options.key);
+			var crt = fs.readFileSync(options.crt);
+			var caCrt = fs.readFileSync(options.caCrt, "utf8");
+
+			webServer = https.createServer({ key: key, cert: crt, ca: caCrt }, function(request, response)
+				{
+				response.writeHead(501);
+				response.end("Not implemented");
+				});
+			}
+
+		webServer.listen(options.port, options.hostname, 511, function()
+			{
+			options.port = webServer.address().port;
+
+			serverUpListener();
+
+			if(typeof callback == "function")
+				callback(null, true);
+			});
+
+		webServer.on("error", function(err)
+			{
+			logger.error("WebSocketServer::onError()", true, true, logger.ERROR);
+
+			serverDownListener();
+
+			if(typeof callback == "function")
+				callback(err, null);
+			});
+
+		webServer.on("close", function()
+			{
+			serverDownListener();
+			});
+
+			// CREATE WEBSOCKET SERVER -- -- -- -- -- -- -- -- -- -- //
+		wsServer = new WSServer(
+			{
+			httpServer: webServer,
+			autoAcceptConnections: false,
+
+			keepalive: true,																// Keepalive connections and
+			keepaliveInterval: 60000,														// ping them once a minute and
+			dropConnectionOnKeepaliveTimeout: true,											// drop a connection if there's no answer
+			keepaliveGracePeriod: 10000														// within the grace period.
+			});
+
+		// Connection request
+		wsServer.on("request", function(request)
+			{
+			try
+				{
+				var connection = new classes.WebSocketConnection();
+				connection.setSocket(request.accept(options.subprotocol, request.origin));
+				connection.setRemoteAddress(request.remoteAddress);
+				connection.setRemotePort(request.remotePort);
+				connection.setOrigin(request.origin);
+				connection.setIsSecure(options.isSecure);
+
+				var query = URL.parse(request.resourceURL, true).query;
+				if (query && query.id)
+					connection.setId(query.id);
+
+				eventListener.addConnection(connection);
+
+				logger.info(utility.replace("WebSocketServer::request() protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
+						{"~p": options.protocol, "~ra": request.remoteAddress, "~rp": request.remotePort, "~o": request.origin, "~i": connection.getId()}, "-"));
+				}
+			catch(err)
+				{
+				logger.error(err, true, true, logger.ERROR);
+				return;
+				}
+			});
+
+		// Connection is accepted
+		wsServer.on("connect", function(webSocketConnection)
+			{
+			});
+			
+		// Connection closed
+		wsServer.on("close", function(webSocketConnection, closeReason, description)
+			{
+			});
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.close = function()
+	{
+	try	{
+		logger.info(utility.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",
+									{":pr": options.protocol, ":s": options.subprotocol, ":h": options.hostname, ":po": options.port}));
+
+		manuallyClosed = true;
+
+		if(wsServer)
+			{
+			wsServer.shutDown();
+			wsServer = null;
+			}
+
+		if(webServer)
+			{
+			webServer.close();
+			webServer = null;
+			}
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, logger.ERROR);
+		}
+	};
+
+self.getPort = function()
+	{
+	return options.port;
+	}
+
+self.getIsOpen = function()
+	{
+	return (webServer && wsServer ? true : false);
+	}
+
+self.getIsSecure = function()
+	{
+	return options.isSecure;
+	}
+
+self.getId = function()
+	{
+	return options.id;
+	}
+
+self.setEventListener = function(listener)
+	{
+	eventListener = listener;
+	};
+
+// INTERNAL SERVER UP AND DOWN LISTENERS AND KEEPUP LOGIC
+var serverUpListener = function()
+	{
+	if(externalServerUpListener)
+		externalServerUpListener(options.id);
+	}
+
+var serverDownListener = function()
+	{
+	if(externalServerDownListener)
+		externalServerDownListener(options.id);
+
+	if(options.keepUp && serverDownTimerId == null && !manuallyClosed)
+		{
+		serverDownTimerId = setTimeout(function()
+			{
+			serverDownTimerId = null;
+			self.listen(options, null);
+			}, config.RECONNECT_WAIT);
+		}
+	}
+
+	// EXTERNAL SERVER UP AND DOWN LISTENERS
+self.setServerUpListener = function(listener)
+	{
+	externalServerUpListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.setServerDownListener = function(listener)
+	{
+	externalServerDownListener = (typeof listener == "function" ? listener : null);
+	}
+
+}
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = WebSocketServer;
+	}
+
+"use strict";
+
+/**
+ * WebSocketRpcServer, 21.6.2016 Spaceify Oy
+ * 
+ * @class WebSocketRpcServer
+ */
+
+function WebSocketRpcServer()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
+	WebSocketServer: (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var config = new classes.SpaceifyConfig();
+var communicator = new classes.RpcCommunicator();
+var webSocketServer = new classes.WebSocketServer();
+
+webSocketServer.setEventListener(communicator);
+
+var connectionListener = null;
+var disconnectionListener = null;
+
+self.listen = function(options, callback)
+	{
+	var debug = ("debug" in options ? options.debug : false);
+	communicator.setOptions({ debug: debug });
+
+	communicator.setConnectionListener(listenConnections);
+	communicator.setDisconnectionListener(listenDisconnections);
+
+	try {
+		webSocketServer.listen(options, callback);
+		}
+	catch(err)
+		{}
+	}
+
+self.close = function()
+	{
+	webSocketServer.close();
+	}
+
+self.getCommunicator = function()
+	{
+	return communicator;
+	}
+
+self.getServer = function()
+	{
+	return webSocketServer;
+	}
+
+// Inherited methods
+self.getPort = function()
+	{
+	return webSocketServer.getPort();
+	}
+
+self.getIsOpen = function()
+	{
+	return webSocketServer.getIsOpen();
+	}
+
+self.getIsSecure = function()
+	{
+	return webSocketServer.getIsSecure();
+	}
+
+self.getId = function()
+	{
+	return webSocketServer.getId();
+	}
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
+	}
+
+self.nofifyAll = function(method, params)
+	{
+	communicator.nofifyAll(method, params);
+	}
+
+self.callRpc = function()
+	{ // arguments contains a connection id!
+	communicator.callRpc.apply(this, arguments);
+	}
+
+self.closeConnection = function(connectionId)
+	{
+	communicator.closeConnection(connectionId);
+	}
+
+self.setConnectionListener = function(listener)
+	{
+	connectionListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.setDisconnectionListener = function(listener)
+	{
+	disconnectionListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.setServerUpListener = function(listener)
+	{
+	webSocketServer.setServerUpListener(typeof listener == "function" ? listener : null);
+	}
+
+self.setServerDownListener = function(listener)
+	{
+	webSocketServer.setServerDownListener(typeof listener == "function" ? listener : null);
+	}
+
+	// Call listeners with additional server information
+var listenConnections = function(id)
+	{
+	if(typeof connectionListener == "function")
+		connectionListener(id, self.getId(), self.getIsSecure());
+	}
+
+var listenDisconnections = function(id)
+	{
+	if(typeof disconnectionListener == "function")
+		disconnectionListener(id, self.getId(), self.getIsSecure());
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = WebSocketRpcServer;
+
+"use strict";
+
+/**
+ * Spaceify Application Manager, 8.1.2016 Spaceify Oy
+ *
+ * For Spaceify's internal use.
+ *
+ * Messages might arrive after the actual operation is finished. Therefore, both the operation
+ * and messaging are waited before returning to the caller
+ *
+ * @class SpaceifyApplicationManager
+ */
+
+function SpaceifyApplicationManager()
+{
+var self = this;
+
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
+var utility = new SpaceifyUtility();
+
+var id = -1;
+var ms = -1;
+var locked = false;													// Allow only one operation at a time
+var endSequence = 0;
+var type = null;
+var params = null;
+var origin = null;
+var endErr = null;
+var endData = null;
+var operationHandler = null;
+var spaceifyMessages = new SpaceifyMessages();
+
+/**
+ * @param   package            (1) unique name of a package in the spaceify registry or a URL to a package in the (2) GitHub repository or in the (3) Internet
+ * @param   username           optional username/password for loading packages requiring credentials, set to "" (empty string) if not required
+ * @param   password
+ * @param   handler            custom handlet callback, null if application doesn't have one
+ * @param   origin             callbacks for different types of Application manager messages:
+ *                             error, warning, failed, message, question, questionTimedOut
+ */
+self.installApplication = function(applicationPackage, username, password, force, origin, handler)
+	{
+	setup("installApplication", {package: applicationPackage, username: username, password: password, force: force, }, origin, handler, true);
+	}
+
+/**
+ * @param   unique_name       unique name of an application to remove/start/stop/restart
+ * @param   origin            callbacks for different types of Application manager messages:
+ *                            error, warning, failed, message, question, questionTimedOut
+ * @param   handler           application defined callback, null if application doesn't have one
+ */
+self.removeApplication = function(unique_name, origin, handler)
+	{
+	setup("removeApplication", {unique_name: unique_name}, origin, handler, true);
+	}
+
+self.purgeApplication = function(unique_name, origin, handler)
+	{
+	setup("purgeApplication", {unique_name: unique_name}, origin, handler, true);
+	}
+
+self.startApplication = function(unique_name, origin, handler)
+	{
+	setup("startApplication", {unique_name: unique_name}, origin, handler, true);
+	}
+
+self.stopApplication = function(unique_name, origin, handler)
+	{
+	setup("stopApplication", {unique_name: unique_name}, origin, handler, true);
+	}
+
+self.restartApplication = function(unique_name, origin, handler)
+	{
+	setup("restartApplication", {unique_name: unique_name}, origin, handler, true);
+	}
+
+self.logIn = function(password, origin, handler)
+	{
+	setup("logIn", {password: password}, origin, handler, false);
+	}
+
+self.logOut = function(origin, handler)
+	{
+	setup("logOut", {}, origin, handler, false);
+	}
+
+self.isAdminLoggedIn = function(origin, handler)
+	{
+	setup("isAdminLoggedIn", {}, origin, handler, true);
+	}
+
+self.getCoreSettings = function(origin, handler)
+	{
+	setup("getCoreSettings", {}, origin, handler, true);
+	}
+
+self.saveCoreSettings = function(settings, origin, handler)
+	{
+	setup("saveCoreSettings", {settings: settings}, origin, handler, true);
+	}
+
+self.getEdgeSettings = function(origin, handler)
+	{
+	setup("getEdgeSettings", {}, origin, handler, true);
+	}
+
+self.saveEdgeSettings = function(settings, origin, handler)
+	{
+	setup("saveEdgeSettings", {settings: settings}, origin, handler, true);
+	}
+
+self.getServiceRuntimeStates = function(origin, handler)
+	{
+	setup("getServiceRuntimeStates", {}, origin, handler, true);
+	}
+
+/**
+ * @param   types   an array of application types: "spacelet", "sandboxed", "sandboxed_debian" and/or "native_debian" or empty for all types,
+ *                  e.g. ["spacelet", "sandboxed"]
+ * @param   origin  callbacks for different types of Application manager messages:
+ *                  error, warning, failed, message, question, questionTimedOut
+ * @return          Node.js style error and data objects. data contains manifests of installed applications as JavaScript Objects
+ *                  grouped by type {spacelet: [{}, ...], sandboxed: [{}, ...], sandboxed_debian: [{}, ...], native_debian: [{}, ....]}
+ */
+self.getApplications = function(types, origin, handler)
+	{
+	setup("getApplications", {types: types}, origin, handler, true);
+	}
+
+/**
+ * @param   types  an array of application types: "spacelet", "sandboxed", "sandboxed_debian" and/or "native_debian" or empty for all types,
+ *          e.g. ["spacelet", "sandboxed"]
+ * @return         Node.js style error and data objects. data contains manifests of published packages as JavaScript Objects and MySQL query information
+ *                 {spacelet: [{}, ...], sandboxed: [{}, ...], sandboxed_debian: [{}, ...], native_debian: [{}, ....], MySQL}.
+ */
+self.appStoreGetPackages = function(search, returnCallback)
+	{
+	var search = JSON.stringify(search);
+	var content = 'Content-Disposition: form-data; name="search";\r\nContent-Type: plain\/text; charset=utf-8';
+
+	network.POST_FORM(config.EDGE_APPSTORE_GET_PACKAGES_URL, [{content: content, data: search}], "application/json", function(err, response)
+		{
+		var err = null
+		var data = null;
+
+		try {
+			data = JSON.parse(response.replace(/&quot;/g,'"'));
+
+			if(data.error)
+				{
+				err = data.error;
+				data = null;
+				}
+			}
+		catch(err)
+			{
+			err = errorc.makeErrorObject("JSON", "Failed to get packages: JSON.parse failed", "SpaceifyApplicationManager::appStoreGetPackages");
+			}
+
+		returnCallback(err, data);
+		});
+	}
+
+/**
+ *
+ */
+var setup = function(type_, params_, origin_, handler, getMessages)
+	{
+	type = type_;
+	ms = Date.now();
+	params = params_;
+	origin = origin_;
+	operationHandler = handler;
+	id = utility.randomString(16, true);
+
+	if(locked)
+		origin.error(errorc.makeErrorObject("locked", "Application manager is locked.", "SpaceifyApplicationManager::setup"), null);
+	else
+		{
+		if(getMessages && !spaceifyMessages.isConnected())				// Set up messaging before doing the operation
+			spaceifyMessages.connect(self, origin);
+		else															// Connection is already open or do the operation without messaging
+			self.connected();
+		}
+	}
+
+self.connected = function()
+	{ // Messaging is now set up (or bypassed), post the operation.
+	locked = true;
+	endSequence = 1;
+
+	var post = {type: type};												// One object with operation and custom parameters
+	for(var i in params)
+		post[i] = params[i];
+
+	network.doOperation(post, function(err, data)
+		{
+		endErr = err;
+		endData = data;
+		self.end(1);
+		});
+	}
+
+self.fail = function(err)
+	{ // Failed to set up the messaging.
+	locked = false;
+	endErr = err;
+	endData = null;
+	self.end(2);
+	}
+
+self.end = function(sequence)
+	{ // Either operation or messaging finishes first. Wait for both of them to finish before returning.
+	endSequence += sequence;
+	if(endSequence != 2)
+		return;
+
+	locked = false;
+
+	var errors = spaceifyMessages.getErrors();
+
+	if(endErr || errors.length > 0)
+		origin.error(endErr ? [endErr] : errors, id, Date.now() - ms);
+	else if(typeof operationHandler == "function")
+		operationHandler(endData, id, Date.now() - ms);
+	}
+
+ /*
+ * @param   result             the user selected answer either in the short or long format
+ * @param   answerCallBackId   the id given by Application manager in a call to questionsCallback
+ */
+self.answer = function(result, answerCallBackId)
+	{
+	spaceifyMessages.answer(result, answerCallBackId);
+	}
+
+}
+"use strict";
+
+/**
+ * Spaceify Synchronous, 29.7.2015 Spaceify Oy
+ *
+ * @class SpaceifySynchronous
+ */
+
+function SpaceifySynchronous()
+{
+var self = this;
+
+var methodId = 0;
+var methods = [];
+var results = {};
+var waiting = null;
+var finally_ = null;
+
+// Start traversing functions in the order they are defined. Functions are executed independently and results are not passed to the next function.
+// The results of operations are stored in the results object in the same order as the functions were executed.
+self.waterFall = function(_methods, callback)
+	{
+	if((!_methods || _methods.length == 0) && typeof callback == "function")
+		callback(results);
+	else if(!_methods || _methods.length == 0 || typeof callback != "function")
+		return;
+
+	finally_ = callback;
+
+	methods = _methods;
+
+	next();
+	}
+
+// Call the methods one after another recursively
+var next = function()
+	{
+	if(methods.length == 0)
+		return finally_();
+
+	var calling = methods.shift();
+
+	// Call a method that is asynchronous. Store the original callback and replace it with ours. It's assumed that
+	// the original callback is the last parameter. After our callback returns call the original callback, if it is defined (not null).
+	if(calling.type == "async")
+		{
+		waiting = calling.params[calling.params.length - 1];
+		calling.params[calling.params.length - 1] = wait;
+		calling.method.apply(calling.object, calling.params);
+		}
+	// Call a method that is synchronous.
+	else
+		{
+		results[++methodId] = calling.method.apply(calling.object, calling.params);
+		next();
+		}
+	}
+
+var wait = function()
+	{
+	results[++methodId] = Array.prototype.slice.call(arguments);			// Array of return values rather than the arguments object
+
+	if(typeof waiting == "function")
+		waiting.apply(this, arguments);
+
+	next();
+	}
+
+self.getResult = function(methodId)
+	{
+	return (results[methodId] ? results[methodId] : null);
+	}
+
+self.getResults = function()
+	{
+	return results;
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifySynchronous;
+"use strict";
+
+/**
+ * Spaceify Cache, 29.7.2015 Spaceify Oy
+ *
+ * A cache class to reduce unnecessary RPC calls by storing application data.
+ * For Spaceify's internal use.
+ *
+ * @class SpaceifyCache
+ */
+
+function SpaceifyCache()
+{
+var self = this;
+
+var ready_counter = 0;
+
+var applications = {};
+var EXPIRATION_TIME = 60 * 1000;
+
+var config = new SpaceifyConfig();
+
+self.setApplication = function(application)
+	{
+	if(!applications[application.unique_name])
+		applications[application.unique_name] = {};
+
+	applications[application.unique_name].manifest = application;
+	applications[application.unique_name].isRunning = application.isRunning;
+	}
+
+self.getApplication = function(unique_name)
+	{
+	return (unique_name in applications ? applications[unique_name] : null);
+	}
+
+	// SERVICES -- -- -- -- -- -- -- -- -- -- //
+self.setService = function(service, unique_name)
+	{
+	if(service.service_type != config.HTTP)
+		return;
+
+	if(!applications[unique_name])
+		applications[unique_name] = {};
+
+	if(!applications[unique_name].services)
+		applications[unique_name].services = [];
+
+	applications[unique_name].services.push(service);
+	}
+
+self.getService = function(service_name, unique_name)
+	{ // Get service either by service name (when unique_name is not set) or by service name and unique_name.
+	for(var UNIQUE_NAME in applications)														// Iterate all applications
+		{
+		var services = (applications[UNIQUE_NAME].services ? applications[UNIQUE_NAME].services : []);	// Find from the services they have
+		for(var s = 0; s < services.length; s++)
+			{
+			var SERVICE_NAME = services[s].service_name;
+
+			// 1:
+			// Multiple applications can have the same service name. Return the first matching service.
+			// Without checking the unique_name the HTTP service of the first application would always be returned.
+			// 2:
+			// The service belongs to the requested unique application
+			if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||
+			    /*2*/ (unique_name && unique_name == UNIQUE_NAME && service_name == SERVICE_NAME) )
+				return services[s];
+			}
+		}
+
+	return null;
+	}
+
+	// MANIFEST -- -- -- -- -- -- -- -- -- -- //
+self.setManifest = function(unique_name, manifest)
+	{
+	if(!applications[unique_name])
+		applications[unique_name] = {};
+
+	applications[unique_name].manifest = manifest;
+	}
+
+self.getManifest = function(unique_name)
+	{
+	return (applications[unique_name] && applications[unique_name].manifest ? applications[unique_name].manifest : null);
+	}
+
+	// RUNNING STATUS -- -- -- -- -- -- -- -- -- -- //
+self.setRunning = function(unique_name, isRunning)
+	{
+	if(!applications[unique_name])
+		applications[unique_name] = {};
+
+	applications[unique_name].isRunning = isRunning;
+	applications[unique_name].isRunningStart = Date.now();
+	}
+
+self.isRunning = function(unique_name)
+	{
+	if(!applications[unique_name] || !applications[unique_name].hasOwnProperty("isRunning"))
+		return null;
+
+	var run_time = Date.now() - applications[unique_name].isRunningStart;			// Running status expires after the expiration time
+	return (run_time > EXPIRATION_TIME ? null : applications[unique_name].isRunning);
+	}
+
+	// APPLICATION URLS -- -- -- -- -- -- -- -- -- -- //
+self.setApplicationURL = function(unique_name, urls)
+	{
+	if(!applications[unique_name])
+		applications[unique_name] = {};
+
+	applications[unique_name].urls = urls;
+	applications[unique_name].urls_start = Date.now();
+	}
+
+self.getApplicationURL = function(unique_name)
+	{
+	if(!applications[unique_name] || !applications[unique_name].hasOwnProperty("urls"))
+		return null;
+
+	var urls_time = Date.now() - applications[unique_name].urls_start;				// URLs expire after the expiration time
+	return (urls_time > EXPIRATION_TIME ? null : applications[unique_name].urls);
+	}
+
+}
+"use strict";
+
+/**
+ * Spaceify configuration, 28.1.2016 Spaceify Oy
+ *
+ * @class SpaceifyConfig
+ */
+
+function SpaceifyConfig()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyUnique: (isNodeJs ? require(apiPath + "spaceifyunique") : SpaceifyUnique)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var unique = new classes.SpaceifyUnique();
+
+if(typeof exports !== "undefined")
+	{
+	var i, file = require("fs").readFileSync("/var/lib/spaceify/code/www/libs/config.json", "utf8");
+
+	var config = JSON.parse(file);
+	for(i in config)
+		self[i] = config[i];
+	}
+else
+	{
+	for(i in window.spConfig)
+		self[i] = window.spConfig[i];
+	}
+
+self.makeRealApplicationPaths = function()
+	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
+	  // After this running applications outside and inside Spaceify / docker containers is identical.
+	if(typeof process == "undefined")													// Web page
+		return;
+
+	var manifest;
+	var pathParts;
+	var volumePath;
+	var cwd = process.cwd();
+
+	self["API_PATH"] = self["SPACEIFY_CODE_PATH"];
+	self["API_WWW_PATH"] = self["SPACEIFY_WWW_PATH"];
+	self["API_NODE_MODULES_DIRECTORY"] = self["SPACEIFY_NODE_MODULES_PATH"];
+
+	pathParts = cwd.split("/");
+
+	if(pathParts[pathParts.length - 1] == self["APPLICATION_ROOT"])
+		{
+		manifest = getManifest(cwd + self["APPLICATION_PATH"]);
+
+			// Application path with manifest -> cwd is most likely a real application directory
+		if(manifest)
+			{
+			volumePath = cwd.replace("/" + self["APPLICATION_DIRECTORY"], "/");
+
+			self["VOLUME_PATH"] = volumePath;
+			self["VOLUME_TLS_PATH"] = volumePath + self["TLS_DIRECTORY"];
+			self["VOLUME_APPLICATION_PATH"] = volumePath + self["APPLICATION_DIRECTORY"];
+			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["APPLICATION_DIRECTORY"] + self["WWW_DIRECTORY"];
+			}
+		}
+	else
+		{
+		// Not an application path -> lets handle it as volume directory
+		volumePath = cwd + "/";
+
+		manifest = getManifest(cwd);
+
+			// External application such as native application or debug mode application
+		if(manifest)
+			{
+				// Lets assume all the necessary directories are in the current working directory
+			self["VOLUME_PATH"] = volumePath;
+			self["VOLUME_APPLICATION_PATH"] = volumePath;
+			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["WWW_DIRECTORY"];
+
+				// Lets assume there is an installed application and with certificate directory
+			self["VOLUME_TLS_PATH"] = 
+						self["APP_TYPE_PATHS"][manifest.type] + unique.makeUniqueDirectory(manifest.unique_name, true) + self["VOLUME_TLS_PATH"];
+			}
+		}
+	}
+
+var getManifest = function(path)
+	{
+	var manifest = null;
+
+	try {
+		manifest = require("fs").readFileSync(path + "/" + self["MANIFEST"], "utf8");
+
+		manifest = JSON.parse(manifest);
+		}
+	catch(err)
+		{
+		}
+
+	return manifest;
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyConfig;
+"use strict";
+
+/**
+ * Spaceify core, 29.7.2015 Spaceify Oy
+ * 
+ * @class SpaceifyCore
+ */
+
+function SpaceifyCore()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
+
+var classes =
+	{
+	SpaceifyNetwork: (isNodeJs ? function() {} : SpaceifyNetwork),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var config = new classes.SpaceifyConfig();
+var network = new classes.SpaceifyNetwork();
+
+var pipeId = null;
+var isConnected = false;
+var connection = (isSpaceifyNetwork ? new classes.WebSocketRpcConnection() : piperClient);
+
+var useSecure = (isNodeJs ? true : network.isSecure());
+var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
+
+self.startSpacelet = function(unique_name, callback)
+	{
+	callRpc("startSpacelet", [unique_name], function(err, services, id, ms)
+		{
+		if(err)
+			callback(err, null);
+		else
+			{
+			var serviceNames = [];
+			for(var s = 0; s < services.length; s++)							// Make service names array for convenience
+				serviceNames.push(services[s].service_name);
+
+			callback(null, {services: services, serviceNames: serviceNames}, id, ms);
+			}
+		});
+	}
+
+self.registerService = function(service_name, ports, callback)
+	{
+	callRpc("registerService", [service_name, ports], callback);
+	}
+
+self.unregisterService = function(service_name, unique_name, callback)
+	{
+	callRpc("unregisterService", [service_name, unique_name], callback);
+	}
+
+self.getService = function(service_name, unique_name, callback)
+	{
+	callRpc("getService", [service_name, unique_name], callback);
+	}
+
+self.getServices = function(service_name, callback)
+	{
+	callRpc("getServices", [service_name], callback);
+	}
+
+self.getOpenServices = function(unique_names, getHttp, callback)
+	{
+	callRpc("getOpenServices", [unique_names, getHttp], callback);
+	}
+
+self.getManifest = function(unique_name, callback)
+	{
+	var manifest = (isCache() ? getCache().getManifest(unique_name) : null);
+
+	if(manifest)
+		callback(null, manifest, -1, 0);
+	else
+		callRpc("getManifest", [unique_name, true], function(err, data, id, ms)
+			{
+			if(!err && isCache())
+				getCache().setManifest(unique_name, data);
+
+			callback(err, data, id, ms);
+			});
+	}
+
+self.isAdminLoggedIn = function(callback)
+	{
+	network.doOperation({type: "isAdminLoggedIn"}, function(err, data, id, ms)
+		{
+		callback((err ? err : null), (err ? false : data), id, ms);
+		});
+	}
+
+self.getApplicationStatus = function(unique_name, callback)
+	{
+	callRpc("getApplicationStatus", [unique_name], callback);
+	}
+
+self.isApplicationRunning = function(unique_name, callback)
+	{
+	callRpc("isApplicationRunning", [unique_name], callback);
+	}
+
+self.getServiceRuntimeStates = function(unique_name, callback)
+	{
+	callRpc("getServiceRuntimeStates", [unique_name], callback);
+	}
+
+self.getApplicationData = function(callback)
+	{
+	var i;
+
+	callRpc("getApplicationData", [], function(err, data, id, ms)
+		{
+		if(!err && isCache())
+			{
+			for(i = 0; i < data.spacelet.length; i++)
+				getCache().setApplication(data.spacelet[i]);
+
+			for(i = 0; i < data.sandboxed.length; i++)
+				getCache().setApplication(data.sandboxed[i]);
+
+			for(i = 0; i < data.sandboxed_debian.length; i++)
+				getCache().setApplication(data.sandboxed_debian[i]);
+
+			for(i = 0; i < data.native_debian.length; i++)
+				getCache().setApplication(data.native_debian[i]);
+			}
+
+		callback(err, data, id, ms);
+		});
+	}
+
+self.getApplicationURL = function(unique_name, callback)
+	{
+	callRpc("getApplicationURL", [unique_name], callback);
+	}
+
+self.setSplashAccepted = function(callback)
+	{
+	callRpc("setSplashAccepted", [], callback);
+	}
+
+self.setEventListeners = function(events, listeners, context, sessionId, callback)
+	{
+	callRpc("setEventListeners", [events], function(err, data, id, ms)
+		{
+		if(!err)
+			{
+			for(var i = 0; i < events.length; i++)
+				connection.exposeRpcMethod(events[i], context, listeners[i]);
+			}
+
+		callback(err, data, id, ms);
+		});
+	}
+
+/*self.saveOptions = function(unique_name, directory, filename, data, callback)
+	{
+	var post = {unique_name: unique_name, directory: directory, filename: filename, data: data};
+	network.doOperation(post, callback);
+	}
+
+self.loadOptions = function(unique_name, directory, filename, callback)
+	{
+	var post = {unique_name: unique_name, directory: directory, filename: filename};
+	network.doOperation(post, callback);
+	}*/
+
+	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
+var callRpc = function(method, params, callback)
+	{
+	if(!isConnected)
+		connect(method, params, callback);
+	else
+		call(method, params, callback);
+	}
+
+var call = function(method, params, callback)
+	{
+	if(isSpaceifyNetwork)
+		{
+		connection.callRpc(method, params, self, function(err, data, id, ms)
+			{
+			callback(err, data, id, ms);
+			});
+		}
+	else
+		{
+		connection.callClientRpc(pipeId, method, params, self, function(err, data)
+			{
+			callback(err, data);
+			});
+		}
+	}
+
+var connect = function(method, params, callback)
+	{
+	var hostname;
+	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
+	var protocol = (!useSecure ? "ws" : "wss");
+
+	if(isSpaceifyNetwork)
+		{
+		if(!isNodeJs)
+			hostname = config.EDGE_HOSTNAME;
+		else if(isRealSpaceify)
+			hostname = config.EDGE_IP;
+		else
+			hostname = config.CONNECTION_HOSTNAME;
+
+		connection.connect({hostname: hostname, port: port, isSecure: useSecure, caCrt: caCrt}, function(err, data, id, ms)
+			{
+			if(!err)
+				call(method, params, callback);
+			else
+				{
+				isConnected = true;
+				callback(err, data, id, ms);
+				}
+			});
+		}
+	else
+		{
+		connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: port, protocol: protocol}, null, function(id)
+			{
+			pipeId = id;
+			isConnected = true;
+			call(method, params, callback);
+			});
+		}
+	}
+
+self.close = function()
+	{
+	if(connection && connection.close)
+		connection.close();
+
+	connection = null;
+	}
+
+	// CACHE -- -- -- -- -- -- -- -- -- -- //
+var getCache = function()
+	{
+	return (!isNodeJs && window && window.spaceifyCache ? window.spaceifyCache : null);
+	}
+
+var isCache = function()
+	{
+	var type = getCache();
+	return (type == "undefined" || type == null ? false : true);
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyCore;
+
+"use strict";
+
+/**
+ * Spaceify Messages, 21.1.2016 Spaceify Oy
+ *
+ * For Spaceify's internal use.
+ *
+ * @class SpaceifyMessages
+ */
+
+function SpaceifyMessages()
+{
+var self = this;
+
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var network = new SpaceifyNetwork();
+
+var pipeId = null;
+
+var messageId;
+var errors = [];
+var warnings = [];
+var callerOrigin = null;
+var managerOrigin = null;
+
+var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
+
+var isConnected = false;
+var connection = (isSpaceifyNetwork ? new WebSocketRpcConnection() : piperClient);
+
+self.connect = function(managerOrigin_, callerOrigin_)
+	{
+	errors = [];
+	warnings = [];
+	callerOrigin = callerOrigin_;
+	managerOrigin = managerOrigin_;
+
+	if(isConnected)
+		return managerOrigin.connected();
+
+	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
+		{
+		if(err)
+			return fail(err);
+
+		messageId = gotId;
+
+		connection.exposeRpcMethod("stdout", self, stdout);
+		connection.exposeRpcMethod("fail", self, fail);
+		connection.exposeRpcMethod("error", self, error);
+		connection.exposeRpcMethod("warning", self, warning);
+		connection.exposeRpcMethod("notify", self, notify);
+		connection.exposeRpcMethod("message", self, message);
+		connection.exposeRpcMethod("question", self, question);
+		connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
+		connection.exposeRpcMethod("end", self, end);
+
+		if(isSpaceifyNetwork)
+			{				
+			connection.connect({hostname: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true}, function(err, data)
+				{
+				if(err)
+					return fail(err);
+
+				isConnected = true;
+				connection.callRpc("confirm", [messageId]);
+				managerOrigin.connected();
+				});
+			}
+		else
+			{
+			connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
+				{
+				pipeId = id;
+				isConnected = true;
+				piperClient.callClientRpc(pipeId, "confirm", [messageId]);
+				managerOrigin.connected();
+				});
+			}
+		});
+	}
+
+self.isConnected = function()
+	{
+	return isConnected;
+	}
+
+self.getErrors = function()
+	{
+	return errors;
+	}
+
+self.getWarnings = function()
+	{
+	return warnings;
+	}
+
+	// Exposed RPC methods -- -- -- -- -- -- -- -- -- -- //
+var fail = function(err, connObj, callback)
+	{
+	isConnected = false;
+
+	if(callerOrigin.fail)
+		callerOrigin.fail(err);
+
+	managerOrigin.fail(err);
+
+	callback(null, true);
+	}
+
+var error = function(err, connObj, callback)
+	{
+	errors.push(err);
+
+	callback(null, true);
+	}
+
+var warning = function(message_, code, connObj, callback)
+	{
+	warning.push({message: message_, code: code});
+
+	if(callerOrigin.warning)
+		callerOrigin.warning(message_, code);
+
+	callback(null, true);
+	}
+
+var notify = function(message_, code, connObj, callback)
+	{
+	if(callerOrigin.notify)
+		callerOrigin.notify(message_, code, connObj, callback);
+
+	callback(null, true);
+	}
+
+var message = function(message_, connObj, callback)
+	{
+	if(callerOrigin.message)
+		callerOrigin.message(message_);
+
+	callback(null, true);
+	}
+
+var stdout = function(message_, connObj, callback)
+	{
+	if(callerOrigin.stdout)
+		callerOrigin.stdout(message_);
+
+	callback(null, true);
+	}
+
+var question = function(message_, choices, origin, answerCallBackId, connObj, callback)
+	{
+	if(callerOrigin.question)
+		callerOrigin.question(message_, choices, origin, answerCallBackId);
+
+	callback(null, true);
+	}
+	
+var questionTimedOut = function(message_, origin, answerCallBackId, connObj, callback)
+	{
+	if(callerOrigin.questionTimedOut)
+		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
+
+	callback(null, true);
+	}
+
+var end = function(message_, connObj, callback)
+	{
+	managerOrigin.ready(1);
+
+	callback(null, true);
+	}
+
+	// Response methods -- -- -- -- -- -- -- -- -- -- //
+self.sendAnswer = function(answer, answerCallBackId)
+	{
+	if (isSpaceifyNetwork)
+		connection.callRpc("answer", [messageId, answer, answerCallBackId]);
+	else
+		connection.callClientRpc(pipeId, "answer", [messageId, answer, answerCallBackId]);
+	}
+
+}
+"use strict";
+
+/**
+ * SpaceifyNet, 29.7.2015 Spaceify Oy
+ *
+ * For Spaceify's internal use.
+ *
+ * @class SpaceifyNet
+ */
+
+function SpaceifyNet()
+{
+var self = this;
+
+var ordinal = 0;
+var showLoadingInstances = 0;
+var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spaceletCount: 0, sandboxedCount: 0, sandboxedDebianCount: 0, nativeDebianCount: 0 };
+
+var core = new SpaceifyCore();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var network = new SpaceifyNetwork();
+
+	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
+self.showLoading = function(show)
+	{
+	if(show)
+		{
+		if(showLoadingInstances == 0)
+			$("#loading").show();
+		showLoadingInstances++;
+		}
+	else
+		{
+		showLoadingInstances = Math.max(0, --showLoadingInstances);
+		if(showLoadingInstances == 0)
+			$("#loading").hide();
+		}
+	}
+
+self.showError = function(msgstr) { alerts(msgstr, "error"); }
+self.showSuccess = function(msgstr) { alerts(msgstr, "success"); }
+var alerts = function(msgstr, type)
+	{
+	var obj;
+
+	if((obj = $("#alerting")).length > 0)
+		obj.remove();
+
+	obj = $('<span class="edgeAlert ' + type + '" id="alerting">' + msgstr + '</span>');
+	$(document.body).append(obj);
+
+	obj.css("left", ($(window).width() - obj.width()) / 2);
+	obj.css("visibility", "visible");
+
+	window.setTimeout(function() { obj.remove(); }, 5000);
+	}
+
+var msgFormat = function(msg)
+	{
+	var rmsg = "", i;
+
+	if(self.isArray(msg))
+		{
+		for(i = 0; i < msg.length; i++)
+			rmsg += (rmsg != "" ? "<br>" : "") + msg[i];
+		}
+	else
+		rmsg = msg;
+
+	return rmsg;
+	}
+
+self.onEnterPress = function(e)
+	{
+	var key = (typeof e == null ? window.event.keyCode : e.keyCode);
+	return (key == 13 || key == 10 ? true : false);
+	}
+
+self.isArray = function(obj)
+	{
+	return Object.prototype.toString.call(obj) === "[object Array]";
+	}
+
+var scope = function(id)
+	{
+	return angular.element(document.getElementById(id)).scope();
+	}
+
+	// SPLASH -- -- -- -- -- -- -- -- -- -- //
+self.setSplashAccepted = function()
+	{
+	try {
+		core.setSplashAccepted(function(err, data)
+			{
+			if(data && data == true)
+				window.location.reload(true);
+			});
+		}
+	catch(err)
+		{
+		logger.error(err, true, true, 0, logger.ERROR);
+		}
+	}
+
+self.loadCertificate = function()
+	{
+	document.getElementById("certIframe").src = network.getEdgeURL(false, false, true) + "spaceify.crt";
+	return true;
+	}
+
+	// ADMIN -- -- -- -- -- -- -- -- -- -- //
+self.openAdminPages = function()
+	{
+	spaceifyLoader.loadPage(config.APPSTORE_INDEX_URL, config.APPSTORE_URL, config.EDGE_HTTPS_URL);
+	}
+
+	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
+self.showInstalledApplications = function(callback)
+	{
+	$("#spacelet").empty();
+	$("#sandboxed").empty();
+	$("#sandboxedDebian").empty();
+	$("#nativeDebian").empty();
+
+	var methods = [], j;
+
+	core.getApplicationData(function(err, apps)
+		{
+		if(!apps)
+			return (typeof callback == "function" ? callback() : false);
+
+		for(j = 0; j < apps.spacelet.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.spacelet[j], null], type: "async"});
+
+		for(j = 0; j < apps.sandboxed.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed[j], null], type: "async"});
+
+		for(j = 0; j < apps.sandboxed_debian.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed_debian[j], null], type: "async"});
+
+		for(j = 0; j < apps.native_debian.length; j++)
+			methods.push({object: self, method: self.renderTile, params: [apps.native_debian[j], null], type: "async"});
+
+		new SpaceifySynchronous().waterFall(methods, function()
+			{
+			if(typeof callback == "function")
+				callback();
+			});
+		});
+
+	}
+
+self.renderTile = function(manifest, callback)
+	{
+	var port, src, sp_host, spe_host, sp_path, i, id;
+
+	if(manifest.hasTile)																			// Application supplies its own tile
+		{
+		core.getApplicationURL(manifest.unique_name, function(err, appURL)
+			{
+			port = (!network.isSecure() ? appURL.port : appURL.securePort);
+			spe_host = network.getEdgeURL(false, false, true);
+
+			if(appURL.implementsWebServer && port)
+				{
+				sp_host = network.getEdgeURL(false, port, true);
+				sp_path = config.TILEFILE;
+				}
+			else
+				{
+				sp_host = self.externalResourceURL(manifest.unique_name);
+				sp_path = config.TILEFILE;
+				}
+
+			// REMOTE >>>>>>>>>>
+			// if(!window.isSpaceifyNetwork)
+				src = spe_host + "spaceifyloader/index.html?sp_host=" + encodeURIComponent(sp_host) +
+											   "&sp_path=" + encodeURIComponent(sp_path) +
+											   "&spe_host=" + encodeURIComponent(spe_host);
+			// else
+			//	src = sp_host + sp_path;
+			// <<<<<<<<<< REMOTE
+
+			id = "apptile_" + manifest.unique_name.replace("/", "_"); 
+			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
+				function()
+					{
+					var element = document.getElementById(id);
+					element.src = src;
+
+					callback();
+					}
+				});
+			});
+		}
+	else																							// Spaceify renders default tile
+		{
+		sp_host = network.getEdgeURL(false, false, true);											// Show default icon or applications custom icon
+		sp_path = "images/icon.png";
+
+		if(manifest.images)
+			{
+			for(i = 0; i < manifest.images.length; i++)
+				{
+				if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
+					{
+					sp_host = self.externalResourceURL(manifest.unique_name);
+					sp_path = "images/" + ("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
+					break;
+					}
+				}
+			}
+
+		id = "iconimage_" + manifest.unique_name.replace("/", "_");
+		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, id: id, sp_src: sp_host + sp_path, callback: function()
+			{
+			spaceifyLoader.loadData(document.getElementById(id), callback);
+			} });
+		}
+
+	addApplication(manifest);
+	}
+
+self.removeTile = function(manifest)
+	{
+	var i, length = 0, id = manifest.unique_name.replace(/\//, "_");
+
+	$("#" + id).remove();
+
+	removeApplication(manifest);
+	}
+
+var addApplication = function(manifest)
+	{
+	if(manifest.type == config.SPACELET)
+		{ applications.spacelet[manifest.unique_name] = manifest; applications.spaceletCount++; }
+	else if(manifest.type == config.SANDBOXED)
+		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxedCount++; }
+	else if(manifest.type == config.SANDBOXED_DEBIAN)
+		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxedDebianCount++; }
+	else if(manifest.type == config.NATIVE_DEBIAN)
+		{ applications.native_debian[manifest.unique_name] = manifest; applications.nativeDebianCount++; }
+	}
+
+var removeApplication = function(manifest)
+	{
+	if(manifest.type == config.SPACELET)
+		{ delete applications.spacelet[manifest.unique_name]; applications.spaceletCount--; }
+	else if(manifest.type == config.SANDBOXED)
+		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxedCount--; }
+	else if(manifest.type == config.SANDBOXED_DEBIAN)
+		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxedDebianCount--; }
+	else if(manifest.type == config.NATIVE_DEBIAN)
+		{ delete applications.native_debian[manifest.unique_name]; applications.nativeDebianCount--; }
+	}
+
+self.getApplications = function()
+	{
+	return applications;
+	}
+
+self.externalResourceURL = function(unique_name)
+	{ // This is implemented exactly the same way in the ecap-spaceify-injector (Injector::getFiles)
+	return network.getEdgeURL(false, false, true) + unique_name + "/";
+	}
+
+}
+
+"use strict";
+
+/**
+ * Spaceify Network, 29.7.2015 Spaceify Oy
+ *
+ * @class SpaceifyNetwork
+ */
+
+function SpaceifyNetwork()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var errorc = new classes.SpaceifyError();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
+
+// Get the URL to the Spaceify Core
+self.getEdgeURL = function(forceSecure, port, withSlash)
+	{
+	return (forceSecure ? "https:" : location.protocol) + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withSlash ? "/" : "");
+	}
+
+// Get secure or insecure port based on web pages protocol or requested security
+self.getPort = function(port, securePort, isSecure)
+	{
+	return (!self.isSecure() && !isSecure ? port : securePort);
+	}
+
+// Return true if current web page is encrypted
+self.isSecure = function()
+	{
+	return (location.protocol == "http:" ? false : true);
+	}
+
+// Return current protocol
+self.getProtocol = function(withScheme)
+	{
+	return (location.protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
+	}
+
+// Parse URL query
+self.parseQuery = function(url)
+	{
+	var query = {}, parts, pairs;
+	var regx = new RegExp("=", "i");
+
+	if((parts = url.split("?")).length != 2)
+		return query;
+
+	pairs = parts[1].split("&");
+
+	for(var i = 0; i < pairs.length; i++)
+		{
+		if(regx.exec(pairs[i]))													// Name and value
+			query[RegExp.leftContext] = RegExp.rightContext;
+		else																	// Only name
+			query[pairs[i]] = null;
+		}
+
+	return query;
+	}
+
+self.remakeQueryString = function(query, exclude, include, path)
+	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
+	var search = "", i;
+
+	for(i in query)
+		{
+		if(!exclude.indexOf(i))
+			search += (search != "" ? "&" : "") + i + (query[i] ? "=" + query[i] : "");		// Name-value or name
+		}
+
+	for(i in include)
+		search += (search != "" ? "&" : "") + i + "=" + include[i];
+
+	return (Object.keys(query).length > 0 ? (path ? path : "") + "?" + search : "");
+	}
+
+self.parseURL = function(url)
+	{
+	/*var parser = document.createElement("a");
+	parser.href = url;
+	return parser;*/
+
+	// parseUri 1.2.2
+	// (c) Steven Levithan <stevenlevithan.com>
+	// MIT License
+	var	o	=
+		{
+		strictMode: false,
+		key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+		q:	{
+			name:   "queryKey",
+			parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+			},
+		parser: {
+			strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+			loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+			}
+		},
+		m	= o.parser[o.strictMode ? "strict" : "loose"].exec(url),
+		uri	= {},
+		i	= 14;
+
+	while (i--) uri[o.key[i]] = m[i] || "";
+
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) uri[o.q.name][$1] = $2;
+	});
+
+	return uri;
+	}
+
+self.implementsWebServer = function(manifest)
+	{
+	return (manifest.implements && manifest.implements.indexOf(config.WEB_SERVER) != -1 ? true : false);
+	}
+
+self.isPortInUse = function(port, callback)
+	{ // Adapted from https://gist.github.com/timoxley/1689041
+	if(!port)
+		return callback(null, true);
+
+	var net = require("net");
+	var server = net.createServer();
+
+	server.once("error", function(err)
+		{
+		callback(err.code != "EADDRINUSE" ? err : null, true);
+		});
+
+	server.once("listening", function()
+		{
+		server.once("close", function()
+			{
+			callback(null, false)
+			});
+
+		server.close();
+		});
+
+	server.listen(port);
+	}
+
+	// XMLHttpRequest -- -- -- -- -- -- -- -- -- -- //
+self.GET = function(url, callback, responseType)
+	{
+	var ms = Date.now();
+	var id = utility.randomString(16, true);
+	var xhr = createXMLHttpRequest();
+	xhr.onreadystatechange = function() { onReadyState(xhr, id, ms, callback); };
+
+	xhr.open("GET", url, true);
+	xhr.responseType = (responseType ? responseType : "");
+	xhr.send();
+	}
+
+self.POST_FORM = function(url, post, responseType, callback)
+	{
+	if(typeof spaceifyLoader !== "undefined")
+		{
+		spaceifyLoader.postData(url, post, responseType, callback);
+		}
+	else
+		{
+		var boundary = "---------------------------" + Date.now().toString(16);
+
+		var body = "";
+		for(var i = 0; i < post.length; i++)
+			{
+			body += "\r\n--" + boundary + "\r\n";
+
+			body += post[i].content;
+			body += "\r\n\r\n" + post[i].data + "\r\n";
+			}
+		body += "\r\n--" + boundary + "--";
+
+		var xhr = createXMLHttpRequest();
+		xhr.open("POST", url, true);
+		xhr.responseType = (responseType ? responseType : "text");
+		xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
+		xhr.onreadystatechange = function() { onReadyState(xhr, utility.randomString(16, true), Date.now(), callback); };
+		xhr.send(body);
+		}
+	}
+
+self.doOperation = function(jsonData, callback)
+	{
+	var result;
+	var content;
+	var error = null;
+
+	try {
+		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
+
+		self.POST_FORM(config.OPERATION_URL, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
+			{
+			try {
+				if(typeof response !== "string")
+					response = JSON.stringify(response);
+
+				result = JSON.parse(response.replace(/&quot;/g, '"'));
+				}
+			catch(err)
+				{
+				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
+				}
+
+			if(result.err)
+				error = result.err;
+			else if(result.error)
+				error = result.error;
+
+			callback(error, result.data, id, ms);
+			});
+		}
+	catch(err)
+		{
+		callback(err, null);
+		}
+	}
+
+var createXMLHttpRequest = function()
+	{
+	return (window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"));		// IE7+, Firefox, Chrome, Opera, Safari : IE5, IE6
+	}
+
+var onReadyState = function(xhr, id, ms, callback)
+	{
+	if(xhr.readyState == 4)
+		callback( (xhr.status != 200 ? xhr.status : null), (xhr.status == 200 ? xhr.response : null), id, Date.now() - ms );
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyNetwork;
+"use strict";
+
+/**
+ * Spaceify Service, 29.7.2015 Spaceify Oy
+ *
+ * A class for connecting required services and opening servers for provided services.
+ * This class can be used by Node.js applications and web pages.
+ *
+ * @class SpaceifyService
+ */
+
+function SpaceifyService()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Service: (isNodeJs ? require(apiPath + "service") : Service),
+	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
+	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
+	WebSocketRpcServer: (isNodeJs ? require(apiPath + "websocketrpcserver") : null),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyNetwork: (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork),
+	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
+	};
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var core = new classes.SpaceifyCore();
+var errorc = new classes.SpaceifyError();
+var config = new classes.SpaceifyConfig();
+var network = new classes.SpaceifyNetwork();
+
+config.makeRealApplicationPaths();
+
+var required = {};									// <= Clients (required services)
+var requiredSecure = {};
+
+var provided = {};									// <= Servers (provided services)
+var providedSecure = {};
+
+var keepServerUp = true;
+var keepConnectionUp = true;
+var keepConnectionUpTimerIds = {};
+
+var caCrt = apiPath + config.SPACEIFY_CRT_WWW;
+var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
+var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
+
+var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
+
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
+self.connect = function(serviceObj, isSecure, callback)
+	{ // serviceObj = object (service object) or string (service name)
+	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
+
+	if(service_name == config.HTTP)
+		return callback(errobj, null);
+
+	if(typeof isSecure === "function")										// From web page or not defined
+		{
+		callback = isSecure;
+		isSecure = (isNodeJs ? false : network.isSecure());
+		}
+	else																	// Web page always checks the protocol
+		{
+		isSecure = (isNodeJs ? isSecure : network.isSecure());
+		}
+
+	open(serviceObj, (!isSecure ? required : requiredSecure), isSecure, callback);
+	}
+
+function open(serviceObj, service, isSecure, callback)
+	{
+	var port;
+	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
+
+	if(!service[service_name])
+		{
+		service[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
+		service[service_name].setConnectionListener(connectionListener);
+		service[service_name].setDisconnectionListener(disconnectionListener);
+		}
+
+	if(typeof serviceObj === "object")
+		{
+		port = (!isSecure ? serviceObj.port : serviceObj.securePort);
+
+		connect(service[service_name], port, isSecure, function()
+			{
+			if(typeof callback === "function")
+				callback(null, service[service_name]);
+			});
+		}
+	else
+		{
+		core.getService(service_name, "", function(err, serviceObj)
+			{
+			if(!serviceObj || err)
+				{
+				if(!service[service_name].getIsOpen())											// Let the automaton get the connection up
+					disconnectionListener(-1, service_name, isSecure);
+
+				if(typeof callback === "function")
+					callback(errobj, null);
+				}
+			else
+				{
+				port = (!isSecure ? serviceObj.port : serviceObj.securePort);
+
+				connect(service[service_name], port, isSecure, function()
+					{
+					if(typeof callback === "function")
+						callback(null, service[service_name]);
+					});
+				}
+			});
+		}
+	}
+
+var connect = function(service, port, isSecure, callback)
+	{
+	if(service.getIsOpen())																	// Don't reopen connections!
+		return callback();
+
+	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt, debug: true }, callback);
+	}
+
+self.disconnect = function(service_names, callback)
+	{ // Disconnect one service, listed services or all services
+	var keys;
+
+	if(!service_names)																		// All the services
+		keys = Object.keys(required);
+	else if(service_name.constructor !== Array)												// One service (string)
+		keys = [service_names];
+
+	for(var i = 0; i<keys.length; i++)
+		{
+		if(keys[i] in required)
+			required[keys[i]].getConnection().close();
+
+		if(keys[i] in requiredSecure)
+			requiredSecure[keys[i]].getConnection().close();
+		}
+	}
+
+var connectionListener = function(id, service_name, isSecure)
+	{
+	}
+
+var disconnectionListener = function(id, service_name, isSecure)
+	{
+	if(!keepConnectionUp)
+		return;
+
+	var timerIdName = service_name + (!isSecure ? "F" : "T");								// Services have their own timers and
+	if(timerIdName in keepConnectionUpTimerIds)												// only one timer can be running at a time
+		return;
+
+	var service = (!isSecure ? required[service_name] : requiredSecure[service_name]);
+
+	keepConnectionUpTimerIds[timerIdName] = setTimeout(waitConnectionAttempt, config.RECONNECT_WAIT, id, service_name, isSecure, timerIdName, service);
+	}
+
+var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, service)
+	{
+	core.getService(service_name, "", function(err, serviceObj)
+		{
+		delete keepConnectionUpTimerIds[timerIdName];										// Timer can now be retriggered
+
+		if(serviceObj)
+			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
+		else
+			disconnectionListener(id, service_name, isSecure);
+		});
+	}
+
+self.getRequiredService = function(service_name)
+	{
+	return (required[service_name] ? required[service_name] : null);
+	}
+
+self.getRequiredServiceSecure = function(service_name)
+	{
+	return (requiredSecure[service_name] ? requiredSecure[service_name] : null);
+	}
+
+self.keepConnectionUp = function(val)
+	{
+	keepConnectionUp = (typeof val == "boolean" ? val : false);
+	}
+
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
+self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
+	{
+	if(typeof listenUnsecure == "undefined")
+		listenUnsecure = true;
+
+	if(typeof listenSecure == "undefined")
+		listenSecure = true;
+
+	if(!provided[service_name])																// Create the connection objects
+		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+
+	if(!providedSecure[service_name])
+		providedSecure[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+
+	if(listenUnsecure)
+		listen.sync(provided[service_name], port, false);
+
+	if(listenSecure)
+		listen.sync(providedSecure[service_name], securePort, true);
+
+	if(!port || !securePort)
+		{ // If port was null or 0 the real port number is known only after the server is listening
+		if(listenUnsecure)
+			port = provided[service_name].getServer().getPort();
+
+		if(listenSecure)
+			securePort = providedSecure[service_name].getServer().getPort();
+
+		console.log("    LISTEN -----> " + service_name + " - port: " + port + ", secure port: " + securePort);
+		}
+
+	core.sync.registerService(service_name, {unique_name: unique_name, port: port, securePort: securePort});
+	});
+
+var listen = fibrous( function(service, port, isSecure)
+	{
+	if(service.getIsOpen())
+		return;
+
+	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp, debug: true });
+	});
+
+self.close = function(service_name)
+	{ // Close one service, listed services or all services
+	var keys;
+
+	if(typeof service_names == "undefined")																		// All the services
+		keys = Object.keys(provided);
+	else if(typeof service_names != "undefined" && service_name.constructor !== Array)							// One service (string)
+		keys = [service_names];
+
+	for(var i = 0; i < keys.length; i++)
+		{
+		if(keys[i] in provided)
+			provided[keys[i]].getServer().close();
+		if(keys[i] in providedSecure)
+			providedSecure[keys[i]].getServer().close();
+		}
+	}
+
+self.getProvidedService = function(service_name)
+	{
+	return (provided[service_name] ? provided[service_name] : null);
+	}
+
+self.getProvidedServiceSecure = function(service_name)
+	{
+	return (providedSecure[service_name] ? providedSecure[service_name] : null);
+	}
+
+self.keepServerUp = function(val)
+	{
+	keepServerUp = (typeof val == "boolean" ? val : false);
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyService;
+"use strict";
+
+/**
+ * Utility + Spaceify Utility, 18.9.2013, 29.7.2015 Spaceify Oy
+ *
+ * @class SpaceifyUtility
+ */
+
+function SpaceifyUtility()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	Language: (isNodeJs ? require(apiPath + "language") : {}),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
+	};
+if (typeof exports !== "undefined")
+	{
+	global.os = require("os");
+	global.fs = require("fs");
+	global.path = require("path");
+	global.mkdirp = require("mkdirp");
+	global.AdmZip = require("adm-zip");
+	global.request = require("request");
+	global.spawn = require("child_process").spawn;
+	}
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var language = classes.Language;//new Language();
+var config = new classes.SpaceifyConfig();
+
+	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
+self.loadRemoteFile = fibrous( function(fileUrl)
+	{
+	var result;
+
+	try	{
+		result = request.sync.get(fileUrl, { encoding: null, rejectUnauthorized: false, agent: false });
+		}
+	catch(err)
+		{
+		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_INITIATE_HTTP_GET.pre("SpaceifyUtility::loadRemoteFile", err);
+		}
+
+	if(result.statusCode != 200)
+		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_LOAD_REMOTE_FILE.preFmt("SpaceifyUtility::loadRemoteFile", {"~file": fileUrl, "~code": result.statusCode});
+
+	return result;
+	});
+
+self.loadRemoteFileToLocalFile = fibrous( function(fileUrl, targetDir, targetFile, throws)
+	{
+	try {
+		var result = self.sync.loadRemoteFile(fileUrl);
+
+		if(result.statusCode == 200)
+			self.sync.writeFile(targetDir, targetFile, result.body);
+
+		return true;
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_LOAD_REMOTE_FILE_TO_LOCAL_FILE_FAILED.pre("SpaceifyUtility::loadRemoteFileToLocalFile", err);
+		}
+
+	return false;
+	});
+
+self.isLocal = fibrous( function(path, type)
+	{
+	try {
+		var stats = fs.sync.stat(path);
+		if(stats && type == "file" && stats.isFile())
+			return true;
+		else if(stats && type == "directory" && stats.isDirectory())
+			return true;
+		}
+	catch(err)
+		{
+		}
+
+	return false;
+	});
+
+self.getPathType = fibrous( function(path)
+	{
+	try {
+		var stats = fs.sync.stat(path);
+		if(stats && stats.isFile())
+			return "file";
+		else if(stats && stats.isDirectory())
+			return "directory";
+		}
+	catch(err)
+		{
+		}
+
+	return "undefined";
+	});
+
+self.deleteDirectory = fibrous( function(source, throws)						// Recursively deletes directory and its files and subdirectories
+	{
+	try {
+		var stats = fs.sync.stat(source);
+		if(typeof stats != "undefined" && stats.isDirectory())
+			{
+			fs.sync.readdir(source).forEach(function(file, index)
+				{
+				var curPath = source + "/" + file;
+				if(fs.sync.stat(curPath).isDirectory())
+					self.sync.deleteDirectory(curPath, throws);
+				else
+					fs.sync.unlink(curPath);
+				});
+
+			fs.sync.rmdir(source);
+			}
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_DELETE_DIRECTORY_FAILED.pre("SpaceifyUtility::deleteDirectory", err);
+		}
+	});
+
+self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
+	{ // Recursively copy source directory content to target directory.
+	try {
+		source += (source.search(/\/$/) != -1 ? "" : "/");
+		target += (target.search(/\/$/) != -1 ? "" : "/");
+
+		var stats = fs.sync.stat(source);
+		if(typeof stats == "undefined" || !stats.isDirectory() || excludeDirectory.indexOf(source) != -1)
+			return;
+
+		var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
+
+		mkdirp.sync(target, mode);
+
+		fs.sync.readdir(source).forEach(function(file, index)
+			{
+			var sourcePath = source + file;
+			var targetPath = target + file;
+
+			stats = fs.sync.stat(sourcePath);
+			if(stats.isDirectory())
+				{
+				self.sync.copyDirectory(sourcePath + "/", targetPath + "/", throws, excludeDirectory);
+				}
+			else
+				{
+				mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
+				var readStream = fs.createReadStream(sourcePath, {"autoClose": true});
+				var writeStream = fs.createWriteStream(targetPath, {"mode": mode});
+				readStream.pipe(writeStream);
+				}
+			});
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_COPY_DIRECTORY_FAILED.pre("SpaceifyUtility::copyDirectory", err);
+		}
+	});
+
+self.moveDirectory = fibrous( function(source, target, throws)
+	{
+	try {
+		self.sync.copyDirectory(source, target, true, []);
+		self.sync.deleteDirectory(source, true);
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_MOVE_DIRECTORY_FAILED.pre("SpaceifyUtility::moveDirectory", err);
+		}
+	});
+
+self.deleteFile = fibrous( function(source, throws)
+	{
+	try {
+		var stats = fs.sync.stat(source);
+		if(typeof stats != "undefined" && !stats.isDirectory())
+			fs.sync.unlink(source);
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_DELETE_FILE_FAILED.pre("SpaceifyUtility::deleteFile", err);
+		}
+	});
+
+self.copyFile = fibrous( function(sourceFile, targetFile, throws)
+	{
+	try {
+		var stats = fs.sync.stat(sourceFile);
+		if(typeof stats != "undefined" && !stats.isDirectory())
+			{
+			var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
+			var readStream = fs.createReadStream(sourceFile, {"autoClose": true});
+			var writeStream = fs.createWriteStream(targetFile, {"mode": mode});
+			readStream.pipe(writeStream);
+			}
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_COPY_FILE_FAILED.pre("SpaceifyUtility::copyFile", err);
+		}
+	});
+
+self.moveFile = fibrous( function(sourceFile, targetFile, throws)
+{
+	try {
+		self.sync.copyFile(sourceFile, targetFile, true);
+		self.sync.deleteFile(sourceFile, true);
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_MOVE_FILE_FAILED.pre("SpaceifyUtility::moveFile", err);
+		}
+});
+
+self.zipDirectory = fibrous( function(source, zipfile)				// Craete a zip file from the contents of the source directory
+	{
+	source = source + (source != "" && source.search(/\/$/) == -1 ? "/" : "");
+
+	try {
+		/*var log = console.log;										// Disable console.log for a while, bacuse adm-zip prints directory content
+		console.log = function() {};
+
+		var zip = new AdmZip();
+		zip.addLocalFolder(source);
+		zip.writeZip(zipfile);
+
+		console.log = log;*/
+
+		self.execute.sync("zip", ["-r", "-q", zipfile, ".", "-i", "*"], {cwd: source}, null);
+		}
+	catch(err)
+		{
+		throw language.E_ZIP_DIRECTORY_FAILED.pre("SpaceifyUtility::zipDirectory", err);
+		}
+	});
+
+self.getFileFromZip = function(zipFilename, filename, extractPath, deleteAfter)
+	{ // Get a text file from a zip file. Extracts file to the extractPath if path is defined. Deletes archive if requested.
+	var regex = new RegExp(filename + "$", "i");
+	var zip = new AdmZip(zipFilename);
+	var zipEntries = zip.getEntries();
+	for(var ze in zipEntries)
+		{
+		if(zipEntries[ze].entryName.search(regex) != -1)
+			{
+			if(extractPath)
+				zip.extractAllTo(extractPath, true);
+
+			return zip.readAsText(zipEntries[ze].entryName);
+			}
+		}
+
+	if(deleteAfter)
+		self.sync.deleteFile(zipFilename);
+
+	return null;
+	}
+
+self.unZip = function(zipFilename, extractPath, deleteAfter)
+	{ // Extracts archive to extractPath. Deletes archive if requested.
+	var zip = new AdmZip(zipFilename);
+	zip.extractAllTo(extractPath, true);
+
+	if(deleteAfter)
+		self.sync.deleteFile(zipFilename);
+
+	return true;
+	}
+
+self.writeFile = fibrous( function(targetDir, targetFile, data)
+	{
+	mkdirp.sync(targetDir);
+
+	fs.sync.writeFile(targetDir + targetFile, data);
+	});
+
+self.preparePath = function(directory)
+	{ // Add / at the end of path, if it is not empty and doesn't have it already
+	return directory + (!directory.match(/^$/) && !directory.match(/\/$/) ? "/" : "");	// Not empty, doesn't end with /
+	}
+
+	// WWW / NETWORK -- -- -- -- -- -- -- -- -- -- //
+self.postForm = fibrous( function(url, form)
+	{
+	var result;
+
+	try	{
+		result = request.sync.post(url, form);
+		}
+	catch(err)
+		{
+		throw language.E_POST_FORM_FAILED_TO_INITIATE_HTTP_POST.pre("SpaceifyUtility::postForm", err);
+		}
+
+	if(result.statusCode != 200)
+		throw language.E_POST_FORM_FAILED_TO_POST_FORM.preFmt("SpaceifyUtility::postForm", {"~url": url, "~code": result.statusCode});
+
+	return result;
+	});
+
+self.remakeQueryString = function(objQuery, exclude, include, path)
+	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
+	var query = "", i;
+
+	for(i in objQuery)
+		{
+		if(exclude.indexOf(i) == -1)
+			query += (query != "" ? "&" : "") + i + (objQuery[i] ? "=" + objQuery[i] : "");		// Name-value or name
+		}
+
+	for(i in include)
+		query += (query != "" ? "&" : "") + i + (include[i] ? "=" + include[i] : "");
+
+	return (Object.keys(objQuery).length > 0 ? (path ? path : "") + "?" + query : "");
+	}
+
+self.postPublish = function(applicationPackage, username, password, release_name, callback)
+	{
+	logger.force(language.PACKAGE_POSTING);
+
+	request({
+		url: config.REGISTRY_PUBLISH_URL,
+		headers: { "content-type" : "multipart/form-data" },
+		method: "POST",
+		multipart:
+			[
+				{ "Content-Disposition" : 'form-data; name="username"', body: username },
+				{ "Content-Disposition" : 'form-data; name="password"', body: password },
+				{ "Content-Disposition" : 'form-data; name="release"', body: release_name },
+				{
+				"Content-Disposition" : 'form-data; name="package"; filename="' + config.PUBLISH_ZIP + '"',
+				"Content-Type" : "application/zip",
+				body: fs.readFileSync(applicationPackage)
+				}
+			]
+		},
+		function(err, result, body)
+			{
+			callback(err ? err : null, err ? null : (result.statusCode != 200 ? result.statusCode : body));
+			});
+	}
+
+self.postRegister = function(edge_id, edge_name, edge_password, callback)
+	{
+	//logger.force(language.POSTING_REGISTRATION);
+
+	request["post"]({
+		url: config.EDGE_REGISTER_URL,
+		headers: { "content-type" : "multipart/form-data" },
+		//method: "POST",
+		multipart:
+			[
+				{ "Content-Disposition" : 'form-data; name="edge_id"', body: edge_id },
+				{ "Content-Disposition" : 'form-data; name="edge_name"', body: edge_name },
+				{ "Content-Disposition" : 'form-data; name="edge_password"', body: edge_password }
+			]
+		},
+		function(err, result, body)
+			{
+			callback(err ? err : null, err ? null : (result.statusCode != 200 ? result.statusCode : body));
+			});
+	}
+
+var isMAC = function(MAC)
+	{
+	return MAC.match(new RegExp(config.MAC_REGX, "i"));
+	}
+
+self.parseURLFromURLObject = function(urlObj, host, protocol, port)
+	{ // //[edge.spaceify.net:32827]/service/spaceify/bigscreen
+	urlObj.hostname = host + (port ? ":" + port : "");
+	urlObj.protocol = protocol;
+
+	return urlObj.format(urlObj);
+	}
+
+self.parseMultiPartData = function(contentType, body, throws)
+	{ // Parse "multipart MIME data streams". Return attributes of the data stream and the body as it is (no decoding done)
+	var boundary, partBoundary, endBoundary, dataLine, phase, contentTypeData = {}, bodyData, bodyParts = {};
+
+	try {
+		// content-type
+		self.parseMultipartLine(contentType, contentTypeData);
+
+		if(!(boundary = contentTypeData["boundary"]))
+			throw "";
+
+		partBoundary = "--" + boundary;
+		endBoundary =  "--" + boundary + "--";
+
+		// body
+		body = body.split("\r\n");
+
+		body.shift();
+		while(body.length > 0)
+			{
+			phase = 0;
+			bodyData = {body: ""};
+			dataLine = body.shift();
+			while(body.length > 0 && dataLine != partBoundary && dataLine != endBoundary)
+				{
+				if(dataLine == "")
+					phase++;
+				else if(phase == 0)
+					self.parseMultipartLine(dataLine, bodyData);
+				else
+					bodyData.body += dataLine;
+
+				dataLine = body.shift();
+				}
+
+			if(bodyData.name)
+				bodyParts[bodyData.name] = bodyData;
+			}
+		}
+	catch(err)
+		{
+		if(throws)
+			throw err;
+		}
+
+	return bodyParts;
+	}
+
+self.parseMultipartLine = function(line, keyvalues)
+	{ // parse multipart lines such as 'multipart/form-data; boundary=abcd' or 'Content-Disposition: form-data; name="data";' as key-value pairs
+	var parts = line.split(";");
+
+	for(var i = 0; i < parts.length; i++)
+		{
+		if(!parts[i])
+			continue;
+
+		var matched = parts[i].match(/[:=]/);
+
+		if(!matched)
+			keyvalues[parts[i].trim()] = "";
+		else
+			{
+			var key = parts[i].substr(0, matched.index);
+			var value = parts[i].substr(matched.index + 1);
+			keyvalues[key.trim().toLowerCase()] = value.trim();
+			}
+		}
+	}
+
+	// PARSE / FORMAT -- -- -- -- -- -- -- -- -- -- //
+self.loadJSON = fibrous( function(file, bParse, throws)
+	{
+	var manifest = null;
+
+	try {
+		manifest = fs.sync.readFile(file, {encoding: "utf8"});
+		if(bParse)
+			manifest = self.parseJSON(manifest, throws);
+		}
+	catch(err)
+		{
+		manifest = null;
+		if(throws)
+			throw language.E_LOAD_JSON_FAILED.pre("SpaceifyUtility::loadJSON", err);
+		}
+
+	return manifest;
+	});
+
+self.saveJSON = fibrous( function(file, json, throws)
+	{
+	var success = false;
+
+	try {
+		var jsondata = JSON.stringify(json, null, 2);
+
+		fs.sync.writeFile(file, jsondata, {encoding: "utf8"});
+
+		success = true;
+		}
+	catch(err)
+		{
+		if(throws)
+			throw language.E_SAVE_JSON_FAILED.pre("SpaceifyUtility::saveJSON", err);
+		}
+
+	return success;
+	});
+
+self.parseJSON = function(str, throws)
+	{
+	var json;
+
+	try {
+		json = JSON.parse(str);
+		}
+	catch(err)
+		{
+		if(throws)
+			throw (isNodeJs ?	language.E_PARSE_JSON_FAILED.pre("SpaceifyUtility::parseJSON", err) :
+								self.makeErrorObject("JSON", "Failed to parse JSON.", "SpaceifyUtility::parseJSON"));
+		}
+
+	return json;
+	}
+
+self.replaces = function(str, strs)
+	{ // Replace all occurances of %0, %1, ..., %strs.length - 1 with strings in the strs array. Reverse order so that e.g. %11 gets replaced before %1.
+	for(var s = strs.length - 1; s >= 0; s--)
+		{
+		var regx = new RegExp("%" + s, "g");
+		str = str.replace(regx, (typeof strs[s] == "undefined" ? "?" : strs[s]));
+		}
+
+	return str;
+	}
+
+self.replace = function(str, strs, replaceWith)
+	{ // Replace all occurances of named tilde (~) prefixed, alphanumerical parameters (e.g. ~name, ~Name1) supplied in the strs object in the str.
+	var r = (replaceWith ? replaceWith : ""), i;
+
+	for(i in strs)
+		{
+		if(typeof strs[i] == "undefined")							// Don't replace parameters with undefined values
+			continue;
+
+		str = str.replace(i, strs[i]);
+		}
+																	// Remove unused parameters to tidy up the string
+	str = str.replace(/\s~[a-zA-Z0-9]*\s/g, " " + r + " ");			// ' ~x ' -> ' ? '
+	str = str.replace(/~[a-zA-Z0-9]+\s/g, " " + r + " ");			// '~x '  -> ' ? '
+	str = str.replace(/\s~[a-zA-Z0-9]+/g, r);						// ' ~x'  -> '?'
+	str = str.replace(/~[a-zA-Z0-9]+/g, r);							// '~x'   -> '?'
+
+	return str;
+	}
+
+	// OPERATING SYSTEM -- -- -- -- -- -- -- -- -- -- //
+self.execute = function(command, args, options, messageCallback, callback)
+	{
+	var bExited = false;
+	var stdout = "";
+	var stderr = "";
+
+	var spawned = spawn(command, args, options);
+
+	spawned.stdout.on("data", function(data)
+		{
+		if(messageCallback)
+			messageCallback(false, data);
+
+		stdout += data;
+		});
+
+	spawned.stderr.on("data", function(data)
+		{
+		if(messageCallback)
+			messageCallback(true, data);
+
+		stderr += data;
+		});
+
+	spawned.on("error", function(err)
+		{
+		if(!bExited) {
+			callback(err, null); bExited = true; }
+		});
+
+	spawned.on("close", function(code)
+		{
+		if(!bExited) {
+			callback(null, {code: code, signal: null, stdout: stdout, stderr: stderr}); bExited = true; }
+		});
+
+	spawned.on("exit", function(code, signal)
+		{
+		if(!bExited) {
+			callback(null, {code: code, signal: signal, stdout: stdout, stderr: stderr}); bExited = true; }
+		});
+	}
+
+	// STRING -- -- -- -- -- -- -- -- -- -- //
+self.ucfirst = function(str)
+	{
+	return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+	// RANDOM -- -- -- -- -- -- -- -- -- -- //
+self.randomString = function(length, useAlpha)
+	{ // http://stackoverflow.com/questions/10726909/random-alpha-numeric-string-in-javascript
+	var chars = "", i;
+
+	if(useAlpha)
+		chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	else
+		chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!�$#%&/(){}[]<>|��=+?*,.;:-_";
+
+	var result = "";
+	for(i = length; i > 0; --i)
+		result += chars[Math.round(Math.random() * (chars.length - 1))];
+
+	return result;
+	}
+
+self.generateRandomConnectionId = function(connections)
+	{
+	var ret;
+
+	while(true)
+		{
+		ret = Math.floor(Math.random() * 4294967296);	//2 to power 32
+		if (!connections.hasOwnProperty(ret))
+			break;
+		}
+
+	return ret;
+	}
+
+self.bytesToHexString = function(bytes)
+	{
+	for(var hex = [], i = 0; i < bytes.length; i++)
+		{
+		hex.push((bytes[i] >>> 4).toString(16));
+		hex.push((bytes[i] & 0xF).toString(16));
+		}
+
+	return hex.join("");
+	}
+
+	// DATE -- -- -- -- -- -- -- -- -- -- //
+self.getLocalDateTime = function()
+	{
+	var date;
+	date = new Date();
+	date = date.getFullYear() + "-" +
+	("00" + (date.getMonth()+1)).slice(-2) + "-" +
+	("00" + date.getDate()).slice(-2) + " " +
+	("00" + date.getHours()).slice(-2) + ":" +
+	("00" + date.getMinutes()).slice(-2) + ":" +
+	("00" + date.getSeconds()).slice(-2);
+
+	return date;
+	}
+
+	// TYPES -- -- -- -- -- -- -- -- -- -- //
+self.isObjectEmpty = function(obj)
+	{
+	return (typeof obj != "object" ? true : (Object.keys(obj).length == 0 ? true : false));
+	}
+
+self.assoc = function(_array, _key, _value)
+	{ // Imitate associative arrays
+	_key in _array ? _array[_key] = [_value] : _array[key].push(_value);
+
+	return _array;
+	}
+
+self.toBuffer = function(data)
+	{ // Make sure data is an instance of Buffer
+	if(data instanceof Buffer)
+		return data;
+	else if(data instanceof Array || data instanceof Object)
+		return new Buffer(JSON.stringify(data), "utf8");
+	else if(typeof data == "string")
+		return new Buffer(data, "utf8");
+	else
+		return new Buffer(data.toString(), "utf8");
+	}
+
+	// COOKIES -- -- -- -- -- -- -- -- -- -- //
+self.setCookie = function(cname, cvalue, expiration_sec)
+	{
+	var expires = "";
+
+	if(expiration_sec)
+		{
+		var dn = Date.now() + (expiration_sec * 1000);
+		var dc = new Date(dn);
+		expires = "expires=" + dc.toGMTString();
+		}
+
+	document.cookie = cname + "=" + cvalue + (expires != "" ? "; " + expires : "");
+	}
+
+self.getCookie = function(cname)
+	{
+	var name = cname + "=";
+	var ca = document.cookie.split(";");
+	for(var i = 0; i < ca.length; i++)
+		{
+		var c = ca[i];
+		while(c.charAt(0) == " ")
+			c = c.substring(1);
+
+		if(c.indexOf(name) != -1)
+			return c.substring(name.length, c.length);
+		}
+
+	return "";
+	}
+
+self.deleteCookie = function(cname)
+	{
+	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyUtility;
+
+"use strict";
+
+/**
+ * Spacelet, 24.1.2016 Spaceify Oy
+ *
+ * class @Spacelet
+ */
+
+function Spacelet()
+{
+var self = this;
+
+var core = new SpaceifyCore();
+var spaceifyService = new SpaceifyService();
+
+self.start = function(application, unique_name, callback)
+	{ // callback takes preference over application context
+	try {
+		core.startSpacelet(unique_name, function(err, serviceobj)
+			{
+			if(err)
+				throw err;
+			else
+				{
+				for(var i = 0; i < serviceobj.serviceNames.length; i++)
+					{
+					spaceifyService.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
+						{
+						if(typeof application == "function")
+							application(null, true);
+						else if(application && application.start)
+							application.start();
+						}));
+					}
+				}
+			});
+		}
+	catch(err)
+		{
+		if(typeof application == "function")
+			application(err, false);
+		else if(application && application.fail)
+			application.fail(err);
+		}
+	}
+
+self.getRequiredService = function(service_name)
+	{
+	return spaceifyService.getRequiredService(service_name);
+	}
+
+self.getRequiredServiceSecure = function(service_name)
+	{
+	return spaceifyService.getRequiredServiceSecure(service_name);
+	}
+
+}
+
+"use strict";
+
+/**
+ * Spaceify application, 25.1.2016 Spaceify Oy
+ *
+ * @class SpaceifyApplication
+ */
+
+function SpaceifyApplication()
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/";
+
+var classes =
+	{
+	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
+	WebServer: (isNodeJs ? require(apiPath + "webserver") : function() {}),
+	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
+	SpaceifyService: (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService)
+	};
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var logger = new classes.Logger();
+var httpServer = new classes.WebServer();
+var httpsServer = new classes.WebServer();
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
+var spaceifyCore = new classes.SpaceifyCore();
+var spaceifyService = new classes.SpaceifyService();
+
+config.makeRealApplicationPaths();
+
+var manifest = null;
+var application = null;
+
+var HTTP_PORT = (isRealSpaceify ? 80 : null);
+var HTTPS_PORT = (isRealSpaceify ? 443 : null);
+
+self.start = function()
+	{
+	if(isNodeJs)
+		start.apply(self, arguments);
+	else
+		self.connect.apply(self, arguments);
+	}
+
+var start = function(application_, options)
+	{
+	fibrous.run( function()
+		{
+		var server;
+		var port;
+		var securePort;
+		var registerHttp;
+		var hasWebServers;
+		var listenHttp = false;
+		var listenHttps = false;
+		var listenSecure = true;
+		var listenUnsecure = true;
+
+		application = application_;
+
+			// OPTIONS -- -- -- -- -- -- -- -- -- -- //
+		options = options || {};
+
+		hasWebServers = (options.webservers || options.webServers ? true : false);
+
+		if(hasWebServers)
+			{
+			server = options.webservers || options.webServers;
+			listenHttp = ("http" in server ? server.http : false);
+			listenHttps = ("https" in server ? server.https : false);
+			}
+
+		if(options.websocketservers || options.webSocketServers)
+			{
+			server = options.websocketservers || options.webSocketServers;
+			listenSecure = ("secure" in server ? server.secure : false);
+			listenUnsecure = ("unsecure" in server ? server.unsecure : false);
+			}
+
+			// APPLICATION -- -- -- -- -- -- -- -- -- -- //
+		try {
+			manifest = utility.sync.loadJSON(config.VOLUME_APPLICATION_PATH + config.MANIFEST, true, true);
+
+				// SERVICES -- -- -- -- -- -- -- -- -- -- //
+			if(manifest.provides_services)														// <= SERVERS - PROVIDES SERVICES
+				{
+				var services = manifest.provides_services;
+
+				for(var i = 0; i < services.length; i++)
+					{
+					if(services.service_type == config.ALIEN)
+						continue;
+
+					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
+					securePort = (isRealSpaceify ? config.FIRST_SERVICE_PORT_SECURE + i : null);
+
+					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
+					}
+				}
+
+			if(manifest.requires_services)														// <= CLIENTS - REQUIRES SERVICES
+				{
+				createRequiredServices.sync(manifest.requires_services, 0, false);
+				createRequiredServices.sync(manifest.requires_services, 0, true);
+				}
+
+				// START APPLICATIONS HTTP AND HTTPS WEB SERVERS -- -- -- -- -- -- -- -- -- -- //
+			if(hasWebServers)
+				{
+				var opts =	{
+							hostname: config.ALL_IPV4_LOCAL,
+							key: config.VOLUME_TLS_PATH + config.SERVER_KEY,
+							crt: config.VOLUME_TLS_PATH + config.SERVER_CRT,
+							caCrt: config.API_WWW_PATH + config.SPACEIFY_CRT,
+							wwwPath: config.VOLUME_APPLICATION_WWW_PATH,
+							indexFile: config.INDEX_HTML,
+							serverName: manifest.name + " Server"
+							};
+
+				registerHttp = false;
+
+				if(listenHttp && !httpServer.getIsOpen())
+					{
+					opts.isSecure = false;
+					opts.port = HTTP_PORT;
+					httpServer.listen.sync(opts);
+
+					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
+																								// do not have knowledge of port numbers beforehand
+					registerHttp = true;
+					}
+
+				if(listenHttps && !httpsServer.getIsOpen())
+					{
+					opts.isSecure = true;
+					opts.port = HTTPS_PORT;
+					httpsServer.listen.sync(opts);
+
+					HTTPS_PORT = httpsServer.getPort();
+
+					registerHttp = true;
+					}
+
+				if(registerHttp && !isRealSpaceify)
+					{
+					spaceifyCore.sync.registerService("http", {unique_name: manifest.unique_name, port: HTTP_PORT, securePort: HTTPS_PORT});
+					console.log("    LISTEN -----> " + config.HTTP + " - port: " + HTTP_PORT + ", secure port: " + HTTPS_PORT);
+					}
+				}
+
+			if(application && application.start && typeof application.start == "function")
+				application.start();
+
+				// APPLICATION INITIALIALIZED SUCCESSFULLY -- -- -- -- -- -- -- -- -- -- //
+			console.log(config.APPLICATION_INITIALIZED, "---", manifest.unique_name);
+			}
+		catch(err)
+			{
+			initFail.sync(err);
+			}
+		}, function(err, data)
+			{
+			//initFail.sync(err);
+			});
+	}
+
+self.connect = function(application_, unique_names, options)
+	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending from where this method is called
+	try {
+		application = application_;
+
+		if(unique_names.constructor !== Array)													// getOpenServices takes an array of unique names
+			unique_names = [unique_names];
+
+		spaceifyCore.getOpenServices(unique_names, false, function(err, services)
+			{
+			if(err)
+				throw err;
+			else
+				connectServices(application, services);
+			});
+		}
+	catch(err)
+		{
+		if(typeof application == "function")
+			application(err, false);
+		else if(application && application.fail && typeof application.fail == "function")
+			application.fail(err);
+		}
+	}
+
+var connectServices = function(application_, services)
+	{ // Connect to services in the array one at a time
+	var service = services.shift();
+
+	application = application_;
+
+	if(typeof service === "undefined")
+		{
+		if(typeof application == "function")
+			application(null, true);
+		else if(application && application.start && typeof application.start == "function")
+			application.start();
+
+		return;
+		}
+
+	spaceifyService.connect(service.service_name, function(err, data)
+		{
+		connectServices(application, services);
+		});
+	}
+
+var initFail = fibrous( function(err)
+	{ // FAILED TO INITIALIALIZE THE APPLICATION. -- -- -- -- -- -- -- -- -- -- //
+	logger.error([";;", err, "::"], true, true, logger.ERROR);
+	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);
+
+	stop.sync(err);
+	});
+
+var stop = fibrous( function(err)
+	{
+	httpServer.close();
+	httpsServer.close();
+
+	spaceifyService.disconnect();																// Disconnect clients
+	spaceifyService.close();																	// Close servers
+
+	spaceifyCore.close();
+
+	if(application && application.fail && typeof application.fail == "function")
+		application.fail(err);
+	});
+
+var createRequiredServices = function(services, position, isSecure, callback)
+	{
+	if(position == services.length)
+		callback();
+	else
+		{
+		spaceifyService.connect(services[position++].service_name, isSecure, function(err, data)
+			{
+			createRequiredServices(services, position, isSecure, callback);
+			});
+		}
+	}
+
+	// METHODS -- -- -- -- -- -- -- -- -- -- //
+self.getOwnUrl = function(isSecure)
+	{
+	if(!isNodeJs)
+		return null;
+
+	var ownUrl = (!isSecure ? "http://" : "https://") + config.EDGE_HOSTNAME + ":" + (!isSecure ? HTTP_PORT : HTTPS_PORT);
+
+	return ownUrl;
+	}
+
+self.getManifest = function()
+	{
+	return manifest;
+	}
+
+	// REQUIRED (= CLIENT) -- -- -- -- -- -- -- -- -- -- //
+self.getRequiredService = function(service_name)
+	{
+	return spaceifyService.getRequiredService(service_name);
+	}
+
+self.getRequiredServiceSecure = function(service_name)
+	{
+	return spaceifyService.getRequiredServiceSecure(service_name);
+	}
+
+	// PROVIDED (= SERVICE) -- -- -- -- -- -- -- -- -- -- //
+self.getProvidedService = function(service_name)
+	{
+	return spaceifyService.getProvidedService(service_name);
+	}
+
+self.getProvidedServiceSecure = function(service_name)
+	{
+	return spaceifyService.getProvidedServiceSecure(service_name);
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = new SpaceifyApplication();
+
+"use strict";
+
+/**
+ * SpaceifyError, 4.6.2014 Spaceify Oy
+ */
+
+function SpaceifyError(errObj)
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
+	};
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var config = new classes.SpaceifyConfig();
+
+self.path = (errObj && errObj.path ? errObj.path : "");
+self.code = (errObj && errObj.code ? errObj.code : "");
+self.message = (errObj && errObj.message ? errObj.message : "");
+
+	// CONSTANTS -- -- -- -- -- -- -- -- -- -- //
+var CODE_SEPARATOR = ", ";
+var PATH_SEPARATOR = ", ";
+var MESSAGE_SEPARATOR = " ";
+
+	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
+self.set = function(err)
+	{
+	self.path = err.path || "";
+	self.code = err.code || "";
+	self.message = err.message || "";
+	}
+
+self.getAsObject = function()
+	{
+	return {code: self.code, codes: [self.code], message: self.message, messages: [self.message], path: self.path, paths: [self.path]};
+	}
+
+self.getMessage = function()
+	{
+	return self.message;
+	}
+
+self.getCode = function()
+	{
+	return self.code;
+	}
+
+self.getPath = function()
+	{
+	return self.path;
+	}
+
+self.pre = function(path)
+	{
+	self.path = path;
+
+	// There might be additional error objects after the path in the arguments: [path, err, err, ...]
+	var args = Array.prototype.slice.call(arguments);
+	// Pass this error object first (replace path with it) then the additional error objects: [thisError, err, err, ...]
+	args[0] = self.getAsObject();
+
+	return self.make.apply(this, args);
+	}
+
+self.preFmt = function(path, params)
+	{
+	self.path = path;
+
+	return self.makeFmt(self.getAsObject(), params);
+	}
+
+	// ERRORS -- -- -- -- -- -- -- -- -- -- //
+self.make = function()
+	{
+	var i;
+	var path = "", paths = [];
+	var code = "", codes = [];
+	var message = "", messages = [];
+
+	for(i = 0; i < arguments.length; i++)													// More than one error can be passed in the arguments
+		{
+		var aobj = arguments[i];
+
+		if(aobj.messages)																	// concat arrays of paths, codes and messages, of the same size, to en existing error array
+			{
+			paths = paths.concat(aobj.paths);
+			codes = codes.concat(aobj.codes);
+			messages = messages.concat(aobj.messages);
+			}
+		else																				// push single error object to error array
+			{
+			paths.push(aobj.path ? aobj.path : "");
+			codes.push(aobj.code ? aobj.code : "");
+			messages.push(aobj.message ? aobj.message : aobj.toString());
+			}
+		}
+
+	for(i = 0; i < messages.length; i++)													// Make single message, code and path strings
+		{
+		if(codes[i])
+			code += (code != "" ? CODE_SEPARATOR : "") + codes[i];
+
+		if(paths[i])
+			path += (path != "" ? PATH_SEPARATOR : "") + paths[i];
+
+		message += (message != "" ? MESSAGE_SEPARATOR : "") + messages[i];
+		}
+
+	return { code: code, message: message, path: path, codes: codes, paths: paths, messages: messages };
+	}
+
+self.makeFmt = function(err, params)
+	{ // Make formatted error. This method handles only one error object
+	err.message = self.replace(err.message, params);
+
+	if(err.messages && err.messages.length > 0)
+		err.messages[0] = err.message;
+
+	return self.make(err);
+	}
+
+self.makeErrorObject = function(code, message, path)
+	{
+	var code_ = (typeof code != "undefined" ? code : "");
+	var path_ = (typeof path != "undefined" ? path : "");
+	var message_ = (typeof message != "undefined" ? message : "");
+
+	return {code: code_, codes: [code_], message: message_, messages: [message_], path: path_, paths: [path_]};
+	}
+
+self.errorFromObject = function(eobj)
+	{
+	if(typeof eobj == "string")
+		eobj = JSON.parse(eobj);
+
+	return self.make(self.makeErrorObject(eobj.code, eobj.message, eobj.path));
+	}
+
+self.typeToErrorObject = function(err)
+	{
+	if(!err)
+		err = self.makeErrorObject("###", "###", "###");
+	else if(typeof err == "string")
+		err = self.makeErrorObject("", err, "");
+	else if(!err.codes && !err.messages && !err.paths)
+		err = self.make(err);
+
+	return err;
+	}
+
+self.errorToString = function(err, printPath, printCode)
+	{ // Format an error object to a displayable string
+	var errstr = "", code = "", path = "", message = "";
+
+	if(typeof err == "string")
+		errstr += err;
+	else if(err.message && !err.messages)
+		errstr += err.message;
+	else if(err.pop)	// err instanceof isArray
+		{
+		while(err.length > 0)
+			errstr += (errstr != "" ? MESSAGE_SEPARATOR : "") + self.errorToString(err.shift());
+		}
+	else if(err.messages)
+		{
+		for(var i = 0; i < err.messages.length; i++)							// Make simple error and code strings of the error arrays
+			{
+			code = (printCode && err.codes[i] ? err.codes[i] : null);
+			path = (printPath && err.paths[i] ? err.paths[i] : null);
+			message = self.ucfirst(err.messages[i]);
+			message = self.endWithDot(message);
+
+			errstr += (errstr != "" ? " " : "");
+			errstr += (path ? path : "");
+			errstr += (code ? (path ? " - " : "") + code : "");
+			errstr += (code || path ? " " : "") + message;
+			}
+		}
+
+	return errstr;
+	}
+
+self.replace = function(str, strs, replaceWith)
+	{ // Replace all occurances of named tilde prefixed, alphanumerical parameters (e.g. :name, :Name1) supplied in the strs object in the str.
+	var rw = (replaceWith ? replaceWith : "");
+
+	for(var i in strs)
+		{
+		if(typeof strs[i] == "undefined")							// Don't replace parameters with undefined values
+			continue;
+
+		str = str.replace(i, strs[i]);
+		}
+																	// Remove unused parameters to tidy up the string
+	str = str.replace(/\s~[a-zA-Z0-9]*\s/g, " " + rw + " ");		// ' ~x ' -> ' y '
+	str = str.replace(/~[a-zA-Z0-9]*\s/g, " " + rw + " ");			// '~x '  -> ' y '
+	str = str.replace(/\s~[a-zA-Z0-9]*/g, rw);						// ' ~x'  -> 'y'
+	str = str.replace(/~[a-zA-Z0-9]+/g, rw);						// '~x'   -> 'y'
+
+	return str;
+	}
+
+self.ucfirst = function(str)
+	{
+	str = str.trim();
+	return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+self.endWithDot = function(str)
+	{
+	str = str.trim();
+	if(str.charAt(str.length - 1) != ".")
+		str += ".";
+
+	return str;
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyError;
+
+"use strict";
+
+/**
+ * Service, 24.1.2016 Spaceify Oy
+ *
+ * A single service object. Used for both provided and required services. Only for Spaceify's internal use.
+ *
+ * @class Service
+ */
+
+function Service(service_name, isServer, connection)
+{
+// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
+var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+
+var classes =
+	{
+	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
+	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
+	};
+var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+var self = this;
+
+var config = new classes.SpaceifyConfig();
+var utility = new classes.SpaceifyUtility();
+
+var serverUpListener = null;
+var serverDownListener = null;
+var connectionListeners = [];
+var disconnectionListeners = [];
+
+	// CONSTANTS -- -- -- -- -- -- -- -- -- -- //
+self.REQUIRED = 0;
+self.PROVIDED = 1;
+
+	// PRIVATE METHODS -- -- -- -- -- -- -- -- -- -- //
+var listenConnection = function(id)
+	{
+	for(var i = 0; i < connectionListeners.length; i++)
+		connectionListeners[i](id, service_name, self.getIsSecure());
+	}
+
+var listenDisconnection = function(id)
+	{
+	for(var i = 0; i < disconnectionListeners.length; i++)
+		disconnectionListeners[i](id, service_name, self.getIsSecure());
+	}
+
+var listenServerUp = function(id)
+	{
+	if(serverUpListener)
+		serverUpListener(id, service_name, self.getIsSecure());
+	}
+
+var listenServerDown = function(id)
+	{
+	if(serverDownListener)
+		listenServerDown(id, service_name, self.getIsSecure());
+	}
+
+	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
+self.setConnectionListener = function(listener)
+	{
+	if(typeof listener == "function")	
+		connectionListeners.push(listener);
+	}
+
+self.setDisconnectionListener = function(listener)
+	{
+	if(typeof listener == "function")
+		disconnectionListeners.push(listener);
+	}
+
+self.setServerUpListener = function(listener)
+	{
+	serverUpListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.setServerDownListener = function(listener)
+	{
+	serverDownListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.getPort = function()
+	{
+	return connection.getPort();
+	}
+
+self.getIsOpen = function()
+	{
+	return connection.getIsOpen();
+	}
+
+self.getServiceName = function()
+	{
+	return service_name;
+	}
+
+self.getType = function()
+	{
+	return isServer ? self.PROVIDED : self.REQUIRED;
+	}
+
+self.getId = function()
+	{
+	return connection.getId();
+	}
+
+self.getServer = function()
+	{
+	return (isServer ? connection : null);
+	}
+
+self.getConnection = function()
+	{
+	return (!isServer ? connection : null);
+	}
+
+self.getIsSecure = function()
+	{
+	return connection.getIsSecure();
+	}
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	connection.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	connection.exposeRpcMethodSync(name, object, method);
+	}
+
+self.callRpc = function()
+	{
+	connection.callRpc.apply(this, arguments);
+	}
+
+	// -- -- -- -- -- -- -- -- -- -- //
+connection.setConnectionListener(listenConnection);							// Bubble events from connections and servers to this class
+connection.setDisconnectionListener(listenDisconnection);
+if(isServer)
+	{
+	connection.setServerUpListener(listenServerUp);
+	connection.setServerDownListener(listenServerDown);
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = Service;
+
+/**
+ * Unique application, 17.10.2016 Spaceify Oy
+ * Dependency free
+ *
+ * @class SpaceifyUnique
+ */
+
+function SpaceifyUnique()
+{
+var self = this;
+
+self.makeUniqueDirectory = function(unique_name, noEndSlash)
+	{ // Make a file system safe directory name: lowercase, allowed characters, can't start or end with /.
+	unique_name = unique_name.toLowerCase();
+	unique_name = unique_name.replace(/[^a-z0-9\/_]/g, "/");
+	unique_name = unique_name.replace(/^\/+/, "");
+	unique_name += (unique_name.search(/\/$/) != -1 ? "" : "/");
+
+	if(noEndSlash)
+		unique_name = unique_name.replace(/\/$/, "");
+
+	return unique_name;
+	}
+
+self.makeSystemctlServiceName = function(unique_name)
+	{
+	return unique_name.replace(/_\//g, "") + ".service";
+	}
+
+}
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyUnique;
 
 window.spConfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","APP_TYPE_PATHS":{"spacelet":"/var/lib/spaceify/data/spacelets/","sandboxed":"/var/lib/spaceify/data/sandboxed/","sandboxed_debian":"/var/lib/spaceify/data/sandboxed_debian/","native_debian":"/var/lib/spaceify/data/native_debian/"},"INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","API_PATH":"/api/","API_WWW_PATH":"/api/www/","API_NODE_MODULES_DIRECTORY":"/api/node_modules","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_DIRECTORY":"volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","WWW_URL":"edge.spaceify.net/","WWW_DIRECTORY":"www/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_HOSTNAME_REGX":"edge\\.spaceify\\.net","EDGE_SUBNET":"10.0.0.0/16","EDGE_HTTP_URL":"http://edge.spaceify.net/","EDGE_HTTPS_URL":"https://edge.spaceify.net/","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","RESOURCE_HOSTNAME":"resource.spaceify.net","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":80,"EDGE_PORT_HTTPS":443,"CORE_PORT":2947,"CORE_PORT_SECURE":4947,"APPMAN_PORT":2948,"APPMAN_PORT_SECURE":4948,"APPMAN_MESSAGE_PORT":2950,"APPMAN_MESSAGE_PORT_SECURE":4950,"OPERATION_URL":"https://edge.spaceify.net/templates/operation.html","EDGE_INDEX_URL":"https://edge.spaceify.net/index.html","ADMIN_LOGIN_URL":"https://edge.spaceify.net/admin/login.html","ADMIN_LOGIN_PATH":{"file":"/var/lib/spaceify/code/www/admin/login.html","content_type":"html"},"APPSTORE_URL":"https://edge.spaceify.net/appstore/","APPSTORE_INDEX_URL":"https://edge.spaceify.net/appstore/index.html","APPSTORE_INDEX_PATH":{"file":"/var/lib/spaceify/code/www/appstore/index.html","content_type":"html"},"REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","ERROR_PATHS":{"404":{"file":"/var/lib/spaceify/code/www/errors/404.html","content_type":"html"},"500":{"file":"/var/lib/spaceify/code/www/errors/500.html","content_type":"html"}},"GITHUB_HOSTNAME":"github.com","DNS_PORT":53,"DNS_IP_V6":"::","EXTERNAL_DNS_IP":"/var/lib/spaceify/data/dns/ip","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","INJECT_TYPES":["javascript","css","file"],"UTF8":"utf","ASCII":"ascii","BASE64":"base64","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","ANY":"any","ALL":"all","APP_TYPE_NUMBER":{"spacelet":0,"sandboxed":1,"sandboxed_debian":2,"native_debian":3,"any":4},"OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","SERVICE_TYPES":["standard","open_local","open","alien","http"],"EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","SPACEIFYCLIENTJS":"spaceifyclient.js","INDEX_HTML":"index.html","INDEX_TPL":"index.tpl","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","IMAGE_TYPES":["image/jpg","image/gif","image/png"],"FIRST_SERVICE_PORT":2777,"FIRST_SERVICE_PORT_SECURE":3777,"SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":10000,"APPLICATION_CATEGORIES":["audio","astronomy","business","chemistry","children","computer_programming","communication","computer-aided_manufacturing","data_management","economy","editing","educational","entertainment","fysics","lifestyle","games","genealogy","government","graphics","health","home","industrial","knowledge_representation","language","legal","library_and_information_science","magazines","mathematics","meteorology","multimedia","music","navigation","news","personal_information_managers","productivity","religious","science","simulation","social","sport","theatre","transport","video","weather","word_processors","workflow"],"SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged"};
 

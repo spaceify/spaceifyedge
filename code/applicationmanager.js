@@ -378,7 +378,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		// ToDo: rollback installations?
 		sendEnd.sync();
 		}
-
+console.log("---------------------------------", installationStatus);
 	return installationStatus;
 });
 

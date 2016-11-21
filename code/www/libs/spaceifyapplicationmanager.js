@@ -195,7 +195,7 @@ self.connected = function()
 	for(var i in params)
 		post[i] = params[i];
 
-	network.POST_JSON(config.OPERATION_URL, post, function(err, data)
+	network.doOperation(post, function(err, data)
 		{
 		endErr = err;
 		endData = data;
