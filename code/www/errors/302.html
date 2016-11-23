@@ -18,10 +18,17 @@
 			}
 		</style>
 
-		<title>Spaceify - 404</title>
+		<title>Spaceify - Redirecting...</title>
+
+		<script>
+			window.addEventListener("spaceifyReady", function()
+				{
+				window.location.assign("~url");
+				});
+		</script>
 	</head>
 
 	<body class="edgeBody" id="edgeBody">
-		<div><b>Response code 404 - Not Found.</b></div>
+		<div><b>Redirecting...</b></div>
 	</body>
 </html>

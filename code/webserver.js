@@ -10,7 +10,6 @@ var fs = require("fs");
 var url = require("url");
 var http = require("http");
 var https = require("https");
-var crypto = require("crypto");
 var qs = require("querystring");
 var Logger = require("./logger");
 var fibrous = require("./fibrous");
@@ -35,12 +34,12 @@ var options = {};
 var isOpen = false;
 var webServer = null;
 
+var sessionManager = null;
+var sessionTokenName = "";
+
 var requestListener = null;
 var serverUpListener = null;
 var serverDownListener = null;
-
-var sessions = {};
-var SESSIONTOKEN = "";
 
 var isSpaceify = (typeof process.env.IS_REAL_SPACEIFY == "undefined" ? true : false);
 
@@ -51,9 +50,6 @@ var currentRequest = null;
 var processingRequest = false;
 var events = require('events');
 var eventEmitter = new events.EventEmitter();
-
-var CARBAGE_INTERVAL = 600;										// Make it Less than session interval!!! Times are in seconds.
-var SESSION_INTERVAL = 3600 * 24;
 
 var accessControlAllowHeaders = [];
 
@@ -89,16 +85,6 @@ self.listen = function(opts, callback)
 
 	//
 	logger.setOptions({output: options.debug});
-
-	// -- --
-	options.carbageCollectInterval = (opts.carbageCollectInterval || CARBAGE_INTERVAL);
-	options.carbageIntervalId = setInterval(carbageCollection, options.carbageCollectInterval * 1000);
-
-	options.sessionDeleteInterval = (opts.sessionDeleteInterval || SESSION_INTERVAL) * 1000;
-
-	// -- --
-	accessControlAllowHeaders = ["x-edge-session", "x-edge-session-secure"];
-	SESSIONTOKEN = (!options.isSecure ? "x-edge-session" : "x-edge-session-secure");
 
 	// -- --
 	logger.info(utility.replace(language.WEBSERVER_CONNECTING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
@@ -152,7 +138,8 @@ self.listen = function(opts, callback)
 								response: response,
 								GET: urlObj.query,
 								POST: (request.method == "POST" ? parsePost(request, body) : {}),
-								cookies: parseCookies(request)
+								cookies: parseCookies(request),
+								protocol: (urlObj.protocol ? urlObj.protocol : "http:")
 								});
 				eventEmitter.emit("processRequest");
 				});
@@ -211,6 +198,13 @@ self.setServerDownListener = function(listener)
 self.setRequestListener = function(listener)
 	{
 	requestListener = (typeof listener == "function" ? listener : null);
+	}
+
+self.setSessionManager = function(manager, tokenName)
+	{
+	sessionTokenName = tokenName;
+	accessControlAllowHeaders.push(tokenName);
+	sessionManager = (typeof manager == "function" ? manager : null);
 	}
 
 // -- -- -- -- -- -- -- -- -- -- //
@@ -281,7 +275,7 @@ var loadContent = fibrous( function()
 					location += (currentRequest.urlObj.search ? "?" + currentRequest.urlObj.search : "");
 					location += (currentRequest.urlObj.hash ? "#" + currentRequest.urlObj.hash : "");
 
-					status = redirect(302, location, []);
+					status = redirect(302, location);
 					}
 				}
 
@@ -290,6 +284,7 @@ var loadContent = fibrous( function()
 
 			if(status === false)															// www + index file
 				status = load(wwwPath, pathname + "/" + options.indexFile);
+				//status = redirect(404, "");
 
 			if(status === false)															// Not Found
 				status = write(fs.sync.readFile(config.ERROR_PATHS["404"].file), config.ERROR_PATHS["404"].content_type, "404", "");
@@ -301,6 +296,7 @@ var loadContent = fibrous( function()
 	catch(err)																				// Internal Server Error
 		{
 		write(fs.sync.readFile(config.ERROR_PATHS["500"].file), config.ERROR_PATHS["500"].content_type, "500", "");
+		//redirect(500, "");
 		}
 	finally
 		{
@@ -317,7 +313,7 @@ var load = function(wwwPath, pathname)
 	var contentType;
 	var status = false;
 	var isLogInPage = false;
-	var isSecurePage = false; 
+	var isSecurePage = false;
 	var isAngularJS = false;
 	var isOperationPage = false;
 
@@ -373,38 +369,37 @@ var renderHTML = fibrous( function(content, contentType)
 
 var renderOperationPage = fibrous( function()
 	{
+	var session;
 	var isSecure;
 	var userData;
 	var operation;
 	var data = null;
-	var sessiontoken;
 	var error = null;
 	var operationData;
 
-	if(!currentRequest.POST["operation"])
-		error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_INVALID_DATA_POST);
-	else
+	if(sessionManager)
 		{
-		// SESSION
-		sessiontoken = manageSessions();
-		currentRequest.headers.push([SESSIONTOKEN, sessiontoken]);
+		if(!currentRequest.POST["operation"])
+			error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_INVALID_DATA_POST);
+		else
+			{
+			session = sessionManager(currentRequest);
+			currentRequest.headers.push([sessionTokenName, session.token]);
 
-		// OPERATION
-		operation = utility.parseJSON(currentRequest.POST["operation"].body, true);
+			operation = utility.parseJSON(currentRequest.POST["operation"].body, true);
 
-		userData = sessions[sessiontoken].userData;
+			//isSecure = options.isSecure;
+			// ToDo: Rethink this logic, it most propably is not a secure way to detect remote operation
+			isSecure = ((currentRequest.protocol == "https:" && !options.isSecure) || options.isSecure);
 
-		isSecure = options.isSecure;
-		/* >>>>>>>>>> REMOTE
-		// ToDo: Rethink these logics, they most propably are not a secure way to detect remote operation
-		isSecure = ((currentRequest.urlObj.protocol == "https:" && !options.isSecure) || options.isSecure);
-		<<<<<<<<<< REMOTE */
+			operationData = webOperation.sync.getData(operation, session.userData, isSecure);
 
-		operationData = webOperation.sync.getData(operation, userData, isSecure);
-
-		data = operationData.data;
-		error = operationData.error;
+			data = operationData.data;
+			error = operationData.error;
+			}
 		}
+	else
+		error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_NO_SESSION_MANAGER);
 
 	return write(JSON.stringify({err: error, data: data}), "json", null, "");
 	});
@@ -413,80 +408,59 @@ var renderAngularJS = function(content, contentType, pathname, isSecurePage, isL
 	{
 	var head;
 	var script;
-	var protocol;
-	var sessiontoken;
+	var session;
 	var operationData;
 	var locale = config.DEFAULT_LOCALE;
 
-	// SESSIONS -- -- -- -- -- -- -- -- -- -- //
-	sessiontoken = manageSessions();
-	currentRequest.headers.push([SESSIONTOKEN, sessiontoken]);
-
-	// GET THE LOCALE / LANGUAGE FOR THE CURRENT SESSION, REMEMBER LOCALE
-	if(currentRequest.GET && currentRequest.GET.locale)
-		locale = currentRequest.GET.locale;
-	else if(currentRequest.POST.locale)
-		locale = currentRequest.POST.locale;
-	else if(currentRequest.cookies.locale)
-		locale = currentRequest.cookies.locale.value;
-	else if(options.locale)
-		locale = options.locale;
-
-	currentRequest.cookies.locale = {value: locale, cookie: "locale=" + locale};
-
-	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
-	if(!options.isSecure && isSecurePage)												// Redirect secure pages to secure server
-		return redirect(302, utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port));
-	else if(options.isSecure && isSecurePage)
+	if(sessionManager)
 		{
-		operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, sessions[sessiontoken].userData, options.isSecure);
+		session = sessionManager(currentRequest);
+		currentRequest.headers.push([sessionTokenName, session.token]);
 
-		if(operationData.error)															// Internal Server Error
+		// GET THE LOCALE / LANGUAGE FOR THE CURRENT SESSION, REMEMBER LOCALE
+		if(currentRequest.GET && currentRequest.GET.locale)
+			locale = currentRequest.GET.locale;
+		else if(currentRequest.POST.locale)
+			locale = currentRequest.POST.locale;
+		else if(currentRequest.cookies.locale)
+			locale = currentRequest.cookies.locale.value;
+		else if(options.locale)
+			locale = options.locale;
+
+		currentRequest.cookies.locale = {value: locale, cookie: "locale=" + locale};
+
+		// ToDo: Rethink this logic, it most propably is not a secure or even a functional way to mix local and remote operation
+			// Accept local and remote requests - Remote HTTPS requests arriving over secure pipe to unsecure web server must not be redirected
+		//if(!options.isSecure && isSecurePage)
+		if(!options.isSecure && currentRequest.protocol == "http:" && isSecurePage)
 			{
-			content = fs.sync.readFile(config.ERROR_PATHS["500"].file);
-			contentType = config.ERROR_PATHS["500"].content_type;
+			content = fs.sync.readFile(config.ERROR_PATHS["302"].file, "utf8");
+			content = content.replace("~url", utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port));
+
+			return write(Buffer.from(content, "utf8"), config.ERROR_PATHS["302"].content_type, null, "");
+			//return redirect(302, utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port));
 			}
-		else if(!operationData.isLoggedIn && !isLogInPage)								// Show log in if not logged in
+
+			// Secure server or remote https request - Remote HTTPS requests arriving over secure pipe to HTTP web server must not be redirected
+		//else if(options.isSecure && isSecurePage)
+		if((options.isSecure || currentRequest.protocol == "https:") && isSecurePage)
 			{
-			content = fs.sync.readFile(config.ADMIN_LOGIN_PATH.file);
-			contentType = config.ADMIN_LOGIN_PATH.content_type;
-			}
-		else if(operationData.isLoggedIn && isLogInPage)								// Show appstore index if already logged in
-			{
-			content = fs.sync.readFile(config.APPSTORE_INDEX_PATH.file);
-			contentType = config.APPSTORE_INDEX_PATH.content_type;
+			operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, session.userData, options.isSecure);
+
+			if(operationData.error)															// Internal Server Error
+				return write(fs.sync.readFile(config.ERROR_PATHS["500"].file), config.ERROR_PATHS["500"].content_type, null, "");
+				//return redirect(500, "");
+			else if(!operationData.isLoggedIn && !isLogInPage)								// Show log in if not logged in
+				return write(fs.sync.readFile(config.ADMIN_LOGIN_PATH.file), config.ADMIN_LOGIN_PATH.content_type, null, "");
+				//return redirect(302, config.ADMIN_LOGIN_URL);
+			else if(operationData.isLoggedIn && isLogInPage)								// Show appstore index if already logged in
+				return write(fs.sync.readFile(config.APPSTORE_INDEX_PATH.file), config.APPSTORE_INDEX_PATH.content_type, null, "");
+				//return redirect(302, config.APPSTORE_INDEX_URL);
 			}
 		}
+	else
+		return write(fs.sync.readFile(config.ERROR_PATHS["501"].file), config.ERROR_PATHS["501"].content_type, null, "");
 
-	/* >>>>>>>>>> REMOTE
-	// SECURITY CHECK - REDIRECTIONS -- -- -- -- -- -- -- -- -- -- //
-	// Accept local and remote requests
-		// ToDo: Rethink these logics, they most propably are not a secure or even a functional way to mix local and remote operation
-
-	protocol = (currentRequest.urlObj.protocol ? currentRequest.urlObj.protocol : "http:");
-
-		// Remote HTTPS requests arriving over secure pipe to unsecure web server must not be redirected
-	//if(!options.isSecure && isSecurePage)
-	if(!options.isSecure && protocol == "http:" && isSecurePage)
-		return redirect(302, utility.parseURLFromURLObject(currentRequest.urlObj, config.EDGE_HOSTNAME, "https", currentRequest.urlObj.port));
-
-		// Secure server or remote https request
-		// Remote HTTPS requests arriving over secure pipe to HTTP web server must not be redirected
-	//else if(options.isSecure && isSecurePage)
-	if((options.isSecure || protocol == "https:") && isSecurePage)
-		{
-		operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, sessions[sessiontoken].userData, true);
-
-		if(operationData.error)															// Internal Server Error
-			return redirect(500, "");
-		else if(!operationData.isLoggedIn && !isLogInPage)								// Redirect to log in if not logged in
-			return redirect(302, config.ADMIN_LOGIN_URL);
-		else if(operationData.isLoggedIn && isLogInPage)								// Redirect to appstore index if already logged in
-			return redirect(302, config.APPSTORE_INDEX_URL);
-		}
-	 <<<<<<<<<< REMOTE */
-
-	// RETURN PAGE -- -- -- -- -- -- -- -- -- -- //
 	return write(content, contentType, null, "");
 	}
 
@@ -515,8 +489,8 @@ var write = function(content, contentType, responseCode, location)
 	currentRequest.headers.push(["Date", now.toUTCString()]);
 	currentRequest.headers.push(["Access-Control-Allow-Origin", getOrigin()]);
 	currentRequest.headers.push(["Access-Control-Allow-Credentials", "true"]);
-	currentRequest.headers.push(["Access-Control-Expose-Headers", SESSIONTOKEN]);
-	//currentRequest.headers.push(["X-Frame-Options", "SAMEORIGIN"]);
+	if(sessionManager)
+		currentRequest.headers.push(["Access-Control-Expose-Headers", sessionTokenName]);
 
 	if(responseCode == 301 || responseCode == 302)
 		currentRequest.headers.push(["Location", location]);
@@ -542,7 +516,8 @@ var writeOptions = function()
 	currentRequest.headers.push(["Date", now.toUTCString()]);
 	currentRequest.headers.push(["Access-Control-Allow-Origin", getOrigin()]);
 	currentRequest.headers.push(["Access-Control-Allow-Credentials", "true"]);
-	currentRequest.headers.push(["Access-Control-Expose-Headers", SESSIONTOKEN]);
+	if(sessionManager)
+		currentRequest.headers.push(["Access-Control-Expose-Headers", sessionTokenName]);
 
 	if("access-control-request-headers" in currentRequest.request.headers)
 		{
@@ -574,7 +549,6 @@ var getOrigin = function()
 	return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin : "*");
 	}
 
-	
 var checkURL = function(wwwPath, pathname)
 	{
 	// The pathname must be checked so that loading is possible only from the supplied wwwPath
@@ -589,53 +563,6 @@ var checkURL = function(wwwPath, pathname)
 	wwwPath = wwwPath.replace(/\/{2,}/g, "/");
 
 	return wwwPath;
-	}
-
-	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER -- -- -- -- -- -- -- -- -- -- //
-var manageSessions = function()
-	{
-console.log("");
-console.log("");
-console.log("");
-console.log("-", options.isSecure);
-console.log("-", currentRequest.request.url);
-console.log("-", currentRequest.request.method);
-	var sessiontoken = currentRequest.request.headers[SESSIONTOKEN] || null;
-console.log("-", sessiontoken);
-	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
-
-	if(!session)														// Create a session if it doesn't exist yet
-		sessiontoken = createSession();
-	else																// Update an existing session
-		sessions[sessiontoken].timestamp = Date.now();
-console.log("-", sessiontoken);
-
-	return sessiontoken;
-	}
-
-var createSession = function()
-	{
-	var shasum;
-	var sessiontoken;
-
-	while(true)
-		{
-		shasum = crypto.createHash("sha512");
-		shasum.update( utility.bytesToHexString(crypto.randomBytes(16)) );
-		sessiontoken = shasum.digest("hex").toString();
-
-		if (!sessions.hasOwnProperty(sessiontoken))
-			break;
-		}
-
-	sessions[sessiontoken] = {userData: {}, timestamp: Date.now()}
-
-	return sessiontoken;
-	}
-
-self.destroySessions = function()
-	{
-	sessions = {};
 	}
 
 var parseCookies = function(request)
@@ -675,18 +602,6 @@ var parsePost = function(request, body)
 		{}
 
 	return post;
-	}
-
-	// CARBAGE COLLECTION -- -- -- -- -- -- -- -- -- -- //
-var carbageCollection = function()
-	{
-	var sts = Object.keys(sessions);									// Remove expired sessions
-
-	for(var i = 0; i < sts.length; i++)
-		{
-		if(Date.now() - sessions[sts[i]].timestamp >= options.sessionDeleteInterval)
-			delete sessions[sts[i]];
-		}
 	}
 
 /*

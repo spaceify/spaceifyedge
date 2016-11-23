@@ -7,6 +7,7 @@
  */
 
 var url = require("url");
+var crypto = require("crypto");
 var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
@@ -38,6 +39,13 @@ var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
 var apps = [];																		// Spacelets, sandboxed, sandboxed debian and native debian applications
 
+var cleanUpIntervalId;																// Make clean up interval less than session interval
+var CLEAN_UP_INTERVAL = 600 * 1000;
+var SESSION_INTERVAL = 3600 * 24 * 1000;
+
+var sessions = {};
+var sessionTokenName = "x-edge-session";
+
 self.start = fibrous( function()
 	{
 	process.title = "spaceifyhttp";													// Shown in ps aux
@@ -51,6 +59,9 @@ self.start = fibrous( function()
 
 		httpServer.setRequestListener(requestListener);
 		httpsServer.setRequestListener(requestListener);
+
+		httpServer.setSessionManager(manageSessions, sessionTokenName);
+		httpsServer.setSessionManager(manageSessions, sessionTokenName);
 
 		// Connect
 		createHttpServer.sync(false);
@@ -82,6 +93,9 @@ self.start = fibrous( function()
 		/*var uid = parseInt(process.env.SUDO_UID);									// ToDo: No super user rights
 		if(uid)
 			process.setuid(uid);*/
+
+		// -- -- -- -- -- -- -- -- -- -- //
+		cleanUpIntervalId = setInterval(cleanUp, CLEAN_UP_INTERVAL);
 		}
 	catch(err)
 		{
@@ -191,11 +205,8 @@ var coreDisconnectionListener = function(id)
 	if(coreDisconnectionTimerId != null)
 		return;
 
-	if(httpServer)																	// Did core's server go down or did core shut down?
-		httpServer.destroySessions();												// Either way, the log in sessions are revoked.
-	if(httpsServer)
-		httpsServer.destroySessions();
-
+	sessions = {};																	// Did core's server go down or did core shut down?
+																					// Either way, the log in sessions are revoked.
 	coreDisconnectionTimerId = setTimeout(
 		function()
 			{
@@ -361,6 +372,57 @@ var getAppIndex = function(unique_name)
 	return -1;
 	}
 
+	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
+var manageSessions = function(currentRequest)
+	{
+console.log("");
+console.log("");
+console.log("");
+console.log("-", currentRequest.request.url);
+console.log("-", currentRequest.request.method);
+	var sessiontoken = currentRequest.request.headers[sessionTokenName] || null;
+console.log("-", sessiontoken);
+	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
+
+	if(!session)														// Create a session if it doesn't exist yet
+		sessiontoken = createSession();
+	else																// Update an existing session
+		sessions[sessiontoken].timestamp = Date.now();
+console.log("-", sessiontoken);
+
+	return sessions[sessiontoken];
+	}
+
+var createSession = function()
+	{
+	var shasum;
+	var sessiontoken;
+
+	while(true)
+		{
+		shasum = crypto.createHash("sha512");
+		shasum.update( utility.bytesToHexString(crypto.randomBytes(16)) );
+		sessiontoken = shasum.digest("hex").toString();
+
+		if (!sessions.hasOwnProperty(sessiontoken))
+			break;
+		}
+
+	sessions[sessiontoken] = {userData: {}, timestamp: Date.now(), token: sessiontoken}
+
+	return sessiontoken;
+	}
+
+var cleanUp = function()
+	{
+	var sts = Object.keys(sessions);									// Remove expired sessions
+
+	for(var i = 0; i < sts.length; i++)
+		{
+		if(Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
+			delete sessions[sts[i]];
+		}
+	}
 }
 
 fibrous.run( function()

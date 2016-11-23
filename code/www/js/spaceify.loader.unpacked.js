@@ -3447,7 +3447,7 @@ self.loadData = function(element, callback)
 
 self.postData = function(url, post, responseType, callback)
 	{
-	var sessionTokenName = getSessionTokenName(url);
+	var sessionTokenName = "X-Edge-Session";
 
 	var xhr = new SpXMLHttpRequest();
 
@@ -3496,7 +3496,7 @@ self.postData = function(url, post, responseType, callback)
 
 self.loadPage = function(url, spHost_, speHost_)
 	{
-	var sessionTokenName = getSessionTokenName(url);
+	var sessionTokenName = "X-Edge-Session";
 
 	var xhr = new SpXMLHttpRequest();
 
@@ -3562,21 +3562,6 @@ var recurseElements = function()
 			recurseElements();
 			});
 		}
-	}
-
-var getSessionTokenName = function(url)
-	{
-	var sessionTokenName = "X-Edge-Session";
-
-	if(url.indexOf("//") != -1)									// CORS preflight - OPTIONS Access-Control-Request-Headers <-> Access-Control-Allow-Headers
-		{														// Notice: recirections like 302 do not work with this preflight
-		var spltUrl = url.split("://");
-
-		if(spltUrl[0] == "https")
-			sessionTokenName = "X-Edge-Session-Secure";
-		}
-
-	return sessionTokenName;
 	}
 
 self.parseQuery = function(url)

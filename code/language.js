@@ -119,6 +119,7 @@ var language =
 	"E_LISTEN_FATAL_ERROR": new SpaceifyError({"code": 10000, "message": "Fatal error in WebServer ~hostname:~port - ~err"}),
 
 	"E_RENDER_OPERATION_PAGE_INVALID_DATA_POST": "{\"code\": 10001, \"message\": \"The submitted data is invalid.\", \"path\": \"WebServer::renderOperationPage()\"}",
+	"E_RENDER_OPERATION_PAGE_NO_SESSION_MANAGER": "{\"code\": 10002, \"message\": \"No session manager.\", \"path\": \"WebServer::renderOperationPage()\"}",
 
 	// SPM
 	"E_SPM_UNKNOWN_COMMAND": new SpaceifyError({"code": 12001, "message": "Unknown command ~command."}),

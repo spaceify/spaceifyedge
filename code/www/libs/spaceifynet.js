@@ -182,7 +182,7 @@ self.renderTile = function(manifest, callback)
 			//	src = sp_host + sp_path;
 			// <<<<<<<<<< REMOTE
 
-			id = "apptile_" + manifest.unique_name.replace("/", "_"); 
+			id = "apptile_" + manifest.unique_name.replace("/", "_");
 			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
 				function()
 					{
