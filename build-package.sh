@@ -63,7 +63,7 @@ nodecmd="node"
 if type nodejs >/dev/null 2>&1; then
 	nodecmd="nodejs"
 fi
-$nodecmd "$dst/data/minify/minify.js" $dst
+$nodecmd "$dst/data/minify/minify.js" "all" "$dst/code/www/" "$dst/code/www/"
 uglifyMinifyError=$?
 
 # ----------
