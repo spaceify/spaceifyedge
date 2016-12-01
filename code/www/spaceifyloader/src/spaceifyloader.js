@@ -18,6 +18,8 @@ var connectionListener = null;
 var elements = null;
 var elementIndex = 0;
 
+var sessionTokenName = "X-Edge-Session";
+
 self.loadData = function(element, callback)
 	{
 	var sp_type, sp_host, type, url, xhr = new SpXMLHttpRequest();
@@ -66,16 +68,14 @@ self.loadData = function(element, callback)
 
 self.postData = function(url, post, responseType, callback)
 	{
-	var sessionTokenName = "X-Edge-Session";
-
 	var xhr = new SpXMLHttpRequest();
 
 	xhr.onreadystatechange = function()
 		{
 		if (xhr.readyState == 4)
 			{
-			setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
-			setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+			LoaderUtil.setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
+			LoaderUtil.setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
 
 			if (xhr.status != 200)
 				callback(xhr.status, null);
@@ -107,7 +107,7 @@ self.postData = function(url, post, responseType, callback)
 
 	xhr.withCredentials = true;
 	xhr.open("POST", url, true);
-	xhr.setRequestHeader(sessionTokenName, getSession(sessionTokenName));
+	xhr.setRequestHeader(sessionTokenName, LoaderUtil.getSession(sessionTokenName));
 	xhr.responseType = (responseType ? responseType : "text");
 	xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
 	xhr.send(body);
@@ -115,8 +115,6 @@ self.postData = function(url, post, responseType, callback)
 
 self.loadPage = function(url, spHost_, speHost_)
 	{
-	var sessionTokenName = "X-Edge-Session";
-
 	var xhr = new SpXMLHttpRequest();
 
 	xhr.onreadystatechange = function()
@@ -125,13 +123,23 @@ self.loadPage = function(url, spHost_, speHost_)
 
 		if (xhr.readyState == 4)
 			{
-			setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
-			setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+			LoaderUtil.setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
+			LoaderUtil.setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
 
 			var newDoc = document.open("text/html", "replace");
 			newDoc.write(xhr.responseText);
 			newDoc.close();
-
+/*
+var script = newDoc.createElement("script");
+var head = newDoc.getElementsByTagName("head")[0];
+script.type = "text/javascript";
+script.src = window.location.protocol + "//edge.spaceify.net/js/spaceify.loader.js";
+script.onload = function()
+	{
+	alert(window.spaceifyLoader);
+	};
+head.appendChild(script);
+*/
 			newDoc.loadPageSpHost = spHost_;
 			newDoc.loadPageSpeHost = speHost_;
 			}
@@ -140,7 +148,7 @@ self.loadPage = function(url, spHost_, speHost_)
 
 	xhr.withCredentials = true;
 	xhr.open("GET", url, true);
-	xhr.setRequestHeader(sessionTokenName, getSession(sessionTokenName));
+	xhr.setRequestHeader(sessionTokenName, LoaderUtil.getSession(sessionTokenName));
 	xhr.send(null);
 	};
 
@@ -181,6 +189,12 @@ var recurseElements = function()
 			recurseElements();
 			});
 		}
+	else
+		{
+		var evt = document.createEvent("Event");
+		evt.initEvent("spaceifyReady", true, true);
+		window.dispatchEvent(evt);
+		}
 	}
 
 self.parseQuery = function(url)
@@ -214,7 +228,7 @@ self.setSpHosts = function(spHost_, speHost_)
 
 self.connect = function(host, port, callback)
 	{
-	piperClient.connect(host, port, function()
+	LoaderUtil.piperClient.connect(host, port, function()
 		{
 		if (connectionListener)
 			connectionListener();
@@ -264,7 +278,7 @@ function prepareLoader(sp_host, spe_host)
 		{
 		window.isSpaceifyNetwork = false;
 
-		spaceifyLoader.connect(SERVER_ADDRESS.host, SERVER_ADDRESS.port, function()
+		spaceifyLoader.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, function()
 			{
 			});
 		}

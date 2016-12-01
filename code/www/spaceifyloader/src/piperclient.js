@@ -4,7 +4,19 @@ function PiperClient()
 {
 var self = this;
 
+// Includes
+
+var sp = null;
+
+if (typeof exports !== "undefined")
+	{
+	sp = require("../libs/spaceifyconnect.bundle.js")
+	}
+else
+	sp = window.sp;
+
 var pipes = new Object();
+
 var webSocketPipes = new Object();
 
 var pipeReadyListener = null;
@@ -17,6 +29,7 @@ var binaryListener = null;
 
 var cookies = null;
 
+var elapsedTime = 0;
 // this is a hack, we need a separate cookie storage at some point!
 
 self.setCookies = function(c)
@@ -31,14 +44,16 @@ self.getCookies = function()
 
 self.sendTcpBinary = function(connectionId, data)
 	{
-	communicationClient.sendBinaryToClient(connectionId, data);
+elapsedTime = Date.now();
+	communicationClient.sendBinaryOnConnection(connectionId, data);
 	};
 
-self.createTcpPipe = function(host, port, listener, callback)
+self.createTcpTunnel = function(host, port, listener, callback)
 	{
+	
 	var hostnameAndPort = host + port;
-
-	for(var pipeId in pipes)
+	
+	for (var pipeId in pipes)
 		{
 		if(pipes[pipeId].hostnameAndPort == hostnameAndPort)
 			{
@@ -48,18 +63,22 @@ self.createTcpPipe = function(host, port, listener, callback)
 			}
 		}
 
-	communicationClient.createPipe(targetId, function(pipeId)
+	
+	communicationClient.createDirectConnection(targetId, function(pipeId)
 		{
-		console.log("pipe ready for TCP");
-
-		communicationClient.callClientRpc(pipeId, "pipeTcp", [host, port], self, function()
+		console.log("Direct Connection Ready for TCP tunnel");
+console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		communicationClient.callRpcOnConnection(pipeId, "tunnelTcp", [host, port], self, function()
 			{
-			console.log("Tcp Pipe ready to "+ host+":"+port);
+			console.log("Tunnel Pipe ready to "+ host+":"+port);
+			
 			pipes[pipeId] = {listener: listener, hostnameAndPort: hostnameAndPort};
+			
 			callback(pipeId);
 			});
 		});
 	};
+	
 
 self.exposeRpcMethod = function(name, object_, method_)
 	{
@@ -71,7 +90,7 @@ self.callClientRpc = function(id, method, params, selfobj, callback)
 	communicationClient.callClientRpc(id, method, params, selfobj, callback);
 	};
 
-self.createWebSocketPipe = function(options, listener, callback)
+self.createWebSocketTunnel = function(options, listener, callback)
 	{
 	communicationClient.createPipe(targetId, function(pipeId)
 		{
@@ -93,6 +112,7 @@ self.setBinaryListener = function(lis)
 
 self.onBinary = function(data, clientId, connectionId)
 	{
+console.log("22222222222222222222222222222222222222", ((Date.now() - elapsedTime) / 1000));
 	console.log("PiperClient::onBinary() from: "+ clientId);
 
 	if (pipes.hasOwnProperty(connectionId))
@@ -112,10 +132,10 @@ self.onClientConnected = function(client)
 		console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
 		if (client.getClientType() == "piper")
 			{
-			console.log("piper found, trying to build a pipe to it");
-			communicationClient.createPipe(client.getClientId(), function()
+			console.log("SpaceifyPiper found, trying to build a direct connection it");
+			communicationClient.createDirectConnection(client.getClientId(), function()
 				{
-				console.log("pipe ready");
+				console.log("Direct connection ready");
 
 				targetId = client.getClientId();
 
@@ -132,6 +152,26 @@ self.onClientConnected = function(client)
 		}
 	};
 
+self.upgradeToWebRtc = function(callback)
+	{
+	/*
+	communicationClient.setConnectionTypeListener(new function()
+		{
+		var self = this;
+		self.onConnectionTypeUpdated = function(client, newConnectionType)
+			{
+			
+			callback();
+			};
+		});
+	*/	
+	communicationClient.upgradeToWebRtc(targetId, function()
+		{
+		console.log("PiperClient::upgradeToWebRtc() completed");
+		callback();
+		});
+	};
+
 self.sendBinary = function(data)
 	{
 	communicationClient.sendBinaryToClient(targetId, data);
@@ -143,10 +183,48 @@ self.connect = function(host, port, callback)
 
 	communicationClient.setClientListener(self);
 	communicationClient.setBinaryListener(self);
-	communicationClient.connectWithOptions({host: host, port: port, isSsl:true}, "screen", "jounigroupx", function()
+	communicationClient.connectWithOptions({host: host, port: port, isSsl:false}, "piperclient", "jounigroupx", function()
 		{
 		console.log("Hub Connection succeeded");
+		//callback();
 		});
 	};
 
+	
+// -- // -- // -- // -- //
+var totaltime = 0;
+var repetitions = 1000;
+self.testPing = function(callback)
+	{
+	communicationClient.createDirectConnection(targetId, function(pipeId)
+		{
+		ping(0, pipeId, callback);
+		});
+	}
+	
+var ping = function(index, pipeId, callback)
+	{
+	if(++index == repetitions + 1)
+		{
+		callback(totaltime, repetitions);
+		return;
+		}
+
+	var startTime = Date.now();
+	var elapsedTime;
+	
+	communicationClient.callRpcOnConnection(pipeId, "hello", [], self, function(err, data)
+		{
+		totaltime += Date.now() - startTime;
+		console.log("index: " + index + ", " + ((Date.now() - startTime) / 1000));
+
+		ping(index, pipeId, callback);
+		});
+	}
+
 }
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = PiperClient;
+	}

@@ -375,20 +375,13 @@ var getAppIndex = function(unique_name)
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
 var manageSessions = function(currentRequest)
 	{
-console.log("");
-console.log("");
-console.log("");
-console.log("-", currentRequest.request.url);
-console.log("-", currentRequest.request.method);
 	var sessiontoken = currentRequest.request.headers[sessionTokenName] || null;
-console.log("-", sessiontoken);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
 	if(!session)														// Create a session if it doesn't exist yet
 		sessiontoken = createSession();
 	else																// Update an existing session
 		sessions[sessiontoken].timestamp = Date.now();
-console.log("-", sessiontoken);
 
 	return sessions[sessiontoken];
 	}

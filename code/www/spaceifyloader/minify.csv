@@ -1,6 +1,8 @@
-javascript	spaceifyloader/libs/gamelib.bundle.js	-	application/javascript	-
-javascript	spaceifyloader/httpparser.js	-	application/javascript	-
-javascript	spaceifyloader/piperclient.js	-	application/javascript	-
-javascript	spaceifyloader/spxmlhttprequest.js	-	application/javascript	-
-javascript	spaceifyloader/globals.js	-	application/javascript	-
-javascript	spaceifyloader/spaceifyloader.js	-	application/javascript	-
+   # javascript	spaceifyloader/libs/gamelib.bundle.js	-	application/javascript	-
+javascript	spaceifyloader/libs/spaceifyconnect.bundle.js	-	application/javascript	-
+javascript	spaceifyloader/src/httpparser.js	-	application/javascript	-
+javascript	spaceifyloader/src/piperclient.js	-	application/javascript	-
+javascript	spaceifyloader/src/spxmlhttprequest.js	-	application/javascript	-
+   # javascript	spaceifyloader/src/globals.js	-	application/javascript	-
+javascript	spaceifyloader/src/loaderutil.js	-	application/javascript	-
+javascript	spaceifyloader/src/spaceifyloader.js	-	application/javascript	-

@@ -47,7 +47,7 @@ var findContentBegin = function(arr)
 		if ((i+4) < arr.byteLength && arr[i]==13 && arr[i+1]==10 && arr[i+2]==13 && arr[i+3]==10)
 			{
 			contentBegin = i+4;
-			console.log(arr[contentBegin]);
+			//console.log(arr[contentBegin]);
 			break;
 			}
 
@@ -63,7 +63,7 @@ var parseHeader = function(arr)
 	else
 		header = String.fromCharCode.apply(null, arr);
 
-	console.log("Trying to parse header: " + header);
+	//console.log("Trying to parse header: " + header);
 	var rows = header.split("\n");
 
 	var firstRow = rows[0].split(" ");
@@ -89,7 +89,7 @@ var parseHeader = function(arr)
 			}
 		}
 
-	console.dir(headerValues);
+	//console.dir(headerValues);
 	};
 
 self.parse = function(arr)

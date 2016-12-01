@@ -1,0 +1,24 @@
+{
+  "name": "spaceifyloader",
+  "version": "0.0.1",
+  "description": "Spaceifyloader by Spaceify Oy",
+  "main": "",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "sessionstorage": "0.0.1",
+    "urlutils": "latest",
+    "websocket": "^1.0.23",
+    "wrtc": "latest"
+  },
+  "devDependencies": {
+    "jasmine": "latest",
+    "webpack": "^1.13.2",
+    "websocket": "1.0.23"
+  },
+  "scripts": {
+    "test": "node node_modules/jasmine/bin/jasmine.js",
+    "start": ""
+  },
+  "author": "Petri Savolainen",
+  "license": "Proprietary"
+}

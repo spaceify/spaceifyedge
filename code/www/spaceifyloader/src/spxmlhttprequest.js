@@ -5,9 +5,33 @@
  * References the GLOBAL variable piperClient to implement its functionality
  */
 
+
 function SpXMLHttpRequest()
 {
 var self = this;
+
+// Includes 
+var URL = null;
+var HttpParser = null;
+var LoaderUtil = null;
+var piperClient = null;
+
+if (typeof exports !== "undefined")
+	{
+	HttpParser = require("./httpparser");
+	URL = require("urlutils");
+	LoaderUtil = require("./loaderutil");
+	piperClient = LoaderUtil.piperClient;
+	}
+else
+	{
+	HttpParser = window.HttpParser;
+	URL = window.URL;
+	LoaderUtil = new window.LoaderUtil();
+	piperClient = LoaderUtil.piperClient;
+	}
+	
+var logger = console;
 
 var xhr = null;
 
@@ -23,16 +47,10 @@ var fragments = new Array();
 
 var httpParser = new HttpParser();
 
-self.UNSENT = 0;
-self.OPENED = 1;
-self.HEADERS_RECEIVED = 2;
-self.LOADING = 3;
-self.DONE = 4;
-
 self.responseText = "";
 
 var requestHeaders = [];
-
+var elapsedTime = 0;
 self.open = function(method_, url_, async_)
 	{
 	method = method_;
@@ -42,19 +60,20 @@ self.open = function(method_, url_, async_)
 
 self.onBinary = function(data)
 	{
+console.log("33333333333333333333333333333333333333", ((Date.now() - elapsedTime) / 1000));
 	var arr = new Uint8Array(data);
-	//console.log("SpXMLHttpRequest::onBinary()" +" data: "+ab2str(arr));
+	//logger.log("SpXMLHttpRequest::onBinary()" +" data: "+ab2str(arr));
 
 	if (!contentLength)		//This is the header chunk
 		{
 		httpParser.parse(arr);
 
-		console.log("SpXMLHttpRequest::onBinary() HTTP server replied with statusCode "+httpParser.getStatusCode());
+		//logger.log("SpXMLHttpRequest::onBinary() HTTP server replied with statusCode "+httpParser.getStatusCode());
 
 		if (httpParser.getStatusCode() == 301 || httpParser.getStatusCode() == 302)
 			{
 			url = httpParser.getHeaderValue("Location");
-			console.log("SpXMLHttpRequest::onBinary() redirecting to : " + url);
+			//logger.log("SpXMLHttpRequest::onBinary() redirecting to : " + url);
 			self.send();
 			return;
 			}
@@ -76,7 +95,7 @@ self.onBinary = function(data)
 		bodyBytesReceived += arr.byteLength;
 		}
 
-	console.log(bodyBytesReceived + " / " + contentLength + " bytes of " + url + " received" );
+	//logger.log(bodyBytesReceived + " / " + contentLength + " bytes of " + url + " received" );
 
 	/*if (contentLength && contentLength < bodyBytesReceived)
 		{
@@ -85,15 +104,17 @@ self.onBinary = function(data)
 
 	if (contentLength && contentLength == bodyBytesReceived)
 		{
-		if (!overridedMimeType)
-			self.response = new Blob(fragments, {type : contentType} );
-		else
-			self.response = new Blob(fragments, {type : overridedMimeType} );
+		//!!!!!!!!!!!!!!!!!!commented out for testing in node
+		//if (!overridedMimeType)
+		//	self.response = new Blob(fragments, {type : contentType} );
+		//else
+		//	self.response = new Blob(fragments, {type : overridedMimeType} );
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		for (var i = 0; i < fragments.length; i++)
 			{
 			if (fragments[i])
-				self.responseText += ab2str(fragments[i]);
+				self.responseText += LoaderUtil.ab2str(fragments[i]);
 			}
 
 		self.readyState = 4;
@@ -110,7 +131,7 @@ self.overrideMimeType = function(mime)
 self.send = function(body)
 	{
 	//reference global piperClient
-
+elapsedTime = Date.now();
 	var host = "localhost";
 	var hostname = "localhost";
 	var port = "80";
@@ -143,7 +164,7 @@ self.send = function(body)
 
 	var request = method + " " + url + " HTTP/1.1\r\nHost: " + host;
 
-	var cookies = getSession("sessionCookies");
+	var cookies = LoaderUtil.getSession("sessionCookies");
 
 	if (cookies)
 		request = request + "\r\nCookie: " + cookies;
@@ -160,11 +181,11 @@ self.send = function(body)
 
 	request = request + "\r\n\r\n";
 
-	var data = toab(request);
+	var data = LoaderUtil.toab(request);
 
-	console.log("SpXMLHttpRequest::send() making request: " + request);
+	//logger.log("SpXMLHttpRequest::send() making request: " + request);
 
-	piperClient.createTcpPipe(hostname, port, self.onBinary, function(pipeId)
+	piperClient.createTcpTunnel(hostname, port, self.onBinary, function(pipeId)
 		{
 		piperClient.sendTcpBinary(pipeId, data);
 		});
@@ -179,6 +200,15 @@ self.getResponseHeader = function(name)
 	{
 	return httpParser.getHeaderValue(name);
 	}
-
 }
 //window.XMLHttpRequest = SpXMLHttpRequest;
+SpXMLHttpRequest.UNSENT = 0;
+SpXMLHttpRequest.OPENED = 1;
+SpXMLHttpRequest.HEADERS_RECEIVED = 2;
+SpXMLHttpRequest.LOADING = 3;
+SpXMLHttpRequest.DONE = 4;
+
+if (typeof exports !== "undefined")
+	{
+	module.exports = SpXMLHttpRequest;
+	}
