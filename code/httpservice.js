@@ -14,6 +14,7 @@ var language = require("./language");
 var WebServer = require("./webserver");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 var ValidateApplication = require("./validateapplication");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
@@ -26,6 +27,7 @@ var logger = new Logger();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var coreConnection = new WebSocketRpcConnection();
 var securityModel = new SecurityModel();
@@ -44,7 +46,6 @@ var CLEAN_UP_INTERVAL = 600 * 1000;
 var SESSION_INTERVAL = 3600 * 24 * 1000;
 
 var sessions = {};
-var sessionTokenName = "x-edge-session";
 
 self.start = fibrous( function()
 	{
@@ -60,8 +61,8 @@ self.start = fibrous( function()
 		httpServer.setRequestListener(requestListener);
 		httpsServer.setRequestListener(requestListener);
 
-		httpServer.setSessionManager(manageSessions, sessionTokenName);
-		httpsServer.setSessionManager(manageSessions, sessionTokenName);
+		httpServer.setSessionManager(manageSessions, config.SESSION_TOKEN_NAME);
+		httpsServer.setSessionManager(manageSessions, config.SESSION_TOKEN_NAME);
 
 		// Connect
 		createHttpServer.sync(false);
@@ -113,7 +114,7 @@ var createHttpServer = fibrous( function(isSecure)
 						 key: key,
 						 crt: crt,
 						 caCrt: caCrt,
-						 indexFile: config.INDEX_HTML,
+						 indexFile: config.INDEX_FILE,
 						 wwwPath: config.SPACEIFY_WWW_PATH,
 						 locale: config.DEFAULT_LOCALE,
 						 localesPath: config.LOCALES_PATH,
@@ -336,16 +337,9 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 	// UTILITY -- -- -- -- -- -- -- -- -- -- //
 var addApp = function(manifest)
 	{
-	var length;
-	var wwwPath;
+	var length = manifest.unique_name.length;
+	var wwwPath = unique.getWwwPath(manifest.type, manifest.unique_name, config);
 
-	// wwwPath is the path on the file system to spacelets, sandboxed, sandboxed debian or native debian applications www directory.
-	// e.g. /var/lib/spaceify/data/sandboxed/spaceify/bigscreen/volume/application/www/
-	wwwPath = manifest.unique_name + "/" + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
-
-	wwwPath = config.APP_TYPE_PATHS[manifest.type] + wwwPath;
-
-	length = manifest.unique_name.length;
 	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, wwwPath: wwwPath});
 	}
 
@@ -375,14 +369,19 @@ var getAppIndex = function(unique_name)
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
 var manageSessions = function(currentRequest)
 	{
-	var sessiontoken = currentRequest.request.headers[sessionTokenName] || null;
+console.log("");console.log("");console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
+	var sessiontoken = currentRequest.request.headers[config.SESSION_TOKEN_NAME] || null;	// First source is header and backup source is cookie
+
+	if(!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in currentRequest.cookies)
+		sessiontoken = currentRequest.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
+console.log("- BEFORE", sessiontoken);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
 	if(!session)														// Create a session if it doesn't exist yet
 		sessiontoken = createSession();
 	else																// Update an existing session
 		sessions[sessiontoken].timestamp = Date.now();
-
+console.log("- AFTER", Object.keys(sessions));
 	return sessions[sessiontoken];
 	}
 
@@ -409,11 +408,14 @@ var createSession = function()
 var cleanUp = function()
 	{
 	var sts = Object.keys(sessions);									// Remove expired sessions
-
+console.log("------------- cleanUp");
 	for(var i = 0; i < sts.length; i++)
 		{
 		if(Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
+{
+console.log("------------- DELETE", sts[i]);
 			delete sessions[sts[i]];
+}
 		}
 	}
 }

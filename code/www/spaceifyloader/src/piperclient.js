@@ -29,7 +29,6 @@ var binaryListener = null;
 
 var cookies = null;
 
-var elapsedTime = 0;
 // this is a hack, we need a separate cookie storage at some point!
 
 self.setCookies = function(c)
@@ -44,15 +43,14 @@ self.getCookies = function()
 
 self.sendTcpBinary = function(connectionId, data)
 	{
-elapsedTime = Date.now();
 	communicationClient.sendBinaryOnConnection(connectionId, data);
 	};
 
 self.createTcpTunnel = function(host, port, listener, callback)
 	{
-	
+
 	var hostnameAndPort = host + port;
-	
+
 	for (var pipeId in pipes)
 		{
 		if(pipes[pipeId].hostnameAndPort == hostnameAndPort)
@@ -63,22 +61,20 @@ self.createTcpTunnel = function(host, port, listener, callback)
 			}
 		}
 
-	
 	communicationClient.createDirectConnection(targetId, function(pipeId)
 		{
-		console.log("Direct Connection Ready for TCP tunnel");
-console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		//console.log("Direct Connection Ready for TCP tunnel");
+
 		communicationClient.callRpcOnConnection(pipeId, "tunnelTcp", [host, port], self, function()
 			{
-			console.log("Tunnel Pipe ready to "+ host+":"+port);
-			
+			//console.log("Tunnel Pipe ready to "+ host+":"+port);
+
 			pipes[pipeId] = {listener: listener, hostnameAndPort: hostnameAndPort};
-			
+
 			callback(pipeId);
 			});
 		});
 	};
-	
 
 self.exposeRpcMethod = function(name, object_, method_)
 	{
@@ -94,11 +90,11 @@ self.createWebSocketTunnel = function(options, listener, callback)
 	{
 	communicationClient.createPipe(targetId, function(pipeId)
 		{
-		console.log("pipe ready for Websocket");
+		//console.log("pipe ready for Websocket");
 
 		communicationClient.callClientRpc(pipeId, "pipeWebSocket", [options], self, function()
 			{
-			console.log("Websocket Pipe ready to " + options.host + ":" + options.port);
+			//console.log("Websocket Pipe ready to " + options.host + ":" + options.port);
 			webSocketPipes[pipeId] = listener;
 			callback(pipeId);
 			});
@@ -112,8 +108,7 @@ self.setBinaryListener = function(lis)
 
 self.onBinary = function(data, clientId, connectionId)
 	{
-console.log("22222222222222222222222222222222222222", ((Date.now() - elapsedTime) / 1000));
-	console.log("PiperClient::onBinary() from: "+ clientId);
+	//console.log("PiperClient::onBinary() from: "+ clientId);
 
 	if (pipes.hasOwnProperty(connectionId))
 		{
@@ -129,13 +124,13 @@ self.onClientConnected = function(client)
 	{
 	if (client)
 		{
-		console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
+		//console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
 		if (client.getClientType() == "piper")
 			{
-			console.log("SpaceifyPiper found, trying to build a direct connection it");
+			//console.log("SpaceifyPiper found, trying to build a direct connection it");
 			communicationClient.createDirectConnection(client.getClientId(), function()
 				{
-				console.log("Direct connection ready");
+				//console.log("Direct connection ready");
 
 				targetId = client.getClientId();
 
@@ -160,14 +155,13 @@ self.upgradeToWebRtc = function(callback)
 		var self = this;
 		self.onConnectionTypeUpdated = function(client, newConnectionType)
 			{
-			
 			callback();
 			};
 		});
-	*/	
+	*/
 	communicationClient.upgradeToWebRtc(targetId, function()
 		{
-		console.log("PiperClient::upgradeToWebRtc() completed");
+		//console.log("PiperClient::upgradeToWebRtc() completed");
 		callback();
 		});
 	};
@@ -185,12 +179,11 @@ self.connect = function(host, port, callback)
 	communicationClient.setBinaryListener(self);
 	communicationClient.connectWithOptions({host: host, port: port, isSsl:false}, "piperclient", "jounigroupx", function()
 		{
-		console.log("Hub Connection succeeded");
+		//console.log("Hub Connection succeeded");
 		//callback();
 		});
 	};
 
-	
 // -- // -- // -- // -- //
 var totaltime = 0;
 var repetitions = 1000;
@@ -201,7 +194,7 @@ self.testPing = function(callback)
 		ping(0, pipeId, callback);
 		});
 	}
-	
+
 var ping = function(index, pipeId, callback)
 	{
 	if(++index == repetitions + 1)
@@ -211,12 +204,11 @@ var ping = function(index, pipeId, callback)
 		}
 
 	var startTime = Date.now();
-	var elapsedTime;
-	
+
 	communicationClient.callRpcOnConnection(pipeId, "hello", [], self, function(err, data)
 		{
 		totaltime += Date.now() - startTime;
-		console.log("index: " + index + ", " + ((Date.now() - startTime) / 1000));
+		console.log("index: " + index + ", time: " + ((Date.now() - startTime) / 1000) + ", length: " + data.length);
 
 		ping(index, pipeId, callback);
 		});

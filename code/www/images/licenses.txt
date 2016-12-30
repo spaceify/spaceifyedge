@@ -1,0 +1,3 @@
+Icon: settings.png
+Source: https://www.iconfinder.com/icons/1493289/cog_gear_options_preferences_setting_settings_system_icon#size=256
+License: Free for commercial use (help for licenses)

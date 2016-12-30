@@ -109,10 +109,17 @@ self.loadCertificate = function()
 	return true;
 	}
 
-	// ADMIN -- -- -- -- -- -- -- -- -- -- //
-self.openAdminPages = function()
+	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
+self.loadAppstorePage = function()
 	{
-	spaceifyLoader.loadPage(config.APPSTORE_INDEX_URL, config.APPSTORE_URL, config.EDGE_HTTPS_URL);
+	var edgeURL = network.getEdgeURL(true, null, true);
+	spaceifyLoader.loadPage(edgeURL + config.APPSTORE_INDEX_FILE, edgeURL + config.APPSTORE, edgeURL);
+	}
+
+self.loadLaunchPage = function()
+	{
+	var edgeURL = network.getEdgeURL(true, null, true);
+	spaceifyLoader.loadPage(edgeURL + config.INDEX_FILE, edgeURL, edgeURL);
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -153,7 +160,8 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
-	var port, src, sp_host, spe_host, sp_path, i, id;
+	var port, src, sp_host, spe_host, sp_path, icon, id;
+	var xhr, element, url;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
@@ -169,47 +177,60 @@ self.renderTile = function(manifest, callback)
 				}
 			else
 				{
-				sp_host = self.externalResourceURL(manifest.unique_name);
+				sp_host = network.externalResourceURL(manifest.unique_name);
 				sp_path = config.TILEFILE;
 				}
-
-			// REMOTE >>>>>>>>>>
-			// if(!window.isSpaceifyNetwork)
-				src = spe_host + "spaceifyloader/index.html?sp_host=" + encodeURIComponent(sp_host) +
-											   "&sp_path=" + encodeURIComponent(sp_path) +
-											   "&spe_host=" + encodeURIComponent(spe_host);
-			// else
-			//	src = sp_host + sp_path;
-			// <<<<<<<<<< REMOTE
 
 			id = "apptile_" + manifest.unique_name.replace("/", "_");
 			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
 				function()
 					{
-					var element = document.getElementById(id);
-					element.src = src;
+					element = document.getElementById(id);
+					src = sp_host + sp_path;
+console.log("-------------------", src);
+					xhr = new XMLHttpRequest();
+					xhr.addEventListener("loadend", function(e)
+						{
+						if (xhr.readyState == 4)
+							{
+							element.onload = function(e)
+								{
+								window.URL.revokeObjectURL(element.src);
 
-					callback();
+								callback();
+								};
+console.log("-------------------", xhr);
+
+							if(xhr.response)
+								{
+								url = window.URL.createObjectURL(xhr.response);
+
+								element.src = url + "#url=blob&sp_host=" + encodeURIComponent(sp_host) +
+													"&sp_path=" + encodeURIComponent(sp_path) +
+													"&spe_host=" + encodeURIComponent(spe_host);
+								}
+							else
+								callback();
+							}
+						});
+					xhr.open("GET", src, true);
+					xhr.responseType = "blob";
+					xhr.send();
 					}
 				});
 			});
 		}
 	else																							// Spaceify renders default tile
 		{
-		sp_host = network.getEdgeURL(false, false, true);											// Show default icon or applications custom icon
-		sp_path = "images/icon.png";
-
-		if(manifest.images)
+		if((icon = utility.getApplicationIcon(manifest, false)))
 			{
-			for(i = 0; i < manifest.images.length; i++)
-				{
-				if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
-					{
-					sp_host = self.externalResourceURL(manifest.unique_name);
-					sp_path = "images/" + ("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
-					break;
-					}
-				}
+			sp_host = network.externalResourceURL(manifest.unique_name);
+			sp_path = icon;
+			}
+		else
+			{
+			sp_host = network.getEdgeURL(false, false, true);
+			sp_path = "images/icon.png";
 			}
 
 		id = "iconimage_" + manifest.unique_name.replace("/", "_");
@@ -258,11 +279,6 @@ var removeApplication = function(manifest)
 self.getApplications = function()
 	{
 	return applications;
-	}
-
-self.externalResourceURL = function(unique_name)
-	{ // This is implemented exactly the same way in the ecap-spaceify-injector (Injector::getFiles)
-	return network.getEdgeURL(false, false, true) + unique_name + "/";
 	}
 
 }

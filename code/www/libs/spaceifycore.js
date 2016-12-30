@@ -29,7 +29,7 @@ var network = new classes.SpaceifyNetwork();
 
 var pipeId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork ? new classes.WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs ? new classes.WebSocketRpcConnection() : piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -187,7 +187,7 @@ var callRpc = function(method, params, callback)
 
 var call = function(method, params, callback)
 	{
-	if(isSpaceifyNetwork)
+	if(isSpaceifyNetwork || isNodeJs)
 		{
 		connection.callRpc(method, params, self, function(err, data, id, ms)
 			{
@@ -209,7 +209,7 @@ var connect = function(method, params, callback)
 	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
 	var protocol = (!useSecure ? "ws" : "wss");
 
-	if(isSpaceifyNetwork)
+	if(isSpaceifyNetwork || isNodeJs)
 		{
 		if(!isNodeJs)
 			hostname = config.EDGE_HOSTNAME;
@@ -221,10 +221,13 @@ var connect = function(method, params, callback)
 		connection.connect({hostname: hostname, port: port, isSecure: useSecure, caCrt: caCrt}, function(err, data, id, ms)
 			{
 			if(!err)
-				call(method, params, callback);
-			else
 				{
 				isConnected = true;
+				call(method, params, callback);
+				}
+			else
+				{
+				isConnected = false;
 				callback(err, data, id, ms);
 				}
 			});

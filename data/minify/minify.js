@@ -66,11 +66,12 @@ this.make = function()
 		//	//	//	//	//	//	//	//	//	//
 		//	//	//	//	//	//	//	//	//	//
 
+		if(operation == "js" || operation == "css" || operation == "all")
+			edge = parse(sourcePath, sourcePath + "libs/minify.csv");
+
 		if(operation == "js" || operation == "all")
 			{
 			process.stdout.write("\n :: Uglifying Edge and App JavaScript");
-
-			edge = parse(sourcePath, sourcePath + "libs/minify.csv");
 
 				// PREREQUISITIES -- -- -- -- -- -- -- -- -- -- //
 					// ++ EDGE ++ //
@@ -213,28 +214,13 @@ this.make = function()
 
 var makeSections = function(locale)
 	{
-	locale = JSON.parse(locale);
-
-	var current;
 	var sections = {};
-	var globals = locale.globals;
+
+	locale = JSON.parse(locale);
 
 	for(var section in locale)
 		{
-		if(section == "global")
-			continue;
-
-		current = locale[section];
-
-		for(var i in globals)
-			{
-			if(i == "locale" || i == "encoding" || i == "description")
-				continue;
-
-			current[i] = globals[i];
-			}
-
-		sections[section] = current;
+		sections[section] = locale[section];
 		}
 
 	return sections;

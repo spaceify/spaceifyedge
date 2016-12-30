@@ -471,12 +471,14 @@ self.loadJSON = fibrous( function(file, bParse, throws)
 
 	try {
 		manifest = fs.sync.readFile(file, {encoding: "utf8"});
+
 		if(bParse)
 			manifest = self.parseJSON(manifest, throws);
 		}
 	catch(err)
 		{
 		manifest = null;
+
 		if(throws)
 			throw language.E_LOAD_JSON_FAILED.pre("SpaceifyUtility::loadJSON", err);
 		}
@@ -684,41 +686,25 @@ self.toBuffer = function(data)
 		return new Buffer(data.toString(), "utf8");
 	}
 
-	// COOKIES -- -- -- -- -- -- -- -- -- -- //
-self.setCookie = function(cname, cvalue, expiration_sec)
+	// APPLICATION -- -- -- -- -- -- -- -- -- -- //
+self.getApplicationIcon = function(manifest, startWithSlash)
 	{
-	var expires = "";
+	var icon = null;
 
-	if(expiration_sec)
+	if(manifest && manifest.images)
 		{
-		var dn = Date.now() + (expiration_sec * 1000);
-		var dc = new Date(dn);
-		expires = "expires=" + dc.toGMTString();
+		for(var i = 0; i < manifest.images.length; i++)
+			{
+			if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
+				{
+				icon =	(startWithSlash ? "/" : "") + "images/" +
+						("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file; 
+				break;
+				}
+			}
 		}
 
-	document.cookie = cname + "=" + cvalue + (expires != "" ? "; " + expires : "");
-	}
-
-self.getCookie = function(cname)
-	{
-	var name = cname + "=";
-	var ca = document.cookie.split(";");
-	for(var i = 0; i < ca.length; i++)
-		{
-		var c = ca[i];
-		while(c.charAt(0) == " ")
-			c = c.substring(1);
-
-		if(c.indexOf(name) != -1)
-			return c.substring(name.length, c.length);
-		}
-
-	return "";
-	}
-
-self.deleteCookie = function(cname)
-	{
-	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+	return icon;
 	}
 
 }

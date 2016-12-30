@@ -239,7 +239,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onIceCandidate = function(iceCandidate, partnerId)
 		{
-		logger.log("iceCandidate got, sending it to the other client");
+		//logger.log("iceCandidate got, sending it to the other client");
 		
 		communicator.callRpc("callClientRpc", [partnerId, "handleIceCandidate", [iceCandidate]], self, null, serverId);
 		};
@@ -259,7 +259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.shutdown = function(e)
 		{
-		logger.log("WebRtcConnector::onbeforeunload");
+		//logger.log("WebRtcConnector::onbeforeunload");
 		for (var id in rtcConnections)
 			{
 			if (rtcConnections.hasOwnProperty(id))
@@ -276,7 +276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.handleRtcOffer = function(descriptor, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleRtcOffer() descriptor: "+descriptor);
+		//logger.log("WebRtcConnector::handleRtcOffer() descriptor: "+descriptor);
 		
 		if (!rtcConnections.hasOwnProperty(partnerId))
 			{
@@ -285,23 +285,23 @@ return /******/ (function(modules) { // webpackBootstrap
 			
 		rtcConnections[partnerId].onConnectionOfferReceived(descriptor, partnerId, function(answer)
 			{
-			logger.log("WebRtcConnector::handleRtcOffer() onConnectionOfferReceived returned");
-			logger.log("Trying to call handleRtcAnswer on partner "+partnerId);
+			//logger.log("WebRtcConnector::handleRtcOffer() onConnectionOfferReceived returned");
+			//logger.log("Trying to call handleRtcAnswer on partner "+partnerId);
 			communicator.callRpc("callClientRpc", [partnerId, "handleRtcAnswer", [answer]], self, null, serverId);
-			logger.log("handleRtcAnswer call done on partner "+partnerId);
+			//logger.log("handleRtcAnswer call done on partner "+partnerId);
 			});
 		
 		};	
 
 	self.handleRtcAnswer = function(descriptor, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleRtcAnswer()");			
+		//logger.log("WebRtcConnector::handleRtcAnswer()");			
 		rtcConnections[partnerId].onConnectionAnswerReceived(descriptor);
 		};	
 
 	self.handleIceCandidate = function(iceCandidate, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleIceCandidate()");			
+		//logger.log("WebRtcConnector::handleIceCandidate()");			
 		
 			
 		if (!rtcConnections.hasOwnProperty(partnerId))
@@ -318,7 +318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onDisconnected = function(partnerId)
 		{
-		logger.log("WebRtcConnector::onDisconnected() ");
+		//logger.log("WebRtcConnector::onDisconnected() ");
 		if (rtcConnections.hasOwnProperty(partnerId))
 			{
 			var connection = rtcConnections[partnerId]; 	
@@ -339,7 +339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onPrimaryDataChannelOpen = function(clientId, dataChannelConnection)
 		{
-		logger.log("WebRtcConnector::onPrimaryDataChannelOpen() ");
+		//logger.log("WebRtcConnector::onPrimaryDataChannelOpen() ");
 		
 		var connectionId = communicator.addConnection(dataChannelConnection);
 		if (connectionListener)
@@ -351,7 +351,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onAdditionalDataChannelOpen = function(clientId, dataChannelConnection)
 		{
-		logger.log("WebRtcConnector::onAdditionalDataChannelOpen() ");
+		//logger.log("WebRtcConnector::onAdditionalDataChannelOpen() ");
 		
 		var connectionId = communicator.addConnection(dataChannelConnection);
 		
@@ -361,12 +361,12 @@ return /******/ (function(modules) { // webpackBootstrap
 								
 	self.onStream = function(stream, partnerId)
 		{
-		logger.log("WebRtcConnector::onStream()");
+		//logger.log("WebRtcConnector::onStream()");
 		};
 		
 	self.onRemoveStream = function(stream, partnerId)
 		{
-		logger.log("WebRtcConnector::onRemoveStream()");
+		//logger.log("WebRtcConnector::onRemoveStream()");
 		self.onDisconnected(partnerId);
 		};
 		
@@ -374,10 +374,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.connectToPeer = function(partnerId, callback)
 		{
-		logger.log("WebRtcConnector::connectToPeer() partnerId: " + partnerId);
+		//logger.log("WebRtcConnector::connectToPeer() partnerId: " + partnerId);
 		if (rtcConnections.hasOwnProperty(partnerId))
 			{
-			logger.log("WebRtcConnector::connectToPeer() connection to partnerId: " + partnerId +" already exists or is under construction, not connecting again");
+			//logger.log("WebRtcConnector::connectToPeer() connection to partnerId: " + partnerId +" already exists or is under construction, not connecting again");
 			return;
 			}
 		
@@ -387,7 +387,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		rtcConnections[partnerId].createConnectionOffer(function(offer)
 				{
-				logger.log("Offer created, sending it to the other client "+partnerId);
+				//logger.log("Offer created, sending it to the other client "+partnerId);
 				communicator.callRpc("callClientRpc", [partnerId, "handleRtcOffer", [offer]], self, null, serverId);	
 				});		
 		};	
@@ -407,7 +407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		{
 		rtcConnections[clientId].createDataChannelConnection(function(dataChannelConnection)
 			{
-			logger.log("WebRtcConnector::createDataChannelConnection() callback returned");
+			//logger.log("WebRtcConnector::createDataChannelConnection() callback returned");
 			
 			var connectionId = communicator.addConnection(dataChannelConnection);
 			callback(connectionId);
@@ -484,8 +484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var dataChannelConnections = new Array();
 
 	var rtcOptions = { 'optional': [{'DtlsSrtpKeyAgreement': true}] };
-console.log(rtcConfig);
-console.log(rtcOptions);
+
 	var peerConnection = new RTCPeerConnection(rtcConfig, rtcOptions);
 
 	var primaryDataChannel = null; 		// The default datachannel that is always opened
@@ -513,7 +512,7 @@ console.log(rtcOptions);
 		var channel = peerConnection.createDataChannel(dataChannelNumber, {reliable: true});
 		channel.onopen = function()
 			{
-			console.log("WebRtcPeerConnection::channel.onopen");	
+			//console.log("WebRtcPeerConnection::channel.onopen");	
 			
 			//callback(newChannel);	
 			};
@@ -541,7 +540,7 @@ console.log(rtcOptions);
 	peerConnection.ondatachannel = function (e) 
 		{
 	    var temp = e.channel || e; // Chrome sends event, FF sends raw channel
-	    logger.log("WebRtcPeerConnection::ondatachannel() "+temp);
+	    //logger.log("WebRtcPeerConnection::ondatachannel() "+temp);
 	    
 	    temp.binaryType = "arraybuffer";
 	    
@@ -561,7 +560,7 @@ console.log(rtcOptions);
 			
 			temp.onopen = function()
 				{
-				logger.log("WebRtcPeerConnection::temp.onopen");	
+				//logger.log("WebRtcPeerConnection::temp.onopen");	
 				
 				// This additional handshake is required because of a bug in node-wrtc
 				// that prevents onopen to firing
@@ -581,7 +580,7 @@ console.log(rtcOptions);
 		
 	self.onPrimaryDataChannelOpen = function(e)
 		{
-		logger.log("WebRtcPeerConnection::onPrimaryDataChannelOpen "+e);
+		//logger.log("WebRtcPeerConnection::onPrimaryDataChannelOpen "+e);
 		
 		//primaryDataChannel.binaryType = "arraybuffer";
 		//primaryDataChannel.onclose = self.onPrimaryDataChannelClosed;
@@ -596,7 +595,7 @@ console.log(rtcOptions);
 
 	self.onAdditionalDataChannelOpen = function(e)
 		{
-		logger.log("WebRtcPeerConnection::onAdditionalDataChannelOpen "+e);
+		//logger.log("WebRtcPeerConnection::onAdditionalDataChannelOpen "+e);
 		
 		//if (dataChannelListener)
 		//	dataChannelListener.onAdditionalDataChannelOpen(partnerId, primaryDataChannel);
@@ -609,7 +608,7 @@ console.log(rtcOptions);
 		
 	self.onPrimaryDataChannelClosed = function(e)
 		{
-		logger.log("WebRtcPeerConnectiononDataChannelClosed "+e);
+		//logger.log("WebRtcPeerConnectiononDataChannelClosed "+e);
 		connectionListener.onDisconnected(partnerId);
 		}
 
@@ -626,35 +625,35 @@ console.log(rtcOptions);
 
 	var onsignalingstatechange = function(state) 
 		{
-	    console.info('signaling state change:', state);
+	    //console.info('signaling state change:', state);
 		//if ( connectionListener && peerConnection.signalingState == "closed")
 		//	connectionListener.onDisconnected(partnerId);
 		}
 
 	var oniceconnectionstatechange = function(state) 
 		{
-	    console.info('ice connection state change:', state);
+	    //console.info('ice connection state change:', state);
 	   	if ( connectionListener && (peerConnection.iceConnectionState == "disconnected" || peerConnection.iceConnectionState == "closed"))
 			connectionListener.onDisconnected(partnerId);
 		};
 
 	var onicegatheringstatechange = function(state) 
 		{
-	    console.info('ice gathering state change:', state);
+	    //console.info('ice gathering state change:', state);
 		};
 
 	var onIceCandidate = function(e)	
 		{
-		logger.log("WebRtcPeerConnectiononIceCanditate() partnerId: "+partnerId+" event: "+ e);
+		//logger.log("WebRtcPeerConnectiononIceCanditate() partnerId: "+partnerId+" event: "+ e);
 		
-		logger.log("iceListener oli "+iceListener);
+		//logger.log("iceListener oli "+iceListener);
 		
 		//A null ice canditate means that all canditates have
 	    //been given
 		
 		if (e.candidate == null) 
 	    	{
-	        logger.log("All Ice candidates listed");
+	        //logger.log("All Ice candidates listed");
 	    	//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 	    	}
 	    else
@@ -670,7 +669,7 @@ console.log(rtcOptions);
 
 	self.close = function()
 		{
-		logger.log("WebRtcPeerConnectionclose");	
+		//logger.log("WebRtcPeerConnectionclose");	
 		//peerConnection.removeStream(ownStream);
 		   
 		
@@ -697,7 +696,7 @@ console.log(rtcOptions);
 		{
 		iceListener = lis;
 		//peerConnection.onicecandidate = function(cand) {self.onIceCandidate(cand);};
-		logger.log("WebRtcPeerConnectionsetIceListener()"+ lis);
+		//logger.log("WebRtcPeerConnectionsetIceListener()"+ lis);
 		};
 
 	self.setStreamListener = function(lis)
@@ -716,13 +715,13 @@ console.log(rtcOptions);
 
 	self.onStream = function(e)
 		{	
-		logger.log("WebRtcPeerConnectiononStream"+ e);
+		//logger.log("WebRtcPeerConnectiononStream"+ e);
 		streamListener.onStream(e.stream, partnerId);
 		}
 		
 	self.onRemoveStream = function(e)
 		{	
-		logger.log("WebRtcPeerConnectiononStream"+ e);
+		//logger.log("WebRtcPeerConnectiononStream"+ e);
 		streamListener.onRemoveStream(e.stream, partnerId);
 		}
 
@@ -746,7 +745,7 @@ console.log(rtcOptions);
 				
 		peerConnection.createOffer(function (desc)
 			{
-			logger.log("peerConnection::createOffer called its callback: "+ desc);
+			//logger.log("peerConnection::createOffer called its callback: "+ desc);
 	    	localDescription = desc;
 	    	
 	    	/*
@@ -778,11 +777,11 @@ console.log(rtcOptions);
 
 	self.onConnectionAnswerReceived = function(descriptor)
 		{
-		logger.log("WebRtcPeerConnectiononConnectionAnswerReceived(), descriptor: "+descriptor);
+		//logger.log("WebRtcPeerConnectiononConnectionAnswerReceived(), descriptor: "+descriptor);
 		
 		peerConnection.setRemoteDescription(new RTCSessionDescription(descriptor),function()
 			{
-			logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned OK");
+			//logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned OK");
 			}, 
 			function(err) 
 				{logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned error "+err);}  );
@@ -792,13 +791,13 @@ console.log(rtcOptions);
 		
 	self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 		{
-		logger.log("WebRtcPeerConnectiononConnectionOfferReceived");
+		//logger.log("WebRtcPeerConnectiononConnectionOfferReceived");
 		
-		logger.log("WebRtcPeerConnectiononConnectionOfferReceived trying to set remote description");	
+		//logger.log("WebRtcPeerConnectiononConnectionOfferReceived trying to set remote description");	
 		var desc = new RTCSessionDescription(descriptor);
 		peerConnection.setRemoteDescription(desc, function() 
 			{
-			logger.log("WebRtcPeerConnectiononConnectionOfferReceived remote description set");
+			//logger.log("WebRtcPeerConnectiononConnectionOfferReceived remote description set");
 			peerConnection.createAnswer(function (answer) 
 					{
 					/*
@@ -806,7 +805,7 @@ console.log(rtcOptions);
 	    				{
 	    				if (e.candidate == null) 
 	    					{
-	        				logger.log("All Ice candidates listed");
+	        				//logger.log("All Ice candidates listed");
 	    					//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 	    					callback(peerConnection.localDescription);
 	    					}
@@ -831,7 +830,9 @@ console.log(rtcOptions);
 	self.onIceCandidateReceived = function(iceCandidate)
 		{	
 		peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate),
-	            function () {logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate succeeded");},  
+	            function () {
+		            //logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate succeeded");
+		            },  
 	            function(err) {logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate failed "+err);});
 		};         	
 		
@@ -863,7 +864,7 @@ console.log(rtcOptions);
 	// Connection interface implementation	
 	self.send = function(message)
 		{
-		logger.log("DataChannelConnection::send()" +message);
+		//logger.log("DataChannelConnection::send()" +message);
 		try	{
 			if (dataChannel.readyState == "open")
 				{
@@ -878,7 +879,7 @@ console.log(rtcOptions);
 		
 	self.close = function()
 		{
-		console.log("DataChannelConnection::close");	
+		//console.log("DataChannelConnection::close");	
 		};		
 		
 	self.sendBinary = function(data)
@@ -920,8 +921,8 @@ console.log(rtcOptions);
 	// Downwards interface towards the DataChannel
 	self.onMessage = function(message)	
 		{
-		logger.log("DataChannelConnection::onMessage() ");
-		logger.log("DataChannelConnection::onMessage "+message.data);
+		//logger.log("DataChannelConnection::onMessage() ");
+		//logger.log("DataChannelConnection::onMessage "+message.data);
 		try	{
 			if (listener)
 				listener.onMessage(message.data, self);
@@ -1051,27 +1052,27 @@ console.log(rtcOptions);
 
 	self.callRpcOnClient = function(clientId, methodName, params, obj, callback)
 		{
-		logger.log("CommunicationClient::callRpcOnClient() clientId: "+clientId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::callRpcOnClient() clientId: "+clientId + " methodName: "+methodName);
 		
 		if (clients.hasOwnProperty(clientId))
 			{
 			// Call through webrtc
 			if (clients[clientId].isWebRtc())
 				{
-				logger.log("Calling client RPC through WebRtc, preferredConnectionId was: "+clients[clientId].getPreferredConnectionId());
+				//logger.log("Calling client RPC through WebRtc, preferredConnectionId was: "+clients[clientId].getPreferredConnectionId());
 				params.push(ownId);
 				communicator.callRpc(methodName, params, obj, callback,  clients[clientId].getPreferredConnectionId());	
 				}
 			//call though a local hub
 			else if (clients[clientId].isLocalHub())
 				{
-				logger.log("Calling client RPC through local hub");
+				//logger.log("Calling client RPC through local hub");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], obj, callback, clients[clientId].getPreferredConnectionId());
 				}
 			else
 				{
 				// call through the server
-				logger.log("Notifying client RPC through the server");
+				//logger.log("Notifying client RPC through the server");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], obj, callback, serverId);
 				}	
 			}
@@ -1093,9 +1094,9 @@ console.log(rtcOptions);
 
 	self.callRpcOnConnection = function(connectionId, methodName, params, obj, callback)
 		{
-		logger.log("CommunicationClient::callRpcOnConnection() connectionId: "+connectionId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::callRpcOnConnection() connectionId: "+connectionId + " methodName: "+methodName);
 		
-		logger.log("Making a RPC call over direct connection");
+		//logger.log("Making a RPC call over direct connection");
 		params.push(ownId);
 		communicator.callRpc(methodName, params, obj, callback, connectionId);	
 		};
@@ -1111,27 +1112,27 @@ console.log(rtcOptions);
 
 	self.notifyClient = function(clientId, methodName, params)
 		{
-		logger.log("CommunicationClient::notifyClient() clientId: "+clientId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::notifyClient() clientId: "+clientId + " methodName: "+methodName);
 		
 		if (clients.hasOwnProperty(clientId))
 			{
 			// Call through webrtc
 			if (clients[clientId].isWebRtc())
 				{
-				logger.log("Notifying client through WebRtc");
+				//logger.log("Notifying client through WebRtc");
 				params.push(ownId);
 				communicator.callRpc(methodName, params, null, null,  clients[clientId].getPreferredConnectionId());	
 				}
 			//call though a local hub
 			else if (clients[clientId].isLocalHub())
 				{
-				logger.log("Notifying client through local hub");
+				//logger.log("Notifying client through local hub");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], null, null, clients[clientId].getPreferredConnectionId());
 				}
 			else
 				{
 				// call through the server
-				logger.log("Notifying client through the server");
+				//logger.log("Notifying client through the server");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], null, null, serverId);
 				}	
 			}
@@ -1192,7 +1193,7 @@ console.log(rtcOptions);
 
 	self.upgradeToWebRtc = function(clientId, callback)
 		{
-		logger.log("CommunicationClient::upgradeToWebRtc() + clientId: " + clientId);
+		//logger.log("CommunicationClient::upgradeToWebRtc() + clientId: " + clientId);
 		if (!clients[clientId].isWebRtc())
 			rtcConnector.connectToPeer(clientId, callback);
 		};	
@@ -1229,7 +1230,7 @@ console.log(rtcOptions);
 			{
 			rtcConnector.createDataChannelConnection(clientId, function(connectionId)
 				{
-				logger.log("CommunicationClient::createDirectConnection() callback returned connectionId: "+connectionId);
+				//logger.log("CommunicationClient::createDirectConnection() callback returned connectionId: "+connectionId);
 				pipes[connectionId] = clientId;
 				callback(connectionId)
 				});
@@ -1259,7 +1260,7 @@ console.log(rtcOptions);
 
 	self.onWebRtcConnected = function(clientId, connectionId)
 		{
-		logger.log("CommunicationClient::onWebRtcConnected()");
+		//logger.log("CommunicationClient::onWebRtcConnected()");
 		
 		if (clients.hasOwnProperty(clientId))
 			{
@@ -1273,7 +1274,7 @@ console.log(rtcOptions);
 		
 	self.onWebRtcDisconnected = function(partnerId)
 		{	
-		logger.log("CommunicationClient::onWebRtcDisconnected()");
+		//logger.log("CommunicationClient::onWebRtcDisconnected()");
 		
 		// ToDo: fallback to websockets if possible!!
 		};
@@ -1281,7 +1282,7 @@ console.log(rtcOptions);
 
 	self.onAdditionalDataChannelOpen = function(clientId, connectionId)
 		{
-		logger.log("CommunicationClient::onAdditionalDataChannelOpen()");
+		//logger.log("CommunicationClient::onAdditionalDataChannelOpen()");
 		pipes[connectionId] = clientId;
 		};	
 		
@@ -1289,20 +1290,20 @@ console.log(rtcOptions);
 
 	var createPipe = function(clientId, callback)
 		{
-		logger.log("CommunicationClient::createPipe() + peerId: " + clientId);
+		//logger.log("CommunicationClient::createPipe() + peerId: " + clientId);
 		
 		var pipeConnection =  new WebSocketConnection();
 		var pipeId;
 		
 		pipeConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("Pipe connected to the websocket server");
+			//logger.log("Pipe connected to the websocket server");
 			
 			pipeId = communicator.addConnection(pipeConnection);			
 			
 			communicator.callRpc("constructPipe", [clientId, ownId], self, function()
 				{
-				logger.log("CommunicationClient::createPipe() pipe construction ready");	
+				//logger.log("CommunicationClient::createPipe() pipe construction ready");	
 				if (clients.hasOwnProperty(clientId))
 					{
 					clients[clientId].addPipeId(pipeId);
@@ -1316,7 +1317,7 @@ console.log(rtcOptions);
 		
 	self.requestPipe = function(targetId, originatorId, connectionId, callback)
 		{
-		logger.log("CommunicationClient::requestPipe()");
+		//logger.log("CommunicationClient::requestPipe()");
 		
 		var pipeConnection =  new WebSocketConnection();
 		var pipeId = null;
@@ -1325,13 +1326,13 @@ console.log(rtcOptions);
 						
 		pipeConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("Pipe connected to the websocket server");
+			//logger.log("Pipe connected to the websocket server");
 			
 			pipeId = communicator.addConnection(pipeConnection);			
 			
 			communicator.callRpc("registerAsPipe", [targetId], self, function(err,data)
 				{
-				logger.log("registerAsPipe returned");
+				//logger.log("registerAsPipe returned");
 				
 				if (clients.hasOwnProperty(originatorId))
 					{
@@ -1421,7 +1422,7 @@ console.log(rtcOptions);
 
 	var updateConnectedClients = function(hubId, callback)
 		{
-		logger.log("CommunicationClient::updateConnectedClients()");
+		//logger.log("CommunicationClient::updateConnectedClients()");
 		var id = serverId;
 		
 		if (hubId)
@@ -1429,7 +1430,7 @@ console.log(rtcOptions);
 			
 		communicator.callRpc("getConnectedClients", [groupId], self, function(err, connectedClients)
 			{
-			logger.log("CommunicationClient::getConnectedClientsFromHub() got answer from hub: "+JSON.stringify(connectedClients));
+			//logger.log("CommunicationClient::getConnectedClientsFromHub() got answer from hub: "+JSON.stringify(connectedClients));
 			var client = null;
 			for (var i in connectedClients)
 				{
@@ -1457,7 +1458,7 @@ console.log(rtcOptions);
 		
 	var connectToLocalHubs = function(hubs, callback)
 		{
-		logger.log("CommunicationCLient::connectToLocalHubs()");
+		//logger.log("CommunicationCLient::connectToLocalHubs()");
 		if (hubs == null)
 			return;
 			
@@ -1481,7 +1482,7 @@ console.log(rtcOptions);
 				
 				connection.connect(opts, function()
 					{
-					logger.log("Connected to local hub at ip: "+ip+" port: "+port);
+					//logger.log("Connected to local hub at ip: "+ip+" port: "+port);
 					hubId = communicator.addConnection(connection);
 					
 					localHubs[hubId] = hubId;
@@ -1491,7 +1492,7 @@ console.log(rtcOptions);
 						{
 						communicator.callRpc("registerAsClient", [ownId, clientType, groupId], self, function(err, givenId)
 							{
-							logger.log("CommunicationClient::connectToLocalHubs() registered as client at local hub at ip: "+ip+" port: "+port);
+							//logger.log("CommunicationClient::connectToLocalHubs() registered as client at local hub at ip: "+ip+" port: "+port);
 							});	
 						});
 					});
@@ -1502,10 +1503,10 @@ console.log(rtcOptions);
 
 	var updateLocalHubs = function(callback)
 		{
-		logger.log("Getting list of local hubs from the server");
+		//logger.log("Getting list of local hubs from the server");
 		communicator.callRpc("getLocalHubs", [], self, function(err, hubs)
 			{
-			logger.log("Following local hubs are available: "+JSON.stringify(hubs));
+			//logger.log("Following local hubs are available: "+JSON.stringify(hubs));
 			if (hubs)
 				connectToLocalHubs(hubs, callback);
 			else
@@ -1520,7 +1521,7 @@ console.log(rtcOptions);
 
 	self.connectWithOptions = function(options, clientType_, groupId_, callback)
 		{
-		logger.log("CommunicationClient::connectWithOptions()");
+		//logger.log("CommunicationClient::connectWithOptions()");
 		clientType = clientType_;
 		groupId = groupId_;
 		
@@ -1533,16 +1534,16 @@ console.log(rtcOptions);
 						
 		serverConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("connected to the websocket server");
+			//logger.log("connected to the websocket server");
 			
 			serverId = communicator.addConnection(serverConnection);			
 			
-			rtcConnector = new WebRtcConnector(communicator, serverId, WEBRTC_CONFIG);
+			rtcConnector = new WebRtcConnector(communicator, serverId, LoaderUtil.WEBRTC_CONFIG);
 			rtcConnector.setConnectionListener(self);		
 			
 			communicator.callRpc("registerAsClient", [null, clientType, groupId], self, function(err, givenId)
 				{
-				logger.log("Server replied to registerAsClient call: '"+ givenId+ "'");
+				//logger.log("Server replied to registerAsClient call: '"+ givenId+ "'");
 				ownId = givenId;
 				updateConnectedClients(null, function()
 					{
@@ -1565,11 +1566,11 @@ console.log(rtcOptions);
 
 	self.onClientConnected = function(clientData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onClientConnected() from connectionId: "+connectionId);
-		logger.log("CommunicationClient::onClientConnected() localHubs was:");
-		console.dir(localHubs);
+		//logger.log("CommunicationClient::onClientConnected() from connectionId: "+connectionId);
+		//logger.log("CommunicationClient::onClientConnected() localHubs was:");
+		//console.dir(localHubs);
 		
-		logger.log("CommunicationClient::onClientConnected(), ownId: "+ownId+", newClient: '"+ JSON.stringify(clientData) +"'");
+		//logger.log("CommunicationClient::onClientConnected(), ownId: "+ownId+", newClient: '"+ JSON.stringify(clientData) +"'");
 		
 		if (clientData.clientId == ownId)
 			return;
@@ -1577,7 +1578,7 @@ console.log(rtcOptions);
 		if (localHubs.hasOwnProperty(connectionId))
 			{
 				
-			logger.log("CommunicationClient::onClientConnected() client connected through localhub, clientId: "+clientData.clientId);
+			//logger.log("CommunicationClient::onClientConnected() client connected through localhub, clientId: "+clientData.clientId);
 			
 			clients[clientData.clientId].setLocalHub(true);
 			clients[clientData.clientId].setPreferredConnectionId(connectionId);
@@ -1595,7 +1596,7 @@ console.log(rtcOptions);
 		
 	self.onClientDisconnected = function(clientData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onClientDisconnected() '"+ JSON.stringify(clientData) +"'");
+		//logger.log("CommunicationClient::onClientDisconnected() '"+ JSON.stringify(clientData) +"'");
 		
 		if (clients.hasOwnProperty(clientData.clientId) && clientListener && clientData.clientId != ownId)
 			{
@@ -1606,12 +1607,12 @@ console.log(rtcOptions);
 			
 	self.onHubConnected = function(hubData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onHubConnected() '"+ JSON.stringify(hubData) +"'");
+		//logger.log("CommunicationClient::onHubConnected() '"+ JSON.stringify(hubData) +"'");
 		};
 		
 	self.onHubDisconnected = function(hubData,  connectionId, callback)
 		{
-		logger.log("CommunicationClient::onHubDisconnected() '"+ JSON.stringify(hubData) +"'");
+		//logger.log("CommunicationClient::onHubDisconnected() '"+ JSON.stringify(hubData) +"'");
 		};	
 
 	self.getConnectedClients = function()
@@ -1683,7 +1684,6 @@ console.log(rtcOptions);
 	var connectionSequence = 0;
 	var latestConnectionId = null;
 
-var elapsedTime = 0;
 	//** Private methods
 
 	var sendMessage = function(message, connectionId)
@@ -1709,7 +1709,7 @@ var elapsedTime = 0;
 				var code = (typeof err.code != "undefined" ? err.code : "");
 				var path = (typeof err.path != "undefined" ? err.path : "");
 				var msge = (typeof err.message != "undefined" ? err.message : "");
-				console.log("Exception in executing a RPC method: " + code + " EngineIoCommunicator::onMessage() >> " + path + " " + msge);		
+				//console.log("Exception in executing a RPC method: " + code + " EngineIoCommunicator::onMessage() >> " + path + " " + msge);		
 				}
 			else
 				sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -1796,8 +1796,8 @@ var elapsedTime = 0;
 		
 			if (message.id)
 				callbackBuffer.callMethodAndPop(message.id, error, result);
-			else
-				console.log("RpcCommunicator::handleReturnValue() error: "+JSON.stringify(error));
+			//else
+				//console.log("RpcCommunicator::handleReturnValue() error: "+JSON.stringify(error));
 			}
 		catch (e)
 			{
@@ -1939,7 +1939,6 @@ var elapsedTime = 0;
 		
 	self.sendBinary = function(data, connectionId)
 		{
-elapsedTime = Date.now();
 		//console.log("RPCCommunicator::sendBinary() "+data.byteLength);
 		try	{
 			connections[connectionId].sendBinary(data);	
@@ -1952,7 +1951,7 @@ elapsedTime = Date.now();
 
 	self.setupPipe = function(firstId, secondId)
 		{
-		console.log("RpcCommunicator::setupPipe() between: "+firstId+" and "+secondId);
+		//console.log("RpcCommunicator::setupPipe() between: "+firstId+" and "+secondId);
 		
 		if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))  
 			return;
@@ -2001,8 +2000,7 @@ elapsedTime = Date.now();
 				
 			if (messageData instanceof ArrayBuffer)
 				{
-console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime) / 1000));
-				console.log("RPCCommunicator::onMessage() received arraybuffer");
+				//console.log("RPCCommunicator::onMessage() received arraybuffer");
 				if (binaryListener)
 					binaryListener.onBinary(messageData, connection.getId());
 				return;
@@ -2031,7 +2029,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 	self.addConnection = function(conn)
 		{
 		try	{	
-			console.log("RpcCommunicator::addConnection, connectionid was "+conn.getId());	
+			//console.log("RpcCommunicator::addConnection, connectionid was "+conn.getId());	
 		
 			//Use random connectionId to make ddos a little more difficult
 			
@@ -2165,7 +2163,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 
 	self.connect = function(options, callback)
 		{
-		logger.log("WebSocketConnection::connect()");
+		//logger.log("WebSocketConnection::connect()");
 		options.protocol = (!options.isSsl ? "ws" : "wss");	
 		
 		try	{	
@@ -2174,7 +2172,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 			if (options.id)
 				url += "?id="+options.id;
 			
-			logger.log("WebSocketConnection::connect()" + url);
+			//logger.log("WebSocketConnection::connect()" + url);
 			socket = new WebSocket(url, "json-rpc", null, null, (options.isSsl ? { rejectUnauthorized: false } : null));
 
 			socket.binaryType = "arraybuffer";	
@@ -2192,7 +2190,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 
 	self.setSocket = function(val) 
 		{
-		logger.log("WebSocketConnection::setSocket()");	
+		//logger.log("WebSocketConnection::setSocket()");	
 		try	{
 			socket = val;		
 			socket.on("message", onMessage);
@@ -2261,7 +2259,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 		
 	var onMessage = function(message)
 		{
-		logger.log("WebSocketConnection::onMessage() "+JSON.stringify(message));	
+		//logger.log("WebSocketConnection::onMessage() "+JSON.stringify(message));	
 		try	{
 			if (listener)
 				{
@@ -2305,7 +2303,6 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 	self.send = function(message)
 		{
 		try	{
-console.log("START TIME START TIME START TIME START TIME " + Date.now());
 			socket.send(message);	
 			}
 		catch(e)
@@ -2379,15 +2376,15 @@ console.log("START TIME START TIME START TIME START TIME " + Date.now());
 
 	self.connect = function(options, callback)
 			{
-			console.log("WebSocketRpcConnection::connect()");
+			//console.log("WebSocketRpcConnection::connect()");
 			connection.connect(options, function()
 				{
-				console.log("WebsocketRpcConnection Connected");	
+				//console.log("WebsocketRpcConnection Connected");	
 				//console.log("Creating RPCCommunicator for the Websocket");
 								
 				communicator.addConnection(connection);
 				
-				console.log("WebsocketRpcConnection added to communicator");   
+				//console.log("WebsocketRpcConnection added to communicator");   
 				callback(null, null); 
 				});
 			};
@@ -2418,21 +2415,36 @@ function HttpParser()
 {
 var self = this;
 
-var contentBegin = null;
 var header = null;
+var headerSize = 0;
+var contentBegin = null;
+var rawHeaders = "";
+var headerValues = {};
 
-var headerValues = new Object();
 var statusCode = null;
+var statusText = null;
+
+var logger = console;
 
 self.getStatusCode = function()
 	{
 	return parseInt(statusCode);
 	};
 
+self.getStatusText = function()
+	{
+	return statusText;
+	};
+
 self.getContentBegin = function()
 	{
 	return contentBegin;
 	};
+
+self.getHeaderSize = function()
+	{
+	return headerSize;
+	}
 
 self.getHeaderValueAsInt = function(key)
 	{
@@ -2442,6 +2454,8 @@ self.getHeaderValueAsInt = function(key)
 		{
 		return parseInt(headerValues[key]);
 		}
+	else
+		return null;
 	};
 
 self.getHeaderValue = function(key)
@@ -2454,22 +2468,34 @@ self.getHeaderValue = function(key)
 		}
 	};
 
+self.getHeaders = function()
+	{
+	return headerValues;
+	};
+
+self.getRawHeaders = function()
+	{
+	return rawHeaders;
+	};
+
 var findContentBegin = function(arr)
 	{
-	for (var i=0; i < arr.byteLength; i+=1)
+	for (var i = 0; i < arr.byteLength; i+=1)
 		{
-		if ((i+4) < arr.byteLength && arr[i]==13 && arr[i+1]==10 && arr[i+2]==13 && arr[i+3]==10)
+		if ((i + 4) < arr.byteLength && arr[i] == 13 && arr[i + 1] == 10 && arr[i + 2] == 13 && arr[i + 3] == 10)
 			{
-			contentBegin = i+4;
-			//console.log(arr[contentBegin]);
+			contentBegin = i + 4;
+			//logger.log(arr[contentBegin]);
 			break;
 			}
-
 		}
+
+	headerSize = (!contentBegin ? arr.byteLength : contentBegin);
 	};
 
 var parseHeader = function(arr)
 	{
+	rawHeaders = "";
 	headerValues = {};
 
 	if (contentBegin)
@@ -2477,15 +2503,16 @@ var parseHeader = function(arr)
 	else
 		header = String.fromCharCode.apply(null, arr);
 
-	//console.log("Trying to parse header: " + header);
+	//logger.log("Trying to parse header: " + header);
 	var rows = header.split("\n");
 
 	var firstRow = rows[0].split(" ");
 	statusCode = firstRow[1];
+	statusText = (firstRow.length >= 3 ? firstRow[2] : "OK");
 
 	var item = null;
 
-	for (var i=1; i<rows.length; i++)
+	for (var i = 1; i < rows.length; i++)
 		{
 		var separatorIndex = rows[i].indexOf(":");
 
@@ -2496,14 +2523,16 @@ var parseHeader = function(arr)
 
 			var hvalue = "";
 			if (rows[i].length > separatorIndex)
-				hvalue = rows[i].substring(separatorIndex+1).trim();
+				hvalue = rows[i].substring(separatorIndex + 1).trim();
 
 			// XMLHttpRequest.getResponseHeader() style comma-space pair separator for multi-headers like Set-Cookie
 			headerValues[hkey] = (hkey in headerValues ? headerValues[hkey] + ", " + hvalue : hvalue);
+
+			rawHeaders += (rawHeaders != "" ? "\r\n" : "") + hkey + ": " + hvalue;
 			}
 		}
 
-	//console.dir(headerValues);
+	//logger.dir(headerValues);
 	};
 
 self.parse = function(arr)
@@ -2548,7 +2577,6 @@ var binaryListener = null;
 
 var cookies = null;
 
-var elapsedTime = 0;
 // this is a hack, we need a separate cookie storage at some point!
 
 self.setCookies = function(c)
@@ -2563,15 +2591,14 @@ self.getCookies = function()
 
 self.sendTcpBinary = function(connectionId, data)
 	{
-elapsedTime = Date.now();
 	communicationClient.sendBinaryOnConnection(connectionId, data);
 	};
 
 self.createTcpTunnel = function(host, port, listener, callback)
 	{
-	
+
 	var hostnameAndPort = host + port;
-	
+
 	for (var pipeId in pipes)
 		{
 		if(pipes[pipeId].hostnameAndPort == hostnameAndPort)
@@ -2582,22 +2609,20 @@ self.createTcpTunnel = function(host, port, listener, callback)
 			}
 		}
 
-	
 	communicationClient.createDirectConnection(targetId, function(pipeId)
 		{
-		console.log("Direct Connection Ready for TCP tunnel");
-console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		//console.log("Direct Connection Ready for TCP tunnel");
+
 		communicationClient.callRpcOnConnection(pipeId, "tunnelTcp", [host, port], self, function()
 			{
-			console.log("Tunnel Pipe ready to "+ host+":"+port);
-			
+			//console.log("Tunnel Pipe ready to "+ host+":"+port);
+
 			pipes[pipeId] = {listener: listener, hostnameAndPort: hostnameAndPort};
-			
+
 			callback(pipeId);
 			});
 		});
 	};
-	
 
 self.exposeRpcMethod = function(name, object_, method_)
 	{
@@ -2613,11 +2638,11 @@ self.createWebSocketTunnel = function(options, listener, callback)
 	{
 	communicationClient.createPipe(targetId, function(pipeId)
 		{
-		console.log("pipe ready for Websocket");
+		//console.log("pipe ready for Websocket");
 
 		communicationClient.callClientRpc(pipeId, "pipeWebSocket", [options], self, function()
 			{
-			console.log("Websocket Pipe ready to " + options.host + ":" + options.port);
+			//console.log("Websocket Pipe ready to " + options.host + ":" + options.port);
 			webSocketPipes[pipeId] = listener;
 			callback(pipeId);
 			});
@@ -2631,8 +2656,7 @@ self.setBinaryListener = function(lis)
 
 self.onBinary = function(data, clientId, connectionId)
 	{
-console.log("22222222222222222222222222222222222222", ((Date.now() - elapsedTime) / 1000));
-	console.log("PiperClient::onBinary() from: "+ clientId);
+	//console.log("PiperClient::onBinary() from: "+ clientId);
 
 	if (pipes.hasOwnProperty(connectionId))
 		{
@@ -2648,13 +2672,13 @@ self.onClientConnected = function(client)
 	{
 	if (client)
 		{
-		console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
+		//console.log("PieperClient::onClientConnected() "+JSON.stringify(client));
 		if (client.getClientType() == "piper")
 			{
-			console.log("SpaceifyPiper found, trying to build a direct connection it");
+			//console.log("SpaceifyPiper found, trying to build a direct connection it");
 			communicationClient.createDirectConnection(client.getClientId(), function()
 				{
-				console.log("Direct connection ready");
+				//console.log("Direct connection ready");
 
 				targetId = client.getClientId();
 
@@ -2679,14 +2703,13 @@ self.upgradeToWebRtc = function(callback)
 		var self = this;
 		self.onConnectionTypeUpdated = function(client, newConnectionType)
 			{
-			
 			callback();
 			};
 		});
-	*/	
+	*/
 	communicationClient.upgradeToWebRtc(targetId, function()
 		{
-		console.log("PiperClient::upgradeToWebRtc() completed");
+		//console.log("PiperClient::upgradeToWebRtc() completed");
 		callback();
 		});
 	};
@@ -2704,12 +2727,11 @@ self.connect = function(host, port, callback)
 	communicationClient.setBinaryListener(self);
 	communicationClient.connectWithOptions({host: host, port: port, isSsl:false}, "piperclient", "jounigroupx", function()
 		{
-		console.log("Hub Connection succeeded");
+		//console.log("Hub Connection succeeded");
 		//callback();
 		});
 	};
 
-	
 // -- // -- // -- // -- //
 var totaltime = 0;
 var repetitions = 1000;
@@ -2720,7 +2742,7 @@ self.testPing = function(callback)
 		ping(0, pipeId, callback);
 		});
 	}
-	
+
 var ping = function(index, pipeId, callback)
 	{
 	if(++index == repetitions + 1)
@@ -2730,12 +2752,11 @@ var ping = function(index, pipeId, callback)
 		}
 
 	var startTime = Date.now();
-	var elapsedTime;
-	
+
 	communicationClient.callRpcOnConnection(pipeId, "hello", [], self, function(err, data)
 		{
 		totaltime += Date.now() - startTime;
-		console.log("index: " + index + ", " + ((Date.now() - startTime) / 1000));
+		console.log("index: " + index + ", time: " + ((Date.now() - startTime) / 1000) + ", length: " + data.length);
 
 		ping(index, pipeId, callback);
 		});
@@ -2752,148 +2773,1043 @@ if (typeof exports !== "undefined")
 /**
  * Implements the XMLHttpRequest interface.
  * References the GLOBAL variable piperClient to implement its functionality
+ *
+ * Logics / comments from https://xhr.spec.whatwg.org/ and https://developer.mozilla.org/
+ *
+ * Not implemented:
+ *   XMLHttpRequestUpload object
+ *   CORS
+ *   Synchronous load
+ *
+ * Object.defineProperty() for read-only properties???
  */
 
+/*var handler = {
+	get: function(target, property, receiver)
+		{
+		console.log("\nGET PROXY: ", property, target.responseURL);
+		return target[property];
+		},
+
+	set: function(target, property, value, receiver)
+		{
+		console.log("\SET PROXY:", property + "=" + value);
+
+		target[property] = value;
+
+		return true;
+		},
+
+	apply: function(target, thisArg, argumentsList)
+		{
+		console.log("\APPLY PROXY:");
+		}
+	};*/
 
 function SpXMLHttpRequest()
 {
 var self = this;
 
-// Includes 
+var xhr = (SpXMLHttpRequest.OriginalXMLHttpRequest ? new SpXMLHttpRequest.OriginalXMLHttpRequest() : null);
+
+var logger = console;
+
+	// Includes -- -- -- -- -- -- -- -- -- -- //
 var URL = null;
 var HttpParser = null;
-var LoaderUtil = null;
 var piperClient = null;
+//var LoaderUtil = null;
 
 if (typeof exports !== "undefined")
 	{
-	HttpParser = require("./httpparser");
 	URL = require("urlutils");
+	HttpParser = require("./httpparser");
 	LoaderUtil = require("./loaderutil");
 	piperClient = LoaderUtil.piperClient;
 	}
 else
 	{
-	HttpParser = window.HttpParser;
 	URL = window.URL;
-	LoaderUtil = new window.LoaderUtil();
+	HttpParser = window.HttpParser;
+	//LoaderUtil = new window.LoaderUtil();
 	piperClient = LoaderUtil.piperClient;
 	}
-	
-var logger = console;
-
-var xhr = null;
-
-var url = null;
-var method = null;
-var async = null;
-
-var contentLength = null;
-var bodyBytesReceived = null;
-var contentType = null;
-var overridedMimeType = null;
-var fragments = new Array();
 
 var httpParser = new HttpParser();
 
-self.responseText = "";
+	// Stored method arguments and xhr state information (flags) -- -- -- -- -- -- -- -- -- -- //
+var url = "";
+var parsedUrl = "";
+var method = "GET";
+var username = null;
+var password = null;
 
-var requestHeaders = [];
-var elapsedTime = 0;
-self.open = function(method_, url_, async_)
+var openFlag = false;
+var sendFlag = false;
+var redirectingFlag = false;
+var synchronousFlag = false;
+var stopTimeoutFlag = false;
+var uploadListenerFlag = false;
+var uploadCompleteFlag = false;
+
+var timeoutId = null;
+var milliseconds = 0;
+
+var body = null;
+
+	// Connection / Network -- -- -- -- -- -- -- -- -- -- //
+var responseArrayBuffer = null;
+var responseBlob = null;
+var responseDocument = null;
+var responseJSON = null;
+
+var contentType = null;
+var contentLength = null;
+var bodyBytesReceived = 0;
+var overridedMimeType = null;
+var authorRequestHeaders = [];
+
+var allowedHttpHeaderMethods = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"];
+var blockedHttpHeaderHeaders = ["CONNECT", "TRACE", "TRACK"];
+
+var port = "80";
+var host = "localhost";
+var hostname = "localhost";
+
+var request = "";
+var TerminationReason = { none: "", abort: "end-user abort", fatal: "fatal", timeout: "timeout" };
+var ResponseType = { basic: "basic", cors: "cors", default: "default", error: "error", opaque: "opaque", opaqueredirect: "opaqueredirect" };
+var response =	{
+				type: ResponseType.default,
+				terminationReason: TerminationReason.none,
+				url: null,
+				urlList: [],
+				status: 200,
+				statusText: "OK",
+				headers: {},
+				body: null,
+				trailer: {},
+				httpsState: "none",
+				CSPList: [],
+				CORSExposedHeaderNameList: [],
+				locationURL: null // (null, failure, or a URL)
+				};
+
+var bytesToTransmit = 0;
+var transmittedBytes = 0;
+
+	// Internal constants / Variables -- -- -- -- -- -- -- -- -- -- //
+
+/*enum*/var XMLHttpRequestResponseType = {	DOMSTRING: "",
+											BLOB: "blob",
+											JSON: "json",
+											TEXT: "text",
+											DOCUMENT: "document",
+											ARRAYBUFFER: "arraybuffer",
+											MOZ_BLOB: "moz-blob",									// Non-standard
+											MOZ_CHUNKED_TEXT: "moz-chunked-text",
+											MOZ_CHUNKED_ARRAYBUFFER: "moz-chunked-arraybuffer",
+											MS_STREAM: "ms-stream" };
+
+var forbiddenHeaderNames  = "^(Accept-Charset)$|^(Accept-Encoding)$|^(Access-Control-Request-Headers)$|^(Access-Control-Request-Method)$|";
+	forbiddenHeaderNames += "^(Connection)$|^(Content-Length)$|^(Cookie)$|^(Cookie2)$|^(Date)$|^(DNT)$|^(Expect)$|^(Host)$|^(Keep-Alive)$|";
+	forbiddenHeaderNames += "^(Origin)$|^(Referer)$|^(TE)$|^(Trailer)$|^(Transfer-Encoding)$|^(Upgrade)$|^(Via)$|^(Proxy-.*)|^(Sec-.*)";
+	forbiddenHeaderNames = new RegExp(forbiddenHeaderNames, "i");
+
+	// XHR variables - set default values
+self.readyState = SpXMLHttpRequest.UNSENT;
+self.response = "";
+self.responseText = null;
+self.responseType = XMLHttpRequestResponseType.DOMSTRING;
+self.responseURL = "";
+self.responseXML = null;
+self.status = 0;
+self.statusText = "";
+self.timeout = 0;
+self.withCredentials = false;
+self.upload = 	{	// The upload process
+				onabort: null,
+				onerror: null,
+				ontimeout: null,
+				onprogress: null,
+				onloadstart: null,
+				onload: null,
+				onloadend: null
+				};
+
+	// XHR events - onloadstart -> onprogress -> onload || onerror -> onloadend
+self.onabort = null;				// When the fetch has been aborted. For instance, by invoking the abort() method.
+self.onerror = null;				// The fetch failed.
+self.ontimeout = null;				// The author specified timeout has passed before the fetch completed.
+self.onprogress = null;				// Transmitting data.
+self.onloadstart = null;			// The fetch initiates.
+self.onload = null;					// The fetch succeeded.
+self.onloadend = null;				// The fetch completed (success or failure).
+self.onreadystatechange = null;		// The readyState attribute changes value, except when it changes to UNSENT.
+var eventListeners = {};
+var eventListenerTypes = ["abort", "error", "timeout", "progress", "loadstart", "load", "loadend", "readystatechange"];
+
+	// REAL XHR EVENT HANDLERS
+var onTimeOut = function(e)
 	{
-	method = method_;
-	url = url_;
-	async = async_;
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onTimeOut()");
+
+	if (typeof self.ontimeout == "function")
+		self.ontimeout(e);
 	};
 
-self.onBinary = function(data)
+var onProgress = function(e)
 	{
-console.log("33333333333333333333333333333333333333", ((Date.now() - elapsedTime) / 1000));
-	var arr = new Uint8Array(data);
-	//logger.log("SpXMLHttpRequest::onBinary()" +" data: "+ab2str(arr));
+	getXhrAttributes();
 
-	if (!contentLength)		//This is the header chunk
+	//logger.log("SpXMLHttpRequest::onProgress()");
+
+	if (typeof self.onprogress == "function")
+		self.onprogress(e);
+	};
+
+var onAbort = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onAbort()");
+
+	if (typeof self.onabort == "function")
+		self.onabort(e);
+	};
+
+var onError = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onError()");
+
+	if (typeof self.onerror == "function")
+		self.onerror(e);
+	};
+
+var onLoadStart = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onLoadStart()");
+
+	if (typeof self.onloadstart == "function")
+		self.onloadstart(e);
+	};
+
+var onLoad = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onLoad()");
+
+	if (typeof self.onload == "function")
+		self.onload(e);
+	};
+
+var onLoadEnd = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onLoadEnd()");
+
+	if (typeof self.onloadend == "function")
+		self.onloadend(e);
+	};
+
+var onReadyStateChange = function(e)
+	{
+	getXhrAttributes();
+
+	//logger.log("SpXMLHttpRequest::onReadyStateChange()", readyState, (self.onreadystatechange ? "YES" : "NO"));
+
+	if (typeof self.onreadystatechange == "function")
+		self.onreadystatechange(e);
+	};
+
+if(xhr)
+	{
+	xhr.ontimeout = onTimeOut;
+	xhr.onprogress = onProgress;
+	xhr.onabort = onAbort;
+	xhr.onerror = onError;
+	xhr.onloadstart = onLoadStart;
+	xhr.onload = onLoad;
+	xhr.onloadend = onLoadEnd;
+	xhr.onreadystatechange = onReadyStateChange;
+	}
+
+	// Public XHR methods -- -- -- -- -- -- -- -- -- -- //
+self.open = function(method_, url_, async_, user_, pass_)
+	{
+	//logger.log("SpXMLHttpRequest::open()");
+
+	if(xhr)
+		openXHR(method_, url_, async_, user_, pass_);
+	else
+		openSpXHR(method_, url_, async_, user_, pass_);
+	}
+
+var openXHR = function(method_, url_, async_, user_, pass_)
+	{
+	method = method_;
+	isAsync = (async_ !== "undefined" ? async_ : true);
+	username = (user_ !== "undefined" ? user_ : null);
+	password = (pass_ !== "undefined" ? pass_ : null);
+
+	xhr.open(method_, url_, isAsync, username, password);
+	}
+
+var openSpXHR = function(method_, url_, async_, user_, pass_)
+	{
+	if (openFlag)
+		return;
+
+	/*
+	 * 1. If context object's relevant settings object has a responsible document and it is not fully active, throw an InvalidStateError exception.
+	 */
+
+// 	ToDo
+
+		// Method - Do not throw exceptions, fail quietely.
+	method_ = method_.toUpperCase();
+
+	/*
+	 * 2. If method is not a method, throw a SyntaxError exception.
+	 */
+
+	if (allowedHttpHeaderMethods.indexOf(method_) == -1)
+		return;
+
+	/*
+	 * 3. If method is a forbidden method, throw a SecurityError exception.
+	 */
+
+	if (blockedHttpHeaderHeaders.indexOf(method_) != -1)
+		return;
+
+	/*
+	 * 4. Normalize method.
+	 */
+
+	method = method_;
+
+	// URL
+	/*
+	 * 5. Let parsedURL be the result of parsing url with context object's relevant settings object's API base URL.
+	 * 6. If parsedURL is failure, throw a SyntaxError exception. - Do not throw exception, fail quietely.
+	 */
+
+	parseURL(url_);
+
+	/*
+	 * 7. If the async argument is omitted, set async to true, and set username and password to null.
+	 */
+
+	if (async_ === "undefined")
+		{
+		async_ = true;
+		user_ = null;
+		pass_ = null;
+		}
+
+	username = (user_ ? user_ : null);
+	password = (pass_ ? pass_ : null);
+
+	/*
+	 * 8. If parsedURL's host is non-null, run these substeps:
+	 */
+
+	if (host)
+		{
+		var auth = "";
+
+		// 8.1. If the username argument is not null, set the username given parsedURL and username.
+		if (username)
+			auth = username;
+
+		// 8.2. If the password argument is not null, set the password given parsedURL and password.
+		if (password && auth)
+			auth += ":" + password;
+
+		if (auth)
+			host = auth + "@" + host;
+		}
+
+	/*
+	 * 9. If async is false, entry settings object's global object is a Window object, and the timeout attribute value is not zero or the
+	 *    responseType attribute value is not the empty string, then throw an InvalidAccessError exception. ?
+	 */
+
+// 	ToDo
+// 	Synchronous calls are not supported yet.
+
+	/*
+	 * 10. Terminate the request. (Note: A fetch can be ongoing at this point.)
+	 */
+
+// 	ToDo
+
+	/*
+	 * 11. Set variables associated with the object as follows:
+	 */
+
+	sendFlag = false;														// Unset the send() flag, stop timeout flag, and upload listener flag.
+	stopTimeoutFlag = false;
+	uploadListenerFlag = false;
+
+	// Set request method to method. (see 4.)
+
+// 	ToDo
+// 	Set request URL to parsedURL.
+
+	synchronousFlag = (async_ ? false : true);								// Set the synchronous flag, if async is false, and unset the synchronous flag otherwise.
+
+	authorRequestHeaders = [];												// Empty author request headers.
+
+	response.type = ResponseType.error;										// Set response to a network error.
+	response.status = 0;													// Set received bytes to the empty byte sequence.
+	response.statusText = "";
+	response.headers = {};
+	response.body = null;
+	response.trailer = {};
+
+	responseArrayBuffer = null;												// Set response ArrayBuffer object to null.
+
+	responseBlob = null;													// Set response Blob object to null.
+
+	responseDocument = null;												// Set response Document object to null.
+
+	responseJSON = null;													// Set response JSON object to null.
+
+	/*
+	 * 12. If the state is not opened, run these substeps:
+	 */
+
+	openFlag = true;														// Set state to opened.
+
+	changeReadyState(SpXMLHttpRequest.OPENED);								// Fire an event named readystatechange.
+	};
+
+self.send = function(body_)
+	{
+	if(xhr)
+		sendXHR(body_);
+	else
+		sendSpXHR(body_);
+	}
+
+var sendXHR = function(body_)
+	{
+	//logger.log("SpXMLHttpRequest::send()");
+
+	if(isAsync)														// Setting type is allowed only for asynchronous calls
+		xhr.responseType = self.responseType;
+
+	return xhr.send(body_);
+	};
+
+var sendSpXHR = function(body_)
+	{
+	// References global piperClient
+	//logger.log("SpXMLHttpRequest::send()");
+
+	if (body_)
+		body = body_;
+
+	bodyBytesReceived = 0;
+
+	/*
+	 * 1. If state is not opened, throw an InvalidStateError exception.
+	 */
+	if (!openFlag)
+		return;
+
+	/*
+	 * 2. If the send() flag is set, throw an InvalidStateError exception.
+	 */
+	if (sendFlag && !redirectingFlag)
+		return;
+
+	/*
+	 * 3. If the request method is GET or HEAD, set body to null.
+	 */
+	if (method == "GET" || method == "HEAD")
+		body = null;
+
+	/*
+	 * 4. If body is null, go to the next step.
+	 */
+// 	ToDo
+// 	if (body)
+// 		{
+//
+// 		}
+
+	/*
+	 * 5. If one or more event listeners are registered on the associated XMLHttpRequestUpload object, then set upload listener flag.
+	 */
+	 if (self.upload.onabort || self.upload.onerror || self.upload.ontimeout || self.upload.onprogress ||
+		self.upload.onloadstart || self.upload.onload || self.upload.onloadend)
+		uploadListenerFlag = true;
+
+	/*
+	 * 6. Let req be a new request, initialized as follows:
+	 */
+	request = method + " " + parsedUrl + " HTTP/1.1\r\nHost: " + host;					// 	method - request method
+																						// 	url - request URL
+
+	for(var i = 0; i < authorRequestHeaders.length; i++)								// 	header list - author request headers
+		request += "\r\n" + authorRequestHeaders[i].header + ": " + authorRequestHeaders[i].value;
+
+// 	ToDo
+// 	unsafe-request flag - Set.
+
+	if (body)																			// 	body - request body
+		{
+		request += "\r\nContent-Length: " + body.length + "\r\n";
+		request += body;
+		}
+
+	request = request + "\r\n\r\n";
+
+	var data = LoaderUtil.toab(request);
+	bytesToTransmit = data.byteLength;
+
+//	ToDo
+// 	client - context object's relevant settings object
+// 	synchronous flag - Set if the synchronous flag is set.
+// 	mode - "cors"
+// 	use-CORS-preflight flag - Set if upload listener flag is set.
+// 	credentials mode - If the withCredentials attribute value is true, "include", and "same-origin" otherwise.
+// 	use URL credentials flag - Set if either request URL's username is not the empty string or request URL's password is non-null.
+
+	/*
+	 * 7. Unset the upload complete flag.
+	 */
+	uploadCompleteFlag = false;
+
+	/*
+	 * 8. If req's body is null, set the upload complete flag.
+	 */
+	if (!body)
+		uploadCompleteFlag = true;
+
+	/*
+	 * 9. Set the send() flag.
+	 */
+	sendFlag = true;
+
+	/*
+	 * 10. If the synchronous flag is unset, run these substeps:
+	 */
+	if (!synchronousFlag)
+		{
+		// 10.1 Fire a progress event named loadstart with 0 and 0.
+		if (typeof self.onloadstart === "function" && !redirectingFlag)
+			self.onloadstart(createEvent("loadstart", {loaded: 0, total: 0, lengthComputable: false, target: self}));
+
+		// 10.2 If the upload complete flag is unset and upload listener flag is set, then fire a progress event named
+		//      loadstart on the XMLHttpRequestUpload object with 0 and req's body's total bytes.
+		if (!uploadCompleteFlag && uploadListenerFlag)
+			{
+			if (typeof self.upload.onloadstart === "function" && !redirectingFlag)
+				self.upload.onloadstart(createEvent("loadstart", {loaded: 0, total: request.length, lengthComputable: true, target: self}));
+			}
+
+		// 10.3 Fetch req. Handle the tasks queued on the networking task source per below.
+
+		// Run these subsubsteps in parallel:
+		// 1. Let milliseconds be zero.
+		// 2. Every millisecond, as long as the stop timeout flag is unset, queue a microtask to run these subsubsubsteps:
+		// 2.1 Increase milliseconds by one.
+		// 2.2 If milliseconds is equal or greater than the timeout attribute value and the timeout attribute value is not zero,
+		//     terminate fetching with reason timeout.
+		if (timeoutId)
+			clearInterval(timeoutId);
+
+		timeoutId = null;
+		milliseconds = 0;
+
+		if (self.timeout > 0)
+			{
+			timeoutId = setInterval(function()
+				{
+				if (stopTimeoutFlag)
+					{
+					clearInterval(timeoutId);
+					}
+				else
+					{
+					if (++milliseconds >= self.timeout)
+						{
+						clearInterval(timeoutId);
+
+						// ToDo - timeout event
+						}
+					}
+				}, 1);
+			}
+
+		// To process request body for request, run these subsubsteps:
+		// See ### below
+		}
+	/*
+	 * 11. Otherwise, if the synchronous flag is set, run these substeps:
+	 */
+	else
+		{
+// 	ToDo
+// 	Synchronous calls are not supported yet.
+		}
+
+	/*
+	 * ###
+	 */
+	transmittedBytes = 0;
+
+	piperClient.createTcpTunnel(hostname, port, onBinary, function(pipeId)
+		{
+		// To process request body for request, run these subsubsteps:
+		piperClient.sendTcpBinary(pipeId, data);
+
+		// Note: These subsubsteps are only invoked when new bytes are transmitted.
+		// >>>>>>>>>> This could a listener receiving the number of transmitted bytes. ToDo: Is it possible to monitor connection and get the send bytes?
+		transmittedBytes = bytesToTransmit;
+
+		// 1. If not roughly 50ms have passed since these subsubsteps were last invoked, terminate these subsubsteps.
+// ToDo
+
+		// 2. If upload listener flag is set, then fire a progress event named progress on the XMLHttpRequestUpload object with
+		//    request's body's transmitted bytes and request's body's total bytes.
+// ToDo
+		// <<<<<<<<<<
+
+		requestEndOfBody();
+
+		redirectingFlag = false;
+
+		// Upload phase is ready. The reponse steps of 10. are in onBinary event handler below.
+		});
+	};
+
+self.setRequestHeader = function(header, value)
+	{
+	//logger.log("SpXMLHttpRequest::setRequestHeader()");
+
+	if(xhr)
+		xhr.setRequestHeader(header, value);
+	else
+		{
+		// 1. If state is not opened, throw an InvalidStateError exception.
+		if (!openFlag)
+			return;
+
+		// 2. If the send() flag is set, throw an InvalidStateError exception.
+		if (sendFlag)
+			return;
+
+		// 3. Normalize value.
+		header = header.trim().toLowerCase();
+
+		// 4. If name is not a name or value is not a value, throw a SyntaxError exception.
+		// Note: An empty byte sequence represents an empty header value.
+		// ToDo: Check against real header field names
+		if(!header || !value)
+			return;
+
+		// 5. Terminate these steps if name is a forbidden header name.
+		if(header.match(forbiddenHeaderNames))
+			return;
+
+		// 6. Combine name/value in author request headers.
+		authorRequestHeaders.push({header: header, value: value});
+		}
+	}
+
+self.abort = function()
+	{
+	//logger.log("SpXMLHttpRequest::abort()", URL);
+
+	if(xhr)
+		{
+		self.readyState = SpXMLHttpRequest.UNSENT;
+
+		xhr.abort();
+		}
+	else
+		{
+// ToDo
+		// 1. Terminate the request.
+		// 2. If state is either opened with the send() flag set, headers received, or loading, run the request error steps for event abort.
+		// 3. If state is done, set state to unsent.
+		// Note: No readystatechange event is dispatched.
+		}
+	};
+
+self.getResponseHeader = function(header)
+	{
+	//logger.log("SpXMLHttpRequest::getResponseHeader()");
+
+	if(xhr)
+		return xhr.getResponseHeader(header);
+	else
+		return httpParser.getHeaderValue(header);
+	}
+
+self.getAllResponseHeaders = function()
+	{
+	if(xhr)
+		return xhr.getAllResponseHeaders();
+	else
+		{
+		// 1. Let output be an empty byte sequence.
+		// 2. Let headers be the result of running sort and combine with response's header list.
+		// 3. For each header in headers, run these substeps:
+		// 3.1 Append header's name, followed by a 0x3A 0x20 byte pair, followed by header's value, to output.
+		// 3.2 If header is not the last pair in headers, then append a 0x0D 0x0A byte pair, to output.
+		// 4. Return output.
+		return httpParser.getRawHeaders();
+		}
+	}
+
+self.overrideMimeType = function(mime)
+	{
+	//logger.log("SpXMLHttpRequest::overrideMimeType()");
+
+	if(xhr)
+		return xhr.overrideMimeType(mime);
+	else
+		{
+		// 1. If state is loading or done, throw an InvalidStateError exception.
+		if(self.readyState == SpXMLHttpRequest.LOADING || self.readyState == SpXMLHttpRequest.DONE)
+			return;
+
+		// 2. If parsing mime analogously to the value of the `Content-Type` header fails, throw a SyntaxError exception.
+		// 3. If mime is successfully parsed, set override MIME type to its MIME type, excluding any parameters, and converted to ASCII lowercase.
+		mime = mime.toLowerCase();
+		// 4. If a `charset` parameter is successfully parsed, set override charset to its value.
+		overridedMimeType = mime;
+		}
+	};
+
+self.addEventListener = function(type, listener, obj)
+	{
+	var options = obj;
+
+	if (xhr)
+		xhr.addEventListener(type, listener, obj);
+	else
+		{
+		if(eventListenerTypes.indexOf(type) === -1)
+			return;
+
+		if(typeof obj === "boolean")
+			options = { capture: obj, once: false, passive: false };
+
+		}
+
+	// eventListeners[type] = { listener: listener, options: options };
+	}
+
+self.removeEventListener = function(type, listener, obj)
+	{
+	var options = obj;
+
+	if (xhr)
+		xhr.removeEventListener(type, listener, obj);
+	else
+		{
+		if(typeof obj === "boolean")
+			options = { capture: obj, passive: false };
+
+		}
+	}
+
+self.dispatchEvent = function(event)
+	{
+	if (xhr)
+		xhr.dispatchEvent(event);
+	else
+		{
+
+		}
+	}
+
+	// Private methods -- -- -- -- -- -- -- -- -- -- //
+var onBinary = function(data)
+	{ // Follows roughly "10. If the synchronous flag is unset, run these substeps:"
+	// To process response for response, run these subsubsteps:
+
+	// 1. If the stop timeout flag is unset, set the stop timeout flag.
+	stopTimeoutFlag = true;
+
+	var arr = new Uint8Array(data);
+	//logger.log("SpXMLHttpRequest::onBinary()" + " data: " + ab2str(arr));
+
+	/*
+	 * This is the header chunk
+	 */
+	if (!contentLength)
 		{
 		httpParser.parse(arr);
 
-		//logger.log("SpXMLHttpRequest::onBinary() HTTP server replied with statusCode "+httpParser.getStatusCode());
+		//logger.log("SpXMLHttpRequest::onBinary() HTTP server replied with statusCode " + httpParser.getStatusCode());
 
+		/*
+		 * Redirect
+		 */
 		if (httpParser.getStatusCode() == 301 || httpParser.getStatusCode() == 302)
 			{
-			url = httpParser.getHeaderValue("Location");
-			//logger.log("SpXMLHttpRequest::onBinary() redirecting to : " + url);
+			//logger.log("SpXMLHttpRequest::onBinary() redirecting to : " + parsedUrl);
+
+			redirectingFlag = true;
+			parseURL(httpParser.getHeaderValue("Location"));
 			self.send();
+
 			return;
 			}
 
-		contentLength = httpParser.getHeaderValueAsInt("Content-Length");
+		/*
+		 * Header fields
+		 */
 		contentType = httpParser.getHeaderValue("Content-Type");
+		contentLength = httpParser.getHeaderValueAsInt("Content-Length");		// this class can handle only unpacked bodies
 
-		if (contentLength)
+// ToDo
+		// 2. Set response to response.
+		response.headers = httpParser.getHeaders();
+		response.body = [];
+
+		// 3. Handle errors for response.
+		/*
+		if (#error#)
 			{
-			var temp = arr.subarray(httpParser.getContentBegin());
-
-			fragments.push(temp);
-			bodyBytesReceived = fragments[0].byteLength;
+			response.type = ResponseType.error;
+			response.terminationReason = TerminationReason.fatal;
+			response.status = 0;
+			response.statusText = "";
+			response.headers = {};
+			response.body = null;
 			}
+		*/
+
+		// 4. If response is a network error, return.
+		/*
+		if (isNetworkError())
+			{
+			return;
+			}
+		*/
+
+		// 5. Set state to headers received.
+		// 6. Fire an event named readystatechange.
+		changeReadyState(SpXMLHttpRequest.HEADERS_RECEIVED);
+
+		// 7. If state is not headers received, then return.
+		// Assume the headers are always received
+
+		/*
+		 * Plain header bytes
+		 */
+		if (!contentLength)
+			{
+			// 8. If response's body is null, then run handle response end-of-body and return.
+			responseEndOfBody(true);
+			}
+		/*
+		 * Header + Content (body) bytes
+		 */
+		else
+			{
+			addBytesToFetched(arr.subarray(httpParser.getContentBegin()));
+			}
+
+		// 9. Let reader be the result of getting a reader from response's body's stream.
+		// We do not have a reader
 		}
-	else		//This is some other chunk
+	/*
+	 * This is some other chunk
+	 */
+	else
 		{
-		fragments.push(arr);
-		bodyBytesReceived += arr.byteLength;
+		addBytesToFetched(arr);
 		}
 
-	//logger.log(bodyBytesReceived + " / " + contentLength + " bytes of " + url + " received" );
+	//logger.log(bodyBytesReceived + " / " + contentLength + " bytes of " + parsedUrl + " received" );
 
-	/*if (contentLength && contentLength < bodyBytesReceived)
-		{
-		saveByteArray(fragments, 'example.js');
-		}*/
-
+	/*
+	 *  Body loaded
+	 */
 	if (contentLength && contentLength == bodyBytesReceived)
 		{
 		//!!!!!!!!!!!!!!!!!!commented out for testing in node
 		//if (!overridedMimeType)
-		//	self.response = new Blob(fragments, {type : contentType} );
+		//	self.response = new Blob(response.body, {type : contentType} );
 		//else
-		//	self.response = new Blob(fragments, {type : overridedMimeType} );
+		//	self.response = new Blob(response.body, {type : overridedMimeType} );
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-		for (var i = 0; i < fragments.length; i++)
+		for (var i = 0; i < response.body.length; i++)
 			{
-			if (fragments[i])
-				self.responseText += LoaderUtil.ab2str(fragments[i]);
+			if (response.body[i])
+				self.responseText += LoaderUtil.ab2str(response.body[i]);
 			}
 
-		self.readyState = 4;
-		self.status = 200;
-		self.onreadystatechange();
+		responseEndOfBody(false);
 		}
+
+// onerror == network level error!!! onerror and onload never fire simultaneously. It's either one or the other. However onloadend fires in both cases and is the last event in the row
 	};
 
-self.overrideMimeType = function(mime)
+var addBytesToFetched = function(arr)
 	{
-	overridedMimeType = mime;
-	};
+	// 10. Let read be the result of reading a chunk from response's body's stream with reader.
 
-self.send = function(body)
+	// When read is fulfilled with an object whose done property is false and whose value property is a Uint8Array object,
+	// run these subsubsubsteps and then run the above subsubstep again:
+
+	// 10.1. Append the value property to received bytes.
+	response.body.push(arr);
+	bodyBytesReceived += arr.byteLength;
+
+	// 10.2. If not roughly 50ms have passed since these subsubsubsteps were last invoked, then terminate these subsubsubsteps.
+
+	// 10.3. If state is headers received, then set state to loading.
+	// State is already set to headers received in onBytes
+	// 10.4. Fire an event named readystatechange.
+	//	Note: Web compatibility is the reason readystatechange fires more often than state changes.
+	changeReadyState(SpXMLHttpRequest.LOADING, true);
+
+	// 10.5. Fire a progress event named progress with response's body's transmitted bytes and response's body's total bytes.
+	if (typeof self.onprogress === "function")
+		self.onprogress(createEvent("progress", {loaded: bodyBytesReceived, total: contentLength, lengthComputable: true, target: self}));
+
+	// When read is fulfilled with an object whose done property is true, run handle response end-of-body for response.
+	// This is handled in onBytes
+
+	// When read is rejected with an exception, run handle errors for response.
+	// We do not have a reader
+	}
+
+var requestEndOfBody = function()
 	{
-	//reference global piperClient
-elapsedTime = Date.now();
-	var host = "localhost";
-	var hostname = "localhost";
-	var port = "80";
+	// https://xhr.spec.whatwg.org/#the-send()-method, step 10.
+	// To process request end-of-body for request, run these subsubsteps:
 
-	if (url.indexOf("//") != -1)
+	// 1. Set the upload complete flag.
+	uploadCompleteFlag = true;
+
+	// 2. If upload listener flag is unset, then terminate these subsubsteps.
+	if (!uploadListenerFlag || redirectingFlag)
+		return;
+
+	// 3. Let transmitted be request's body's transmitted bytes.
+	// 4. Let length be request's body's total bytes.
+
+	// 5. Fire a progress event named progress on the XMLHttpRequestUpload object with transmitted and length.
+	if (typeof self.upload.onprogress === "function")
+		self.upload.onprogress(createEvent("progress", {loaded: transmittedBytes, total: bytesToTransmit, lengthComputable: true, target: self}));
+
+	// 6. Fire a progress event named load on the XMLHttpRequestUpload object with transmitted and length.
+	if (typeof self.upload.onload === "function")
+		self.upload.onload(createEvent("load", {loaded: transmittedBytes, total: bytesToTransmit, lengthComputable: true, target: self}));
+
+	// 7. Fire a progress event named loadend on the XMLHttpRequestUpload object with transmitted and length.
+	if (typeof self.upload.onloadend === "function")
+		self.upload.onloadend(createEvent("loadend", {loaded: transmittedBytes, total: bytesToTransmit, lengthComputable: true, target: self}));
+	}
+
+var responseEndOfBody = function(plainHeader)
+	{
+	self.status = httpParser.getStatusCode();
+	self.statusText = httpParser.getStatusText();
+
+	// To handle response end-of-body for response, run these steps:
+
+// ToDo
+	// 1. If the synchronous flag is set, set response to response.
+	// 2. Handle errors for response.
+	// 3. If response is a network error, return.
+	// 4. If the synchronous flag is unset, update response's body using response.
+
+	// 5. Fire a progress event named progress with transmitted and length.
+	if (plainHeader && typeof self.onprogress === "function")
+		self.onprogress(createEvent("progress", {loaded: 0, total: 0, lengthComputable: true, target: self}));
+
+	// 6. Set state to done.
+	// 7. Unset the send() flag.
+	// 8. Fire an event named readystatechange.
+	sendFlag = false;
+	changeReadyState(SpXMLHttpRequest.DONE);
+
+	// 9. Let transmitted be response's body's transmitted bytes.
+	// 10. Let length be response's body's total bytes.
+	// 11. Fire a progress event named load with transmitted and length.
+	// 12. Fire a progress event named loadend with transmitted and length.
+	if (typeof self.onload === "function")
+		self.onload(createEvent("load", {loaded: bodyBytesReceived, total: (contentLength ? contentLength : 0), lengthComputable: true, target: self}));
+
+	if (typeof self.onloadend === "function")
+		self.onloadend(createEvent("loadend", {loaded: bodyBytesReceived, total: (contentLength ? contentLength : 0), lengthComputable: true, target: self}));
+	}
+
+var responseError = function()
+	{
+	}
+
+var requestError = function(type)
+	{
+	}
+
+var createEvent = function(type, options)
+	{
+	var evt;
+
+	/*if (typeof exports === "undefined")
 		{
-		//it is an absolute url
-		var tempUrl = new URL(url);
+		evt = document.createEvent("Event");
+		evt.initEvent(type, false, false);
+		}
+	else
+		{
+		evt = {type: type};
+		}*/
+	evt = {type: type};
 
-		if (tempUrl.hostname=="10.0.0.1")
-			{
+	if (options)
+		{
+		for(var i in options)
+			evt[i] = options[i];
+		}
+
+	return evt;
+	}
+
+var changeReadyState = function(newReadyState, repeat/**/)
+	{
+	if (self.readyState != newReadyState || repeat)
+		{
+		self.readyState = newReadyState;
+
+		if (typeof self.onreadystatechange === "function")
+			self.onreadystatechange(createEvent("readystatechange", {target: self}));
+		}
+	}
+
+var parseURL = function(url_)
+	{
+	var tempUrl;
+
+	if (url_.indexOf("//") != -1)											// It is an absolute url
+		{
+		tempUrl = new URL(url_);
+
+		if (tempUrl.hostname == "10.0.0.1")
 			tempUrl.hostname = "localhost";
-			}
 
 		host = tempUrl.host;
 
@@ -2903,59 +3819,58 @@ elapsedTime = Date.now();
 		if (tempUrl.port)
 			port = tempUrl.port;
 
-		url = tempUrl.toString();
+		parsedUrl = tempUrl.toString();
 		}
 	else
 		{
-		if (url.charAt(0)!="/")
-			url="/"+url;
+		tempUrl = url_;
+
+		if (tempUrl.charAt(0) != "/")
+			tempUrl = "/" + tempUrl;
+
+		parsedUrl = tempUrl;
 		}
 
-	var request = method + " " + url + " HTTP/1.1\r\nHost: " + host;
+	url = url_;
+	}
 
-	var cookies = LoaderUtil.getSession("sessionCookies");
+var getXhrAttributes = function()
+	{
+	self.status = xhr.status;
+	self.statusText = xhr.statusText;
+	self.response = xhr.response;
+	self.readyState = xhr.readyState;
+	self.responseURL = xhr.responseURL;
+	self.responseType = xhr.responseType;
 
-	if (cookies)
-		request = request + "\r\nCookie: " + cookies;
+	if(self.responseType == XMLHttpRequestResponseType.DOMSTRING || self.responseType == XMLHttpRequestResponseType.TEXT)
+		self.responseText = xhr.responseText;
 
-	for(var i = 0; i < requestHeaders.length; i++)
-		request += "\r\n" + requestHeaders[i].header + ": " + requestHeaders[i].value;
-	requestHeaders = [];
+	if(self.responseType == XMLHttpRequestResponseType.DOCUMENT && isAsync)
+		self.responseXML = xhr.responseXML;
 
-	if(body)
-		{
-		request += "\r\nContent-Length: " + body.length + "\r\n";
-		request += body;
-		}
-
-	request = request + "\r\n\r\n";
-
-	var data = LoaderUtil.toab(request);
-
-	//logger.log("SpXMLHttpRequest::send() making request: " + request);
-
-	piperClient.createTcpTunnel(hostname, port, self.onBinary, function(pipeId)
-		{
-		piperClient.sendTcpBinary(pipeId, data);
-		});
+	self.upload = xhr.upload;
+	self.timeout = xhr.timeout;
+	self.withCredentials = xhr.withCredentials;
 	};
 
-self.setRequestHeader = function(header, value)
+var isNetworkError = function()
 	{
-	requestHeaders.push({header: header, value: value});
+	return (response.type == ResponseType.error && response.status == 0 && response.statusText == "" &&
+			Object.keys(response.headers) == 0 && response.body == null && Object.keys(response.trailer) == 0 ? true : false);
 	}
 
-self.getResponseHeader = function(name)
-	{
-	return httpParser.getHeaderValue(name);
-	}
+	//return new Proxy(self, handler);
 }
-//window.XMLHttpRequest = SpXMLHttpRequest;
+
+	// Const
 SpXMLHttpRequest.UNSENT = 0;
 SpXMLHttpRequest.OPENED = 1;
 SpXMLHttpRequest.HEADERS_RECEIVED = 2;
 SpXMLHttpRequest.LOADING = 3;
 SpXMLHttpRequest.DONE = 4;
+
+SpXMLHttpRequest.OriginalXMLHttpRequest = (typeof window !== "undefined" ? window.XMLHttpRequest : null);
 
 if (typeof exports !== "undefined")
 	{
@@ -3118,48 +4033,68 @@ var connectionListener = null;
 var elements = null;
 var elementIndex = 0;
 
-var sessionTokenName = "X-Edge-Session";
+var sessionTokenName = "x-edge-session";
 
 self.loadData = function(element, callback)
 	{
-	var sp_type, sp_host, type, url, xhr = new SpXMLHttpRequest();
+	var sp_type, sp_host, type, url, xhr = new XMLHttpRequest();
 
-	if(element.getAttribute("sp_src"))
+	if (element.getAttribute("sp_src"))
 		{ sp_type = "sp_src"; type = "src"; }
-	else if(element.getAttribute("spe_src"))
+	else if (element.getAttribute("spe_src"))
 		{ sp_type = "spe_src"; type = "src"; }
-	else if(element.getAttribute("sp_href"))
+	else if (element.getAttribute("sp_href"))
 		{ sp_type = "sp_href"; type = "href"; }
-	else if(element.getAttribute("spe_href"))
+	else if (element.getAttribute("spe_href"))
 		{ sp_type = "spe_href"; type = "href"; }
+	else if (element.getAttribute("sp_bgnd"))
+		{ sp_type = "sp_bgnd"; type = ""; }
 
 	url = element.getAttribute(sp_type);
 
 	sp_host = (sp_type == "spe_src" || sp_type == "spe_href" ? speHost : spHost);
 
-	if(url.indexOf("//") == -1 && sp_host)							// Relative URLs fail to load without host
+	if (url.indexOf("//") == -1 && sp_host)							// Relative URLs fail to load without host
 		url = new URL(url, sp_host).toString()
 
-	if(!url)
+	if (!url)
 		{
-		callback();
+		if (typeof callback === "function")
+			callback();
+
 		return;
 		}
 
-	xhr.onreadystatechange = function()
+	//xhr.onreadystatechange = function()
+	xhr.addEventListener("loadend", function(e)
 		{
 		if (xhr.readyState == 4)
 			{
 			var blob = xhr.response;
 			element.onload = function(e)
 				{
-				window.URL.revokeObjectURL(element[type]);			// Clean up after yourself
+				if(sp_type != "sp_bgnd")
+					window.URL.revokeObjectURL(element[type]);			// Clean up after yourself
+
+				if (typeof callback === "function")
+					callback();
 				};
-			element[type] = window.URL.createObjectURL(blob);
+
+			if(sp_type == "sp_bgnd")
+				{
+				var reader = new window.FileReader();
+				reader.readAsDataURL(blob);
+				reader.onloadend = function()
+					{
+					element.style.backgroundImage = "url(" + reader.result + ")";
+					}
+				}
+			else
+				element[type] = window.URL.createObjectURL(blob);
+
 			element.removeAttribute(sp_type);
-			callback();
 			}
-		};
+		});
 
 	xhr.open("GET", url, true);
 	xhr.responseType = "blob";
@@ -3168,35 +4103,46 @@ self.loadData = function(element, callback)
 
 self.postData = function(url, post, responseType, callback)
 	{
-	var xhr = new SpXMLHttpRequest();
+	var hvalue;
+	var xhr = new XMLHttpRequest();
 
-	xhr.onreadystatechange = function()
+	//xhr.onreadystatechange = function()
+	xhr.addEventListener("loadend", function(e)
 		{
 		if (xhr.readyState == 4)
 			{
 			LoaderUtil.setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
-			LoaderUtil.setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+
+			if ((hvalue = xhr.getResponseHeader(sessionTokenName)))
+				LoaderUtil.setSession(sessionTokenName, hvalue);
 
 			if (xhr.status != 200)
-				callback(xhr.status, null);
-			else if(xhr.response instanceof Blob)
+				{
+				if (typeof callback === "function")
+					callback(xhr.status, null);
+				}
+			else if (xhr.response instanceof Blob)
 				{
 				var reader = new FileReader();
 				reader.onload = function(err)
 					{
-					callback(null, reader.result);
+					if (typeof callback === "function")
+						callback(null, reader.result);
 					}
 				reader.readAsText(xhr.response.data, "UTF-8");
 				}
 			else
-				callback(null, JSON.stringify(xhr.response));
+				{
+				if (typeof callback === "function")
+					callback(null, JSON.stringify(xhr.response));
+				}
 			}
-		};
+		});
 
 	var boundary = "---------------------------" + Date.now().toString(16);
 
 	var body = "";
-	for(var i = 0; i < post.length; i++)
+	for (var i = 0; i < post.length; i++)
 		{
 		body += "\r\n--" + boundary + "\r\n";
 
@@ -3207,24 +4153,28 @@ self.postData = function(url, post, responseType, callback)
 
 	xhr.withCredentials = true;
 	xhr.open("POST", url, true);
-	xhr.setRequestHeader(sessionTokenName, LoaderUtil.getSession(sessionTokenName));
 	xhr.responseType = (responseType ? responseType : "text");
+	xhr.setRequestHeader("Cookie", LoaderUtil.getSession("sessionCookies"));
+	xhr.setRequestHeader(sessionTokenName, LoaderUtil.getSession(sessionTokenName));
 	xhr.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + boundary);
 	xhr.send(body);
 	};
 
 self.loadPage = function(url, spHost_, speHost_)
 	{
-	var xhr = new SpXMLHttpRequest();
+	var xhr = new XMLHttpRequest();
 
-	xhr.onreadystatechange = function()
+	//xhr.onreadystatechange = function()
+	xhr.addEventListener("loadend", function(e)
 		{
-		//console.log("SpaceifyLoader::loadPage() content arrived, readyState=="+xhr.readyState);
+		//console.log("SpaceifyLoader::loadPage() content arrived, readyState==" + xhr.readyState);
 
 		if (xhr.readyState == 4)
 			{
 			LoaderUtil.setSession("sessionCookies", xhr.getResponseHeader("Set-Cookie"));
-			LoaderUtil.setSession(sessionTokenName, xhr.getResponseHeader(sessionTokenName));
+
+			if ((hvalue = xhr.getResponseHeader(sessionTokenName)))
+				LoaderUtil.setSession(sessionTokenName, hvalue);
 
 			var newDoc = document.open("text/html", "replace");
 			newDoc.write(xhr.responseText);
@@ -3233,11 +4183,11 @@ self.loadPage = function(url, spHost_, speHost_)
 			newDoc.loadPageSpHost = spHost_;
 			newDoc.loadPageSpeHost = speHost_;
 			}
-
-		}
+		});
 
 	xhr.withCredentials = true;
 	xhr.open("GET", url, true);
+	xhr.setRequestHeader("Cookie", LoaderUtil.getSession("sessionCookies"));
 	xhr.setRequestHeader(sessionTokenName, LoaderUtil.getSession(sessionTokenName));
 	xhr.send(null);
 	};
@@ -3252,15 +4202,11 @@ self.getAllElements = function()
 
 	var spe_href = Array.prototype.slice.call(document.querySelectorAll("[spe_href]"));
 
-	elements = spe_href.concat(sp_href, spe_src, sp_src);							// Order: edge css, local css, edge resource, local resource
+	var sp_bgnd = Array.prototype.slice.call(document.querySelectorAll("[sp_bgnd]"));
 
-	console.log("SpaceifyLoader::loadAll() :: Number of elements with sp_src:", sp_src.length, "spe_src:", spe_src.length, "sp_href:", sp_href.length, "spe_href:", spe_href.length);
-	};
+	elements = spe_href.concat(sp_href, spe_src, sp_src, sp_bgnd);						// Order: edge css, local css, edge resource, local resource, css background
 
-self.loadAllElements = function()
-	{
-	elementIndex = 0;
-	recurseElements();
+	console.log("SpaceifyLoader::loadAll() :: Number of elements with sp_src:", sp_src.length, "spe_src:", spe_src.length, "sp_href:", sp_href.length, "spe_href:", spe_href.length, "sp_bgnd:", sp_bgnd.length);
 	};
 
 self.hasElements = function()
@@ -3268,15 +4214,14 @@ self.hasElements = function()
 	return (elements && elements.length > 0 ? true : false);
 	}
 
-	// functions from former contentloader.js end -- -- -- -- -- -- -- -- -- -- //
-var recurseElements = function()
+self.recurseElements = function()
 	{
 	if (elementIndex < elements.length)
 		{
 		self.loadData(elements[elementIndex], function()
 			{
 			elementIndex++;
-			recurseElements();
+			self.recurseElements();
 			});
 		}
 	else
@@ -3293,14 +4238,18 @@ self.parseQuery = function(url)
 
 	url = decodeURIComponent(url);
 
-	part = url.split("?");												// url with search or just the search
+	if(url.indexOf("url=blob") != -1)													// Hash is for blob urls
+		part = url.split("#");
+	else																				// Question mark is for regular urls
+		part = url.split("?");
+
 	part = (part.length < 2 ? part[0] : part[1]);
 
 	pairs = part.split("&");
 
-	for(var i = 0, length = pairs.length; i < length; i++)
+	for (var i = 0, length = pairs.length; i < length; i++)
 		{
-		if(!pairs[i])
+		if (!pairs[i])
 			continue;
 
 		pair = pairs[i].split("=");
@@ -3322,6 +4271,7 @@ self.connect = function(host, port, callback)
 		{
 		if (connectionListener)
 			connectionListener();
+
 		callback();
 		});
 	};
@@ -3336,37 +4286,66 @@ self.setConnectionListener = function(lis)
 }
 
 	// -- -- -- -- -- -- -- -- -- -- //
+var spaceifyLoader = new SpaceifyLoader();
+
 function getNetworkInfo(callback)
 	{
+	/*
 	window.isSpaceifyNetwork = false;
 
-	var xhr = new XMLHttpRequest();
+	//var xhr = (SpXMLHttpRequest.OriginalXMLHttpRequest ? new SpXMLHttpRequest.OriginalXMLHttpRequest() : new XMLHttpRequest());
+	var xhr = new window.XMLHttpRequest();
+
 	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
 	xhr.timeout = 1000;
 	xhr.onreadystatechange = function()
 		{
-		if(xhr.readyState == 4)
+		if (xhr.readyState == 4)
 			{
 			window.isSpaceifyNetwork = (xhr.status >= 200 && xhr.status < 304 ? true : false);
 			callback();
 			}
 		};
 	xhr.send();
+	*/
+
+	window.isSpaceifyNetwork = false;
+
+	var protocol = window.location.href.replace("blob:", "");
+	var pos = protocol.indexOf(":");
+
+	if(pos != -1)
+		protocol = protocol.substring(0, pos + 1);
+	else
+		protocol = window.location.protocol;
+
+	var ws = new WebSocket((protocol == "http:" ? "ws" : "wss") + "://edge.spaceify.net:2947", "json-rpc");
+
+	ws.onopen = function()
+		{
+		window.isSpaceifyNetwork = true;
+		ws.close();
+		callback();
+		}
+
+	ws.onerror = function(err)
+		{
+		ws.close();
+		callback();
+		}
 	}
 
-var spaceifyLoader = new SpaceifyLoader();
-var contentLoader = spaceifyLoader;										// for leagacy templates compatibility
 function prepareLoader(sp_host, spe_host)
 	{
 	spaceifyLoader.setSpHosts(sp_host, spe_host);
 
-	if(window.isSpaceifyNetwork)
-		{
-		SpXMLHttpRequest = window.XMLHttpRequest;
-		}
+	if (window.isSpaceifyNetwork)
+		window.XMLHttpRequest = SpXMLHttpRequest.OriginalXMLHttpRequest;
 	else
 		{
 		window.isSpaceifyNetwork = false;
+
+		window.XMLHttpRequest = SpXMLHttpRequest;
 
 		spaceifyLoader.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, function()
 			{
@@ -3375,28 +4354,31 @@ function prepareLoader(sp_host, spe_host)
 	}
 
 function loadPageOrElements(params)
-{
+	{
 	spaceifyLoader.getAllElements();
 
-	if(!spaceifyLoader.hasElements())
+	if (!spaceifyLoader.hasElements())
 		spaceifyLoader.loadPage(params.sp_host + params.sp_path, params.sp_host, params.spe_host);
 	else
-		spaceifyLoader.loadAllElements();
-}
+		{
+		elementIndex = 0;
+		spaceifyLoader.recurseElements();
+		}
+	}
 
 window.onload = function()
 	{
 	var sp_host, spe_host;
 
 	var params = spaceifyLoader.parseQuery(window.location.href);
-	if(!params.sp_host)
+	if (!params.sp_host)
 		{
 		sp_host = spe_host = window.location.protocol + "//" + window.location.hostname + "/";
 
-		if(typeof document.loadPageSpHost != "undefined")
+		if (typeof document.loadPageSpHost != "undefined")
 			sp_host = document.loadPageSpHost;
 
-		if(typeof document.loadPageSpeHost != "undefined")
+		if (typeof document.loadPageSpeHost != "undefined")
 			spe_host = document.loadPageSpeHost;
 
 		params = { sp_host: sp_host, spe_host: spe_host, sp_path: "index.html" };
@@ -3404,7 +4386,7 @@ window.onload = function()
 
 	getNetworkInfo(function()
 		{
-		if(!window.isSpaceifyNetwork)
+		if (!window.isSpaceifyNetwork)
 			{
 			spaceifyLoader.setConnectionListener(function()
 				{

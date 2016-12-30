@@ -25,10 +25,11 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
+var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
-var connection = (isSpaceifyNetwork ? new WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : piperClient);
 
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
@@ -57,7 +58,7 @@ self.connect = function(managerOrigin_, callerOrigin_)
 		connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
 		connection.exposeRpcMethod("end", self, end);
 
-		if(isSpaceifyNetwork)
+		if(isSpaceifyNetwork || isNodeJs)
 			{				
 			connection.connect({hostname: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true}, function(err, data)
 				{
@@ -107,14 +108,16 @@ var fail = function(err, connObj, callback)
 
 	managerOrigin.fail(err);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var error = function(err, connObj, callback)
 	{
 	errors.push(err);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var warning = function(message_, code, connObj, callback)
@@ -124,7 +127,8 @@ var warning = function(message_, code, connObj, callback)
 	if(callerOrigin.warning)
 		callerOrigin.warning(message_, code);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var notify = function(message_, code, connObj, callback)
@@ -132,7 +136,8 @@ var notify = function(message_, code, connObj, callback)
 	if(callerOrigin.notify)
 		callerOrigin.notify(message_, code, connObj, callback);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var message = function(message_, connObj, callback)
@@ -140,7 +145,8 @@ var message = function(message_, connObj, callback)
 	if(callerOrigin.message)
 		callerOrigin.message(message_);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var stdout = function(message_, connObj, callback)
@@ -148,7 +154,8 @@ var stdout = function(message_, connObj, callback)
 	if(callerOrigin.stdout)
 		callerOrigin.stdout(message_);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var question = function(message_, choices, origin, answerCallBackId, connObj, callback)
@@ -156,7 +163,8 @@ var question = function(message_, choices, origin, answerCallBackId, connObj, ca
 	if(callerOrigin.question)
 		callerOrigin.question(message_, choices, origin, answerCallBackId);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 	
 var questionTimedOut = function(message_, origin, answerCallBackId, connObj, callback)
@@ -164,23 +172,28 @@ var questionTimedOut = function(message_, origin, answerCallBackId, connObj, cal
 	if(callerOrigin.questionTimedOut)
 		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 var end = function(message_, connObj, callback)
 	{
 	managerOrigin.ready(1);
 
-	callback(null, true);
+	if(typeof callback === "function")
+		callback(null, true);
 	}
 
 	// Response methods -- -- -- -- -- -- -- -- -- -- //
 self.sendAnswer = function(answer, answerCallBackId)
 	{
-	if (isSpaceifyNetwork)
+	if (isSpaceifyNetwork || isNodeJs)
 		connection.callRpc("answer", [messageId, answer, answerCallBackId]);
 	else
 		connection.callClientRpc(pipeId, "answer", [messageId, answer, answerCallBackId]);
 	}
 
 }
+
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyMessages;

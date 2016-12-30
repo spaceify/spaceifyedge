@@ -21,6 +21,7 @@ var Messaging = require("./messaging");
 var SpaceifyError = require("./spaceifyerror");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 var SpaceifyNetwork = require("./spaceifynetwork");
 var EdgeSpaceifyNet = require("./edgespaceifynet");
@@ -35,6 +36,7 @@ var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
@@ -484,13 +486,13 @@ var source = fibrous( function(applicationPackage, username, password, cwd)
 
 var list = fibrous( function(type, bVerbose)
 	{
+	var tmp;
 	var keys;
 	var bLast;
-	var injfil;
-	var i, j, t;
 	var manifest;
-	var path = "";
 	var continues;
+	var i, j, type;
+	var brokenInstallation;
 
 	var x = {
 			spacelet: [language.INSTALLED_HEADERS[config.SPACELET]],
@@ -507,138 +509,147 @@ var list = fibrous( function(type, bVerbose)
 		{
 		for(i = 0; i < dbApps.length; i++)
 			{
-			t = dbApps[i].type;
+			type = dbApps[i].type;
+
+			try {
+				manifest = utility.sync.loadJSON(unique.getAppPath(type, dbApps[i].unique_name, config) + config.MANIFEST, true, true);
 				
+				brokenInstallation = false;
+				}
+			catch(err)
+				{
+				brokenInstallation = true;
+				}
+
 			bLast = (i == dbApps.length - 1 || (i < dbApps.length - 1 && dbApps[i].type != dbApps[i + 1].type));
 
-			x[t].push(p);
+			x[type].push(p);
 
-			x[t].push((bLast ? al : ml) + (bVerbose ? tee : left) + dbApps[i].unique_name + ", v" + dbApps[i].version);
+			tmp = (bLast ? al : ml) + (bVerbose ? tee : left) + s(dbApps[i].unique_name) + ", v" + dbApps[i].version;
+			if(brokenInstallation)
+				tmp += language.M_BROKEN_INSTALLATION;
+			x[type].push(tmp);
 
-			if(bVerbose)
+			if(bVerbose && !brokenInstallation)
 				{
-				path = config.APP_TYPE_PATHS[t];
-
-				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.VOLUME_APPLICATION_PATH + config.MANIFEST, true);
-
 				continues = (bLast ? ssmll : psmll);
 
-				x[t].push(continues + language.M_NAME + manifest.name);
+				x[type].push(continues + language.M_NAME + manifest.name);
 
-				x[t].push(continues + language.M_CATEGORY + utility.ucfirst(manifest.category));
+				x[type].push(continues + language.M_CATEGORY + utility.ucfirst(manifest.category));
 
 				if(manifest.type == config.SPACELET)
 					{
-					x[t].push(continues + language.M_SHARED + (manifest.shared ? language.M_YES : language.M_NO));
+					x[type].push(continues + language.M_SHARED + (manifest.shared ? language.M_YES : language.M_NO));
 
-					x[t].push((bLast ? ssmlt : psmlt) + language.M_INJECT);
+					x[type].push((bLast ? ssmlt : psmlt) + language.M_INJECT);
 
-					x[t].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
+					x[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
 
-					x[t].push((bLast ? sspsmlt : pspsmlt) + language.M_ORIGINS);
+					x[type].push((bLast ? sspsmlt : pspsmlt) + language.M_ORIGINS);
 					for(j = 0; j < manifest.inject_hostnames.length; j++)
-						x[t].push((bLast ? ss : ps) + (j < manifest.origins.length - 1 ? pspsmll : pspsall) + manifest.origins[j]);
+						x[type].push((bLast ? ss : ps) + (j < manifest.origins.length - 1 ? pspsmll : pspsall) + s(manifest.origins[j]));
 
-					x[t].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
+					x[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
 
-					x[t].push((bLast ? sspsmlt : pspsmlt) + language.M_INJECT_HOSTNAMES);
+					x[type].push((bLast ? sspsmlt : pspsmlt) + language.M_INJECT_HOSTNAMES);
 					for(j = 0; j < manifest.inject_hostnames.length; j++)
-						x[t].push((bLast ? ss : ps) + (j < manifest.inject_hostnames.length - 1 ? pspsmll : pspsall) + manifest.inject_hostnames[j]);
+						x[type].push((bLast ? ss : ps) + (j < manifest.inject_hostnames.length - 1 ? pspsmll : pspsall) + s(manifest.inject_hostnames[j]));
 
-					x[t].push((bLast ? sspsalt : pspsalt) + language.M_INJECT_FILES);
+					x[type].push((bLast ? sspsalt : pspsalt) + language.M_INJECT_FILES);
 					for(j = 0; j < manifest.inject_files.length; j++)
 						{
-						injfil = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
-						x[t].push((bLast ? ss :  ps) + (j < manifest.inject_files.length - 1 ? psssmll : psssall) + injfil);
+						tmp = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
+						x[type].push((bLast ? ss :  ps) + (j < manifest.inject_files.length - 1 ? psssmll : psssall) + s(tmp));
 						}
 					}
 
 				if(manifest.start_command)
-					x[t].push(continues + language.M_START_COMMAND + manifest.start_command);
+					x[type].push(continues + language.M_START_COMMAND + manifest.start_command);
 
 				if(manifest.stop_command)
-					x[t].push(continues + language.M_STOP_COMMAND + manifest.stop_command);
+					x[type].push(continues + language.M_STOP_COMMAND + manifest.stop_command);
 
 				if(manifest.docker_image)
-					x[t].push(continues + language.M_DOCKER_IMAGE + (manifest.docker_image ? language.M_YES : language.M_NO));
+					x[type].push(continues + language.M_DOCKER_IMAGE + (manifest.docker_image ? language.M_YES : language.M_NO));
 
 				if(manifest.install_commands)
 					{
-					x[t].push((bLast ? ss : ps) + mlt + language.M_INSTALL_COMMANDS);
+					x[type].push((bLast ? ss : ps) + mlt + language.M_INSTALL_COMMANDS);
 					for(j = 0; j < manifest.install_commands.length; j++)
-						x[t].push((bLast ? ss : ps) + ps + (j < manifest.install_commands.length - 1 ? mll : all) + manifest.install_commands[j].file);
+						x[type].push((bLast ? ss : ps) + ps + (j < manifest.install_commands.length - 1 ? mll : all) + s(manifest.install_commands[j].file));
 					}
 
 				if(manifest.implements)
-					x[t].push(continues + language.M_IMPLEMENTS + manifest.implements);
+					x[type].push(continues + language.M_IMPLEMENTS + manifest.implements);
 
 				if(manifest.short_description)
-					x[t].push(continues + language.M_SHORT_DESCRIPTION + manifest.short_description);
+					x[type].push(continues + language.M_SHORT_DESCRIPTION + manifest.short_description);
 
 				if(manifest.key_words)
 					{
-					x[t].push((bLast ? ss : ps) + mlt + language.M_KEY_WORDS);
+					x[type].push((bLast ? ss : ps) + mlt + language.M_KEY_WORDS);
 					for(j = 0; j < manifest.key_words.length; j++)
-						x[t].push((bLast ? ss : ps) + ps + (j < manifest.key_words.length - 1 ? mll : all) + manifest.key_words[j].file);
+						x[type].push((bLast ? ss : ps) + ps + (j < manifest.key_words.length - 1 ? mll : all) + s(manifest.key_words[j].file));
 					}
 
 				if(manifest.license)
-					x[t].push(continues + language.M_LICENSE + manifest.license);
+					x[type].push(continues + language.M_LICENSE + manifest.license);
 
 				if(manifest.repository)
-					x[t].push(continues + language.M_REPOSITORY + manifest.repository);
+					x[type].push(continues + language.M_REPOSITORY + manifest.repository);
 
 				if(manifest.web_url)
-					x[t].push(continues + language.M_WEB_URL + manifest.web_url);
+					x[type].push(continues + language.M_WEB_URL + manifest.web_url);
 
 				if(manifest.bugs)
-					x[t].push(continues + language.M_BUGS + manifest.bugs);
+					x[type].push(continues + language.M_BUGS + manifest.bugs);
 
 				if(manifest.developer)
-					x[t].push(continues + language.M_DEVELOPER + manifest.developer.name + (manifest.developer.email ? " <" + manifest.developer.email + ">" : "") + (manifest.developer.url ? ", " + manifest.developer.url : ""));
+					x[type].push(continues + language.M_DEVELOPER + manifest.developer.name + (manifest.developer.email ? " <" + manifest.developer.email + ">" : "") + (manifest.developer.url ? ", " + manifest.developer.url : ""));
 
 				if(manifest.contributors)
 					{
-					x[t].push((bLast ? ss : ps) + (bRS ? mlt : alt) + language.M_CONTRIBUTORS);
+					x[type].push((bLast ? ss : ps) + (bRS ? mlt : alt) + language.M_CONTRIBUTORS);
 					for(j = 0; j < manifest.contributors.length; j++)
-						x[t].push((bLast ? ss : ps) + (bRS ? ps : ss) + (j < manifest.contributors.length - 1 ? mll : all) + manifest.contributors[j].name + (manifest.contributors[j].email ? " <" + manifest.contributors[j].email + ">" : "") + (manifest.contributors[j].url ? ", " + manifest.contributors[j].url : ""));
+						x[type].push((bLast ? ss : ps) + (bRS ? ps : ss) + (j < manifest.contributors.length - 1 ? mll : all) + manifest.contributors[j].name + (manifest.contributors[j].email ? " <" + manifest.contributors[j].email + ">" : "") + (manifest.contributors[j].url ? ", " + s(manifest.contributors[j].url) : ""));
 					}
 
 				if(manifest.creation_date)
-					x[t].push(continues + language.M_CREATION_DATE + manifest.creation_date);
+					x[type].push(continues + language.M_CREATION_DATE + manifest.creation_date);
 
 				if(manifest.publish_date)
-					x[t].push(continues + language.M_PUBLISH_DATE + manifest.publish_date);
+					x[type].push(continues + language.M_PUBLISH_DATE + manifest.publish_date);
 
 				if(manifest.install_datetime)
-					x[t].push(continues + language.M_INSTALLATION_DATE + dbApps[i].install_datetime);
+					x[type].push(continues + language.M_INSTALLATION_DATE + dbApps[i].install_datetime);
 
 				if(manifest.images)
 					{
-					x[t].push((bLast ? ss : ps) + mlt + language.M_IMAGES);
+					x[type].push((bLast ? ss : ps) + mlt + language.M_IMAGES);
 					for(j = 0; j < manifest.images.length; j++)
-						x[t].push((bLast ? ss : ps) + ps + (j < manifest.images.length - 1 ? mll : all) + (manifest.images[j].directory ? manifest.images[j].directory + "/" : "") + manifest.images[j].file + (manifest.images[j].title ? ", " + manifest.images[j].title : ""));
+						x[type].push((bLast ? ss : ps) + ps + (j < manifest.images.length - 1 ? mll : all) + s("") + (manifest.images[j].directory ? manifest.images[j].directory + "/" : "") + manifest.images[j].file + (manifest.images[j].title ? ", " + manifest.images[j].title : ""));
 					}
 
 				if(manifest.provides_services)
 					{
-					x[t].push((bLast ? ss : ps) + mlt + language.M_PROVIDES_SERVICES);
+					x[type].push((bLast ? ss : ps) + mlt + language.M_PROVIDES_SERVICES);
 					for(j = 0; j < manifest.provides_services.length; j++)
-						x[t].push((bLast ? ss : ps) + ps + (j < manifest.provides_services.length - 1 ? mll : all) + manifest.provides_services[j].service_name + ", " + manifest.provides_services[j].service_type);
+						x[type].push((bLast ? ss : ps) + ps + (j < manifest.provides_services.length - 1 ? mll : all) + s(manifest.provides_services[j].service_name) + ", " + manifest.provides_services[j].service_type);
 					}
 
 				if(manifest.requires_services)
 					{
-					x[t].push((bLast ? ss : ps) + mlt + language.M_REQUIRES_SERVICES);
+					x[type].push((bLast ? ss : ps) + mlt + language.M_REQUIRES_SERVICES);
 					for(j = 0; j < manifest.requires_services.length; j++)
-						x[t].push((bLast ? ss : ps) + ps + (j < manifest.requires_services.length - 1 ? mll : all) + manifest.requires_services[j].service_name);
+						x[type].push((bLast ? ss : ps) + ps + (j < manifest.requires_services.length - 1 ? mll : all) + s(manifest.requires_services[j].service_name));
 					}
 
 				// Is running
-				x[t].push(continues + language.M_IS_RUNNING + (dbApps[i].isRunning ? language.M_YES : language.M_NO));
+				x[type].push(continues + language.M_IS_RUNNING + (dbApps[i].isRunning ? language.M_YES : language.M_NO));
 
 				// Is develop mode
-				x[t].push((bLast ? ss : ps) + all + language.M_IS_DEVELOP + (dbApps[i].isDevelop? language.M_YES : language.M_NO));
+				x[type].push((bLast ? ss : ps) + all + language.M_IS_DEVELOP + (dbApps[i].isDevelop? language.M_YES : language.M_NO));
 				}
 			}
 		}
@@ -654,8 +665,8 @@ var list = fibrous( function(type, bVerbose)
 			logger.force(x[keys[k]][i]);
 			}
 
-		if(k + 1 < keys.length && x[keys[k]].length > 1)
-			logger.force("");
+//		if(k + 1 < keys.length && x[keys[k]].length > 1)
+//			logger.force("");
 		}
 
 	disconnect();
@@ -677,14 +688,18 @@ var getServiceRuntimeStates = fibrous( function()
 	var applicationCount = 0;
 	var states = appManConnection.sync.callRpc("getServiceRuntimeStates", [sessionId], self);
 
+	var x = {
+			spacelet: [language.RUNNING_HEADERS[config.SPACELET]],
+			sandboxed: [language.RUNNING_HEADERS[config.SANDBOXED]],
+			sandboxed_debian: [language.RUNNING_HEADERS[config.SANDBOXED_DEBIAN]],
+			native_debian: [language.RUNNING_HEADERS[config.NATIVE_DEBIAN]]
+			};
+
 	keys = Object.keys(states);
 	for(var k = 0; k < keys.length; k++)
 		{
 		type = keys[k];
 		unique_names = Object.keys(states[type]);
-
-		if(unique_names.length > 0)
-			logger.force(language.RUNNING_HEADERS[config.APP_TYPE_NUMBER[type]]);
 
 		applications = states[type];
 		applicationCount += unique_names.length;
@@ -693,39 +708,54 @@ var getServiceRuntimeStates = fibrous( function()
 			isLastApplication = (n + 1 == unique_names.length ? true : false);
 			lastApplication = (!isLastApplication ? p : " ");
 
-			logger.force(p);
-			logger.force((isLastApplication ? alt : mlt), unique_names[n]);
+			x[type].push(p);
+
+			x[type].push((isLastApplication ? alt : mlt) + s(unique_names[n]));
 
 			services = applications[unique_names[n]].services;
-			for(var s = 0; s < services.length; s++)
+			for(var m = 0; m < services.length; m++)
 				{
-				isLastService = (s + 1 == services.length ? true : false);
-				lastService = (!isLastService ? p : " ");
+				isLastService = (m + 1 == services.length ? true : false);
+				lastService = (!isLastService ? ps : "  ");
 
-				logger.force(lastApplication, (!isLastService ? mlt : alt), services[s].service_name);
+				x[type].push(lastApplication + (!isLastService ? smlt : salt) + s(services[m].service_name));
 
-				logger.force(lastApplication, lastService, mll, language.M_TYPE, services[s].service_type);
+				x[type].push(lastApplication + " " + lastService + mll + language.M_TYPE + services[m].service_type);
 
-				containerPort = (!applications[unique_names[n]].isDevelop ? "> " + services[s].containerPort : "");
-				accepts = (network.sync.isPortInUse(services[s].port) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
-				logger.force(lastApplication, lastService, mll, language.M_PORT, services[s].port, containerPort + accepts);
+				containerPort = (!applications[unique_names[n]].isDevelop ? " > " + services[m].containerPort : "");
+				accepts = (network.sync.isPortInUse(services[m].port) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
+				x[type].push(lastApplication + " " + lastService + mll + language.M_PORT + services[m].port + containerPort + accepts);
 
-				containerPort = (!applications[unique_names[n]].isDevelop ? "> " + services[s].secureContainerPort : "");
-				accepts = (network.sync.isPortInUse(services[s].securePort) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
-				logger.force(lastApplication, lastService, mll, language.M_SECURE_PORT, services[s].securePort, containerPort + accepts);
+				containerPort = (!applications[unique_names[n]].isDevelop ? " > " + services[m].secureContainerPort : "");
+				accepts = (network.sync.isPortInUse(services[m].securePort) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
+				x[type].push(lastApplication + " " + lastService + mll + language.M_SECURE_PORT + services[m].securePort + containerPort + accepts);
 
-				logger.force(lastApplication, lastService, mll, language.M_IP, services[s].ip);
+				x[type].push(lastApplication + " " + lastService + mll + language.M_IP + services[m].ip);
 
-				logger.force(lastApplication, lastService, all, language.M_IS_REGISTERED, (services[s].isRegistered ? language.M_YES : language.M_NO));
+				x[type].push(lastApplication + " " + lastService + all + language.M_IS_REGISTERED + (services[m].isRegistered ? language.M_YES : language.M_NO));
 				}
 			}
-
-		if(k + 1 < keys.length && unique_names.length > 0)
-			logger.force("");
 		}
 
 	if(applicationCount == 0)
 		logger.force(language.NO_RUNNING_APPLICATIONS);
+	else
+		{
+		keys = Object.keys(x);
+		for(var k = 0; k < keys.length; k++)
+			{
+			if(x[keys[k]].length == 1)
+				continue;
+
+			for(var i = 0; i < x[keys[k]].length; i++)
+				{
+				logger.force(x[keys[k]][i]);
+				}
+
+//		if(k + 1 < keys.length && x[keys[k]].length > 1)
+//			logger.force("");
+		}
+		}
 
 	disconnect();
 	});
@@ -778,6 +808,11 @@ var systemStatus = fibrous( function()
 
 	console.log(lines);											// Clients expect to get the results through their stdin!!!
 	});
+
+var s = function(str)
+	{
+	return " " + str;
+	}
 
 }
 

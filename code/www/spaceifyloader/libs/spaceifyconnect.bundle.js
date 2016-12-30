@@ -239,7 +239,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onIceCandidate = function(iceCandidate, partnerId)
 		{
-		logger.log("iceCandidate got, sending it to the other client");
+		//logger.log("iceCandidate got, sending it to the other client");
 		
 		communicator.callRpc("callClientRpc", [partnerId, "handleIceCandidate", [iceCandidate]], self, null, serverId);
 		};
@@ -259,7 +259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.shutdown = function(e)
 		{
-		logger.log("WebRtcConnector::onbeforeunload");
+		//logger.log("WebRtcConnector::onbeforeunload");
 		for (var id in rtcConnections)
 			{
 			if (rtcConnections.hasOwnProperty(id))
@@ -276,7 +276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.handleRtcOffer = function(descriptor, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleRtcOffer() descriptor: "+descriptor);
+		//logger.log("WebRtcConnector::handleRtcOffer() descriptor: "+descriptor);
 		
 		if (!rtcConnections.hasOwnProperty(partnerId))
 			{
@@ -285,23 +285,23 @@ return /******/ (function(modules) { // webpackBootstrap
 			
 		rtcConnections[partnerId].onConnectionOfferReceived(descriptor, partnerId, function(answer)
 			{
-			logger.log("WebRtcConnector::handleRtcOffer() onConnectionOfferReceived returned");
-			logger.log("Trying to call handleRtcAnswer on partner "+partnerId);
+			//logger.log("WebRtcConnector::handleRtcOffer() onConnectionOfferReceived returned");
+			//logger.log("Trying to call handleRtcAnswer on partner "+partnerId);
 			communicator.callRpc("callClientRpc", [partnerId, "handleRtcAnswer", [answer]], self, null, serverId);
-			logger.log("handleRtcAnswer call done on partner "+partnerId);
+			//logger.log("handleRtcAnswer call done on partner "+partnerId);
 			});
 		
 		};	
 
 	self.handleRtcAnswer = function(descriptor, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleRtcAnswer()");			
+		//logger.log("WebRtcConnector::handleRtcAnswer()");			
 		rtcConnections[partnerId].onConnectionAnswerReceived(descriptor);
 		};	
 
 	self.handleIceCandidate = function(iceCandidate, partnerId, connectionId)
 		{
-		logger.log("WebRtcConnector::handleIceCandidate()");			
+		//logger.log("WebRtcConnector::handleIceCandidate()");			
 		
 			
 		if (!rtcConnections.hasOwnProperty(partnerId))
@@ -318,7 +318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onDisconnected = function(partnerId)
 		{
-		logger.log("WebRtcConnector::onDisconnected() ");
+		//logger.log("WebRtcConnector::onDisconnected() ");
 		if (rtcConnections.hasOwnProperty(partnerId))
 			{
 			var connection = rtcConnections[partnerId]; 	
@@ -339,7 +339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onPrimaryDataChannelOpen = function(clientId, dataChannelConnection)
 		{
-		logger.log("WebRtcConnector::onPrimaryDataChannelOpen() ");
+		//logger.log("WebRtcConnector::onPrimaryDataChannelOpen() ");
 		
 		var connectionId = communicator.addConnection(dataChannelConnection);
 		if (connectionListener)
@@ -351,7 +351,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.onAdditionalDataChannelOpen = function(clientId, dataChannelConnection)
 		{
-		logger.log("WebRtcConnector::onAdditionalDataChannelOpen() ");
+		//logger.log("WebRtcConnector::onAdditionalDataChannelOpen() ");
 		
 		var connectionId = communicator.addConnection(dataChannelConnection);
 		
@@ -361,12 +361,12 @@ return /******/ (function(modules) { // webpackBootstrap
 								
 	self.onStream = function(stream, partnerId)
 		{
-		logger.log("WebRtcConnector::onStream()");
+		//logger.log("WebRtcConnector::onStream()");
 		};
 		
 	self.onRemoveStream = function(stream, partnerId)
 		{
-		logger.log("WebRtcConnector::onRemoveStream()");
+		//logger.log("WebRtcConnector::onRemoveStream()");
 		self.onDisconnected(partnerId);
 		};
 		
@@ -374,10 +374,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	self.connectToPeer = function(partnerId, callback)
 		{
-		logger.log("WebRtcConnector::connectToPeer() partnerId: " + partnerId);
+		//logger.log("WebRtcConnector::connectToPeer() partnerId: " + partnerId);
 		if (rtcConnections.hasOwnProperty(partnerId))
 			{
-			logger.log("WebRtcConnector::connectToPeer() connection to partnerId: " + partnerId +" already exists or is under construction, not connecting again");
+			//logger.log("WebRtcConnector::connectToPeer() connection to partnerId: " + partnerId +" already exists or is under construction, not connecting again");
 			return;
 			}
 		
@@ -387,7 +387,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		rtcConnections[partnerId].createConnectionOffer(function(offer)
 				{
-				logger.log("Offer created, sending it to the other client "+partnerId);
+				//logger.log("Offer created, sending it to the other client "+partnerId);
 				communicator.callRpc("callClientRpc", [partnerId, "handleRtcOffer", [offer]], self, null, serverId);	
 				});		
 		};	
@@ -407,7 +407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		{
 		rtcConnections[clientId].createDataChannelConnection(function(dataChannelConnection)
 			{
-			logger.log("WebRtcConnector::createDataChannelConnection() callback returned");
+			//logger.log("WebRtcConnector::createDataChannelConnection() callback returned");
 			
 			var connectionId = communicator.addConnection(dataChannelConnection);
 			callback(connectionId);
@@ -484,8 +484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var dataChannelConnections = new Array();
 
 	var rtcOptions = { 'optional': [{'DtlsSrtpKeyAgreement': true}] };
-console.log(rtcConfig);
-console.log(rtcOptions);
+
 	var peerConnection = new RTCPeerConnection(rtcConfig, rtcOptions);
 
 	var primaryDataChannel = null; 		// The default datachannel that is always opened
@@ -513,7 +512,7 @@ console.log(rtcOptions);
 		var channel = peerConnection.createDataChannel(dataChannelNumber, {reliable: true});
 		channel.onopen = function()
 			{
-			console.log("WebRtcPeerConnection::channel.onopen");	
+			//console.log("WebRtcPeerConnection::channel.onopen");	
 			
 			//callback(newChannel);	
 			};
@@ -541,7 +540,7 @@ console.log(rtcOptions);
 	peerConnection.ondatachannel = function (e) 
 		{
 	    var temp = e.channel || e; // Chrome sends event, FF sends raw channel
-	    logger.log("WebRtcPeerConnection::ondatachannel() "+temp);
+	    //logger.log("WebRtcPeerConnection::ondatachannel() "+temp);
 	    
 	    temp.binaryType = "arraybuffer";
 	    
@@ -561,7 +560,7 @@ console.log(rtcOptions);
 			
 			temp.onopen = function()
 				{
-				logger.log("WebRtcPeerConnection::temp.onopen");	
+				//logger.log("WebRtcPeerConnection::temp.onopen");	
 				
 				// This additional handshake is required because of a bug in node-wrtc
 				// that prevents onopen to firing
@@ -581,7 +580,7 @@ console.log(rtcOptions);
 		
 	self.onPrimaryDataChannelOpen = function(e)
 		{
-		logger.log("WebRtcPeerConnection::onPrimaryDataChannelOpen "+e);
+		//logger.log("WebRtcPeerConnection::onPrimaryDataChannelOpen "+e);
 		
 		//primaryDataChannel.binaryType = "arraybuffer";
 		//primaryDataChannel.onclose = self.onPrimaryDataChannelClosed;
@@ -596,7 +595,7 @@ console.log(rtcOptions);
 
 	self.onAdditionalDataChannelOpen = function(e)
 		{
-		logger.log("WebRtcPeerConnection::onAdditionalDataChannelOpen "+e);
+		//logger.log("WebRtcPeerConnection::onAdditionalDataChannelOpen "+e);
 		
 		//if (dataChannelListener)
 		//	dataChannelListener.onAdditionalDataChannelOpen(partnerId, primaryDataChannel);
@@ -609,7 +608,7 @@ console.log(rtcOptions);
 		
 	self.onPrimaryDataChannelClosed = function(e)
 		{
-		logger.log("WebRtcPeerConnectiononDataChannelClosed "+e);
+		//logger.log("WebRtcPeerConnectiononDataChannelClosed "+e);
 		connectionListener.onDisconnected(partnerId);
 		}
 
@@ -626,35 +625,35 @@ console.log(rtcOptions);
 
 	var onsignalingstatechange = function(state) 
 		{
-	    console.info('signaling state change:', state);
+	    //console.info('signaling state change:', state);
 		//if ( connectionListener && peerConnection.signalingState == "closed")
 		//	connectionListener.onDisconnected(partnerId);
 		}
 
 	var oniceconnectionstatechange = function(state) 
 		{
-	    console.info('ice connection state change:', state);
+	    //console.info('ice connection state change:', state);
 	   	if ( connectionListener && (peerConnection.iceConnectionState == "disconnected" || peerConnection.iceConnectionState == "closed"))
 			connectionListener.onDisconnected(partnerId);
 		};
 
 	var onicegatheringstatechange = function(state) 
 		{
-	    console.info('ice gathering state change:', state);
+	    //console.info('ice gathering state change:', state);
 		};
 
 	var onIceCandidate = function(e)	
 		{
-		logger.log("WebRtcPeerConnectiononIceCanditate() partnerId: "+partnerId+" event: "+ e);
+		//logger.log("WebRtcPeerConnectiononIceCanditate() partnerId: "+partnerId+" event: "+ e);
 		
-		logger.log("iceListener oli "+iceListener);
+		//logger.log("iceListener oli "+iceListener);
 		
 		//A null ice canditate means that all canditates have
 	    //been given
 		
 		if (e.candidate == null) 
 	    	{
-	        logger.log("All Ice candidates listed");
+	        //logger.log("All Ice candidates listed");
 	    	//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 	    	}
 	    else
@@ -670,7 +669,7 @@ console.log(rtcOptions);
 
 	self.close = function()
 		{
-		logger.log("WebRtcPeerConnectionclose");	
+		//logger.log("WebRtcPeerConnectionclose");	
 		//peerConnection.removeStream(ownStream);
 		   
 		
@@ -697,7 +696,7 @@ console.log(rtcOptions);
 		{
 		iceListener = lis;
 		//peerConnection.onicecandidate = function(cand) {self.onIceCandidate(cand);};
-		logger.log("WebRtcPeerConnectionsetIceListener()"+ lis);
+		//logger.log("WebRtcPeerConnectionsetIceListener()"+ lis);
 		};
 
 	self.setStreamListener = function(lis)
@@ -716,13 +715,13 @@ console.log(rtcOptions);
 
 	self.onStream = function(e)
 		{	
-		logger.log("WebRtcPeerConnectiononStream"+ e);
+		//logger.log("WebRtcPeerConnectiononStream"+ e);
 		streamListener.onStream(e.stream, partnerId);
 		}
 		
 	self.onRemoveStream = function(e)
 		{	
-		logger.log("WebRtcPeerConnectiononStream"+ e);
+		//logger.log("WebRtcPeerConnectiononStream"+ e);
 		streamListener.onRemoveStream(e.stream, partnerId);
 		}
 
@@ -746,7 +745,7 @@ console.log(rtcOptions);
 				
 		peerConnection.createOffer(function (desc)
 			{
-			logger.log("peerConnection::createOffer called its callback: "+ desc);
+			//logger.log("peerConnection::createOffer called its callback: "+ desc);
 	    	localDescription = desc;
 	    	
 	    	/*
@@ -778,11 +777,11 @@ console.log(rtcOptions);
 
 	self.onConnectionAnswerReceived = function(descriptor)
 		{
-		logger.log("WebRtcPeerConnectiononConnectionAnswerReceived(), descriptor: "+descriptor);
+		//logger.log("WebRtcPeerConnectiononConnectionAnswerReceived(), descriptor: "+descriptor);
 		
 		peerConnection.setRemoteDescription(new RTCSessionDescription(descriptor),function()
 			{
-			logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned OK");
+			//logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned OK");
 			}, 
 			function(err) 
 				{logger.log("WebRtcPeerConnectiononConnectionAnswerReceived() setRemoteDescription returned error "+err);}  );
@@ -792,13 +791,13 @@ console.log(rtcOptions);
 		
 	self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 		{
-		logger.log("WebRtcPeerConnectiononConnectionOfferReceived");
+		//logger.log("WebRtcPeerConnectiononConnectionOfferReceived");
 		
-		logger.log("WebRtcPeerConnectiononConnectionOfferReceived trying to set remote description");	
+		//logger.log("WebRtcPeerConnectiononConnectionOfferReceived trying to set remote description");	
 		var desc = new RTCSessionDescription(descriptor);
 		peerConnection.setRemoteDescription(desc, function() 
 			{
-			logger.log("WebRtcPeerConnectiononConnectionOfferReceived remote description set");
+			//logger.log("WebRtcPeerConnectiononConnectionOfferReceived remote description set");
 			peerConnection.createAnswer(function (answer) 
 					{
 					/*
@@ -806,7 +805,7 @@ console.log(rtcOptions);
 	    				{
 	    				if (e.candidate == null) 
 	    					{
-	        				logger.log("All Ice candidates listed");
+	        				//logger.log("All Ice candidates listed");
 	    					//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 	    					callback(peerConnection.localDescription);
 	    					}
@@ -831,7 +830,9 @@ console.log(rtcOptions);
 	self.onIceCandidateReceived = function(iceCandidate)
 		{	
 		peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate),
-	            function () {logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate succeeded");},  
+	            function () {
+		            //logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate succeeded");
+		            },  
 	            function(err) {logger.log("WebRtcPeerConnectiononIceCandidateReceived adding Ice candidate failed "+err);});
 		};         	
 		
@@ -863,7 +864,7 @@ console.log(rtcOptions);
 	// Connection interface implementation	
 	self.send = function(message)
 		{
-		logger.log("DataChannelConnection::send()" +message);
+		//logger.log("DataChannelConnection::send()" +message);
 		try	{
 			if (dataChannel.readyState == "open")
 				{
@@ -878,7 +879,7 @@ console.log(rtcOptions);
 		
 	self.close = function()
 		{
-		console.log("DataChannelConnection::close");	
+		//console.log("DataChannelConnection::close");	
 		};		
 		
 	self.sendBinary = function(data)
@@ -920,8 +921,8 @@ console.log(rtcOptions);
 	// Downwards interface towards the DataChannel
 	self.onMessage = function(message)	
 		{
-		logger.log("DataChannelConnection::onMessage() ");
-		logger.log("DataChannelConnection::onMessage "+message.data);
+		//logger.log("DataChannelConnection::onMessage() ");
+		//logger.log("DataChannelConnection::onMessage "+message.data);
 		try	{
 			if (listener)
 				listener.onMessage(message.data, self);
@@ -1051,27 +1052,27 @@ console.log(rtcOptions);
 
 	self.callRpcOnClient = function(clientId, methodName, params, obj, callback)
 		{
-		logger.log("CommunicationClient::callRpcOnClient() clientId: "+clientId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::callRpcOnClient() clientId: "+clientId + " methodName: "+methodName);
 		
 		if (clients.hasOwnProperty(clientId))
 			{
 			// Call through webrtc
 			if (clients[clientId].isWebRtc())
 				{
-				logger.log("Calling client RPC through WebRtc, preferredConnectionId was: "+clients[clientId].getPreferredConnectionId());
+				//logger.log("Calling client RPC through WebRtc, preferredConnectionId was: "+clients[clientId].getPreferredConnectionId());
 				params.push(ownId);
 				communicator.callRpc(methodName, params, obj, callback,  clients[clientId].getPreferredConnectionId());	
 				}
 			//call though a local hub
 			else if (clients[clientId].isLocalHub())
 				{
-				logger.log("Calling client RPC through local hub");
+				//logger.log("Calling client RPC through local hub");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], obj, callback, clients[clientId].getPreferredConnectionId());
 				}
 			else
 				{
 				// call through the server
-				logger.log("Notifying client RPC through the server");
+				//logger.log("Notifying client RPC through the server");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], obj, callback, serverId);
 				}	
 			}
@@ -1093,9 +1094,9 @@ console.log(rtcOptions);
 
 	self.callRpcOnConnection = function(connectionId, methodName, params, obj, callback)
 		{
-		logger.log("CommunicationClient::callRpcOnConnection() connectionId: "+connectionId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::callRpcOnConnection() connectionId: "+connectionId + " methodName: "+methodName);
 		
-		logger.log("Making a RPC call over direct connection");
+		//logger.log("Making a RPC call over direct connection");
 		params.push(ownId);
 		communicator.callRpc(methodName, params, obj, callback, connectionId);	
 		};
@@ -1111,27 +1112,27 @@ console.log(rtcOptions);
 
 	self.notifyClient = function(clientId, methodName, params)
 		{
-		logger.log("CommunicationClient::notifyClient() clientId: "+clientId + " methodName: "+methodName);
+		//logger.log("CommunicationClient::notifyClient() clientId: "+clientId + " methodName: "+methodName);
 		
 		if (clients.hasOwnProperty(clientId))
 			{
 			// Call through webrtc
 			if (clients[clientId].isWebRtc())
 				{
-				logger.log("Notifying client through WebRtc");
+				//logger.log("Notifying client through WebRtc");
 				params.push(ownId);
 				communicator.callRpc(methodName, params, null, null,  clients[clientId].getPreferredConnectionId());	
 				}
 			//call though a local hub
 			else if (clients[clientId].isLocalHub())
 				{
-				logger.log("Notifying client through local hub");
+				//logger.log("Notifying client through local hub");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], null, null, clients[clientId].getPreferredConnectionId());
 				}
 			else
 				{
 				// call through the server
-				logger.log("Notifying client through the server");
+				//logger.log("Notifying client through the server");
 				communicator.callRpc("callClientRpc", [clientId, methodName, params], null, null, serverId);
 				}	
 			}
@@ -1192,7 +1193,7 @@ console.log(rtcOptions);
 
 	self.upgradeToWebRtc = function(clientId, callback)
 		{
-		logger.log("CommunicationClient::upgradeToWebRtc() + clientId: " + clientId);
+		//logger.log("CommunicationClient::upgradeToWebRtc() + clientId: " + clientId);
 		if (!clients[clientId].isWebRtc())
 			rtcConnector.connectToPeer(clientId, callback);
 		};	
@@ -1229,7 +1230,7 @@ console.log(rtcOptions);
 			{
 			rtcConnector.createDataChannelConnection(clientId, function(connectionId)
 				{
-				logger.log("CommunicationClient::createDirectConnection() callback returned connectionId: "+connectionId);
+				//logger.log("CommunicationClient::createDirectConnection() callback returned connectionId: "+connectionId);
 				pipes[connectionId] = clientId;
 				callback(connectionId)
 				});
@@ -1259,7 +1260,7 @@ console.log(rtcOptions);
 
 	self.onWebRtcConnected = function(clientId, connectionId)
 		{
-		logger.log("CommunicationClient::onWebRtcConnected()");
+		//logger.log("CommunicationClient::onWebRtcConnected()");
 		
 		if (clients.hasOwnProperty(clientId))
 			{
@@ -1273,7 +1274,7 @@ console.log(rtcOptions);
 		
 	self.onWebRtcDisconnected = function(partnerId)
 		{	
-		logger.log("CommunicationClient::onWebRtcDisconnected()");
+		//logger.log("CommunicationClient::onWebRtcDisconnected()");
 		
 		// ToDo: fallback to websockets if possible!!
 		};
@@ -1281,7 +1282,7 @@ console.log(rtcOptions);
 
 	self.onAdditionalDataChannelOpen = function(clientId, connectionId)
 		{
-		logger.log("CommunicationClient::onAdditionalDataChannelOpen()");
+		//logger.log("CommunicationClient::onAdditionalDataChannelOpen()");
 		pipes[connectionId] = clientId;
 		};	
 		
@@ -1289,20 +1290,20 @@ console.log(rtcOptions);
 
 	var createPipe = function(clientId, callback)
 		{
-		logger.log("CommunicationClient::createPipe() + peerId: " + clientId);
+		//logger.log("CommunicationClient::createPipe() + peerId: " + clientId);
 		
 		var pipeConnection =  new WebSocketConnection();
 		var pipeId;
 		
 		pipeConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("Pipe connected to the websocket server");
+			//logger.log("Pipe connected to the websocket server");
 			
 			pipeId = communicator.addConnection(pipeConnection);			
 			
 			communicator.callRpc("constructPipe", [clientId, ownId], self, function()
 				{
-				logger.log("CommunicationClient::createPipe() pipe construction ready");	
+				//logger.log("CommunicationClient::createPipe() pipe construction ready");	
 				if (clients.hasOwnProperty(clientId))
 					{
 					clients[clientId].addPipeId(pipeId);
@@ -1316,7 +1317,7 @@ console.log(rtcOptions);
 		
 	self.requestPipe = function(targetId, originatorId, connectionId, callback)
 		{
-		logger.log("CommunicationClient::requestPipe()");
+		//logger.log("CommunicationClient::requestPipe()");
 		
 		var pipeConnection =  new WebSocketConnection();
 		var pipeId = null;
@@ -1325,13 +1326,13 @@ console.log(rtcOptions);
 						
 		pipeConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("Pipe connected to the websocket server");
+			//logger.log("Pipe connected to the websocket server");
 			
 			pipeId = communicator.addConnection(pipeConnection);			
 			
 			communicator.callRpc("registerAsPipe", [targetId], self, function(err,data)
 				{
-				logger.log("registerAsPipe returned");
+				//logger.log("registerAsPipe returned");
 				
 				if (clients.hasOwnProperty(originatorId))
 					{
@@ -1421,7 +1422,7 @@ console.log(rtcOptions);
 
 	var updateConnectedClients = function(hubId, callback)
 		{
-		logger.log("CommunicationClient::updateConnectedClients()");
+		//logger.log("CommunicationClient::updateConnectedClients()");
 		var id = serverId;
 		
 		if (hubId)
@@ -1429,7 +1430,7 @@ console.log(rtcOptions);
 			
 		communicator.callRpc("getConnectedClients", [groupId], self, function(err, connectedClients)
 			{
-			logger.log("CommunicationClient::getConnectedClientsFromHub() got answer from hub: "+JSON.stringify(connectedClients));
+			//logger.log("CommunicationClient::getConnectedClientsFromHub() got answer from hub: "+JSON.stringify(connectedClients));
 			var client = null;
 			for (var i in connectedClients)
 				{
@@ -1457,7 +1458,7 @@ console.log(rtcOptions);
 		
 	var connectToLocalHubs = function(hubs, callback)
 		{
-		logger.log("CommunicationCLient::connectToLocalHubs()");
+		//logger.log("CommunicationCLient::connectToLocalHubs()");
 		if (hubs == null)
 			return;
 			
@@ -1481,7 +1482,7 @@ console.log(rtcOptions);
 				
 				connection.connect(opts, function()
 					{
-					logger.log("Connected to local hub at ip: "+ip+" port: "+port);
+					//logger.log("Connected to local hub at ip: "+ip+" port: "+port);
 					hubId = communicator.addConnection(connection);
 					
 					localHubs[hubId] = hubId;
@@ -1491,7 +1492,7 @@ console.log(rtcOptions);
 						{
 						communicator.callRpc("registerAsClient", [ownId, clientType, groupId], self, function(err, givenId)
 							{
-							logger.log("CommunicationClient::connectToLocalHubs() registered as client at local hub at ip: "+ip+" port: "+port);
+							//logger.log("CommunicationClient::connectToLocalHubs() registered as client at local hub at ip: "+ip+" port: "+port);
 							});	
 						});
 					});
@@ -1502,10 +1503,10 @@ console.log(rtcOptions);
 
 	var updateLocalHubs = function(callback)
 		{
-		logger.log("Getting list of local hubs from the server");
+		//logger.log("Getting list of local hubs from the server");
 		communicator.callRpc("getLocalHubs", [], self, function(err, hubs)
 			{
-			logger.log("Following local hubs are available: "+JSON.stringify(hubs));
+			//logger.log("Following local hubs are available: "+JSON.stringify(hubs));
 			if (hubs)
 				connectToLocalHubs(hubs, callback);
 			else
@@ -1520,7 +1521,7 @@ console.log(rtcOptions);
 
 	self.connectWithOptions = function(options, clientType_, groupId_, callback)
 		{
-		logger.log("CommunicationClient::connectWithOptions()");
+		//logger.log("CommunicationClient::connectWithOptions()");
 		clientType = clientType_;
 		groupId = groupId_;
 		
@@ -1533,16 +1534,16 @@ console.log(rtcOptions);
 						
 		serverConnection.connect(serverConnectionOptions, function()
 			{
-			logger.log("connected to the websocket server");
+			//logger.log("connected to the websocket server");
 			
 			serverId = communicator.addConnection(serverConnection);			
 			
-			rtcConnector = new WebRtcConnector(communicator, serverId, WEBRTC_CONFIG);
+			rtcConnector = new WebRtcConnector(communicator, serverId, LoaderUtil.WEBRTC_CONFIG);
 			rtcConnector.setConnectionListener(self);		
 			
 			communicator.callRpc("registerAsClient", [null, clientType, groupId], self, function(err, givenId)
 				{
-				logger.log("Server replied to registerAsClient call: '"+ givenId+ "'");
+				//logger.log("Server replied to registerAsClient call: '"+ givenId+ "'");
 				ownId = givenId;
 				updateConnectedClients(null, function()
 					{
@@ -1565,11 +1566,11 @@ console.log(rtcOptions);
 
 	self.onClientConnected = function(clientData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onClientConnected() from connectionId: "+connectionId);
-		logger.log("CommunicationClient::onClientConnected() localHubs was:");
-		console.dir(localHubs);
+		//logger.log("CommunicationClient::onClientConnected() from connectionId: "+connectionId);
+		//logger.log("CommunicationClient::onClientConnected() localHubs was:");
+		//console.dir(localHubs);
 		
-		logger.log("CommunicationClient::onClientConnected(), ownId: "+ownId+", newClient: '"+ JSON.stringify(clientData) +"'");
+		//logger.log("CommunicationClient::onClientConnected(), ownId: "+ownId+", newClient: '"+ JSON.stringify(clientData) +"'");
 		
 		if (clientData.clientId == ownId)
 			return;
@@ -1577,7 +1578,7 @@ console.log(rtcOptions);
 		if (localHubs.hasOwnProperty(connectionId))
 			{
 				
-			logger.log("CommunicationClient::onClientConnected() client connected through localhub, clientId: "+clientData.clientId);
+			//logger.log("CommunicationClient::onClientConnected() client connected through localhub, clientId: "+clientData.clientId);
 			
 			clients[clientData.clientId].setLocalHub(true);
 			clients[clientData.clientId].setPreferredConnectionId(connectionId);
@@ -1595,7 +1596,7 @@ console.log(rtcOptions);
 		
 	self.onClientDisconnected = function(clientData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onClientDisconnected() '"+ JSON.stringify(clientData) +"'");
+		//logger.log("CommunicationClient::onClientDisconnected() '"+ JSON.stringify(clientData) +"'");
 		
 		if (clients.hasOwnProperty(clientData.clientId) && clientListener && clientData.clientId != ownId)
 			{
@@ -1606,12 +1607,12 @@ console.log(rtcOptions);
 			
 	self.onHubConnected = function(hubData, connectionId, callback)
 		{
-		logger.log("CommunicationClient::onHubConnected() '"+ JSON.stringify(hubData) +"'");
+		//logger.log("CommunicationClient::onHubConnected() '"+ JSON.stringify(hubData) +"'");
 		};
 		
 	self.onHubDisconnected = function(hubData,  connectionId, callback)
 		{
-		logger.log("CommunicationClient::onHubDisconnected() '"+ JSON.stringify(hubData) +"'");
+		//logger.log("CommunicationClient::onHubDisconnected() '"+ JSON.stringify(hubData) +"'");
 		};	
 
 	self.getConnectedClients = function()
@@ -1683,7 +1684,6 @@ console.log(rtcOptions);
 	var connectionSequence = 0;
 	var latestConnectionId = null;
 
-var elapsedTime = 0;
 	//** Private methods
 
 	var sendMessage = function(message, connectionId)
@@ -1709,7 +1709,7 @@ var elapsedTime = 0;
 				var code = (typeof err.code != "undefined" ? err.code : "");
 				var path = (typeof err.path != "undefined" ? err.path : "");
 				var msge = (typeof err.message != "undefined" ? err.message : "");
-				console.log("Exception in executing a RPC method: " + code + " EngineIoCommunicator::onMessage() >> " + path + " " + msge);		
+				//console.log("Exception in executing a RPC method: " + code + " EngineIoCommunicator::onMessage() >> " + path + " " + msge);		
 				}
 			else
 				sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -1796,8 +1796,8 @@ var elapsedTime = 0;
 		
 			if (message.id)
 				callbackBuffer.callMethodAndPop(message.id, error, result);
-			else
-				console.log("RpcCommunicator::handleReturnValue() error: "+JSON.stringify(error));
+			//else
+				//console.log("RpcCommunicator::handleReturnValue() error: "+JSON.stringify(error));
 			}
 		catch (e)
 			{
@@ -1939,7 +1939,6 @@ var elapsedTime = 0;
 		
 	self.sendBinary = function(data, connectionId)
 		{
-elapsedTime = Date.now();
 		//console.log("RPCCommunicator::sendBinary() "+data.byteLength);
 		try	{
 			connections[connectionId].sendBinary(data);	
@@ -1952,7 +1951,7 @@ elapsedTime = Date.now();
 
 	self.setupPipe = function(firstId, secondId)
 		{
-		console.log("RpcCommunicator::setupPipe() between: "+firstId+" and "+secondId);
+		//console.log("RpcCommunicator::setupPipe() between: "+firstId+" and "+secondId);
 		
 		if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))  
 			return;
@@ -2001,8 +2000,7 @@ elapsedTime = Date.now();
 				
 			if (messageData instanceof ArrayBuffer)
 				{
-console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime) / 1000));
-				console.log("RPCCommunicator::onMessage() received arraybuffer");
+				//console.log("RPCCommunicator::onMessage() received arraybuffer");
 				if (binaryListener)
 					binaryListener.onBinary(messageData, connection.getId());
 				return;
@@ -2031,7 +2029,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 	self.addConnection = function(conn)
 		{
 		try	{	
-			console.log("RpcCommunicator::addConnection, connectionid was "+conn.getId());	
+			//console.log("RpcCommunicator::addConnection, connectionid was "+conn.getId());	
 		
 			//Use random connectionId to make ddos a little more difficult
 			
@@ -2165,7 +2163,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 
 	self.connect = function(options, callback)
 		{
-		logger.log("WebSocketConnection::connect()");
+		//logger.log("WebSocketConnection::connect()");
 		options.protocol = (!options.isSsl ? "ws" : "wss");	
 		
 		try	{	
@@ -2174,7 +2172,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 			if (options.id)
 				url += "?id="+options.id;
 			
-			logger.log("WebSocketConnection::connect()" + url);
+			//logger.log("WebSocketConnection::connect()" + url);
 			socket = new WebSocket(url, "json-rpc", null, null, (options.isSsl ? { rejectUnauthorized: false } : null));
 
 			socket.binaryType = "arraybuffer";	
@@ -2192,7 +2190,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 
 	self.setSocket = function(val) 
 		{
-		logger.log("WebSocketConnection::setSocket()");	
+		//logger.log("WebSocketConnection::setSocket()");	
 		try	{
 			socket = val;		
 			socket.on("message", onMessage);
@@ -2261,7 +2259,7 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 		
 	var onMessage = function(message)
 		{
-		logger.log("WebSocketConnection::onMessage() "+JSON.stringify(message));	
+		//logger.log("WebSocketConnection::onMessage() "+JSON.stringify(message));	
 		try	{
 			if (listener)
 				{
@@ -2305,7 +2303,6 @@ console.log("11111111111111111111111111111111111111", ((Date.now() - elapsedTime
 	self.send = function(message)
 		{
 		try	{
-console.log("START TIME START TIME START TIME START TIME " + Date.now());
 			socket.send(message);	
 			}
 		catch(e)
@@ -2379,15 +2376,15 @@ console.log("START TIME START TIME START TIME START TIME " + Date.now());
 
 	self.connect = function(options, callback)
 			{
-			console.log("WebSocketRpcConnection::connect()");
+			//console.log("WebSocketRpcConnection::connect()");
 			connection.connect(options, function()
 				{
-				console.log("WebsocketRpcConnection Connected");	
+				//console.log("WebsocketRpcConnection Connected");	
 				//console.log("Creating RPCCommunicator for the Websocket");
 								
 				communicator.addConnection(connection);
 				
-				console.log("WebsocketRpcConnection added to communicator");   
+				//console.log("WebsocketRpcConnection added to communicator");   
 				callback(null, null); 
 				});
 			};

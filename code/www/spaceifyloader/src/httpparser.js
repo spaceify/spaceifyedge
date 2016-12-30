@@ -4,21 +4,36 @@ function HttpParser()
 {
 var self = this;
 
-var contentBegin = null;
 var header = null;
+var headerSize = 0;
+var contentBegin = null;
+var rawHeaders = "";
+var headerValues = {};
 
-var headerValues = new Object();
 var statusCode = null;
+var statusText = null;
+
+var logger = console;
 
 self.getStatusCode = function()
 	{
 	return parseInt(statusCode);
 	};
 
+self.getStatusText = function()
+	{
+	return statusText;
+	};
+
 self.getContentBegin = function()
 	{
 	return contentBegin;
 	};
+
+self.getHeaderSize = function()
+	{
+	return headerSize;
+	}
 
 self.getHeaderValueAsInt = function(key)
 	{
@@ -28,6 +43,8 @@ self.getHeaderValueAsInt = function(key)
 		{
 		return parseInt(headerValues[key]);
 		}
+	else
+		return null;
 	};
 
 self.getHeaderValue = function(key)
@@ -40,22 +57,34 @@ self.getHeaderValue = function(key)
 		}
 	};
 
+self.getHeaders = function()
+	{
+	return headerValues;
+	};
+
+self.getRawHeaders = function()
+	{
+	return rawHeaders;
+	};
+
 var findContentBegin = function(arr)
 	{
-	for (var i=0; i < arr.byteLength; i+=1)
+	for (var i = 0; i < arr.byteLength; i+=1)
 		{
-		if ((i+4) < arr.byteLength && arr[i]==13 && arr[i+1]==10 && arr[i+2]==13 && arr[i+3]==10)
+		if ((i + 4) < arr.byteLength && arr[i] == 13 && arr[i + 1] == 10 && arr[i + 2] == 13 && arr[i + 3] == 10)
 			{
-			contentBegin = i+4;
-			//console.log(arr[contentBegin]);
+			contentBegin = i + 4;
+			//logger.log(arr[contentBegin]);
 			break;
 			}
-
 		}
+
+	headerSize = (!contentBegin ? arr.byteLength : contentBegin);
 	};
 
 var parseHeader = function(arr)
 	{
+	rawHeaders = "";
 	headerValues = {};
 
 	if (contentBegin)
@@ -63,15 +92,16 @@ var parseHeader = function(arr)
 	else
 		header = String.fromCharCode.apply(null, arr);
 
-	//console.log("Trying to parse header: " + header);
+	//logger.log("Trying to parse header: " + header);
 	var rows = header.split("\n");
 
 	var firstRow = rows[0].split(" ");
 	statusCode = firstRow[1];
+	statusText = (firstRow.length >= 3 ? firstRow[2] : "OK");
 
 	var item = null;
 
-	for (var i=1; i<rows.length; i++)
+	for (var i = 1; i < rows.length; i++)
 		{
 		var separatorIndex = rows[i].indexOf(":");
 
@@ -82,14 +112,16 @@ var parseHeader = function(arr)
 
 			var hvalue = "";
 			if (rows[i].length > separatorIndex)
-				hvalue = rows[i].substring(separatorIndex+1).trim();
+				hvalue = rows[i].substring(separatorIndex + 1).trim();
 
 			// XMLHttpRequest.getResponseHeader() style comma-space pair separator for multi-headers like Set-Cookie
 			headerValues[hkey] = (hkey in headerValues ? headerValues[hkey] + ", " + hvalue : hvalue);
+
+			rawHeaders += (rawHeaders != "" ? "\r\n" : "") + hkey + ": " + hvalue;
 			}
 		}
 
-	//console.dir(headerValues);
+	//logger.dir(headerValues);
 	};
 
 self.parse = function(arr)

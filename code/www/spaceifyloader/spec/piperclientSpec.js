@@ -1,17 +1,15 @@
-
-var specReporter = new function() 	
+var specReporter = new function() 
 	{
 	var self = this;
-	
+
 	self.specStarted = function(result)
 		{
 		self.name = result.fullName;
-     	console.log("\n-----------------------"+self.name+"------------------------------\n");
-     	}
- 	};
- 	
-jasmine.getEnv().addReporter(specReporter);
+		console.log("\n-----------------------"+self.name+"------------------------------\n");
+		}
+	};
 
+jasmine.getEnv().addReporter(specReporter);
 
 function Utf8ArrayToStr(array)
 {
@@ -73,7 +71,13 @@ if (typeof(exports) !== "unefined")
 	global.SERVER_ADDRESS = SERVER_ADDRESS;
 	global.WEBRTC_CONFIG = WEBRTC_CONFIG;
 	}
-	
+
+var tcpTunnelId = null;
+var piperClient = null;
+var repetitions = 1000;
+var request1 = "GET /index.html?count="; 
+var request2 = " HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\n\r\n";
+
 describe("PiperClient", function() 
 	{
 	var HUB_HOST = "localhost";
@@ -84,23 +88,11 @@ describe("PiperClient", function()
 	var SpaceifyLoader = null;
 
 	if (typeof(exports) !== "undefined")
-		{
 		PiperClient = require("../src/piperclient");
-		}
-	
 	else
 		PiperClient = window.PiperClient;
-	
-	/*
-	beforeEach(function()
-		{
-		communicationHub = new CommunicationHub();
-		communicationHub.run();	
-		});
-	*/	
-	var piperClient = null;
-	
-	it("Connects to a CommunicationHub and builds a direct connection to the SpaceifyPiper", function(done) 
+
+	it("Connects to a CommunicationHub and builds a direct connection to the SpaceifyPiper", function(done)
 		{
 		piperClient = new PiperClient();
 		piperClient.connect(HUB_HOST, HUB_PORT, function()
@@ -108,78 +100,63 @@ describe("PiperClient", function()
 			console.log("Jasmine Connected");
 			done();
 			});
-		
-    	}); 
-    
-    var tcpTunnelId = null;
-    
-    function HttpPrinter(times, done)
-    	{
-    	var self = this;
-    	var counter = 0;
+		});
+
+	function HttpPrinter(times, done)
+		{
+		var self = this;
+		var counter = 0;
 		var startTime = 0;
 		var bytesReceived = 0;
 
-		self.start = function(){
-
+		self.start = function()
+			{
 			startTime = Date.now();
-		}
+			}
 
-   		self.printHttp = function(data) 
-    		{
+		self.printHttp = function(data) 
+			{
 			var dataArray = new Uint8Array(data);
 
-			
-
-    		//console.log(ab2str(dataArray));
-    		//counter++;
-    		//console.log(counter);
-			
 			bytesReceived += dataArray.byteLength;
 
-			console.log("dataArrayLength: "+dataArray.byteLength);
+			console.log("dataArrayLength: " + dataArray.byteLength);
 
-			var elapsedTime = (Date.now()-startTime)/1000;
-			console.log("Time elapsed: "+elapsedTime+" s");
+			var elapsedTime = (Date.now() - startTime)/1000;
+			console.log("Time elapsed: " + elapsedTime + " s");
 
 			var megabitsReceived = bytesReceived * 8 / 1024 / 1024;
-			console.log("Average download speed: "+ (megabitsReceived/elapsedTime).toFixed(2) + " Mbit/s");
-			//timer = Date.now();
-    		
-    		var temp = ab2str(dataArray);
-    		var count = (temp.match(/\r\n\r\n/g) || []).length;
-    		
-    		counter += count;
-    		console.log("HTTP replies received: " +counter);
-    		if (counter>=times)
-    			done();
-    		}; 	
-    	
-    	};
-    	
-   
-   	var repetitions = 1000;
-    var request1 = "GET /index.html?count="; 
-    var request2= " HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\n\r\n";
-	//var data = toab(request);
-	
-		
-    it("creates a TCP relay tunnel to localhost port 80 over WebSocket relay and sends "+repetitions+" HTTP Requests", function(done) 
+			console.log("Average download speed: "+ (megabitsReceived / elapsedTime).toFixed(2) + " Mbit/s");
+
+			var temp = ab2str(dataArray);
+			var count = (temp.match(/\r\n\r\n/g) || []).length;
+
+			counter += count;
+			console.log("HTTP replies received: " + counter);
+			if (counter >= times)
+				done();
+			else
+				piperClient.sendTcpBinary(tcpTunnelId, toab(request1 + counter + request2));
+			};
+		};
+
+	it("creates a TCP relay tunnel to localhost port 80 over WebSocket relay and sends " + repetitions + " HTTP Requests", function(done)
 		{
 		var printer = new HttpPrinter(repetitions, done);
+
 		piperClient.createTcpTunnel("localhost", "80", printer.printHttp, function(connectionId)
 			{
 			printer.start();
 			console.log("Jasmine TCP tunnel ready");
+
 			tcpTunnelId = connectionId;
-			for (var i=0; i< repetitions; i++)
-				{
-				piperClient.sendTcpBinary(tcpTunnelId, toab(request1+i+request2));	
-				}
+
+			piperClient.sendTcpBinary(tcpTunnelId, toab(request1 + "0" + request2));
 			});
-    	});
-    /*	 	
-     it("upgrades the connection to the SpaceifyPiper to WebRtc", function(done)
+		});
+
+	/*
+	it("upgrades the connection to the SpaceifyPiper to WebRtc", function(done)
 		{
 		piperClient.upgradeToWebRtc(function()
 			{
@@ -187,9 +164,8 @@ describe("PiperClient", function()
 			done();
 			});
 		});
-	
-	repetitions = 1000;	
-	 it("creates a TCP relay tunnel to localhost port 80 over WebRtc and sends "+repetitions+" HTTP Requests", function(done) 
+
+	 it("creates a TCP relay tunnel to localhost port 80 over WebRtc and sends " + repetitions + " HTTP Requests", function(done) 
 		{
 		var printer = new HttpPrinter(repetitions, done);
 		piperClient.createTcpTunnel("localhost", "80", printer.printHttp, function(connectionId)
@@ -197,14 +173,51 @@ describe("PiperClient", function()
 			printer.start();
 			console.log("Jasmine TCP tunnel ready");
 			tcpTunnelId = connectionId;
-			for (var i=0; i< repetitions; i++)
+			for (var i = 0; i < repetitions; i++)
 				{
-				var data = toab(request1+i+request2);
+				var data = toab(request1 + i + request2);
 				
 				console.log("Trying to send a request");
 				piperClient.sendTcpBinary(tcpTunnelId, data);	
 				}
 			});
     	});
-	*/		
-});
+	*/
+	});
+/*
+function requests(index, connectionId, done)
+	{
+	if(index == repetitions + 1)
+		{
+		done();
+		return;
+		}
+
+	var startTime;
+	var elapsedTime;
+	var bytesReceived;
+	var megabitsReceived;
+	var xhr = new SpXMLHttpRequest();
+
+	xhr.onreadystatechange = function()
+		{
+		if (xhr.readyState == 4)
+			{
+			totaltime += Date.now() - startTime;
+			elapsedTime = (Date.now() - startTime) / 1000;
+			elapsedTime = (elapsedTime == 0 ? 0.001 : elapsedTime);		// Less than 1 ms, round up to 1 ms
+
+			bytesReceived = parseInt(xhr.getResponseHeader("content-length"));
+			megabitsReceived = bytesReceived * 8 / 1024 / 1024;
+
+			results[index++] = elapsedTime + "\t" + bytesReceived + "\t" + (megabitsReceived / elapsedTime).toFixed(2) + "\n";
+
+			requests(index, done);
+			}
+		}
+
+	xhr.open("GET", "http://edge.spaceify.net/index.html?count=" + index, true);
+	startTime = Date.now();
+	xhr.send(null);
+	}
+*/

@@ -150,9 +150,9 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
 		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
-		params = [manifest.unique_name, unique.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+		params = [manifest.unique_name, docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
-		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
+		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
 		addProvidedServices.sync(manifest);
 
@@ -164,6 +164,7 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 		}
 	catch(err)
 		{
+console.log("-----------------------");
 		throw err;	//language.E_DATABASE_INSERT_APPLICATION.pre("Database::insertApplication", err);
 		}
 	});
@@ -180,9 +181,9 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 		self.sync.begin();
 
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		params = [unique.makeUniqueDirectory(manifest.unique_name), docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
+		params = [docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
 
-		db.sync.run("UPDATE applications SET unique_directory=?, docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
+		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
 		addProvidedServices.sync(manifest);
 
@@ -283,16 +284,16 @@ var addInjectFiles = fibrous( function(manifest)
 	var file;
 	var type;
 	var order;
+	var wwwPath;
 	var directory;
-	var url_or_path;
-	var application_path;
+	var urlOrPath;
 
 	try {
 		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.unique_name);
 
-		stmt = db.prepare("INSERT INTO inject_files (unique_name, url_or_path, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
+		stmt = db.prepare("INSERT INTO inject_files (unique_name, urlOrPath, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
 
-		application_path = config.SPACELETS_PATH + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
+		wwwPath = unique.getWwwPath(config.SPACELET, manifest.unique_name, config);
 
 		order = 1;
 		for(var i = 0; i < manifest.inject_files.length; i++)
@@ -303,9 +304,9 @@ var addInjectFiles = fibrous( function(manifest)
 			file = manifest.inject_files[i].file.trim();
 			type = manifest.inject_files[i].type.trim();
 
-			url_or_path = (type == config.FILE ? application_path : config.EDGE_HOSTNAME + "/");				// Inject as URL or file
+			urlOrPath = (type == config.FILE ? wwwPath : config.EDGE_HOSTNAME + "/");							// Inject as URL or file
 
-			stmt.sync.run([manifest.unique_name, url_or_path, directory, file, type, order++]);
+			stmt.sync.run([manifest.unique_name, urlOrPath, directory, file, type, order++]);
 			}
 		}
 	catch(err)

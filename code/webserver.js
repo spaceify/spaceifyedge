@@ -36,6 +36,7 @@ var webServer = null;
 
 var sessionManager = null;
 var sessionTokenName = "";
+var sessionTokenNameCookie = "";
 
 var requestListener = null;
 var serverUpListener = null;
@@ -64,13 +65,14 @@ self.listen = function(opts, callback)
 
 	options.hostname = opts.hostname || config.ALL_IPV4_LOCAL;
 	options.port = opts.port || 0;
+	options.mappedPort = opts.mappedPort || 0;
 
 	options.isSecure = opts.isSecure || false;
 	options.key = opts.key || config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 	options.crt = opts.crt || config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 	options.caCrt = opts.caCrt || config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
-	options.indexFile = opts.indexFile || config.INDEX_HTML;
+	options.indexFile = opts.indexFile || config.INDEX_FILE;
 
 	options.wwwPath = opts.wwwPath || config.SPACEIFY_WWW_PATH;
 	options.wwwErrorsPath = opts.wwwErrorsPath || config.SPACEIFY_WWW_ERRORS_PATH;
@@ -109,6 +111,9 @@ self.listen = function(opts, callback)
 	webServer.listen(options.port, options.hostname, 511, function()
 		{
 		options.port = webServer.address().port;
+
+		if(!options.mappedPort)
+			options.mappedPort = options.port;
 
 		isOpen = true;
 
@@ -180,6 +185,11 @@ self.getPort = function()
 	return options.port;
 	}
 
+self.getMappedPort = function()
+	{
+	return options.mappedPort;
+	}
+
 self.getIsOpen = function()
 	{
 	return isOpen;
@@ -203,6 +213,7 @@ self.setRequestListener = function(listener)
 self.setSessionManager = function(manager, tokenName)
 	{
 	sessionTokenName = tokenName;
+	sessionTokenNameCookie = tokenName.replace(/[^0-9a-zA-Z]/g, "");
 	accessControlAllowHeaders.push(tokenName);
 	sessionManager = (typeof manager == "function" ? manager : null);
 	}
@@ -329,19 +340,19 @@ var load = function(wwwPath, pathname)
 		contentType = pathname.substr(contentType + 1, pathname.length - contentType - 1);
 
 		if(wwwPath.lastIndexOf(".htm") !== -1)										// Reqular or AngularJS file
-			{ // e.g., <html ng-app spaceify-secure spaceify-is-login> -> ['html', 'ng-app', 'spaceify-secure', 'spaceify-is-login']
+			{ // e.g., <html ng-app spaceify-secure spaceify-login> -> ['html', 'ng-app', 'spaceify-secure', 'spaceify-is-login']
 			html = content.toString().match(regxHTML);
 
 			if(html)
 				{
-				if(html[0].indexOf("ng-app") != -1 || html[0].indexOf("ng-app-spaceify") != -1)
+				if(html[0].indexOf("ng-app") != -1 || html[0].indexOf("ng-spaceify") != -1)
 					isAngularJS = true;
 
 				if(html[0].indexOf("spaceify-secure") != -1)
-					isSecurePage = true;
+					isAngularJS = isSecurePage = true;
 
-				if(html[0].indexOf("spaceify-is-login") != -1)
-					isLogInPage = isSecurePage = true;
+				if(html[0].indexOf("spaceify-login") != -1)
+					isAngularJS = isSecurePage = isLogInPage = true;
 
 				if(html[0].indexOf("spaceify-operation") != -1)
 					isOperationPage = true;
@@ -349,10 +360,10 @@ var load = function(wwwPath, pathname)
 			}
 
 		if(isOperationPage)
-			status = renderOperationPage.sync();
+			status = renderOperationPage.sync(5);
 		else if(isAngularJS)														// The web page contains AngularJS
 			status = renderAngularJS(content, contentType, pathname, isSecurePage, isLogInPage);
-		else																		// Regular web page
+		else																		// Regular web page / resource
 			status = renderHTML.sync(content, contentType);
 		}
 	catch(err)
@@ -364,10 +375,17 @@ var load = function(wwwPath, pathname)
 
 var renderHTML = fibrous( function(content, contentType)
 	{
+	/*if(sessionManager)
+		{
+		var session = sessionManager(currentRequest);
+		currentRequest.headers.push([sessionTokenName, session.token]);
+		currentRequest.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
+		}*/
+
 	return write(content, contentType, null, "", []);
 	});
 
-var renderOperationPage = fibrous( function()
+var renderOperationPage = fibrous( function(attempt)
 	{
 	var session;
 	var isSecure;
@@ -380,11 +398,12 @@ var renderOperationPage = fibrous( function()
 	if(sessionManager)
 		{
 		if(!currentRequest.POST["operation"])
-			error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_INVALID_DATA_POST);
+			error = language.E_INVALID_POST_DATA.pre("WebServer::renderOperationPage");
 		else
 			{
 			session = sessionManager(currentRequest);
 			currentRequest.headers.push([sessionTokenName, session.token]);
+			currentRequest.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
 
 			operation = utility.parseJSON(currentRequest.POST["operation"].body, true);
 
@@ -399,7 +418,7 @@ var renderOperationPage = fibrous( function()
 			}
 		}
 	else
-		error = errorc.errorFromObject(language.E_RENDER_OPERATION_PAGE_NO_SESSION_MANAGER);
+		error = language.E_NO_SESSION_MANAGER.pre("WebServer::renderOperationPage");
 
 	return write(JSON.stringify({err: error, data: data}), "json", null, "");
 	});
@@ -416,6 +435,7 @@ var renderAngularJS = function(content, contentType, pathname, isSecurePage, isL
 		{
 		session = sessionManager(currentRequest);
 		currentRequest.headers.push([sessionTokenName, session.token]);
+		currentRequest.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
 
 		// GET THE LOCALE / LANGUAGE FOR THE CURRENT SESSION, REMEMBER LOCALE
 		if(currentRequest.GET && currentRequest.GET.locale)
@@ -545,8 +565,10 @@ var writeOptions = function()
 
 var getOrigin = function()
 	{
+	var port = (options.mappedPort != 80 && options.mappedPort != 443 ? ":" + options.mappedPort : "");
+	return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
+
 	//return "*";
-	return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin : "*");
 	}
 
 var checkURL = function(wwwPath, pathname)

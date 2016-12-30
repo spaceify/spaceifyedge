@@ -19,6 +19,7 @@ var httpStatus = require("./httpstatus");
 var SecurityModel = require("./securitymodel");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 var SpaceifyNetwork = require("./spaceifynetwork");
 var WebSocketRpcServer = require("./websocketrpcserver");
@@ -33,6 +34,7 @@ var database = new Database();
 var iptables = new Iptables();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
@@ -258,7 +260,7 @@ var getService = fibrous( function(service_name, unique_name, connObj)
 		{
 		application = get("getApplication", unique_name);
 		if(!application)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getService", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::getService", {"~name": unique_name});
 		}
 
 	applicationByIp = get("getApplicationByIp", connObj.remoteAddress);
@@ -313,7 +315,7 @@ var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 		{
 		application = get("getApplication", unique_names[i]);
 		if(!application)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
 		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(application.getRuntimeServices(), getHttp, connObj.remoteAddress) );
 		}
@@ -455,11 +457,11 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 
 		// REMOVE APPLICATION
 		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
 
 		manifest = getManifest.sync(unique_name, true, false, connObj);
 
-		getManager(application.getType()).sync.remove(unique_name);
+		getManager(application.getType()).sync.remove(unique_name, true);
 
 		// Events
 		if(application.getType() == config.SPACELET)
@@ -499,7 +501,7 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 
 		// START APPLICATION
 		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::startApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::startApplication", {"~name": unique_name});
 
 		if(application.isDevelop())
 			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
@@ -551,7 +553,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 
 		// STOP APPLICATION
 		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::stopApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::stopApplication", {"~name": unique_name});
 
 		if(application.isDevelop())
 			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
@@ -559,7 +561,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 		//if(!application.sync.isRunning())
 		//	throw language.E_PACKAGE_ALREADY_STOPPED.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
 
-		getManager(application.getType()).sync.stop(unique_name);
+		getManager(application.getType()).sync.stop(unique_name, true);
 
 		// Events
 		manifest = getManifest.sync(unique_name, true, false, connObj);
@@ -619,25 +621,25 @@ var getApplicationData = fibrous( function(connObj)
 
 	for(i = 0; i < dbSpacelet.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSpacelet[i].unique_name, dbSpacelet[i].unique_directory, false, connObj)))
+		if((manifest = getManifest.sync(dbSpacelet[i].unique_name, true, false, connObj)))
 			appData.spacelet.push(manifest);
 		}
 
 	for(i = 0; i < dbSandboxed.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSandboxed[i].unique_name, dbSandboxed[i].unique_directory, false, connObj)))
+		if((manifest = getManifest.sync(dbSandboxed[i].unique_name, true, false, connObj)))
 			appData.sandboxed.push(manifest);
 		}
 
 	for(i = 0; i < dbSandboxedDebian.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSandboxedDebian[i].unique_name, dbSandboxedDebian[i].unique_directory, false, connObj)))
+		if((manifest = getManifest.sync(dbSandboxedDebian[i].unique_name, true, false, connObj)))
 			appData.sandboxed_debian.push(manifest);
 		}
 
 	for(i = 0; i < dbNativeDebian.length; i++)
 		{
-		if((manifest = getManifest.sync(dbNativeDebian[i].unique_name, dbNativeDebian[i].unique_directory, false, connObj)))
+		if((manifest = getManifest.sync(dbNativeDebian[i].unique_name, true, false, connObj)))
 			appData.native_debian.push(manifest);
 		}
 
@@ -683,7 +685,7 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 			};
 	});
 
-var getManifest = fibrous( function(unique_name, unique_directory, throws, connObj)
+var getManifest = fibrous( function(unique_name, uniqueDirectory, throws, connObj)
 	{ // Get application or spacelet manifest, get extended information if it is requested
 	var tileFile;
 	var application;
@@ -697,21 +699,9 @@ var getManifest = fibrous( function(unique_name, unique_directory, throws, connO
 	if(application)
 		manifest = application.getManifest();
 
-	if( application && ( (typeof unique_directory == "boolean" && unique_directory) || typeof unique_directory == "string") )
-		{
-		if(typeof unique_directory == "boolean")
-			{
-			try { unique_directory = (database.sync.getApplication(unique_name)).unique_directory; }
-			catch(err) { unique_directory = ""; }
-			finally { database.close(); }
-			}
-
-		if(!unique_directory)
-			throw language.E_GET_EXTENDED_MANIFEST_FAILED.pre("Core::getManifest");
-
-		tileFile = config.APP_TYPE_PATHS[manifest.type];
-
-		tileFile += unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + config.TILEFILE;
+	if( application && uniqueDirectory)
+		{		
+		tileFile = unique.getWwwPath(application.getType(), unique_name, config) + config.TILEFILE;
 
 		manifest.hasTile = utility.sync.isLocal(tileFile, "file");
 		manifest.isRunning = application.sync.isRunning();
@@ -928,7 +918,7 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 /*var saveOptions = fibrous( function(sessionId, unique_name, directory, file, data, connObj)
 	{
 	var dbApp;
-	var volume;
+	var volumePath;
 	var optionsOk = false;
 	var session = securityModel.findAdminSession(sessionId);
 
@@ -938,17 +928,17 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 
 		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume, create directory and save
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
 
-		volume = config.APP_TYPE_PATHS[dbApp.type] + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
 
 		if(directory != "")
 			{
 			directory += (directory.search(/\/$/) != -1 ? "" : "/");
-			mkdirp.sync(volume + directory, parseInt("0755", 8));
+			mkdirp.sync(volumePath + directory, parseInt("0755", 8));
 			}
 
-		fs.sync.writeFile(volume + directory + file, data);
+		fs.sync.writeFile(volumePath + directory + file, data);
 
 		optionsOk = true;
 		}
@@ -968,7 +958,7 @@ var loadOptions = fibrous( function(sessionId, unique_name, directory, file, con
 	{
 	var data;
 	var dbApp;
-	var volume;
+	var volumePath;
 	var data = null;
 	var session = securityModel.findAdminSession(sessionId);
 
@@ -978,14 +968,14 @@ var loadOptions = fibrous( function(sessionId, unique_name, directory, file, con
 
 		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume and load
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
 
-		volume = config.APP_TYPE_PATHS[dbApp.type] + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
 
 		if(directory != "")
 			directory += (directory.search(/\/$/) != -1 ? "" : "/");
 
-		data = fs.sync.readFile(volume + directory + file, {encoding: "utf8"});
+		data = fs.sync.readFile(volumePath + directory + file, {encoding: "utf8"});
 		}
 	catch(err)
 		{

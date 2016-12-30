@@ -5,7 +5,9 @@
     "encoding": "UTF-8",
     "description": "American English",
 
-    "loading": "Loading..."
+    "loading": "Loading...",
+
+    "copyright": "Copyright © 2014 - 2017 Spaceify Oy"
   },
 
   "index":
@@ -28,7 +30,7 @@
     "admin_utilities": "Administration",
 
     "admin_tile_title": "Spaceify Store",
-    "install_certificate_title": "Install Spaceify's certificate."
+    "install_certificate_title": "Install Spaceify's certificate"
   },
 
   "admin/index":
@@ -40,9 +42,8 @@
 
   "admin/login":
   {
-    "title": "Spaceify - Admin Log In",
+    "title": "Spaceify - AppStore Log In",
 
-    "admin_login": "Admin Log In",
     "password": "Password",
     "login": "Log In"
   },

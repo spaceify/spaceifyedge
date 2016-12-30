@@ -59,7 +59,7 @@ self.getUniqueName = function()
 
 self.getUniqueNameAsServiceName = function()
 	{
-	return unique.makeSystemctlServiceName(manifest.unique_name);
+	return unique.getSystemctlServiceName(manifest.unique_name);
 	}
 	
 self.isShared = function()
@@ -74,7 +74,7 @@ self.getType = function()
 
 self.getUniqueDirectory = function()
 	{
-	return unique.makeUniqueDirectory(manifest.unique_name);
+	return unique.getUniqueDirectory(manifest.unique_name);
 	}
 
 self.getProvidesServices = function()
@@ -122,11 +122,7 @@ self.getInstallCommands = function()
 // GENERATED
 self.getInstallationPath = function()
 	{
-	var path = "";
-
-	path = config.APP_TYPE_PATHS[self.getType()];
-
-	return path + self.getUniqueDirectory() + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY;
+	return unique.getAppPath(self.getType(), self.getUniqueName(), config);
 	}
 
 self.setDockerContainer = function(container)

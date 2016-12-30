@@ -122,7 +122,7 @@ var start = function(application_, options)
 							crt: config.VOLUME_TLS_PATH + config.SERVER_CRT,
 							caCrt: config.API_WWW_PATH + config.SPACEIFY_CRT,
 							wwwPath: config.VOLUME_APPLICATION_WWW_PATH,
-							indexFile: config.INDEX_HTML,
+							indexFile: config.INDEX_FILE,
 							serverName: manifest.name + " Server"
 							};
 
@@ -132,6 +132,7 @@ var start = function(application_, options)
 					{
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
+					opts.mappedPort = (isRealSpaceify ? process.env["PORT_80"] : null);
 					httpServer.listen.sync(opts);
 
 					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
@@ -143,6 +144,7 @@ var start = function(application_, options)
 					{
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
+					opts.mappedPort = (isRealSpaceify ? process.env["PORT_443"] : null);
 					httpsServer.listen.sync(opts);
 
 					HTTPS_PORT = httpsServer.getPort();

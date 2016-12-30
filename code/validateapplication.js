@@ -34,7 +34,7 @@ self.validatePackage = fibrous( function(package_path, save_path_manifest)
 	var manifest;
 	var manifest_path;
 	var application_path;
-	
+
 	try {
 		errors = [];
 		rules = null;
@@ -161,7 +161,7 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 				*
 				*
 				// The service file file
-			serviceFile = unique.makeSystemctlServiceName(manifest.unique_name);
+			serviceFile = unique.getSystemctlServiceName(manifest.unique_name);
 
 			if(!utility.sync.isLocal(application_path + serviceFile, "file"))
 				addError( language.E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING.preFmt("ValidateApplication::validateDirectories", {"~service": service}) );

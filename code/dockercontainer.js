@@ -32,6 +32,7 @@ var portOrder;
 var container;
 var containerId;
 var containerIp;
+var export_ports;
 var inspectedData;
 var containerPorts;
 //var PortSpecs = [];
@@ -112,7 +113,7 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 		inspectedData = container.sync.inspect();
 		containerId = (inspectedData.ID ? inspectedData.ID : inspectedData.Id);
 		containerIp = inspectedData.NetworkSettings.IPAddress;
-		logger.info("containerId: " + containerId + ", containerIp: " + containerIp);
+		logger.info("+++", "\ncontainerId: " + containerId, "\ncontainerIp: " + containerIp);
 		}
 	catch(err) {
 		throw language.E_START_CONTAINER_INSPECT_FAILED.pre("DockerContainer::startContainer", err); }
@@ -124,10 +125,12 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 
 		containerPorts.push(hostPort);
 		logger.info("HostPort " + port + " = " + hostPort);
+
+		export_ports += "export PORT_" + port.replace(/[^0-9]/g, "") + "=" + hostPort + "\n";
 		}
 	});
 
-self.stopContainer = fibrous( function(appobj)
+self.stopContainer = fibrous( function(appobj, throws)
 	{
 	try	{
 		if(container != null)
@@ -138,13 +141,16 @@ self.stopContainer = fibrous( function(appobj)
 			container.sync.stop({"t": "0"});
 			container.sync.wait();
 			container.sync.remove({"force": true});
-
-			initializeContainer();
 			}
 		}
 	catch(err)
 		{
-		throw language.E_STOP_CONTAINER_FAILED.preFmt("DockerContainer::stopContainer", {"~err": err.toString()});
+		if(throws)
+			throw language.E_STOP_CONTAINER_FAILED.preFmt("DockerContainer::stopContainer", {"~err": err.toString()});
+		}
+	finally
+		{
+		initializeContainer();
 		}
 	});
 
@@ -172,6 +178,7 @@ self.runApplication = fibrous( function(appobj)
 		bash += "export NODE_PATH=" + config.API_NODE_MODULES_DIRECTORY + "\n";
 		bash += "export APPLICATION_INITIALIZED=" + config.APPLICATION_INITIALIZED + "\n";
 		bash += "export APPLICATION_UNINITIALIZED=" + config.APPLICATION_UNINITIALIZED + "\n";
+		bash += export_ports;
 		if(appobj.getType() != config.SANDBOXED_DEBIAN)
 			{
 			bash +=  appobj.getStartCommand() + "\n";
@@ -220,6 +227,7 @@ var initializeContainer = function()
 	containerId = null;
 	containerIp = null;
 	inspectedData = {};
+	export_ports = "";
 	containerPorts = [];
 	}
 

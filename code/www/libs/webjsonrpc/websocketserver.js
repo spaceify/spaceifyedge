@@ -150,8 +150,8 @@ self.listen = function(opts, callback)
 
 				eventListener.addConnection(connection);
 
-				logger.info(utility.replace("WebSocketServer::request() protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
-						{"~p": options.protocol, "~ra": request.remoteAddress, "~rp": request.remotePort, "~o": request.origin, "~i": connection.getId()}, "-"));
+				logger.info(utility.replace("WebSocketServer::request(~lp) protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
+						{"~lp": options.port, "~p": options.protocol, "~ra": request.remoteAddress, "~rp": request.remotePort, "~o": request.origin, "~i": connection.getId()}, "-"));
 				}
 			catch(err)
 				{

@@ -378,7 +378,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		// ToDo: rollback installations?
 		sendEnd.sync();
 		}
-console.log("---------------------------------", installationStatus);
+
 	return installationStatus;
 });
 
@@ -392,7 +392,7 @@ var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 		var dbApp = database.sync.getApplication(unique_name);
 
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::removeApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::removeApplication", {"~name": unique_name});
 
 			// Remove the application
 		database.sync.begin();
@@ -424,7 +424,7 @@ var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
 	var dbApp;
 	var manifest;
 	var path = "";
-	var unique_directory = unique.makeUniqueDirectory(unique_name);
+	var unique_directory = unique.getUniqueDirectory(unique_name);
 
 		// Preconditions for performing this operation
 	if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
@@ -491,7 +491,7 @@ var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
 
 		// Finalize purge
 	if(path == "" && !dbApp)
-		sendMessage.sync(language.E_APPLICATION_NOT_INSTALLED.preFmt("", {"~name": unique_name}).message);
+		sendMessage.sync(language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("", {"~name": unique_name}).message);
 	else
 		sendMessage.sync(language.PACKAGE_PURGED);
 
@@ -512,7 +512,7 @@ var startApplication = fibrous( function(unique_name, sessionId, connObj)
 
 		dbApp = database.sync.getApplication(unique_name);
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::startApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::startApplication", {"~name": unique_name});
 
 			// Start the application
 		applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [dbApp.unique_name], self);
@@ -551,7 +551,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, connObj)
 
 		dbApp = database.sync.getApplication(unique_name);
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::stopApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::stopApplication", {"~name": unique_name});
 
 			// Stop the application
 		applicationStatus = coreConnection.sync.callRpc("getApplicationStatus", [dbApp.unique_name], self);
@@ -574,6 +574,8 @@ var stopApplication = fibrous( function(unique_name, sessionId, connObj)
 		database.close();
 		sendEnd.sync();
 		}
+
+	return true;
 	});
 
 var restartApplication = fibrous( function(unique_name, sessionId, connObj)
@@ -585,7 +587,7 @@ var restartApplication = fibrous( function(unique_name, sessionId, connObj)
 
 		var dbApp = database.sync.getApplication(unique_name);
 		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("ApplicationManager::restartApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::restartApplication", {"~name": unique_name});
 
 			// Restart the application
 		sendMessage.sync(utility.replace(language.PACKAGE_STOPPING, {"~type": language.APP_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
@@ -1082,13 +1084,13 @@ var install = fibrous( function(manifest, develop, sessionId)
 	var image;
 	var dbApp;
 	var source;
-	var appPath;
 	var list = "";
 	var public_key;
 	var volumePath;
 	var serviceFile;
 	var application;
 	var information;
+	var applicationPath;
 	var dockerContainer;
 	var dockerImageName;
 	var customDockerImage;
@@ -1098,7 +1100,8 @@ var install = fibrous( function(manifest, develop, sessionId)
 	try {
 		application = new Application(manifest, develop);
 
-		appPath = config.APP_TYPE_PATHS[manifest.type];
+		volumePath = unique.getVolPath(manifest.type, manifest.unique_name, config);
+		applicationPath = unique.getAppPath(manifest.type, manifest.unique_name, config);
 
 		database.sync.begin();																				// global transaction
 
@@ -1115,12 +1118,11 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 			// Install application and api files to volume directory
 		sendMessage.sync(language.INSTALL_APPLICATION_FILES);
-		volumePath = appPath + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY;
 		utility.sync.copyDirectory(config.WORK_PATH, volumePath, false, []);								// Copy application files to volume
 
 			// Generate a Spaceify ca signed certificate for this application
 		sendMessage.sync(language.INSTALL_GENERATE_CERTIFICATE);
-		createClientCertificate.sync(appPath, manifest);
+		createClientCertificate.sync(manifest);
 
 			// Docker image for spacelets, sandboxed and sandboxed_native applications
 		if(manifest.type != config.NATIVE_DEBIAN)
@@ -1140,7 +1142,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 			if(customDockerImage)
 				{ // test: docker run -i -t image_name /bin/bash
 				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER_IMAGE, {"~image": dockerImageName}));
-				utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: appPath + manifest.unique_name + config.VOLUME_APPLICATION_PATH}, null);
+				utility.execute.sync("docker", ["build", "--no-cache", "--rm", "-t", dockerImageName, "."], {cwd: applicationPath}, null);
 				}
 			else
 				sendMessage.sync(utility.replace(language.INSTALL_CREATE_DOCKER, {"~image": dockerImageName}));
@@ -1184,7 +1186,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 						else
 							public_key = "wget -qO- " + public_key + " | apt-key add -";
 
-						utility.execute.sync("sh", ["-c", public_key], {cwd: volumePath + config.APPLICATION_DIRECTORY}, function(isError, data)
+						utility.execute.sync("sh", ["-c", public_key], {cwd: applicationPath}, function(isError, data)
 							{
 							sendMessageStdout.sync("" + data);
 							});
@@ -1226,7 +1228,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 				for(var i = 0; i < manifest.deb_packages.length; i++)
 					{
-					utility.execute.sync("dpkg", ["-i", volumePath + config.APPLICATION_DIRECTORY + manifest.deb_packages[i].name], {}, function(isError, data)
+					utility.execute.sync("dpkg", ["-i", applicationPath + manifest.deb_packages[i].name], {}, function(isError, data)
 						{
 						sendMessageStdout.sync("" + data);
 						});
@@ -1241,9 +1243,9 @@ var install = fibrous( function(manifest, develop, sessionId)
 				*
 				*
 				// Copy service file to /lib/systemd/system and ~path replacement
-			serviceFile = unique.makeSystemctlServiceName(manifest.unique_name);
+			serviceFile = unique.getSystemctlServiceName(manifest.unique_name);
 
-			list = fs.readFileSync(volumePath + config.APPLICATION_DIRECTORY + serviceFile, "utf8");
+			list = fs.readFileSync(applicationPath + serviceFile, "utf8");
 			list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);						// ~path replacement
 
 			fs.writeFileSync(config.SYSTEMD_PATH + serviceFile, list, "utf8");
@@ -1286,7 +1288,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 		if(!develop)
 			dockerImage.sync.removeImage((docker_image_id != "N/A" ? docker_image_id : ""), manifest.unique_name);
 
-		removeUniqueData.sync(appPath, manifest);
+		removeUniqueData.sync(manifest);
 
 		throw language.E_INSTALL_APPLICATION_FAILED.pre("ApplicationManager::install", err);
 		}
@@ -1295,7 +1297,6 @@ var install = fibrous( function(manifest, develop, sessionId)
 var remove = fibrous( function(dbApp, sessionId, throws)
 	{
 	var manifest;
-	var unique_directory;
 
 		// Stop all the instances of running applications having applications unique_name
 	sendMessage.sync(utility.replace(language.PACKAGE_REMOVING, {"~type": language.APP_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
@@ -1322,7 +1323,7 @@ var remove = fibrous( function(dbApp, sessionId, throws)
 		// Remove application files directory
 	sendMessage.sync(language.PACKAGE_DELETE_FILES);
 
-	removeUniqueData.sync(config.APP_TYPE_PATHS[dbApp.type], dbApp);
+	removeUniqueData.sync(dbApp);
 	});
 
 var removeImage = function(docker_image_id, unique_name)
@@ -1346,11 +1347,12 @@ var removeTemporaryFiles = fibrous( function()
 	utility.sync.deleteDirectory(config.WORK_PATH, false);
 	});
 
-var removeUniqueData = fibrous( function(path, obj)
+var removeUniqueData = fibrous( function(obj)
 	{ // Removes existing application data and leaves users data untouched
-	var unique_directory = unique.makeUniqueDirectory(obj.unique_name);
-	utility.sync.deleteDirectory(path + unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY);
-	utility.sync.deleteDirectory(path + unique_directory + config.VOLUME_DIRECTORY + config.TLS_DIRECTORY);
+	var volumePath = unique.getVolPath(obj.type, obj.unique_name, config);	
+
+	utility.sync.deleteDirectory(volumePath + config.APPLICATION_DIRECTORY);
+	utility.sync.deleteDirectory(volumePath + config.TLS_DIRECTORY);
 
 	if(utility.sync.isLocal(config.INSTALLED_PATH + obj.docker_image_id + config.EXT_COMPRESSED, "file"))
 		fs.sync.unlink(config.INSTALLED_PATH + obj.docker_image_id + config.EXT_COMPRESSED);
@@ -1390,9 +1392,8 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 	var pkgName;
 	var serviceFile;
 	var packages = [];
-	var unique_directory = unique.makeUniqueDirectory(unique_name, true);
-	var volumePath = config.NATIVE_DEBIAN_PATH + unique_directory + config.VOLUME_APPLICATION_PATH;
-	var manifest = utility.sync.loadJSON(volumePath + config.MANIFEST, true, false);
+	var applicationPath = unique.getAppPath(config.NATIVE_DEBIAN, unique_name, config);
+	var manifest = utility.sync.loadJSON(applicationPath + config.MANIFEST, true, false);
 
 		// Remove entries from spaceifyapplication.list
 	removeApplicationRepositoryEntries(manifest, false);
@@ -1411,7 +1412,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 			{
 			pkgName = "";
 
-			utility.execute.sync("/bin/bash", ["-c", "dpkg-deb -I " + volumePath + packages[i].name + " | grep -i package: | awk -F : '{print $2}'"], {}, function(isError, data)
+			utility.execute.sync("/bin/bash", ["-c", "dpkg-deb -I " + applicationPath + packages[i].name + " | grep -i package: | awk -F : '{print $2}'"], {}, function(isError, data)
 				{
 				if(!isError)
 					pkgName += "" + data;
@@ -1439,7 +1440,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 		*
 		*
 		// Remove service file
-	serviceFile = config.SYSTEMD_PATH + unique.makeSystemctlServiceName(manifest.unique_name);
+	serviceFile = config.SYSTEMD_PATH + unique.getSystemctlServiceName(manifest.unique_name);
 	if(utility.sync.isLocal(serviceFile, "file"))
 		fs.unlinkSync(serviceFile);
 		*
@@ -1454,12 +1455,11 @@ var makeRepositoryLine = function(repository)
 	return "deb [ arch=" + repository.architectures.join(",") + " ] " + repository.source;
 	}
 
-var createClientCertificate = fibrous( function(appPath, manifest)
+var createClientCertificate = fibrous( function(manifest)
 	{
-	var tlsPath = appPath + unique.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.TLS_DIRECTORY;
+	var tlsPath = unique.getVolPath(manifest.type, manifest.unique_name, config) + config.TLS_DIRECTORY;
 
-	try {
-			// Create an unique configuration for every certificate by using/modifying the openssl configurations.
+	try { // Create an unique configuration for every certificate by using/modifying the openssl configurations.
 		utility.execute.sync("./makeserver.sh", [tlsPath, manifest.unique_name], {cwd: config.TLS_SCRIPTS_PATH}, null);
 		}
 	catch(err)

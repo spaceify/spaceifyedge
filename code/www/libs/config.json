@@ -29,6 +29,7 @@
 
   "VERSION_FILE": "/var/lib/spaceify/versions",
 
+  "WWW_DIRECTORY": "www/",
   "API_PATH": "/api/",
   "API_WWW_PATH": "/api/www/",
   "API_NODE_MODULES_DIRECTORY": "/api/node_modules",
@@ -38,12 +39,8 @@
   "VOLUME_PATH": "/volume/",
   "VOLUME_DIRECTORY": "volume/",
   "VOLUME_APPLICATION_PATH": "/volume/application/",
-  "VOLUME_APPLICATION_DIRECTORY": "volume/application/",
   "VOLUME_APPLICATION_WWW_PATH": "/volume/application/www/",
   "VOLUME_TLS_PATH": "/volume/tls/",
-
-  "WWW_URL": "edge.spaceify.net/",
-  "WWW_DIRECTORY": "www/",
 
   "SYSTEMD_PATH": "/lib/systemd/system/",
   "START_SH_FILE": "application/start.sh",
@@ -74,13 +71,9 @@
   "EDGE_IP": "10.0.0.1",
   "EDGE_HOSTNAME": "edge.spaceify.net",
   "EDGE_SHORT_HOSTNAME": "e.n",
-  "EDGE_HOSTNAME_REGX": "edge\\.spaceify\\.net",
   "EDGE_SUBNET": "10.0.0.0/16",
-  "EDGE_HTTP_URL": "http://edge.spaceify.net/",
-  "EDGE_HTTPS_URL": "https://edge.spaceify.net/",
   "ALL_IPV4_LOCAL": "0.0.0.0",
   "CONNECTION_HOSTNAME": "localhost",
-  "RESOURCE_HOSTNAME": "resource.spaceify.net",
 
   "APPLICATION_SUBNET": "172.17.0.0/16",
 
@@ -96,15 +89,12 @@
   "APPMAN_MESSAGE_PORT": 2950,
   "APPMAN_MESSAGE_PORT_SECURE": 4950,
 
-  "OPERATION_URL": "https://edge.spaceify.net/templates/operation.html",
+  "OPERATION": "templates/operation.html",
 
-  "EDGE_INDEX_URL": "https://edge.spaceify.net/index.html",
+  "ADMIN_LOGIN_PATH": {"file": "/var/lib/spaceify/code/www/appstore/login.html", "content_type": "html"},
 
-  "ADMIN_LOGIN_URL": "https://edge.spaceify.net/admin/login.html",
-  "ADMIN_LOGIN_PATH": {"file": "/var/lib/spaceify/code/www/admin/login.html", "content_type": "html"},
-
-  "APPSTORE_URL": "https://edge.spaceify.net/appstore/",
-  "APPSTORE_INDEX_URL": "https://edge.spaceify.net/appstore/index.html",
+  "APPSTORE": "appstore/",
+  "APPSTORE_INDEX_FILE": "appstore/index.html",
   "APPSTORE_INDEX_PATH": {"file": "/var/lib/spaceify/code/www/appstore/index.html", "content_type": "html"},
 
   "REGISTRY_HOSTNAME": "spaceify.org",
@@ -115,6 +105,7 @@
   "EDGE_APPSTORE_GET_PACKAGES_URL": "https://spaceify.org/appstore/getpackages.php",
   "EDGE_REGISTER_URL": "https://spaceify.net/edge/register.php",
   "EDGE_LOGIN_URL": "https://spaceify.net/edge/login.php",
+  "EDGE_GET_RESOURCE_URL": "spaceify.org/appstore/getresource.php?resource=",
 
   "ERROR_PATHS": {
                  "302": { "file": "/var/lib/spaceify/code/www/errors/302.html", "content_type": "html"},
@@ -124,10 +115,6 @@
                  },
 
   "GITHUB_HOSTNAME": "github.com",
-
-  "DNS_PORT": 53,
-  "DNS_IP_V6": "::",
-  "EXTERNAL_DNS_IP": "/var/lib/spaceify/data/dns/ip",
 
   "MAC_REGX": "^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$",
   "IP_REGX": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -141,13 +128,13 @@
   "ASCII": "ascii",
   "BASE64": "base64",
 
+  "ANY": "any",
+  "ALL": "all",
   "SPACELET": "spacelet",
   "SANDBOXED": "sandboxed",
   "SANDBOXED_DEBIAN": "sandboxed_debian",
   "NATIVE_DEBIAN": "native_debian",
-  "ANY": "any",
-  "ALL": "all",
-  "APP_TYPE_NUMBER": {"spacelet": 0, "sandboxed": 1, "sandboxed_debian": 2, "native_debian": 3, "any": 4},
+  "APP_TYPES": ["spacelet", "sandboxed", "sandboxed_debian", "native_debian"],
 
   "OPEN": "open",
   "OPEN_LOCAL": "open_local",
@@ -171,9 +158,7 @@
   "MANIFEST_RULES": "manifest.rules",
   "VERSIONS": "versions",
 
-  "SPACEIFYCLIENTJS": "spaceifyclient.js",
-  "INDEX_HTML": "index.html",
-  "INDEX_TPL": "index.tpl",
+  "INDEX_FILE": "index.html",
   "SERVER_NAME": "Spaceify Web Server",
 
   "TILEFILE": "tile.html",
@@ -222,5 +207,8 @@
   "EVENT_NATIVE_DEBIAN_STARTED": "nativeDebianStarted",
   "EVENT_NATIVE_DEBIAN_STOPPED": "nativeDebianStopped",
   "EVENT_EDGE_SETTINGS_CHANGED": "EdgeSettingsChanged",
-  "EVENT_CORE_SETTINGS_CHANGED": "CoreSettingsChanged"
+  "EVENT_CORE_SETTINGS_CHANGED": "CoreSettingsChanged",
+
+  "SESSION_TOKEN_NAME": "x-edge-session",
+  "SESSION_TOKEN_NAME_COOKIE": "xedgesession"
 }

@@ -27,10 +27,16 @@ var errorc = new classes.SpaceifyError();
 var config = new classes.SpaceifyConfig();
 var utility = new classes.SpaceifyUtility();
 
-// Get the URL to the Spaceify Core
-self.getEdgeURL = function(forceSecure, port, withSlash)
+// Get the URL to the Spaceify Edge
+self.getEdgeURL = function(forceSecure, port, withEndSlash)
 	{
-	return (forceSecure ? "https:" : location.protocol) + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withSlash ? "/" : "");
+	return (forceSecure ? "https:" : location.protocol) + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	}
+
+// Get URL to applications resource
+self.externalResourceURL = function(unique_name)
+	{
+	return self.getEdgeURL(false, false, true) + unique_name + "/";
 	}
 
 // Get secure or insecure port based on web pages protocol or requested security
@@ -203,17 +209,22 @@ self.doOperation = function(jsonData, callback)
 	var result;
 	var content;
 	var error = null;
+	var operationUrl;
 
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		self.POST_FORM(config.OPERATION_URL, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
+		operationUrl = self.getEdgeURL(true, null, true) + config.OPERATION;		
+		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
 			try {
 				if(typeof response !== "string")
 					response = JSON.stringify(response);
 
-				result = JSON.parse(response.replace(/&quot;/g, '"'));
+				response = response.replace(/&quot;/g, '"');
+				response = response.replace(/\\|^"|"$/g, '');
+
+				result = JSON.parse(response);
 				}
 			catch(err)
 				{
@@ -243,6 +254,43 @@ var onReadyState = function(xhr, id, ms, callback)
 	{
 	if(xhr.readyState == 4)
 		callback( (xhr.status != 200 ? xhr.status : null), (xhr.status == 200 ? xhr.response : null), id, Date.now() - ms );
+	}
+
+	// COOKIES -- -- -- -- -- -- -- -- -- -- //
+self.setCookie = function(cname, cvalue, expiration_sec)
+	{
+	var expires = "";
+
+	if(expiration_sec)
+		{
+		var dn = Date.now() + (expiration_sec * 1000);
+		var dc = new Date(dn);
+		expires = "expires=" + dc.toGMTString();
+		}
+
+	document.cookie = cname + "=" + cvalue + (expires != "" ? "; " + expires : "");
+	}
+
+self.getCookie = function(cname)
+	{
+	var name = cname + "=";
+	var ca = document.cookie.split(";");
+	for(var i = 0; i < ca.length; i++)
+		{
+		var c = ca[i];
+		while(c.charAt(0) == " ")
+			c = c.substring(1);
+
+		if(c.indexOf(name) != -1)
+			return c.substring(name.length, c.length);
+		}
+
+	return "";
+	}
+
+self.deleteCookie = function(cname)
+	{
+	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	}
 
 }

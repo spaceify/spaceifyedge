@@ -20,16 +20,12 @@ var config = new SpaceifyConfig();
 var network = new SpaceifyNetwork();
 var utility = new SpaceifyUtility();
 
-var id = -1;
-var ms = -1;
-var locked = false;													// Allow only one operation at a time
-var endSequence = 0;
-var type = null;
-var params = null;
-var origin = null;
-var endErr = null;
-var endData = null;
-var operationHandler = null;
+var operation;																	// Queue operation, execute operations in order
+var operations = [];
+
+var sequence = 0;
+var error = null;
+var result = null;
 var spaceifyMessages = new SpaceifyMessages();
 
 /**
@@ -142,11 +138,14 @@ self.appStoreGetPackages = function(search, returnCallback)
 
 	network.POST_FORM(config.EDGE_APPSTORE_GET_PACKAGES_URL, [{content: content, data: search}], "application/json", function(err, response)
 		{
-		var err = null
+		var err = null;
 		var data = null;
 
 		try {
-			data = JSON.parse(response.replace(/&quot;/g,'"'));
+			response = response.replace(/&quot;/g, '"');
+			response = response.replace(/\\|^"|"$/g, '');
+
+			data = JSON.parse(response);
 
 			if(data.error)
 				{
@@ -154,7 +153,7 @@ self.appStoreGetPackages = function(search, returnCallback)
 				data = null;
 				}
 			}
-		catch(err)
+		catch(err_)
 			{
 			err = errorc.makeErrorObject("JSON", "Failed to get packages: JSON.parse failed", "SpaceifyApplicationManager::appStoreGetPackages");
 			}
@@ -166,74 +165,80 @@ self.appStoreGetPackages = function(search, returnCallback)
 /**
  *
  */
-var setup = function(type_, params_, origin_, handler, getMessages)
+var setup = function(type, params, origin, handler, getMessages)
 	{
-	type = type_;
-	ms = Date.now();
-	params = params_;
-	origin = origin_;
-	operationHandler = handler;
-	id = utility.randomString(16, true);
-
-	if(locked)
-		origin.error(errorc.makeErrorObject("locked", "Application manager is locked.", "SpaceifyApplicationManager::setup"), null);
-	else
-		{
-		if(getMessages && !spaceifyMessages.isConnected())				// Set up messaging before doing the operation
-			spaceifyMessages.connect(self, origin);
-		else															// Connection is already open or do the operation without messaging
-			self.connected();
-		}
+	var op = { type: type, params: params, origin: origin, handler: handler, getMessages: getMessages, ms: Date.now(), id: utility.randomString(16, true) };
+	
+ 	if(operations.length == 0)
+ 		{
+		operation = op;
+		connect();
+ 		}
+ 	else
+		operations.push(op);
 	}
 
+var connect = function()
+	{
+	if(operation.getMessages)											// Set up messaging before doing the operation
+		spaceifyMessages.connect(self, operation.origin);
+	else																// Connection is already open or do the operation without messaging
+		self.connected();
+	}
+
+	// -- //
 self.connected = function()
 	{ // Messaging is now set up (or bypassed), post the operation.
-	locked = true;
-	endSequence = 1;
+	sequence = 1;
 
-	var post = {type: type};												// One object with operation and custom parameters
-	for(var i in params)
-		post[i] = params[i];
+	var post = { type: operation.type };								// One object with operation and custom parameters
+	for(var i in operation.params)
+		post[i] = operation.params[i];
 
 	network.doOperation(post, function(err, data)
 		{
-		endErr = err;
-		endData = data;
+		error = err;
+		result = data;
+
 		self.end(1);
 		});
 	}
 
 self.fail = function(err)
 	{ // Failed to set up the messaging.
-	locked = false;
-	endErr = err;
-	endData = null;
+	error = err;
+	result = null;
+
 	self.end(2);
 	}
 
 self.end = function(sequence)
 	{ // Either operation or messaging finishes first. Wait for both of them to finish before returning.
-	endSequence += sequence;
-	if(endSequence != 2)
+	sequence += sequence;
+	if(sequence != 2)
 		return;
-
-	locked = false;
 
 	var errors = spaceifyMessages.getErrors();
 
-	if(endErr || errors.length > 0)
-		origin.error(endErr ? [endErr] : errors, id, Date.now() - ms);
-	else if(typeof operationHandler == "function")
-		operationHandler(endData, id, Date.now() - ms);
+	if(error || errors.length > 0)
+		operation.origin.error(error ? [error] : errors, operation.id, Date.now() - operation.ms);
+	else if(typeof operation.handler == "function")
+		operation.handler(result, operation.id, Date.now() - operation.ms);
+	
+	if(operations.length > 0)
+		{
+		operation = operations.shift();
+		connect();
+		}
 	}
 
  /*
  * @param   result             the user selected answer either in the short or long format
  * @param   answerCallBackId   the id given by Application manager in a call to questionsCallback
  */
-self.answer = function(result, answerCallBackId)
+self.answer = function(result_, answerCallBackId)
 	{
-	spaceifyMessages.answer(result, answerCallBackId);
+	spaceifyMessages.answer(result_, answerCallBackId);
 	}
 
 }

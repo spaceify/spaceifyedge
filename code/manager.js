@@ -15,6 +15,7 @@ var language = require("./language");
 var Application = require("./application");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 var DockerContainer = require("./dockercontainer");
 var DockerImage = require("./dockerimage");
@@ -27,6 +28,7 @@ var logger = new Logger();
 var database = new Database();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var dockerImage = new DockerImage();
 
@@ -38,15 +40,12 @@ self.install = fibrous( function(unique_name, throws)
 	var manifest;
 	var dbApplication;
 	var application = null;
-	var applicationPath = "";
 
 	try	{
 		dbApplication = database.sync.getApplication(unique_name);
 
-		applicationPath = config.APP_TYPE_PATHS[managerType];
-
-		if((manifest = utility.sync.loadJSON(applicationPath + dbApplication.unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.MANIFEST, true)) == null)
-			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("Manager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": dbApplication.unique_name});
+		if((manifest = utility.sync.loadJSON(unique.getAppPath(managerType, unique_name, config) + config.MANIFEST, true)) == null)
+			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("Manager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": unique_name});
 
 		application = new Application(manifest, dbApplication.develop);
 		application.setDockerImageId(dbApplication.docker_image_id);
@@ -94,7 +93,6 @@ var run = fibrous( function(application)
 	var binds = [];
 	var volumes = {};
 	var dockerContainer;
-	var applicationPath = "";
 
 	try	{
 		if(application.sync.isRunning())
@@ -109,10 +107,8 @@ var run = fibrous( function(application)
 			dockerImage.sync.removeContainers(application.getDockerImageId(), "", null);
 
 				// Run
-			applicationPath = config.APP_TYPE_PATHS[managerType];
-
 			var fullApiPath = config.SPACEIFY_CODE_PATH;
-			var fullVolumePath = applicationPath + application.getUniqueDirectory() + config.VOLUME_DIRECTORY;
+			var fullVolumePath = unique.getVolPath(managerType, application.getUniqueName(), config);
 
 			volumes[config.API_PATH] = {};
 			volumes[config.VOLUME_PATH] = {};
@@ -142,7 +138,7 @@ var run = fibrous( function(application)
 
 				matches = errorc.endWithDot(matches[1]);
 
-				self.sync.stop(application.getUniqueName());						// Stop container
+				self.sync.stop(application.getUniqueName(), true);					// Stop container
 
 				throw language.E_START_INIT_FAILED.preFmt("Manager::run", {	"~err": matches,
 																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
@@ -160,7 +156,7 @@ var run = fibrous( function(application)
 		}
 	});
 
-self.stop = fibrous( function(unique_name)
+self.stop = fibrous( function(unique_name, throws)
 	{
 	var dockerContainer;
 	var application = self.getApplication(unique_name);
@@ -170,7 +166,7 @@ self.stop = fibrous( function(unique_name)
 		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
 			if((dockerContainer = application.getDockerContainer()) != null)
-				dockerContainer.sync.stopContainer(application);
+				dockerContainer.sync.stopContainer(application, throws);
 			}
 		else //if(managerType == config.NATIVE_DEBIAN)
 			{
@@ -189,7 +185,7 @@ var add = function(application)
 	applicationsCount = Object.keys(applications).length;
 	}
 
-self.remove = fibrous( function(unique_name)
+self.remove = fibrous( function(unique_name, throws)
 	{
 	var keys = Object.keys(applications);								// Deleting seems to work reliably only in "normal" loop
 
@@ -197,7 +193,7 @@ self.remove = fibrous( function(unique_name)
 		{
 		if(keys[i] == unique_name || unique_name == "")
 			{
-			self.sync.stop(keys[i]);
+			self.sync.stop(keys[i], throws);
 			delete applications[keys[i]];
 			}
 		}
@@ -207,7 +203,7 @@ self.remove = fibrous( function(unique_name)
 
 self.removeAll = fibrous( function()
 	{
-	self.sync.remove("");
+	self.sync.remove("", false);
 	});
 
 self.getApplicationCount = function()

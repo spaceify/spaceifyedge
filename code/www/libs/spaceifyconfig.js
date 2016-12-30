@@ -37,6 +37,11 @@ else
 		self[i] = window.spConfig[i];
 	}
 
+self.get = function(c)
+	{
+	return (c in self ? self[c] : null);
+	}
+
 self.makeRealApplicationPaths = function()
 	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
 	  // After this running applications outside and inside Spaceify / docker containers is identical.
@@ -85,8 +90,7 @@ self.makeRealApplicationPaths = function()
 			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["WWW_DIRECTORY"];
 
 				// Lets assume there is an installed application and with certificate directory
-			self["VOLUME_TLS_PATH"] = 
-						self["APP_TYPE_PATHS"][manifest.type] + unique.makeUniqueDirectory(manifest.unique_name, true) + self["VOLUME_TLS_PATH"];
+			self["VOLUME_TLS_PATH"] = unique.getVolPath(manifest.type, manifest.unique_name, self) + self["VOLUME_TLS_PATH"];
 			}
 		}
 	}
