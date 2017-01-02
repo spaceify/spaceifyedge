@@ -4570,7 +4570,7 @@ self.renderTile = function(manifest, callback)
 					{
 					element = document.getElementById(id);
 					src = sp_host + sp_path;
-console.log("-------------------", src);
+
 					xhr = new XMLHttpRequest();
 					xhr.addEventListener("loadend", function(e)
 						{
@@ -4582,7 +4582,6 @@ console.log("-------------------", src);
 
 								callback();
 								};
-console.log("-------------------", xhr);
 
 							if(xhr.response)
 								{

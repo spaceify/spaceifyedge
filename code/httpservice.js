@@ -369,19 +369,19 @@ var getAppIndex = function(unique_name)
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
 var manageSessions = function(currentRequest)
 	{
-console.log("");console.log("");console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
+//console.log(""); console.log(""); console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
 	var sessiontoken = currentRequest.request.headers[config.SESSION_TOKEN_NAME] || null;	// First source is header and backup source is cookie
 
 	if(!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in currentRequest.cookies)
 		sessiontoken = currentRequest.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
-console.log("- BEFORE", sessiontoken);
+//console.log("- BEFORE", sessiontoken);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
 	if(!session)														// Create a session if it doesn't exist yet
 		sessiontoken = createSession();
 	else																// Update an existing session
 		sessions[sessiontoken].timestamp = Date.now();
-console.log("- AFTER", Object.keys(sessions));
+//console.log("- AFTER", Object.keys(sessions));
 	return sessions[sessiontoken];
 	}
 
@@ -408,14 +408,14 @@ var createSession = function()
 var cleanUp = function()
 	{
 	var sts = Object.keys(sessions);									// Remove expired sessions
-console.log("------------- cleanUp");
+//console.log("------------- cleanUp");
 	for(var i = 0; i < sts.length; i++)
 		{
 		if(Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
-{
-console.log("------------- DELETE", sts[i]);
+			{
+//console.log("------------- DELETE", sts[i]);
 			delete sessions[sts[i]];
-}
+			}
 		}
 	}
 }

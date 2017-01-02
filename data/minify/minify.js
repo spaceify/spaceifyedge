@@ -31,7 +31,7 @@ this.make = function()
 		if(operation != "js" && operation != "css" && operation != "loader" && operation != "all")
 			throw "Operation must be js, css, loader or all. Exiting.";
 
-		process.stdout.write("\n :: Minify/uglify - operation '" + operation + "', Source '" + sourcePath + "', destination '" + targetPath + "'");
+		process.stdout.write("\n :: Minify/uglify - operation '" + operation + "', source '" + sourcePath + "', destination '" + targetPath + "'");
 
 		//	//	//	//	//	//	//
 		//	//	//	//	//	//	//

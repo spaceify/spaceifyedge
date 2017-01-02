@@ -565,10 +565,9 @@ var writeOptions = function()
 
 var getOrigin = function()
 	{
-	var port = (options.mappedPort != 80 && options.mappedPort != 443 ? ":" + options.mappedPort : "");
-	return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
-
-	//return "*";
+	//var port = (options.mappedPort != 80 && options.mappedPort != 443 ? ":" + options.mappedPort : "");
+	//return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
+	return "*";
 	}
 
 var checkURL = function(wwwPath, pathname)
