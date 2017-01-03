@@ -119,7 +119,8 @@ var createHttpServer = fibrous( function(isSecure)
 						 locale: config.DEFAULT_LOCALE,
 						 localesPath: config.LOCALES_PATH,
 						 serverName: config.SERVER_NAME,
-						 debug: true
+						 debug: true,
+						 isEdge: true
 						 });
 	});
 

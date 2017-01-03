@@ -178,6 +178,7 @@ var answerListener = function(answer, answerCallbackId)
 	// EXPOSED JSON-RPC -- -- -- -- -- -- -- -- -- -- //
 var installApplication = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, force, develop, sessionId, connObj)
 	{
+	var str;
 	var start;
 	var answer;
 	var errors;
@@ -186,6 +187,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	var validator;
 	var suggested;
 	var isStarted;
+	var isPackage;
 	var information;
 	var registry_url;
 	var startOrder = [];
@@ -196,7 +198,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	var isSuggested = false;
 	var suggested_unique_name;
 	var suggestedApplications = [];
-	var installationStatus = config.FAILURE;
+	var installationStatus = self.FAILURE;
 	var applicationPackages = [applicationPackage];
 
 	try {
@@ -204,7 +206,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::installApplication");
 
-		removeTemporaryFiles.sync();
+		//removeTemporaryFiles.sync();
 
 			// Get current release information
 		information = database.sync.getInformation();
@@ -220,8 +222,9 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 				// Try to get the package
 			registry_url = config.REGISTRY_INSTALL_URL + "?package=" + applicationPackage + "&release=" + information["release_name"] + "&username=" + username + "&password=" + password;
-			if(!getPackage.sync(applicationPackage, isSuggested, true, username, password, registry_url, currentWorkingDirectory))
-				throw language.E_PROCESS_PACKAGE_FAILED.preFmt("ApplicationManager::installApplication", {"~source": applicationPackage});
+
+			if((isPackage = getPackage.sync(applicationPackage, isSuggested, true, username, password, registry_url, currentWorkingDirectory)) !== true)
+				throw isPackage;
 
 				// Validate the package for any errors
 			sendMessage.sync("");
@@ -250,7 +253,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 					if(answer != messaging.MESSAGE_TIMED_OUT)
 						sendMessage.sync(language.INSTALL_APPLICATION_ABORTED);
 
-					installationStatus = config.ROLLEDBACK;
+					installationStatus = self.ROLLEDBACK;
 					break;
 					}
 				}
@@ -300,7 +303,6 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 						suggestedApplications.push(required_service.suggested_application);
 						}
-
 						// Service is already registered -> don't reinstall even if version would change, because it might make other packages inoperative
 					else
 						{
@@ -308,7 +310,8 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 							// ----- Suggested and installed applications are different -> use the installed application
 						if(existing.unique_name != suggested_unique_name)
-							sendNotify.sync(utility.replace(language.INSTALL_SUGGESTED_DIFFERENT_PACKAGES,
+							{
+							str = utility.replace(language.INSTALL_SUGGESTED_DIFFERENT_PACKAGES,
 								{
 								"~required_service_name": required_service.service_name,
 								"~existing_type": language.APP_UPPER_CASE_DISPLAY_NAMES[existing.type],
@@ -316,19 +319,24 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 								"~existing_version": existing.version,
 								"~suggested_unique_name": suggested_unique_name,
 								"~suggested_version": suggested_version,
-								}), self.INSTALL_SUGGESTED_DIFFERENT_PACKAGES);
-
+								});
+							}
 							// ----- Suggested application is same as the installed application -> use the existing application@version
 						else
-							sendNotify.sync(utility.replace(language.INSTALL_SUGGESTED_SAME_PACKAGES,
+							{
+							str = utility.replace(language.INSTALL_SUGGESTED_SAME_PACKAGES,
 								{
-								"~installing_type": language.APP_DISPLAY_NAMES[manifest.type],
 								"~suggested_unique_name": suggested_unique_name,
 								"~suggested_version": suggested_version,
 								"~required_service_name": required_service.service_name,
-								"~existing_unique_name": existing.unique_name,
 								"~existing_version": existing.version,
-								}), self.INSTALL_SUGGESTED_SAME_PACKAGES);
+								});
+							}
+
+						if(s == 0)
+							sendMessage.sync("");
+						sendNotify.sync(str, self.INSTALL_SUGGESTED_SAME_PACKAGES);
+						sendMessage.sync("");
 						}
 					}
 
@@ -369,12 +377,13 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		}
 	catch(err)
 		{
-		sendErrors.sync(err);
+		if(typeof err != "boolean")
+			sendErrors.sync(err);
 		}
 	finally
 		{
 		database.close();
-		removeTemporaryFiles.sync();
+		//removeTemporaryFiles.sync();
 		// ToDo: rollback installations?
 		sendEnd.sync();
 		}
@@ -643,6 +652,7 @@ var getApplications = fibrous( function(types, connObj)
 var sourceCode = fibrous( function(applicationPackage, username, password, currentWorkingDirectory, connObj)
 	{
 	var dest;
+	var isPackage;
 	var information;
 	var registry_url;
 
@@ -654,8 +664,9 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 
 			// Get sources
 		registry_url = config.REGISTRY_INSTALL_URL + "?package=" + applicationPackage + "&release=" + information["release_name"] + "&username=" + username + "&password=" + password;
-		if(!getPackage.sync(applicationPackage, false, false, username, password, registry_url, currentWorkingDirectory))
-			throw language.E_PROCESS_PACKAGE_FAILED.preFmt("ApplicationManager::sourceCode", {"~source": applicationPackage});
+
+		if((isPackage = getPackage.sync(applicationPackage, false, false, username, password, registry_url, currentWorkingDirectory)) !== true)
+			throw isPackage;
 
 		dest = applicationPackage.replace(/[^0-9a-zA-Z-_\/]/g, "_");
 		dest = dest.replace(/_{2,}/g, "_");
@@ -669,7 +680,8 @@ var sourceCode = fibrous( function(applicationPackage, username, password, curre
 		}
 	catch(err)
 		{
-		sendErrors.sync(err);
+		if(typeof err != "boolean")
+			sendErrors.sync(err);
 		}
 	finally
 		{
@@ -871,26 +883,26 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 
 		currentWorkingDirectoryPackage = currentWorkingDirectory + "/" + applicationPackage;
 
-			// --- 1.1 --- Try local directory <package>
+			// Try local directory <package>
 		if(utility.sync.isLocal(applicationPackage, "directory"))
 			applicationPackage = getLocalPublishDirectory.sync(applicationPackage);
 
-			// --- 1.2 --- Try local directory <currentWorkingDirectory/package>
+			// Try local directory <currentWorkingDirectory/package>
 		else if(utility.sync.isLocal(currentWorkingDirectoryPackage, "directory"))
 			applicationPackage = getLocalPublishDirectory.sync(currentWorkingDirectoryPackage);
 
-			// --- 2.1 --- Try local <package>.zip
+			// Try local <package>.zip
 		else if(utility.sync.isLocal(applicationPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.LOCAL_ARCHIVE, "~package": applicationPackage}));
 
-			// --- 2.2 --- Try local <currentWorkingDirectory/package>.zip
+			// Try local <currentWorkingDirectory/package>.zip
 		else if(utility.sync.isLocal(currentWorkingDirectoryPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
 			{
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.LOCAL_ARCHIVE, "~package": applicationPackage}));
 			applicationPackage = currentWorkingDirectoryPackage;
 			}
 
-			// --- 3.1 --- Try GitHub repository <package>
+			// Try GitHub repository <package>
 		else if(urlObj.hostname && urlObj.hostname.match(/(github\.com)/i) != null && gitoptions.length == 2)
 			{
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.GIT_REPOSITORY, "~package": applicationPackage}));
@@ -902,7 +914,7 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 			applicationPackage = config.WORK_PATH + config.PUBLISH_ZIP;
 			}
 
-			// --- 4.1 --- Try remote <package>.zip (remote url)
+			// Try remote <package>.zip (remote url)
 		else if(utility.sync.loadRemoteFileToLocalFile(applicationPackage, config.WORK_PATH, config.PUBLISH_ZIP))
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.REMOTE_ARCHIVE, "~package": applicationPackage}));
 
@@ -946,13 +958,14 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 var getPackage = fibrous( function(applicationPackage, isSuggested/*try only registry*/, try_local/*try local directories*/, username, password, registry_url, currentWorkingDirectory)
 	{ // Get package by (unique name|directory|archive|url|git url), isSuggested=, try_local=
 	var str;
+	var state;
 	var urlObj;
 	var result;
 	var errors;
 	var errfile;
 	var isGithub;
-	var isPackage;
 	var gitoptions;
+	var isPackage = false;
 	var currentWorkingDirectoryPackage;
 
 	if(applicationPackage == "")
@@ -967,83 +980,109 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 
 	currentWorkingDirectoryPackage = currentWorkingDirectory + "/" + applicationPackage;
 
-		// --- Try local directory <package>
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_DIRECTORY}));
-	if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "directory"))
-		return getLocalInstallDirectory.sync(applicationPackage, false);
-
-		// --- Try local directory <currentWorkingDirectory/package>
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.WORKING_DIRECTORY}));
-	if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "directory"))
-		return getLocalInstallDirectory.sync(currentWorkingDirectoryPackage, true);
-
-		// --- Try local <package>.zip
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_ARCHIVE}));
-	if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
-		return getLocalInstallZip.sync(applicationPackage, false);
-
-		// --- Try local <currentWorkingDirectory/package>.zip
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.WORKING_DIRECTORY_ARCHIVE}));
-	if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
-		return getLocalInstallZip.sync(currentWorkingDirectoryPackage, true);
-
-		// --- Try <unique_name>[@<version>] from the registry - suggested applications can be tried from the registry!!!
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.SPACEIFY_REGISTRY}));
-
-	if(!isGithub && utility.sync.loadRemoteFileToLocalFile(registry_url, config.WORK_PATH, config.PACKAGE_ZIP))
+		// Try local directory <package>
+	if(isPackage === false)
 		{
-		isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
+		if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "directory"))
+			isPackage = getLocalInstallDirectory.sync(applicationPackage, false);
+	
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_DIRECTORY, "~state": state}));
+		}
 
-			// Check for errors before accepting "package"
-		if(utility.sync.isLocal(config.WORK_PATH + config.SPM_ERRORS_JSON, "file"))
+		// Try local directory <currentWorkingDirectory/package>
+	if(isPackage === false)
+		{
+		if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "directory"))
+			isPackage = getLocalInstallDirectory.sync(currentWorkingDirectoryPackage, true);
+
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.WORKING_DIRECTORY, "~state": state}));
+		}
+
+		// Try local <package>.zip
+	if(isPackage === false)
+		{
+		if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+			isPackage = getLocalInstallZip.sync(applicationPackage, false);
+	
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_ARCHIVE, "~state": state}));
+		}
+
+		// Try local <currentWorkingDirectory/package>.zip
+	if(isPackage === false)
+		{
+		if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+			isPackage = getLocalInstallZip.sync(currentWorkingDirectoryPackage, true);
+
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.WORKING_DIRECTORY_ARCHIVE, "~state": state}));
+		}
+
+		// Try <unique_name>[@<version>] from the registry - suggested applications can be tried from the registry!!!
+	if(isPackage === false)
+		{
+		if(!isGithub && utility.sync.loadRemoteFileToLocalFile(registry_url, config.WORK_PATH, config.PACKAGE_ZIP))
 			{
-			errfile = fs.sync.readFile(config.WORK_PATH + config.SPM_ERRORS_JSON, {encoding: "utf8"});
+			isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
 
-			result = utility.parseJSON(errfile, true);
-
-			errors = [];															// Build error array
-			for(var e in result.err)
+				// Check for errors before accepting "package"
+			if(utility.sync.isLocal(config.WORK_PATH + config.SPM_ERRORS_JSON, "file"))
 				{
-				str = result.err[e].replace("Manifest: ", "");
+				errfile = fs.sync.readFile(config.WORK_PATH + config.SPM_ERRORS_JSON, {encoding: "utf8"});
 
-				if(e != "EINSTL100")
+				result = utility.parseJSON(errfile, true);
+
+				errors = [];															// Build error array
+				for(var e in result.err)
+					{
+					if(e == "EINSTL100" || e == "E_UNIQUE_NAME_FORMAT")						// "Package does not exist" || "Unique name malformed"
+						{
+						errors = [];
+						isPackage = false;
+						break;
+						}
+
+					str = result.err[e].replace("Manifest: ", "");
 					errors.push(errorc.makeErrorObject(e, str, ""));
-				}
+					}
 
-			if(errors.length > 0)
-				{
-				sendMessage.sync(language.PACKAGE_INSTALL_ERROR);
-				throw errors;
+				if(errors.length > 0)
+					isPackage = errors;
 				}
 			}
-		else
-			{
-			sendMessage.sync(utility.replace(language.PACKAGE_FOUND, {"~where": language.SPACEIFY_REGISTRY, "~package": applicationPackage}));
 
-			return isPackage;
-			}
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.SPACEIFY_REGISTRY, "~state": state}));
 		}
 
-		// --- Try GitHub repository <package>
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.GIT_REPOSITORY}));
-	if(!isSuggested && isGithub)
+		// Try GitHub repository <package>
+	if(isPackage === false)
 		{
-		sendMessage.sync(utility.replace(language.PACKAGE_FOUND, {"~where": language.GIT_REPOSITORY, "~package": applicationPackage}));
+		if(!isSuggested && isGithub)
+			isPackage = git.sync(gitoptions, username, password);
 
-		return git.sync(gitoptions, username, password);
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.GIT_REPOSITORY, "~state": state}));
 		}
 
-		// --- Try remote <package>.zip (remote url)
-	sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.REMOTE_ARCHIVE}));
-	if(!isSuggested && utility.sync.loadRemoteFileToLocalFile(applicationPackage, config.WORK_PATH, config.PACKAGE_ZIP))
+		// Try remote <package>.zip (remote url)
+	if(isPackage === false)
 		{
-		sendMessage.sync(utility.replace(language.PACKAGE_FOUND, {"~where": language.REMOTE_ARCHIVE, "~package": applicationPackage}));
+		if(!isSuggested && utility.sync.loadRemoteFileToLocalFile(applicationPackage, config.WORK_PATH, config.PACKAGE_ZIP))
+			isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
 
-		return utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
+		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
+
+		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.REMOTE_ARCHIVE, "~state": state}));
 		}
 
-		// --- FAILURE ---
-	throw language.E_FAILED_TO_RESOLVE_PACKAGE.preFmt("ApplicationManager::getPackage", {"~package": applicationPackage});
+	// FAILURE
+	if(isPackage === false)
+		sendMessage.sync(errorc.replace(language.E_FAILED_TO_RESOLVE_PACKAGE.message, {"~package": applicationPackage}));
+
+	return isPackage;
 	});
 
 var getLocalInstallDirectory = fibrous( function(applicationPackage, isCurrentWorkingDirectory)
@@ -1052,8 +1091,6 @@ var getLocalInstallDirectory = fibrous( function(applicationPackage, isCurrentWo
 
 	if(applicationPackage + config.PACKAGE_PATH == config.WORK_PATH)			// Prevent infinite recursion
 		return false;
-
-	sendMessage.sync(utility.replace(language.PACKAGE_FOUND, {"~where": (isCurrentWorkingDirectory ? language.WORKING_DIRECTORY : language.LOCAL_DIRECTORY), "~package": applicationPackage}));
 
 	if(applicationPackage.match(/application\/$/))								// Remove application from path to include it to the copy, if installing from a directory containing application/
 		applicationPackage = applicationPackage.replace(/application\/$/, "");
@@ -1065,8 +1102,6 @@ var getLocalInstallDirectory = fibrous( function(applicationPackage, isCurrentWo
 
 var getLocalInstallZip = fibrous( function(applicationPackage, isCurrentWorkingDirectory)
 	{
-	sendMessage.sync(utility.replace(language.PACKAGE_FOUND, {"~where": (isCurrentWorkingDirectory ? language.WORKING_DIRECTORY_ARCHIVE : language.LOCAL_ARCHIVE), "~package": applicationPackage}));
-
 	return utility.unZip(applicationPackage, config.WORK_PATH, false);
 	});
 
@@ -1535,7 +1570,7 @@ var sendMessage = fibrous( function()
 	{
 	var message = "";
 
-	messaging.sendMessage(Array.prototype.slice.call(arguments));									// Messaging server
+	messaging.sync.sendMessage(Array.prototype.slice.call(arguments));								// Messaging server
 
 	for(var i = 0; i < arguments.length; i++)														// Output to console
 		{
@@ -1564,7 +1599,7 @@ var sendErrors = fibrous( function(err)
 		}
 	else if(err)																					// "Normal" errors
 		{
-		err = errorc.typeToErrorObject(err);														// Make sure the error is an error object
+		err = errorc.typeToErrorObject(err);															// Make sure the error is an error object
 
 		sendMessage.sync({type: messaging.MESSAGE_ERROR, data: [err]});
 		}

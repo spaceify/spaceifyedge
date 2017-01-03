@@ -456,9 +456,11 @@ var addResponse = function(requestId, result, responses)
 	{
 	if (requestId != null)																	// Requests send responses
 		{
+		result = (typeof result === "undefined" ? null : result);
+
 		logger.info("  RESPONSE <- " + JSON.stringify(result));
 
-		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
 	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");

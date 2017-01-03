@@ -141,7 +141,7 @@ self.setAnswerListener = function(listener)
 	answerListener = (typeof listener == "function" ? listener : null);
 	}
 
-self.sendMessage = function(messages)
+self.sendMessage = function(messages, callback)
 	{
 	var message = "";
 
@@ -157,7 +157,7 @@ self.sendMessage = function(messages)
 			else
 				message = messages[i];
 
-			webSocketRpcServer.callRpc(message.type, message.data, null, null, confirmed[messageId].connectionId);
+			webSocketRpcServer.callRpc(message.type, message.data, self, callback, confirmed[messageId].connectionId);
 			}
 		}
 	}

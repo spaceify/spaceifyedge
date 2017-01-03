@@ -103,7 +103,6 @@ var language =
 	"E_GET_APPLICATIONS_FAILED_TO_GET_APPLICATIONS": new SpaceifyError({"code": 7009, "message": "Failed to list applications."}),
 	"E_CREATE_CLIENT_CERTIFICATE_FAILED_TO_CREATE": new SpaceifyError({"code": 7010, "message": "Failed to create certificate for the application."}),
 	"E_GIT_FAILED_TO_GET_GITHUB_DATA": new SpaceifyError({"code": 7011, "message": "Failed to get data from GitHub."}),
-	"E_PROCESS_PACKAGE_FAILED": new SpaceifyError({"code": 7012, "message": "Getting package from ~source failed."}),
 	"E_AUTHENTICATION_FAILED": new SpaceifyError({"code": 7013, "message": "Authentication failed."}),
 	"E_ONLY_SANDBOXED_OR_SPACELET": new SpaceifyError({"code": 7014, "message": "Only sandboxed applications and spacelets can be installed in develop mode."}),
 
@@ -220,18 +219,18 @@ var language =
 	"REMOVE_CONTAINER": "Removing temporary container: ~container.",
 
 	// ApplicationManager
-	"RESOLVING_ORIGIN": "Resolving package origin...",
-	"CHECKING_FROM": " : ~where",
+	"RESOLVING_ORIGIN": "Resolving package origin.",
+	"CHECKING_FROM": " : ~where - ~state",
 	"PACKAGE_FOUND": "Package ~package found from ~where",
 	"TRYING_TO_PUBLISH": "Trying to publish ~where",
-	"APPLICATION_DIRECTORY": "application directory.",
-	"LOCAL_DIRECTORY": "local directory.",
-	"WORKING_DIRECTORY": "current working directory.",
-	"LOCAL_ARCHIVE": "local Zip archive.",
-	"WORKING_DIRECTORY_ARCHIVE": "Zip archive in the current working directory.",
-	"GIT_REPOSITORY": "the GitHub repository.",
-	"REMOTE_ARCHIVE": "remote Zip archive.",
-	"SPACEIFY_REGISTRY": "the Spaceify registry.",
+	"APPLICATION_DIRECTORY": "application directory",
+	"LOCAL_DIRECTORY": "local directory",
+	"WORKING_DIRECTORY": "current working directory",
+	"LOCAL_ARCHIVE": "local Zip archive",
+	"WORKING_DIRECTORY_ARCHIVE": "Zip archive in the current working directory",
+	"GIT_REPOSITORY": "the GitHub repository",
+	"REMOTE_ARCHIVE": "remote Zip archive",
+	"SPACEIFY_REGISTRY": "the Spaceify registry",
 	"DOWNLOADING_GITUHB": "(~pos/~count) Downloading ~what (~bytes bytes)",
 
 	"PACKAGE_POSTING": "Please wait, posting the package to the Spaceify registry.",
@@ -252,7 +251,6 @@ var language =
 	"PACKAGE_RESTARTED": "~type restarted.",
 	"PACKAGE_ALREADY_STOPPED": "~type ~name is already stopped.",
 	"PACKAGE_ALREADY_RUNNING": "~type ~name is already running.",
-	"PACKAGE_INSTALL_ERROR": "Failed to get the requested package.",
 	"PACKAGE_REMOVE_FROM_DATABASE": " - Database entries.",
 	"PACKAGE_REMOVING_DOCKER": " - Docker image and container.",
 	"PACKAGE_DELETE_FILES": " - Files.",
@@ -272,9 +270,11 @@ var language =
 	"INSTALL_APPLICATION_ABORTED": "Installation aborted.",
 	"INSTALL_APPLICATION_TIMED_OUT": "Installation timed out.",
 	"INSTALL_VERSION_LATEST": "latest",
+
 	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to this edge node. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
 	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
-	"INSTALL_SUGGESTED_SAME_PACKAGES": "The installed ~installing_type requires '~suggested_unique_name, version: ~suggested_version' to be installed for the service '~required_service_name'. However, '~existing_unique_name, version: ~existing_version' is already installed and will not be reinstalled or updated.",
+	"INSTALL_SUGGESTED_SAME_PACKAGES": "Application '~suggested_unique_name, version ~suggested_version' is required for service '~required_service_name'. Version ~existing_version is already installed and application is not reinstalled or updated.",
+
 	"INSTALL_APT_REPOSITORIES": " - Adding Debian package repositories.",
 	"INSTALL_APT_REPOSITORIES_SOURCE": "Source: ~source",
 	"INSTALL_APT_REPOSITORIES_KEY": "GnuPG key: ~key",
@@ -339,6 +339,9 @@ var language =
 	"M_PORT_LISTEN": " [LISTEN]",
 	"M_PORT_REFUSED": " [REFUSED]",
 	"M_BROKEN_INSTALLATION": " - BROKEN INSTALLATION!",
+
+	"M_FOUND": "FOUND",
+	"M_NOT_FOUND": "NOT FOUND",
 
 	"APP_DISPLAY_NAMES": {"spacelet": "spacelet", "sandboxed": "sandboxed application", "sandboxed_debian": "sandboxed Debian application", "native_debian": "native Debian application"},
 	"APP_UPPER_CASE_DISPLAY_NAMES": {"spacelet": "Spacelet", "sandboxed": "Sandboxed application", "sandboxed_debian": "Sandboxed Debian application", "native_debian": "Native Debian application"}

@@ -85,6 +85,8 @@ self.listen = function(opts, callback)
 
 	options.debug = ("debug" in opts ? opts.debug : false);
 
+	options.isEdge = ("isEdge" in opts ? opts.isEdge : false);
+
 	//
 	logger.setOptions({output: options.debug});
 
@@ -565,9 +567,17 @@ var writeOptions = function()
 
 var getOrigin = function()
 	{
-	//var port = (options.mappedPort != 80 && options.mappedPort != 443 ? ":" + options.mappedPort : "");
-	//return (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
-	return "*";
+	var port, origin;
+
+	if(options.isEdge)
+		{
+		port = (options.mappedPort != 80 && options.mappedPort != 443 ? ":" + options.mappedPort : "");
+		origin = (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
+		}
+	else
+		origin = "*";
+
+	return origin;
 	}
 
 var checkURL = function(wwwPath, pathname)

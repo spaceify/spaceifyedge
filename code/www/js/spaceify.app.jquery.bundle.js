@@ -584,9 +584,11 @@ var addResponse = function(requestId, result, responses)
 	{
 	if (requestId != null)																	// Requests send responses
 		{
+		result = (typeof result === "undefined" ? null : result);
+
 		logger.info("  RESPONSE <- " + JSON.stringify(result));
 
-		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
 	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
@@ -1285,9 +1287,11 @@ var addResponse = function(requestId, result, responses)
 	{
 	if (requestId != null)																	// Requests send responses
 		{
+		result = (typeof result === "undefined" ? null : result);
+
 		logger.info("  RESPONSE <- " + JSON.stringify(result));
 
-		responses.push({jsonrpc: "2.0", result: (typeof result === "undefined" ? null : result), id: requestId});
+		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
 	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
@@ -6089,7 +6093,7 @@ self.errorToString = function(err, printPath, printCode)
 	}
 
 self.replace = function(str, strs, replaceWith)
-	{ // Replace all occurances of named tilde prefixed, alphanumerical parameters (e.g. :name, :Name1) supplied in the strs object in the str.
+	{ // Replace all occurances of named tilde prefixed, alphanumerical parameters (e.g. ~name, ~Name1) supplied in the strs object in the str.
 	var rw = (replaceWith ? replaceWith : "");
 
 	for(var i in strs)
