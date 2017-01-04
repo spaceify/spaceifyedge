@@ -3435,12 +3435,12 @@ self.makeRealApplicationPaths = function()
 
 	if(pathParts[pathParts.length - 1] == self["APPLICATION_ROOT"])
 		{
-		manifest = getManifest(cwd + self["APPLICATION_PATH"]);
+		manifest = getManifest(cwd);
 
 			// Application path with manifest -> cwd is most likely a real application directory
 		if(manifest)
 			{
-			volumePath = cwd.replace("/" + self["APPLICATION_DIRECTORY"], "/");
+			volumePath = cwd.replace("/" + self["APPLICATION_ROOT"], "/");
 
 			self["VOLUME_PATH"] = volumePath;
 			self["VOLUME_TLS_PATH"] = volumePath + self["TLS_DIRECTORY"];
@@ -3602,9 +3602,9 @@ self.isApplicationRunning = function(unique_name, callback)
 	callRpc("isApplicationRunning", [unique_name], callback);
 	}
 
-self.getServiceRuntimeStates = function(unique_name, callback)
+self.getServiceRuntimeStates = function(sessionId, callback)
 	{
-	callRpc("getServiceRuntimeStates", [unique_name], callback);
+	callRpc("getServiceRuntimeStates", [sessionId], callback);
 	}
 
 self.getApplicationData = function(callback)

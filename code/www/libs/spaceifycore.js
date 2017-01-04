@@ -110,9 +110,9 @@ self.isApplicationRunning = function(unique_name, callback)
 	callRpc("isApplicationRunning", [unique_name], callback);
 	}
 
-self.getServiceRuntimeStates = function(unique_name, callback)
+self.getServiceRuntimeStates = function(sessionId, callback)
 	{
-	callRpc("getServiceRuntimeStates", [unique_name], callback);
+	callRpc("getServiceRuntimeStates", [sessionId], callback);
 	}
 
 self.getApplicationData = function(callback)
