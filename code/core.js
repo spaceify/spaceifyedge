@@ -222,7 +222,7 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 	var application;
 	var service = null;
 
-	// APPLICATION - REGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
+	// APPLICATION - UNREGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
 	if(securityModel.isApplicationIP(connObj.remoteAddress))
 		{
 		application = get("getApplicationByIp", connObj.remoteAddress);
@@ -236,7 +236,7 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 		application = get("getApplication", unique_name);
 
 		if(!application)
-			throw language.E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::registerService", {"~unique_name": unique_name});
+			throw language.E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::unregisterService", {"~unique_name": unique_name});
 		}
 	else
 		throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});

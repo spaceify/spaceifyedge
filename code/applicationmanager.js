@@ -271,10 +271,11 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				// Install the application
 			install.sync(manifest, develop, sessionId);
 
-			develop = false;																	// The debencies are not installed in develop mode
-
 				// Start applications in reverse order they were installed
-			startOrder.push({unique_name: manifest.unique_name, type: manifest.type});
+			startOrder.push({unique_name: manifest.unique_name, type: manifest.type, isDevelop: develop});
+
+				// The debencies must not be installed in develop mode
+			develop = false;
 
 				// Check does the package have suggested applications in required_services.
 			if(manifest.requires_services)
@@ -356,8 +357,14 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				{
 				start = startOrder.pop();
 
+				if(start.isDevelop)
+					{
+					sendMessage.sync(language.INSTALLED_IN_DEVELOP_MODE);
+					continue;
+					}
+
 				if(	start.type != config.SPACELET && !develop)
-					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
+					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 				else if(develop)
 					sendMessage.sync(utility.replace(language.PACKAGE_DEVELOP, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 
@@ -1116,6 +1123,7 @@ var getLocalPublishDirectory = fibrous( function(applicationPackage)
 
 var install = fibrous( function(manifest, develop, sessionId)
 	{
+	var mode;
 	var image;
 	var dbApp;
 	var source;
@@ -1160,7 +1168,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 		createClientCertificate.sync(manifest);
 
 			// Docker image for spacelets, sandboxed and sandboxed_native applications
-		if(manifest.type != config.NATIVE_DEBIAN)
+		if(manifest.type != config.NATIVE_DEBIAN && !develop)
 			{
 			information = database.sync.getInformation();
 
@@ -1314,7 +1322,8 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 			// Application is now installed successfully
 		sendMessage.sync("");
-		sendMessage.sync(utility.replace(language.INSTALL_APPLICATION_OK, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.type], "~name": manifest.unique_name, "~version": manifest.version}));
+		mode = (!develop ? "" : language.INSTALL_APPLICATION_DEVELOP);
+		sendMessage.sync(utility.replace(language.INSTALL_APPLICATION_OK, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.type], "~name": manifest.unique_name, "~version": manifest.version, "~mode": mode}));
 		}
 	catch(err)
 		{

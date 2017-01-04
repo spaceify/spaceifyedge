@@ -50,8 +50,8 @@ Commands and options the commands accept.
     and password will be prompted if this option is set.
   
     With the develop option applications are installed to edge as develop mode applications.
-    See the documentation in https://spaceify.org for more information about the develop
-    mode.
+    See the technical documentation in https://spaceify.org for more information about the
+    develop mode.
   
     The force option can be used to skip the security questions. Packages are installed
     without asking are the services they require allowed for them. Notice that the questions

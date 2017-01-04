@@ -106,6 +106,8 @@ var language =
 	"E_AUTHENTICATION_FAILED": new SpaceifyError({"code": 7013, "message": "Authentication failed."}),
 	"E_ONLY_SANDBOXED_OR_SPACELET": new SpaceifyError({"code": 7014, "message": "Only sandboxed applications and spacelets can be installed in develop mode."}),
 
+	"INSTALLED_IN_DEVELOP_MODE": "Develop mode applications and spacelets are not started automatically. Start them manually.",
+
 	// Manager
 	"E_START_INIT_FAILED": new SpaceifyError({"code": 8000, "message": "~type failed to initialize itself. ~err"}),
 	"E_INSTALL_READ_MANIFEST_FAILED": new SpaceifyError({"code": 8003, "message": "Unable to read/parse manifest of ~type ~unique_name."}),
@@ -266,7 +268,8 @@ var language =
 	"INSTALL_CREATE_DOCKER_IMAGE": " - Creating custom Docker image ~image.",
 	"INSTALL_CREATE_DOCKER": " - Creating Docker image from the default ~image image.",
 	"INSTALL_UPDATE_DATABASE": " - Writing database entries.",
-	"INSTALL_APPLICATION_OK": "~type ~name@~version is now installed.",
+	"INSTALL_APPLICATION_OK": "~type ~name@~version is now installed~mode.",
+	"INSTALL_APPLICATION_DEVELOP": " in develop mode",
 	"INSTALL_APPLICATION_ABORTED": "Installation aborted.",
 	"INSTALL_APPLICATION_TIMED_OUT": "Installation timed out.",
 	"INSTALL_VERSION_LATEST": "latest",
