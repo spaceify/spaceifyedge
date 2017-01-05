@@ -21,8 +21,8 @@ var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var webSocketRpcServer = null;
 
-var confirmed = {};
 var connections = {};
+var confirmedConnections = {};
 
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
@@ -70,8 +70,8 @@ self.close = function()
 	{
 	webSocketRpcServer.close();
 
-	confirmed = {};
 	connections = {};
+	confirmedConnections = {};
 	}
 
 var connectionListener = function(connectionId)
@@ -90,14 +90,14 @@ var disconnectionListener = function(connectionId)
 	var messageId, messageIds;
 
 	try	{
-		messageIds = Object.keys(confirmed);
+		messageIds = Object.keys(confirmedConnections);
 
 		for(var i = 0; i < messageIds.length; i++)
 			{
 			messageId = messageIds[i];
 
-			if(confirmed[messageId].connectionId == connectionId)
-				delete confirmed[messageId];
+			if(confirmedConnections[messageId].connectionId == connectionId)
+				delete confirmedConnections[messageId];
 			}
 		}
 	catch(err)
@@ -108,7 +108,7 @@ var disconnectionListener = function(connectionId)
 
 var answering = fibrous( function(messageId, answer, answerCallBackId, connObj)
 	{ // The owner of the instance of this class sets listeners
-	if(answerListener && messageId in confirmed && confirmed[messageId].connectionId)
+	if(answerListener && messageId in confirmedConnections && confirmedConnections[messageId].connectionId)
 		answerListener(answer, answerCallBackId);
 	});
 	
@@ -117,8 +117,8 @@ var confirming = fibrous( function(messageId, connObj)
 	var connectionId = arguments[arguments.length-1].connectionId;
 
 	try {
-		if(messageId in confirmed)												// Accept the confirmation when messageId can be paired with a connection
-			confirmed[messageId].connectionId = connectionId;
+		if(messageId in confirmedConnections)									// Accept the confirmation when messageId can be paired with a connection
+			confirmedConnections[messageId].connectionId = connectionId;
 		else																	// Close the connection otherwise
 			{
 			connections[connectionId].close();
@@ -132,8 +132,8 @@ var confirming = fibrous( function(messageId, connObj)
 	// -- -- -- -- -- -- -- -- -- -- //
 var serverDownListener = function()
 	{
-	confirmed = {};
 	connections = {};
+	confirmedConnections = {};
 	}
 
 self.setAnswerListener = function(listener)
@@ -143,30 +143,42 @@ self.setAnswerListener = function(listener)
 
 self.sendMessage = function(messages, callback)
 	{
-	var message = "";
+	if(messages.length == 0)
+		return callback(null, true);
 
-	for(var messageId in confirmed)												// Send messages to the confirmed connections
+	var message = messages.shift();
+
+	if(typeof message == "string")
+		message = {type: self.MESSAGE, data: [message]};
+
+	var connectionIds = [];
+	for(var messageId in confirmedConnections)									// Send messages to the confirmed connections
 		{
-		if(!confirmed[messageId].connectionId)
-			continue;
-
-		for(var i = 0; i < messages.length; i++)
-			{
-			if(typeof messages[i] == "string")
-				message = {type: self.MESSAGE, data: [messages[i]]};
-			else
-				message = messages[i];
-
-			webSocketRpcServer.callRpc(message.type, message.data, self, callback, confirmed[messageId].connectionId);
-			}
+		if(confirmedConnections[messageId].connectionId)
+			connectionIds.push(confirmedConnections[messageId].connectionId);
 		}
+
+	sendToConnections(connectionIds, message, messages, callback);
+	}
+
+var sendToConnections = function(connectionIds, message, messages, callback)
+	{
+	if(connectionIds.length == 0)
+		return self.sendMessage(messages, callback);
+
+	var connectionId = connectionIds.shift();
+
+	webSocketRpcServer.callRpc(message.type, message.data, self, function(err, data)
+		{
+		sendToConnections(connectionIds, message, messages, callback);
+		}, connectionId);
 	}
 
 self.messageIdRequested = function()
 	{
 	var messageId = utility.randomString(64, true);
 
-	confirmed[messageId] = { timestamp: Date.now(), connectionId: null };
+	confirmedConnections[messageId] = { timestamp: Date.now(), connectionId: null };
 
 	return messageId;
 	}
@@ -177,15 +189,15 @@ var carbageCollection = function()
 	var connectionId, connectionIds, messageIds, messageId;
 
 	// Allow one minute to confirm a messageId
-	messageIds = Object.keys(confirmed);
+	messageIds = Object.keys(confirmedConnections);
 	for(i = 0; i < messageIds.length; i++)
 		{
 		messageId = messageIds[i];
 
-		ts = Date.now() - confirmed[messageId].timestamp;
+		ts = Date.now() - confirmedConnections[messageId].timestamp;
 
 		if(ts >= GARBAGE_INTERVAL)
-			delete confirmed[messageId];
+			delete confirmedConnections[messageId];
 		}
 
 	// Allow connections unconfirmed with a messageId to be open for one minute before disconnecting

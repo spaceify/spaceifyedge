@@ -206,7 +206,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
 			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::installApplication");
 
-		//removeTemporaryFiles.sync();
+		removeTemporaryFiles.sync();
 
 			// Get current release information
 		information = database.sync.getInformation();
@@ -390,7 +390,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	finally
 		{
 		database.close();
-		//removeTemporaryFiles.sync();
+		removeTemporaryFiles.sync();
 		// ToDo: rollback installations?
 		sendEnd.sync();
 		}
@@ -914,7 +914,7 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 			{
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.GIT_REPOSITORY, "~package": applicationPackage}));
 
-			git.sync(gitoptions, github_username, github_password);
+			git.sync(gitoptions, github_username, github_password, true);
 
 			mkdirp.sync(config.WORK_PATH, 0777);
 			utility.sync.zipDirectory(config.WORK_PATH, config.WORK_PATH + config.PUBLISH_ZIP);
@@ -970,7 +970,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 	var result;
 	var errors;
 	var errfile;
-	var isGithub;
+	var isGitHub;
 	var gitoptions;
 	var isPackage = false;
 	var currentWorkingDirectoryPackage;
@@ -983,7 +983,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 
 	urlObj.pathname = (urlObj.pathname ? urlObj.pathname.replace(/^\/|\/$/g, "") : "");
 	gitoptions = urlObj.pathname.split("/");
-	isGithub = (urlObj.hostname && urlObj.hostname.match(/(github\.com)/i) != null && gitoptions.length == 2 ? true : false);
+	isGitHub = (urlObj.hostname && urlObj.hostname.match(/(github\.com)/i) != null && gitoptions.length == 2 ? true : false);
 
 	currentWorkingDirectoryPackage = currentWorkingDirectory + "/" + applicationPackage;
 
@@ -1030,7 +1030,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try <unique_name>[@<version>] from the registry - suggested applications can be tried from the registry!!!
 	if(isPackage === false)
 		{
-		if(!isGithub && utility.sync.loadRemoteFileToLocalFile(registry_url, config.WORK_PATH, config.PACKAGE_ZIP))
+		if(!isGitHub && utility.sync.loadRemoteFileToLocalFile(registry_url, config.WORK_PATH, config.PACKAGE_ZIP))
 			{
 			isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
 
@@ -1067,15 +1067,15 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try GitHub repository <package>
 	if(isPackage === false)
 		{
-		if(!isSuggested && isGithub)
-			isPackage = git.sync(gitoptions, username, password);
+		if(!isSuggested && isGitHub)
+			isPackage = git.sync(gitoptions, username, password, false);
 
-		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
-		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.GIT_REPOSITORY, "~state": state}));
+		if(!isPackage)
+			sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.GIT_REPOSITORY, "~state": language.M_NOT_FOUND}));
 		}
 
 		// Try remote <package>.zip (remote url)
-	if(isPackage === false)
+	if(isPackage === false && !isGitHub)
 		{
 		if(!isSuggested && utility.sync.loadRemoteFileToLocalFile(applicationPackage, config.WORK_PATH, config.PACKAGE_ZIP))
 			isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
@@ -1197,11 +1197,11 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 			dockerImage.sync.removeContainers("", dockerImageName, dockerContainer.getStreams());
 
-			// ToDo: Install the .deb pakages for sandboxed_native applications here (apt_repositories, apt_packages, deb_packages)
+			// ToDo: Install the .deb packages for sandboxed_native applications here (apt_repositories, apt_packages, deb_packages)
 			}
 
 			// NATIVE APPLICATION
-		if(manifest.type == config.NATIVE_DEBIAN && "apt_repositories" in manifest)
+		if(manifest.type == config.NATIVE_DEBIAN)
 			{
 				// Debian repositories
 			if("apt_repositories" in manifest)
@@ -1231,7 +1231,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 						utility.execute.sync("sh", ["-c", public_key], {cwd: applicationPath}, function(isError, data)
 							{
-							sendMessageStdout.sync("" + data);
+							fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 							});
 						}
 					}
@@ -1242,7 +1242,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 				utility.execute.sync("apt-get", ["update"], {}, function(isError, data)
 					{
-					sendMessageStdout.sync("" + data);
+					fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 					});
 
 				sendMessage.sync("");
@@ -1257,7 +1257,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 					{
 					utility.execute.sync("apt-get", ["install", "-y", manifest.apt_packages[i].name], {}, function(isError, data)
 						{
-						sendMessageStdout.sync("" + data);
+						fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 						});
 					}
 
@@ -1273,7 +1273,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 					{
 					utility.execute.sync("dpkg", ["-i", applicationPath + manifest.deb_packages[i].name], {}, function(isError, data)
 						{
-						sendMessageStdout.sync("" + data);
+						fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 						});
 					}
 
@@ -1466,7 +1466,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 
 			utility.execute.sync("apt-get", ["purge", "-y", pkgName], {}, function(isError, data)
 				{
-				sendMessageStdout.sync("" + data);
+				fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 				});
 			}
 
@@ -1474,7 +1474,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 
 		utility.execute.sync("apt-get", ["update"], {}, function(isError, data)
 			{
-			sendMessageStdout.sync("" + data);
+			fibrous.run( function() { sendMessageStdout.sync("" + data); }, function(err, data) { } );
 			});
 		}
 
@@ -1512,7 +1512,7 @@ var createClientCertificate = fibrous( function(manifest)
 		}
 	});
 
-var git = fibrous( function(gitoptions, username, password)
+var git = fibrous( function(gitoptions, username, password, throws)
 	{
 	var i;
 	var ref;
@@ -1523,6 +1523,7 @@ var git = fibrous( function(gitoptions, username, password)
 	var content;
 	var blobPos;
 	var tmpPath;
+	var isPackage = false;
 
 	try {
 		gitoptions[1] = gitoptions[1].replace(/(.git)$/i, "");
@@ -1533,6 +1534,9 @@ var git = fibrous( function(gitoptions, username, password)
 		//	github.authenticate({type: "basic", username: username, password: password});
 
 		content = github.repos.sync.getContent({owner: gitoptions[0], repo: gitoptions[1], path: ""});
+
+		if(!throws/*installApplication*/)
+			sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.GIT_REPOSITORY, "~state": language.M_FOUND}));
 
 		ref = github.gitdata.sync.getReference({owner: gitoptions[0], repo: gitoptions[1], ref: "heads/master"});
 
@@ -1561,13 +1565,16 @@ var git = fibrous( function(gitoptions, username, password)
 				fs.sync.writeFile(tmpPath + tree[i].path, blob.content, {"encoding": blob.encoding.replace("-", "")});		// base64 or utf-8 (utf8 in nodejs)
 				}
 			}
+
+		isPackage = true;
 		}
 	catch(err)
 		{
-		throw language.E_GIT_FAILED_TO_GET_GITHUB_DATA.pre("ApplicationManager::git", err);
+		if(throws)
+			throw language.E_GIT_FAILED_TO_GET_GITHUB_DATA.pre("ApplicationManager::git", err);
 		}
 
-	return true;
+	return isPackage;
 	});
 
 var checkAuthentication = fibrous( function(ip, sessionId)
@@ -1575,11 +1582,11 @@ var checkAuthentication = fibrous( function(ip, sessionId)
 	return coreConnection.sync.callRpc("isAdminLoggedIn", [sessionId], self);
 	});
 
-var sendMessage = fibrous( function()
+var sendMessage = function()
 	{
 	var message = "";
-
-	messaging.sync.sendMessage(Array.prototype.slice.call(arguments));								// Messaging server
+	var args = Array.prototype.slice.call(arguments);
+	var callback = args.pop();
 
 	for(var i = 0; i < arguments.length; i++)														// Output to console
 		{
@@ -1592,47 +1599,49 @@ var sendMessage = fibrous( function()
 
 		logger.force(message);
 		}
-	});
 
-var sendMessageStdout = fibrous( function(message)
+	messaging.sendMessage(args, callback);															// Messaging server
+	}
+
+var sendMessageStdout = function(message, callback)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_STDOUT, data: [message]});
-	});
+	sendMessage({type: messaging.MESSAGE_STDOUT, data: [message]}, callback);
+	}
 
-var sendErrors = fibrous( function(err)
+var sendErrors = function(err, callback)
 	{
 	if(err instanceof Array)																		// These error objects originate from getPackage
 		{
 		for(var i = 0; i < err.length; i++)
-			sendMessage.sync({type: messaging.MESSAGE_ERROR, data: [err[i]]});
+			sendMessage({type: messaging.MESSAGE_ERROR, data: [err[i]]}, callback);
 		}
 	else if(err)																					// "Normal" errors
 		{
 		err = errorc.typeToErrorObject(err);															// Make sure the error is an error object
 
-		sendMessage.sync({type: messaging.MESSAGE_ERROR, data: [err]});
+		sendMessage({type: messaging.MESSAGE_ERROR, data: [err]}, callback);
 		}
-	});
+	}
 
-var sendWarning = fibrous( function(message, code)
+var sendWarning = function(message, code, callback)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_WARNING, data: [message,  code]});
-	});
+	sendMessage({type: messaging.MESSAGE_WARNING, data: [message,  code]}, callback);
+	}
 
-var sendNotify = fibrous( function(message, code)
+var sendNotify = function(message, code, callback)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_NOTIFY, data: [message, code]});
-	});
+	sendMessage({type: messaging.MESSAGE_NOTIFY, data: [message, code]}, callback);
+	}
 
-var sendEnd = fibrous( function()
+var sendEnd = function(callback)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_END, data: [""]});
-	});
+	sendMessage({type: messaging.MESSAGE_END, data: [""]}, callback);
+	}
 
-var sendFail = fibrous( function(err)
+var sendFail = function(err, callback)
 	{
-	sendMessage.sync({type: messaging.MESSAGE_FAIL, data: [err]});
-	});
+	sendMessage({type: messaging.MESSAGE_FAIL, data: [err]}, callback);
+	}
 
 var askQuestion = function(question, choices, origin, callback)
 	{
@@ -1642,7 +1651,7 @@ var askQuestion = function(question, choices, origin, callback)
 
 	answerCallbacks[answerCallbackId] = {callback: callback, question: questionObj, timestamp: Date.now()};
 
-	sendMessage.sync(questionObj);
+	sendMessage(questionObj, function(err, data) {});
 	}
 
 var questionCarbageCollection = function()
