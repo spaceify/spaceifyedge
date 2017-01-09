@@ -4538,6 +4538,23 @@ self.deleteCookie = function(cname)
 	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	}
 
+	// Information -- -- -- -- -- -- -- -- -- -- //
+// Test is the client in the Spaceify's local network
+self.isSpaceifysNetwork = function(callback)
+	{
+	var xhr = new window.XMLHttpRequest();
+
+	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
+	xhr.timeout = 1000;
+	xhr.onreadystatechange = function()
+		{
+		if (xhr.readyState == 4)
+			{
+			callback(xhr.status >= 200 && xhr.status < 304 ? true : false);
+			}
+		};
+	xhr.send();
+	}
 }
 
 if(typeof exports !== "undefined")
