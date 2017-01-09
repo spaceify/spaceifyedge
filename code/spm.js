@@ -542,13 +542,15 @@ var list = fibrous( function(type, bVerbose)
 					{
 					x[type].push(continues + language.M_SHARED + (manifest.shared ? language.M_YES : language.M_NO));
 
+					x[type].push((bLast ? sspsmlt : pspsmlt) + language.M_ORIGINS);
+					for(j = 0; j < manifest.origins.length; j++)
+						x[type].push((bLast ? ss : ps) + (j < manifest.origins.length - 1 ? pspsmll : pspsall) + s(manifest.origins[j]));
+
+					/*
+					DEPRECATED
 					x[type].push((bLast ? ssmlt : psmlt) + language.M_INJECT);
 
 					x[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
-
-					x[type].push((bLast ? sspsmlt : pspsmlt) + language.M_ORIGINS);
-					for(j = 0; j < manifest.inject_hostnames.length; j++)
-						x[type].push((bLast ? ss : ps) + (j < manifest.origins.length - 1 ? pspsmll : pspsall) + s(manifest.origins[j]));
 
 					x[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
 
@@ -562,6 +564,7 @@ var list = fibrous( function(type, bVerbose)
 						tmp = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
 						x[type].push((bLast ? ss :  ps) + (j < manifest.inject_files.length - 1 ? psssmll : psssall) + s(tmp));
 						}
+					*/
 					}
 
 				if(manifest.start_command)
@@ -659,6 +662,9 @@ var list = fibrous( function(type, bVerbose)
 		{
 		if(x[keys[k]].length == 1)
 			continue;
+
+		if(k > 0)
+			logger.force("");
 
 		for(i = 0; i < x[keys[k]].length; i++)
 			{

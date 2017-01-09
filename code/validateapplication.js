@@ -87,7 +87,8 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 	var serviceFile;
 
 	try {
-		if(manifest.type == config.SPACELET)														// inject_files
+		/*
+		if(manifest.type == config.SPACELET)														// inject_files - DEPRECATED
 			{
 			for(i = 0; i < manifest.inject_files.length; i++)
 				{
@@ -98,6 +99,7 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 					addError( language.E_VALIDATE_DIRECTORIES_INJECT_FILE.preFmt("ValidateApplication::validateDirectories", {"~file": path + obj.file, "~directory": config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + path + obj.file}) );
 				}
 			}
+		*/
 
 		if(manifest.images)																			// images
 			{

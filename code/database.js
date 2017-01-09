@@ -148,23 +148,31 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 
 		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.type]);
 
+		/*
+		DEPRECATED
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
 		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
+		*/
+		inject_identifier = "";
+		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
+
 		params = [manifest.unique_name, docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
 		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
 		addProvidedServices.sync(manifest);
 
+		/*
+		DEPRECATED
 		if(manifest.type == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
 			}
+		*/
 		}
 	catch(err)
 		{
-console.log("-----------------------");
 		throw err;	//language.E_DATABASE_INSERT_APPLICATION.pre("Database::insertApplication", err);
 		}
 	});
@@ -180,18 +188,26 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 
 		self.sync.begin();
 
+		/*
+		DEPRECATED
 		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
+		*/
+		inject_identifier = "";
+
 		params = [docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
 
 		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
 		addProvidedServices.sync(manifest);
 
+		/*
+		DEPRECATED
 		if(manifest.type == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
 			}
+		*/
 
 		self.sync.commit();
 		}
@@ -213,8 +229,11 @@ self.removeApplication = fibrous( function(unique_name)
 
 		results = db.sync.get("SELECT type, position FROM applications WHERE unique_name=?", [unique_name]);
 
+		/*
+		DEPRECATED
 		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", unique_name);
 		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", unique_name);
+		*/
 		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", unique_name);
 		db.sync.run("DELETE FROM applications WHERE unique_name=?", unique_name);
 		db.sync.run("UPDATE applications SET position=position-1 WHERE position>? AND type=?", [results.position, results.type]);
@@ -253,6 +272,8 @@ var addProvidedServices = fibrous( function(manifest)
 
 var addInjectHostnames = fibrous( function(manifest)
 	{
+	/*
+	DEPRECATED
 	var stmt;
 	var inject_hostname;
 
@@ -276,10 +297,13 @@ var addInjectHostnames = fibrous( function(manifest)
 		if(stmt)
 			stmt.finalize();
 		}
+	*/
 	});
 
 var addInjectFiles = fibrous( function(manifest)
 	{
+	/*
+	DEPRECATED
 	var stmt;
 	var file;
 	var type;
@@ -318,6 +342,7 @@ var addInjectFiles = fibrous( function(manifest)
 		if(stmt)
 			stmt.finalize();
 		}
+	*/
 	});
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

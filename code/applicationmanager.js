@@ -1588,7 +1588,7 @@ var sendMessage = function()
 	var args = Array.prototype.slice.call(arguments);
 	var callback = args.pop();
 
-	for(var i = 0; i < arguments.length; i++)														// Output to console
+	for(var i = 0; i < args.length; i++)															// Output to console
 		{
 		if(typeof arguments[i] == "string")
 			message = arguments[i];
@@ -1610,16 +1610,14 @@ var sendMessageStdout = function(message, callback)
 
 var sendErrors = function(err, callback)
 	{
-	if(err instanceof Array)																		// These error objects originate from getPackage
-		{
-		for(var i = 0; i < err.length; i++)
-			sendMessage({type: messaging.MESSAGE_ERROR, data: [err[i]]}, callback);
-		}
-	else if(err)																					// "Normal" errors
-		{
-		err = errorc.typeToErrorObject(err);															// Make sure the error is an error object
+	if(!(err instanceof Array))
+		err = [err];
 
-		sendMessage({type: messaging.MESSAGE_ERROR, data: [err]}, callback);
+	for(var i = 0; i < err.length; i++)
+		{
+		var e = errorc.typeToErrorObject(err[i]);
+
+		sendMessage({type: messaging.MESSAGE_ERROR, data: [e]}, callback);
 		}
 	}
 

@@ -94,14 +94,14 @@
     "inject_identifier":
     {
       "type": "string",
-      "required": ["spacelet"],
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty"},
       "errors": {"field": "E_INJECT_IDENTIFIER_REQUIRED", "type": "E_INJECT_IDENTIFIER_TYPE", "error": "E_INJECT_IDENTIFIER_FORMAT"}
     },
     "inject_hostnames":
     {
       "type": "array",
-      "required": ["spacelet"],
+      "required": ["none"],
       "unique": [{"compare": "inject_hostnames", "compare_type": "regx", "store": true, "error": "E_INJECT_HOSTNAMES_DUPLICATE"}],
       "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "wildcard_url"}, "errors": {"type": "E_INJECT_HOSTNAME_FIELD_TYPE", "error": "E_INJECT_HOSTNAME_FIELD_FORMAT"}},
       "errors": {"field": "E_INJECT_HOSTNAMES_REQUIRED", "type": "E_INJECT_HOSTNAMES_TYPE", "empty": "E_INJECT_HOSTNAMES_EMPTY"}
@@ -109,7 +109,7 @@
     "inject_files":
     {
       "type": "objects",
-      "required": ["spacelet"],
+      "required": ["none"],
       "unique": [{"compare": "inject_files", "compare_type": "equal", "fields": ["directory", "file"], "store": true, "error": "E_INJECT_FILES_DUPLICATE"}],
       "sub_rules":
       {
