@@ -5568,7 +5568,7 @@ var self = this;
 
 var core = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
-var spaceifyNetwork = new spaceifyNetwork();
+var spaceifyNetwork = new SpaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
