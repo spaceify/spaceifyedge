@@ -4324,7 +4324,7 @@ self.isEdgeNetwork = function(timeout, callback)
 	var xhr = new window.XMLHttpRequest();
 
 	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
-	xhr.timeout = time;
+	xhr.timeout = timeout;
 	xhr.onreadystatechange = function()
 		{
 		if (xhr.readyState == 4)
