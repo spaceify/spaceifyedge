@@ -36,7 +36,6 @@ describe("SpXMLHttpRequest", function()
 		{
 		LoaderUtil.piperClient.connect(SERVER_ADDRESS.host, SERVER_ADDRESS.port, function(id)
 			{
-
 			/*LoaderUtil.piperClient.testPing(function(totaltime, repetitions)
 				{
 				console.log("Total time: " + (totaltime / 1000) + " s, Requests per second: " + (repetitions / (totaltime / 1000)).toFixed(2));
