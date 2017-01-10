@@ -4752,12 +4752,12 @@ self.parseQuery = function(url)
 	}
 
 // Test is client in Spaceify's local network
-self.isEdgeNetwork = function(callback)
+self.isEdgeNetwork = function(timeout, callback)
 	{
 	var xhr = new window.XMLHttpRequest();
 
 	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
-	xhr.timeout = 1000;
+	xhr.timeout = time;
 	xhr.onreadystatechange = function()
 		{
 		if (xhr.readyState == 4)
@@ -6049,9 +6049,9 @@ self.getRequiredServiceSecure = function(service_name)
 	return spaceifyService.getRequiredServiceSecure(service_name);
 	}
 
-self.isEdgeNetwork = function(callback)
+self.isEdgeNetwork = function(timeout, callback)
 	{
-	spaceifyNetwork.isEdgeNetwork(callback);
+	spaceifyNetwork.isEdgeNetwork(timeout, callback);
 	}
 
 }
