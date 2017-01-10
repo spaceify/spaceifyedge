@@ -60,9 +60,9 @@ self.getRequiredServiceSecure = function(service_name)
 	return spaceifyService.getRequiredServiceSecure(service_name);
 	}
 
-self.isEdgeNetwork = function(callback)
+self.isEdgeNetwork = function(timeout, callback)
 	{
-	spaceifyNetwork.isEdgeNetwork(callback);
+	spaceifyNetwork.isEdgeNetwork(timeout, callback);
 	}
 
 }
