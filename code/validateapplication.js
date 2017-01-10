@@ -88,7 +88,8 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 
 	try {
 		/*
-		if(manifest.type == config.SPACELET)														// inject_files - DEPRECATED
+		DEPRECATED
+		if(manifest.type == config.SPACELET)														// inject_files
 			{
 			for(i = 0; i < manifest.inject_files.length; i++)
 				{

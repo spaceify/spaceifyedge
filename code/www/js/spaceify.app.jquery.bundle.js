@@ -3505,6 +3505,7 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
+var isSpaceletOrigin = (typeof window !== "undefined" && !window.location.hostname.match(/.*spaceify\.net/) ? true : false);
 
 var classes =
 	{
@@ -3521,7 +3522,7 @@ var network = new classes.SpaceifyNetwork();
 
 var pipeId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs ? new classes.WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -3679,7 +3680,7 @@ var callRpc = function(method, params, callback)
 
 var call = function(method, params, callback)
 	{
-	if(isSpaceifyNetwork || isNodeJs)
+	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
 		connection.callRpc(method, params, self, function(err, data, id, ms)
 			{
@@ -3701,7 +3702,7 @@ var connect = function(method, params, callback)
 	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
 	var protocol = (!useSecure ? "ws" : "wss");
 
-	if(isSpaceifyNetwork || isNodeJs)
+	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
 		if(!isNodeJs)
 			hostname = config.EDGE_HOSTNAME;

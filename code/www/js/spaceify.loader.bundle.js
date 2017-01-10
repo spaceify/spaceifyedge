@@ -4259,10 +4259,10 @@ self.parseQuery = function(url)
 	return parameters;
 	}
 
-self.setSpHosts = function(spHost_, speHost_)
+self.setSpHosts = function(hosts)
 	{
-	spHost = spHost_;
-	speHost = speHost_;
+	spHost = hosts.sp_host;
+	speHost = hosts.spe_host;
 	}
 
 self.connect = function(host, port, callback)
@@ -4335,9 +4335,9 @@ function getNetworkInfo(callback)
 		}
 	}
 
-function prepareLoader(sp_host, spe_host)
+function prepareLoader(hosts)
 	{
-	spaceifyLoader.setSpHosts(sp_host, spe_host);
+	spaceifyLoader.setSpHosts(hosts);
 
 	if (window.isSpaceifyNetwork)
 		window.XMLHttpRequest = SpXMLHttpRequest.OriginalXMLHttpRequest;
@@ -4353,12 +4353,12 @@ function prepareLoader(sp_host, spe_host)
 		}
 	}
 
-function loadPageOrElements(params)
+function loadPageOrElements(hosts)
 	{
 	spaceifyLoader.getAllElements();
 
 	if (!spaceifyLoader.hasElements())
-		spaceifyLoader.loadPage(params.sp_host + params.sp_path, params.sp_host, params.spe_host);
+		spaceifyLoader.loadPage(hosts.sp_host + hosts.sp_path, hosts.sp_host, hosts.spe_host);
 	else
 		{
 		elementIndex = 0;
@@ -4370,8 +4370,8 @@ window.onload = function()
 	{
 	var sp_host, spe_host;
 
-	var params = spaceifyLoader.parseQuery(window.location.href);
-	if (!params.sp_host)
+	var hosts = spaceifyLoader.parseQuery(window.location.href);
+	if (!hosts.sp_host)
 		{
 		sp_host = spe_host = window.location.protocol + "//" + window.location.hostname + "/";
 
@@ -4381,7 +4381,7 @@ window.onload = function()
 		if (typeof document.loadPageSpeHost != "undefined")
 			spe_host = document.loadPageSpeHost;
 
-		params = { sp_host: sp_host, spe_host: spe_host, sp_path: "index.html" };
+		hosts = { sp_host: sp_host, spe_host: spe_host, sp_path: "index.html" };
 		}
 
 	getNetworkInfo(function()
@@ -4390,15 +4390,15 @@ window.onload = function()
 			{
 			spaceifyLoader.setConnectionListener(function()
 				{
-				loadPageOrElements(params);
+				loadPageOrElements(hosts);
 				});
 
-			prepareLoader(params.sp_host, params.spe_host);
+			prepareLoader(hosts);
 			}
 		else
 			{
-			prepareLoader(params.sp_host, params.spe_host);
-			loadPageOrElements(params);
+			prepareLoader(hosts);
+			loadPageOrElements(hosts);
 			}
 		});
 	};
