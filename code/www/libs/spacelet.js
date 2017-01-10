@@ -12,6 +12,7 @@ var self = this;
 
 var core = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
+var spaceifyNetwork = new SpaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
@@ -19,7 +20,12 @@ self.start = function(application, unique_name, callback)
 		core.startSpacelet(unique_name, function(err, serviceobj)
 			{
 			if(err)
-				throw err;
+				{
+				if(typeof application == "function")
+					application(err, false);
+				else if(application && application.fail)
+					application.fail(err);
+				}
 			else
 				{
 				for(var i = 0; i < serviceobj.serviceNames.length; i++)
@@ -52,6 +58,11 @@ self.getRequiredService = function(service_name)
 self.getRequiredServiceSecure = function(service_name)
 	{
 	return spaceifyService.getRequiredServiceSecure(service_name);
+	}
+
+self.isEdgeNetwork = function(callback)
+	{
+	spaceifyNetwork.isEdgeNetwork(callback);
 	}
 
 }

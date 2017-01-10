@@ -60,10 +60,12 @@ var language =
 	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start spacelet."}),
 
 	"E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS": new SpaceifyError({"code": 2026, "message": "Applications can not start spacelets."}),
+	"E_START_SPACELET_NOT_INSTALLED": new SpaceifyError({"code": 2027, "message": "Spacelet ~unique_name is not installed."}),
+	"E_START_SPACELET_IS_NOT_SPACELET": new SpaceifyError({"code": 2042, "message": "~unique_name is spacelet."}),
 
 	"E_GET_APPLICATION_URL_FAILED": new SpaceifyError({"code": 2028, "message": "Failed to get application URLs."}),
 
-	"E_START_SPACELET_SSOP": new SpaceifyError({"code": 2029, "message": "Same Origin Policy rules prevent starting the spacelet."}),
+	"E_START_SPACELET_FORBIDDEN_ORIGIN": new SpaceifyError({"code": 2029, "message": "Same Origin Policy rules prevent starting the spacelet."}),
 
 	"E_GET_CORE_SETTINGS_FAILED": new SpaceifyError({"code": 2030, "message": "Failed to get core settings."}),
 	"E_SAVE_CORE_SETTINGS_FAILED": new SpaceifyError({"code": 2031, "message": "Failed to save core settings."}),

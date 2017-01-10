@@ -4318,6 +4318,24 @@ self.parseQuery = function(url)
 	return query;
 	}
 
+// Test is client in Spaceify's local network
+self.isEdgeNetwork = function(callback)
+	{
+	var xhr = new window.XMLHttpRequest();
+
+	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
+	xhr.timeout = 1000;
+	xhr.onreadystatechange = function()
+		{
+		if (xhr.readyState == 4)
+			{
+			callback(xhr.status >= 200 && xhr.status < 304 ? true : false);
+			}
+		};
+
+	xhr.send();
+	}
+
 self.remakeQueryString = function(query, exclude, include, path)
 	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
 	var search = "", i;
@@ -4532,23 +4550,6 @@ self.deleteCookie = function(cname)
 	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	}
 
-	// Information -- -- -- -- -- -- -- -- -- -- //
-// Test is the client in the Spaceify's local network
-self.isSpaceifysNetwork = function(callback)
-	{
-	var xhr = new window.XMLHttpRequest();
-
-	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
-	xhr.timeout = 1000;
-	xhr.onreadystatechange = function()
-		{
-		if (xhr.readyState == 4)
-			{
-			callback(xhr.status >= 200 && xhr.status < 304 ? true : false);
-			}
-		};
-	xhr.send();
-	}
 }
 
 if(typeof exports !== "undefined")
@@ -5567,6 +5568,7 @@ var self = this;
 
 var core = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
+var spaceifyNetwork = new spaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
@@ -5574,7 +5576,12 @@ self.start = function(application, unique_name, callback)
 		core.startSpacelet(unique_name, function(err, serviceobj)
 			{
 			if(err)
-				throw err;
+				{
+				if(typeof application == "function")
+					application(err, false);
+				else if(application && application.fail)
+					application.fail(err);
+				}
 			else
 				{
 				for(var i = 0; i < serviceobj.serviceNames.length; i++)
@@ -5607,6 +5614,11 @@ self.getRequiredService = function(service_name)
 self.getRequiredServiceSecure = function(service_name)
 	{
 	return spaceifyService.getRequiredServiceSecure(service_name);
+	}
+
+self.isEdgeNetwork = function(callback)
+	{
+	spaceifyNetwork.isEdgeNetwork(callback);
 	}
 
 }

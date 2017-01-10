@@ -377,6 +377,7 @@ var setSplashAccepted = fibrous( function(connObj)
 
 var startSpacelet = fibrous( function(unique_name, connObj)
 	{
+	var manifest;
 	var spacelet = null;
 	var startObject = {};
 	var openRuntimeServices = [];
@@ -385,8 +386,16 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		if(securityModel.isApplicationIP(connObj.remoteAddress))
 			throw language.E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS.pre("Core::startSpacelet");
 
-		if(!securityModel.sameOriginPolicyStartSpacelet(getManifest.sync(unique_name, false, false, connObj), connObj.origin))
-			throw language.E_START_SPACELET_SSOP.pre("Core::startSpacelet");
+		manifest = getManifest.sync(unique_name, false, false, connObj);
+
+		if(!manifest)
+			throw language.E_START_SPACELET_NOT_INSTALLED.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
+
+		if(manifest.type != config.SPACELET)
+			throw language.E_START_SPACELET_IS_NOT_SPACELET.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
+
+		if(!securityModel.sameOriginPolicyStartSpacelet(manifest, connObj.origin))
+			throw language.E_START_SPACELET_FORBIDDEN_ORIGIN.pre("Core::startSpacelet");
 
 		spaceletManager.sync.install(unique_name, true);
 		startObject = spaceletManager.sync.start(unique_name, true);
