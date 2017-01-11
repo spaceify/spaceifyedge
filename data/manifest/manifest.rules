@@ -65,7 +65,7 @@
     "start_command":
     {
       "type": "string",
-      "required": ["spacelet", "sandboxed"],
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty"},
       "errors": {"field": "E_START_COMMAND_REQUIRED", "type": "E_START_COMMAND_TYPE", "error": "E_START_COMMAND_FORMAT"}
     },

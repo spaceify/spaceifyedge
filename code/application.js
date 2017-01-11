@@ -44,7 +44,7 @@ self.getVersion = function()
 
 self.getStartCommand = function()
 	{
-	return manifest.start_command;
+	return (manifest.start_command ? manifest.start_command : "");
 	}
 
 self.getStopCommand = function()

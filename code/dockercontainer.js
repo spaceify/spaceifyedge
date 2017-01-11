@@ -171,6 +171,9 @@ self.runApplication = fibrous( function(appobj)
 	{
 	dockerHelper.sync.executeCommand("/usr/sbin/sshd -D & echo spaceifyend", ["spaceifyend"], false);
 
+	var type = appobj.getType();
+	var startCommand = appobj.getStartCommand();
+
 	var bash =	"cd " + config.VOLUME_APPLICATION_PATH + "\n";
 		bash += "printf \"";
 		bash += "#!/bin/bash" + "\n";
@@ -179,9 +182,9 @@ self.runApplication = fibrous( function(appobj)
 		bash += "export APPLICATION_INITIALIZED=" + config.APPLICATION_INITIALIZED + "\n";
 		bash += "export APPLICATION_UNINITIALIZED=" + config.APPLICATION_UNINITIALIZED + "\n";
 		bash += export_ports;
-		if(appobj.getType() != config.SANDBOXED_DEBIAN)
+		if((type == config.SPACELET || type == config.SANDBOXED) && startCommand != "")
 			{
-			bash +=  appobj.getStartCommand() + "\n";
+			bash +=  startCommand + "\n";
 			bash += "ec=\\\$?" + "\n";
 			bash += "if (( \\\$ec != 0 )); then" + "\n";
 			bash += "    printf ';;Starting the application failed with return code '" + "\\\$ec::" + "\n";
