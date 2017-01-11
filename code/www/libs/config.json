@@ -31,8 +31,8 @@
 
   "WWW_DIRECTORY": "www/",
   "API_PATH": "/api/",
-  "API_WWW_PATH": "/api/www/",
-  "API_NODE_MODULES_DIRECTORY": "/api/node_modules",
+  "API_WWW_PATH": "/var/lib/spaceify/code/www/",
+  "API_NODE_MODULES_DIRECTORY": "/var/lib/spaceify/code/node_modules/",
   "APPLICATION_ROOT": "application",
   "APPLICATION_PATH": "/application/",
   "APPLICATION_DIRECTORY": "application/",
