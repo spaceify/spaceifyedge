@@ -223,10 +223,9 @@ self.parseQuery = function(url)
 
 	url = decodeURIComponent(url);
 
-	if(url.indexOf("url=blob") != -1)													// Hash is for blob urls
-		part = url.split("#");
-	else																				// Question mark is for regular urls
-		part = url.split("?");
+	url = url.replace(/#.*$/, "");
+
+	part = url.split("?");
 
 	part = (part.length < 2 ? part[0] : part[1]);
 

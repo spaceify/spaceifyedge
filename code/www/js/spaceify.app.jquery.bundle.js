@@ -4122,8 +4122,8 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
+	var xhr, element, url, query;
 	var port, src, sp_host, spe_host, sp_path, icon, id;
-	var xhr, element, url;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
@@ -4166,9 +4166,14 @@ self.renderTile = function(manifest, callback)
 								{
 								url = window.URL.createObjectURL(xhr.response);
 
-								element.src = url + "#url=blob&sp_host=" + encodeURIComponent(sp_host) +
-													"&sp_path=" + encodeURIComponent(sp_path) +
-													"&spe_host=" + encodeURIComponent(spe_host);
+								query = network.parseQuery(sp_path);
+
+								query.url = "blob";
+								query.sp_host = encodeURIComponent(sp_host);
+								query.sp_path = encodeURIComponent(sp_path);
+								query.spe_host = encodeURIComponent(spe_host);
+
+								element.src = url + network.remakeQueryString(query, {}, {}, "", true);
 								}
 							else
 								callback();
@@ -4276,7 +4281,12 @@ var utility = new classes.SpaceifyUtility();
 // Get the URL to the Spaceify Edge
 self.getEdgeURL = function(forceSecure, port, withEndSlash)
 	{
-	return (forceSecure ? "https:" : location.protocol) + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	var protocol = (forceSecure ? "https:" : location.protocol);
+
+	if(protocol == "blob:")
+		protocol = (window.parent ? window.parent.location.protocol : "http:");
+
+	return protocol + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
@@ -4306,7 +4316,7 @@ self.getProtocol = function(withScheme)
 // Parse URL query
 self.parseQuery = function(url)
 	{
-	var query = {}, parts, pairs;
+	/*var query = {}, parts, pairs;
 	var regx = new RegExp("=", "i");
 
 	if((parts = url.split("?")).length != 2)
@@ -4322,7 +4332,77 @@ self.parseQuery = function(url)
 			query[pairs[i]] = null;
 		}
 
-	return query;
+	return query;*/
+
+	// Adapted from http://james.padolsey.com/snippets/parsing-urls-with-the-dom/
+	var parameters = {}, part, pair, pairs;
+
+	url = decodeURIComponent(url);
+
+	url = url.replace(/#.*$/, "");
+
+	part = url.split("?");
+
+	part = (part.length < 2 ? part[0] : part[1]);
+
+	pairs = part.split("&");
+
+	for (var i = 0, length = pairs.length; i < length; i++)
+		{
+		if (!pairs[i])
+			continue;
+
+		pair = pairs[i].split("=");
+		parameters[pair[0]] = (pair.length == 2 ? pair[1] : null);
+		}
+
+	return parameters;
+	}
+
+self.remakeQueryString = function(query, exclude, include, path, encode)
+	{ // Tip: exclude and include can be used in combination to replace values = first exclude old then include new.
+	var i, hash, str, search = "";
+
+	for(i in exclude)
+		{
+		if(i in query)
+			delete query[i];
+		}
+
+	for(i in include)
+		query[i] = include[i];
+
+	for(i in query)
+		{
+		if(encode)
+			{
+			str = decodeURIComponent(query[i])
+			str = encodeURIComponent(str);
+			}
+		else
+			str = query[i]; 
+			
+		search += (search != "" ? "&" : "") + i + "=" + str;
+		}
+
+	if(path)
+		{
+		path = decodeURIComponent(path);
+
+		if((hash = path.match(/(?:#.*)/, "")))									// hash part of the path
+			hash = hash[0];
+
+		path = path.replace(/\?.*$/, "");										// path without search and hash
+		}
+	else
+		{
+		hash = "";
+		path = "";
+		}
+
+	path = path + (search ? "?" + search : "") + (hash ? hash : "");
+
+	return path;
 	}
 
 // Test is client in Spaceify's local network
@@ -4341,22 +4421,6 @@ self.isEdgeNetwork = function(timeout, callback)
 		};
 
 	xhr.send();
-	}
-
-self.remakeQueryString = function(query, exclude, include, path)
-	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
-	var search = "", i;
-
-	for(i in query)
-		{
-		if(!exclude.indexOf(i))
-			search += (search != "" ? "&" : "") + i + (query[i] ? "=" + query[i] : "");		// Name-value or name
-		}
-
-	for(i in include)
-		search += (search != "" ? "&" : "") + i + "=" + include[i];
-
-	return (Object.keys(query).length > 0 ? (path ? path : "") + "?" + search : "");
 	}
 
 self.parseURL = function(url)
@@ -5166,22 +5230,6 @@ self.postForm = fibrous( function(url, form)
 
 	return result;
 	});
-
-self.remakeQueryString = function(objQuery, exclude, include, path)
-	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
-	var query = "", i;
-
-	for(i in objQuery)
-		{
-		if(exclude.indexOf(i) == -1)
-			query += (query != "" ? "&" : "") + i + (objQuery[i] ? "=" + objQuery[i] : "");		// Name-value or name
-		}
-
-	for(i in include)
-		query += (query != "" ? "&" : "") + i + (include[i] ? "=" + include[i] : "");
-
-	return (Object.keys(objQuery).length > 0 ? (path ? path : "") + "?" + query : "");
-	}
 
 self.postPublish = function(applicationPackage, username, password, release_name, callback)
 	{

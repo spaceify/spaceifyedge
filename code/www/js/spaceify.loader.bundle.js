@@ -4005,6 +4005,63 @@ LoaderUtil.prototype.SERVER_ADDRESS = (function() { return {host: "spaceify.net"
 LoaderUtil.prototype.WEBRTC_CONFIG = (function() { return {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]} })();
 LoaderUtil.prototype.piperClient = (function() { return new PiperClient(); })();
 
+	// Overrides
+if(window)
+	{
+	window.openOriginal = window.open;
+
+	window.open = function(unique_name, sp_path, name, specs)
+		{
+		var core = new SpaceifyCore();
+		var network = new SpaceifyNetwork();
+
+		var xhr, url, query;
+		var src, port, sp_host, spe_host;
+
+		core.getApplicationURL(unique_name, function(err, appURL)
+			{
+			if(err)
+				return;
+
+			port = (!network.isSecure() ? appURL.port : appURL.securePort);
+			spe_host = network.getEdgeURL(false, false, true);
+
+			if(appURL.implementsWebServer && port)
+				sp_host = network.getEdgeURL(false, port, true);
+			else
+				sp_host = network.externalResourceURL(unique_name);
+
+			xhr = new XMLHttpRequest();
+			xhr.addEventListener("loadend", function(e)
+				{
+				if (xhr.readyState == 4)
+					{
+					if(xhr.response)
+						{
+						url = window.URL.createObjectURL(xhr.response);
+
+						query = network.parseQuery(sp_path);
+
+						query.url = "blob";
+						query.sp_host = encodeURIComponent(sp_host);
+						query.sp_path = encodeURIComponent(sp_path);
+						query.spe_host = encodeURIComponent(spe_host);
+
+						url = url + network.remakeQueryString(query, {}, {}, "", true);
+
+						window.openOriginal(url, (name ? name : "_blank"), (specs ? specs : ""));
+						//window.URL.revokeObjectURL(?.src);
+						}
+					}
+				});
+
+			xhr.open("GET", sp_host + sp_path, true);
+			xhr.responseType = "blob";
+			xhr.send();
+			});
+		}
+	}
+
 if (typeof exports !== "undefined")
 	{
 	module.exports = new LoaderUtil();
@@ -4238,10 +4295,9 @@ self.parseQuery = function(url)
 
 	url = decodeURIComponent(url);
 
-	if(url.indexOf("url=blob") != -1)													// Hash is for blob urls
-		part = url.split("#");
-	else																				// Question mark is for regular urls
-		part = url.split("?");
+	url = url.replace(/#.*$/, "");
+
+	part = url.split("?");
 
 	part = (part.length < 2 ? part[0] : part[1]);
 

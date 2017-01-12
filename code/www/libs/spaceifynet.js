@@ -160,8 +160,8 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
+	var xhr, element, url, query;
 	var port, src, sp_host, spe_host, sp_path, icon, id;
-	var xhr, element, url;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
@@ -204,9 +204,14 @@ self.renderTile = function(manifest, callback)
 								{
 								url = window.URL.createObjectURL(xhr.response);
 
-								element.src = url + "#url=blob&sp_host=" + encodeURIComponent(sp_host) +
-													"&sp_path=" + encodeURIComponent(sp_path) +
-													"&spe_host=" + encodeURIComponent(spe_host);
+								query = network.parseQuery(sp_path);
+
+								query.url = "blob";
+								query.sp_host = encodeURIComponent(sp_host);
+								query.sp_path = encodeURIComponent(sp_path);
+								query.spe_host = encodeURIComponent(spe_host);
+
+								element.src = url + network.remakeQueryString(query, {}, {}, "", true);
 								}
 							else
 								callback();

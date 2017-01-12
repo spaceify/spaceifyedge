@@ -318,22 +318,6 @@ self.postForm = fibrous( function(url, form)
 	return result;
 	});
 
-self.remakeQueryString = function(objQuery, exclude, include, path)
-	{ // exclude=remove from query, include=add to query, [path=appended before ?]. Exclude and include can be used in combination to replace values.
-	var query = "", i;
-
-	for(i in objQuery)
-		{
-		if(exclude.indexOf(i) == -1)
-			query += (query != "" ? "&" : "") + i + (objQuery[i] ? "=" + objQuery[i] : "");		// Name-value or name
-		}
-
-	for(i in include)
-		query += (query != "" ? "&" : "") + i + (include[i] ? "=" + include[i] : "");
-
-	return (Object.keys(objQuery).length > 0 ? (path ? path : "") + "?" + query : "");
-	}
-
 self.postPublish = function(applicationPackage, username, password, release_name, callback)
 	{
 	logger.force(language.PACKAGE_POSTING);
