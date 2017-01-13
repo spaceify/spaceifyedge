@@ -4832,7 +4832,7 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	}
 
 // Test is client in Spaceify's local network
-self.isEdgeNetwork = function(timeout, callback)
+self.isSpaceifyNetwork = function(timeout, callback)
 	{
 	var xhr = new window.XMLHttpRequest();
 
@@ -6097,9 +6097,9 @@ self.getRequiredServiceSecure = function(service_name)
 	return spaceifyService.getRequiredServiceSecure(service_name);
 	}
 
-self.isEdgeNetwork = function(timeout, callback)
+self.isSpaceifyNetwork = function(timeout, callback)
 	{
-	spaceifyNetwork.isEdgeNetwork(timeout, callback);
+	spaceifyNetwork.isSpaceifyNetwork(timeout, callback);
 	}
 
 }

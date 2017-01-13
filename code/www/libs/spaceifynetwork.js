@@ -155,7 +155,7 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	}
 
 // Test is client in Spaceify's local network
-self.isEdgeNetwork = function(timeout, callback)
+self.isSpaceifyNetwork = function(timeout, callback)
 	{
 	var xhr = new window.XMLHttpRequest();
 
