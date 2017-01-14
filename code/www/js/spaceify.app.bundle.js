@@ -4297,13 +4297,23 @@ self.getPort = function(port, securePort, isSecure)
 // Return true if current web page is encrypted
 self.isSecure = function()
 	{
-	return (location.protocol == "http:" ? false : true);
+	var protocol = location.protocol;
+
+	if(protocol == "blob:")
+		protocol = (window.parent ? window.parent.location.protocol : "http:");
+
+	return (protocol == "http:" ? false : true);
 	}
 
 // Return current protocol
 self.getProtocol = function(withScheme)
 	{
-	return (location.protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
+	var protocol = location.protocol;
+
+	if(protocol == "blob:")
+		protocol = (window.parent ? window.parent.location.protocol : "http:");
+
+	return (protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
 	}
 
 // Parse URL query
