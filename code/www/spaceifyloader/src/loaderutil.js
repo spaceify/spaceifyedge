@@ -133,18 +133,23 @@ if(window)
 	{
 	window.openOriginal = window.open;
 
-	window.open = function(unique_name, sp_path, name, specs)
+	window.open = function(unique_name, sp_path, name, specs, callback)
 		{
 		var core = new SpaceifyCore();
 		var network = new SpaceifyNetwork();
 
-		var xhr, url, query;
+		var xhr, url, query, opened;
 		var src, port, sp_host, spe_host;
 
 		core.getApplicationURL(unique_name, function(err, appURL)
 			{
 			if(err)
+				{
+				if(typeof callback == "function")
+					callback(null);
+
 				return;
+				}
 
 			port = (!network.isSecure() ? appURL.port : appURL.securePort);
 			spe_host = network.getEdgeURL(false, false, true);
@@ -172,8 +177,20 @@ if(window)
 
 						url = url + network.remakeQueryString(query, {}, {}, "", true);
 
-						window.openOriginal(url, (name ? name : "_blank"), (specs ? specs : ""));
-						//window.URL.revokeObjectURL(?.src);
+						opened = window.openOriginal(url, (name ? name : "_blank"), (specs ? specs : ""));
+
+						opened.addEventListener("load", function()
+							{
+							window.URL.revokeObjectURL(this.location.href);
+
+							if(typeof callback == "function")
+								callback(this);
+							});
+						}
+					else
+						{
+						if(typeof callback == "function")
+							callback(null);
 						}
 					}
 				});
