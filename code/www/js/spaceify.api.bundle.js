@@ -4321,7 +4321,7 @@ self.getProtocol = function(withScheme, protocol_)
 			protocol = "http:";
 		}
 
-	return (protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
+	return (protocol == "http:" ? "http" : "https") + (withScheme ? "://" : ":");
 	}
 
 // Parse URL query
