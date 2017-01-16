@@ -4274,12 +4274,9 @@ var utility = new classes.SpaceifyUtility();
 // Get the URL to the Spaceify Edge
 self.getEdgeURL = function(forceSecure, port, withEndSlash)
 	{
-	var protocol = (forceSecure ? "https:" : location.protocol);
+	var protocol = self.getProtocol(true, (forceSecure ? "https:" : location.protocol));
 
-	if(protocol == "blob:")
-		protocol = (window.parent ? window.parent.location.protocol : "http:");
-
-	return protocol + "//" + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
@@ -4297,21 +4294,32 @@ self.getPort = function(port, securePort, isSecure)
 // Return true if current web page is encrypted
 self.isSecure = function()
 	{
-	var protocol = location.protocol;
-
-	if(protocol == "blob:")
-		protocol = (window.parent ? window.parent.location.protocol : "http:");
+	var protocol = self.getProtocol(false);
 
 	return (protocol == "http:" ? false : true);
 	}
 
 // Return current protocol
-self.getProtocol = function(withScheme)
+self.getProtocol = function(withScheme, protocol_)
 	{
-	var protocol = location.protocol;
+	var url, m;
+	var protocol = (protocol_ ? protocol_ : location.protocol);
 
 	if(protocol == "blob:")
-		protocol = (window.parent ? window.parent.location.protocol : "http:");
+		{
+		if(window.parent)
+			{
+			url = "" + window.parent.location;
+			url = url.replace(/^blob:/, "");
+
+			if((m = url.match(/^http.?:/)) !== null)
+				protocol = m[0];
+			else
+				protocol = "http:";
+			}
+		else
+			protocol = "http:";
+		}
 
 	return (protocol == "http:" ? "http" : "https") + (withScheme ? "://" : "");
 	}

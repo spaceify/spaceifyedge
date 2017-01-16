@@ -94,11 +94,11 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n" + result, "utf8");
 
 					// ++ APP ++ //
-			fs.writeFileSync(targetPath + "js/spaceify.app.js", "\"use strict\";", "utf8");
-			fs.writeFileSync(targetPath + "js/spaceify.app.bundle.js", "\"use strict\";", "utf8");
+			fs.writeFileSync(targetPath + "js/spaceify.api.js", "\"use strict\";", "utf8");
+			fs.writeFileSync(targetPath + "js/spaceify.api.bundle.js", "\"use strict\";", "utf8");
 
-			fs.writeFileSync(targetPath + "js/spaceify.app.jquery.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
-			fs.writeFileSync(targetPath + "js/spaceify.app.jquery.bundle.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
+			fs.writeFileSync(targetPath + "js/spaceify.api.jquery.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
+			fs.writeFileSync(targetPath + "js/spaceify.api.jquery.bundle.js", "\"use strict\";" + "\n\n" + jquery, "utf8");
 
 				// Uglify / Bundle JavaScript -- -- -- -- -- -- -- -- -- -- //
 			edgeJS = UglifyJS.minify(edge.js).code;
@@ -113,11 +113,11 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n\n" + result, "utf8");
 
 					// ++ APP ++ //
-			fs.appendFileSync(targetPath + "js/spaceify.app.js", "\n\n" + edgeJS, "utf8");
-			fs.appendFileSync(targetPath + "js/spaceify.app.bundle.js", "\n\n" + result, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.js", "\n\n" + edgeJS, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.bundle.js", "\n\n" + result, "utf8");
 
-			fs.appendFileSync(targetPath + "js/spaceify.app.jquery.js", "\n\n" + edgeJS, "utf8");
-			fs.appendFileSync(targetPath + "js/spaceify.app.jquery.bundle.js", "\n\n" + result, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.js", "\n\n" + edgeJS, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.bundle.js", "\n\n" + result, "utf8");
 
 				// Minify JSON -- -- -- -- -- -- -- -- -- -- //
 			process.stdout.write("\n :: Minifying Edge and App JSON");
@@ -135,11 +135,11 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n\n" + json, "utf8");
 
 					// ++ APP ++ //
-			fs.appendFileSync(targetPath + "js/spaceify.app.js", "\n\n" + json, "utf8");
-			fs.appendFileSync(targetPath + "js/spaceify.app.bundle.js", "\n\n" + json, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.js", "\n\n" + json, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.bundle.js", "\n\n" + json, "utf8");
 
-			fs.appendFileSync(targetPath + "js/spaceify.app.jquery.js", "\n\n" + json, "utf8");
-			fs.appendFileSync(targetPath + "js/spaceify.app.jquery.bundle.js", "\n\n" + json, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.js", "\n\n" + json, "utf8");
+			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.bundle.js", "\n\n" + json, "utf8");
 
 				// Minify locales -- -- -- -- -- -- -- -- -- -- //
 			process.stdout.write("\n :: Minifying Edge language JSON");
