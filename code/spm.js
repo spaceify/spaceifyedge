@@ -254,6 +254,7 @@ self.start = fibrous( function()
 		}
 	catch(err)
 		{
+console.log(err);
 		logger.error(err, false, false, logger.FORCE);
 		}
 	finally
@@ -407,34 +408,49 @@ var help = fibrous( function(bVerbose, command)
 	{
 	var spmCommand;
 	var spmCommands;
-	var spmHelpFile = fs.sync.readFile(config.DOCS_PATH + config.SPM_HELP, {encoding: "utf8"}), spmParts, help = "";
+	var spmHelpFile = fs.sync.readFile(config.DOCS_PATH + config.SPM_HELP, {encoding: "utf8"}), spmParts, str = "", doc;
 
 	if(command == "")
 		{
 		spmParts = spmHelpFile.split(/@verbose/);
 
-		help = spmParts[0];
+		str = spmParts[0];
+		str = str.replace(/\n$/, "");
 
 		if(bVerbose)
 			{
 			spmCommands = spmParts[1].split(/%%.*/);
 
 			for(var i = 0; i < spmCommands.length; i++)
-				help += spmCommands[i].replace(/%.+?%/, "");
+				{
+				doc = spmCommands[i].replace(/%.+?%/, "");							// Remove command separator %%...%%
+				doc = doc.replace(/\n{2}/m, "");									// Remove first two newlines
+
+				command = (doc.match(/^(.*)$/m))[0];								// Get the command as it is in the document
+
+				doc = doc.replace(command, "");										// Remove the command from the document
+
+				command = command.trim();
+				for(var j = 0, strLen = command.length, ul = ""; j < strLen; j++)	// Format; add underlining (ToDo: use instead a color to highlight the command)
+					ul += "-";
+
+				str += "\n\n" + command + "\n" + ul + doc.replace(/\n$/, "");
+				}
+
+			str = str.replace(/\n{3}$/, "");
 			}
 		}
 	else
 		{
 		spmCommand = spmHelpFile.match(new RegExp("%" + command + "%(.|\n|\r)+?%%"));
 		if(spmCommand)
-			help = spmCommand[0].replace(new RegExp("%" + command + "%"), "");
-		help = help.replace(/%/g, "");
+			str = spmCommand[0].replace(new RegExp("%" + command + "%"), "");
+
+		str = str.replace(/%/g, "");
+		str = str.replace(/\n$/, "");
 		}
 
-	help = help.substring(3);
-	logger.force(help);
-
-	disconnect();
+	logger.force(str);
 	});
 
 var version = fibrous( function()

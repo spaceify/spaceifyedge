@@ -29,17 +29,22 @@
   TAB key can be used for command line completion. Completion can be used for both commands
   and options. Double-tapping shows available commands or options for a command.
 @verbose
-Commands and options the commands accept.
 %help%
   help [command]
   
     Displays help text of the command. If command is not defined the whole
     help text is displayed.
+  
+      spm help
+
+      spm help install
 %%
 %version%
   version
   
     Displays Spaceify edge version information.
+
+      spm install
 %%
 %install%
   install [authenticate | -a, develop | -d, force | -f] package
