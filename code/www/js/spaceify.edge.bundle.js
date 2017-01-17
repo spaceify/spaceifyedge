@@ -4787,6 +4787,9 @@ self.parseQuery = function(url)
 
 	part = url.split("?");
 
+	if(part.length == 1 && url.charAt(0) != "?")
+		return parameters;
+
 	part = (part.length < 2 ? part[0] : part[1]);
 
 	pairs = part.split("&");

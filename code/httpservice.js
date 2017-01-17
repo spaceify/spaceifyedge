@@ -260,6 +260,8 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 	var part = pathparts.shift() || "";
 	var responseCode, contentType, port, location, content;
 
+	/*
+	DEPRECATED
 	// Redirection request to apps internal web server "service/" or get apps service object "service/object/" -- -- -- -- -- -- -- -- -- -- //
 	if(part == "service")
 		{
@@ -282,6 +284,19 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 			contentType = "json";
 			content = JSON.stringify(service);
 			}
+
+		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
+		}
+	*/
+	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
+	if(part == "service")
+		{
+		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace("service/", "")], self)))
+			return callback(null, {type: "load", wwwPath: "", pathname: ""});
+
+		responseCode = 200;
+		contentType = "json";
+		content = JSON.stringify(service);
 
 		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
 		}
@@ -322,7 +337,7 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 				if(part == "/" || part == "")										//      path = s/a1/image.jpg, if unique_name = s/a -> not ok
 					{
 					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
-
+//blob:http://edge.spaceify.net/00d3b6c0-394a-4b8c-9acc-a2936bd3cbcc?tile.html=null&url=blob&sp_host=http%3A%2F%2Fedge.spaceify.net%2Frandomz%2F&sp_path=tile.html&spe_host=http%3A%2F%2Fedge.spaceify.net%2F
 					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part});
 
 					return;
