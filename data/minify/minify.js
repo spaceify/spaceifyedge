@@ -22,13 +22,13 @@ this.make = function()
 		var hasJSDirectory = true;
 
 		if(process.argv.length < 5)
-			process.stdout.write("\n :: Usage: node minify [js|css|loader|all] <source directory </var/lib/spaceify/code/www/>> <destination directory </var/lib/spaceify/code/www/>>");
+			process.stdout.write("\n :: Usage: node minify [js|css|loader|loaderb|all] <source directory </var/lib/spaceify/code/www/>> <destination directory </var/lib/spaceify/code/www/>>");
 
 		var operation = (process.argv.length >= 3 ? process.argv[2] : "");
 		var sourcePath = (process.argv.length >= 4 ? process.argv[3] : "/var/lib/spaceify/code/www/");
 		var targetPath = (process.argv.length >= 5 ? process.argv[4] : "/var/lib/spaceify/code/www/");
 
-		if(operation != "js" && operation != "css" && operation != "loader" && operation != "all")
+		if(operation != "js" && operation != "css" && operation != "loader" && operation != "loaderb" && operation != "all")
 			throw "Operation must be js, css, loader or all. Exiting.";
 
 		process.stdout.write("\n :: Minify/uglify - operation '" + operation + "', source '" + sourcePath + "', destination '" + targetPath + "'");
@@ -39,7 +39,7 @@ this.make = function()
 		//	//	//	//	//	//	//
 		//	//	//	//	//	//	//
 
-		if(operation == "loader" || operation == "all")
+		if(operation == "loader" || operation == "loaderb")
 			{
 			process.stdout.write("\n :: Uglifying SpaceifyLoader JavaScript");
 
@@ -52,12 +52,15 @@ this.make = function()
 				fs.writeFileSync(targetPath + "js/spaceify.loader.js", result, "utf8");
 			fs.writeFileSync(targetPath + "spaceifyloader/libs/spaceify.loader.js", result, "utf8");
 
-			result = "";
-			for(var i = 0; i < loader.js.length; i++)
-				result += fs.readFileSync(loader.js[i], "utf8");
-			if(hasJSDirectory)
-				fs.writeFileSync(targetPath + "js/spaceify.loader.bundle.js", result, "utf8");
-			fs.writeFileSync(targetPath + "spaceifyloader/libs/spaceify.loader.bundle.js", "\n" + result, "utf8");
+			if(operation == "loaderb")
+				{
+				result = "";
+				for(var i = 0; i < loader.js.length; i++)
+					result += fs.readFileSync(loader.js[i], "utf8");
+				if(hasJSDirectory)
+					fs.writeFileSync(targetPath + "js/spaceify.loader.bundle.js", result, "utf8");
+				fs.writeFileSync(targetPath + "spaceifyloader/libs/spaceify.loader.bundle.js", "\n" + result, "utf8");
+				}
 			}
 
 		//	//	//	//	//	//	//	//	//	//
