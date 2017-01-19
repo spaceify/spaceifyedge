@@ -160,8 +160,8 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
-	var xhr, element, url, query;
-	var port, src, sp_host, spe_host, sp_path, icon, id;
+	var element, query;
+	var port, sp_host, spe_host, sp_path, icon, id;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
@@ -171,55 +171,25 @@ self.renderTile = function(manifest, callback)
 			spe_host = network.getEdgeURL(false, false, true);
 
 			if(appURL.implementsWebServer && port)
-				{
 				sp_host = network.getEdgeURL(false, port, true);
-				sp_path = config.TILEFILE;
-				}
 			else
-				{
 				sp_host = network.externalResourceURL(manifest.unique_name);
-				sp_path = config.TILEFILE;
-				}
+
+			sp_path = config.TILEFILE;
 
 			id = "apptile_" + manifest.unique_name.replace("/", "_");
 			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
 				function()
 					{
+					query = {};
+					query.sp_host = encodeURIComponent(sp_host);
+					query.sp_path = encodeURIComponent(sp_path);
+					query.spe_host = encodeURIComponent(spe_host);
+
 					element = document.getElementById(id);
-					src = sp_host + sp_path;
+					element.src = sp_host + sp_path + network.remakeQueryString(query, {}, {}, "", true);
 
-					xhr = new XMLHttpRequest();
-					xhr.addEventListener("loadend", function(e)
-						{
-						if (xhr.readyState == 4)
-							{
-							element.onload = function(e)
-								{
-								window.URL.revokeObjectURL(element.src);
-
-								callback();
-								};
-
-							if(xhr.response)
-								{
-								url = window.URL.createObjectURL(xhr.response);
-
-								query = network.parseQuery(sp_path);
-
-								query.url = "blob";
-								query.sp_host = encodeURIComponent(sp_host);
-								query.sp_path = encodeURIComponent(sp_path);
-								query.spe_host = encodeURIComponent(spe_host);
-
-								element.src = url + network.remakeQueryString(query, {}, {}, "", true);
-								}
-							else
-								callback();
-							}
-						});
-					xhr.open("GET", src, true);
-					xhr.responseType = "blob";
-					xhr.send();
+					callback();
 					}
 				});
 			});

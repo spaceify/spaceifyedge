@@ -142,8 +142,9 @@ self.listen = function(opts, callback)
 								headers: [],
 								urlObj: urlObj,
 								request: request,
-								response: response,
 								GET: urlObj.query,
+								response: response,
+								isSecure: options.isSecure,
 								POST: (request.method == "POST" ? parsePost(request, body) : {}),
 								cookies: parseCookies(request),
 								protocol: (urlObj.protocol ? urlObj.protocol : "http:")
@@ -254,7 +255,7 @@ var loadContent = fibrous( function()
 
 			if(requestListener)
 				{
-				reqLisObj = requestListener.sync(currentRequest.request, currentRequest.body, currentRequest.urlObj, options.isSecure);
+				reqLisObj = requestListener.sync(currentRequest);
 
 				if(reqLisObj.type == "load")
 					{
@@ -575,7 +576,9 @@ var getOrigin = function()
 		origin = (currentRequest.request.headers.origin ? currentRequest.request.headers.origin + port : "*");
 		}
 	else
-		origin = "*";
+		{
+		origin = (currentRequest.request.headers.origin ? currentRequest.request.headers.origin : "*");
+		}
 
 	return origin;
 	}

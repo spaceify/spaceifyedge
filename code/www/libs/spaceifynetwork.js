@@ -28,17 +28,20 @@ var config = new classes.SpaceifyConfig();
 var utility = new classes.SpaceifyUtility();
 
 // Get the URL to the Spaceify Edge
-self.getEdgeURL = function(forceSecure, port, withEndSlash)
+self.getEdgeURL = function(force, port, withEndSlash)
 	{
-	var protocol = self.getProtocol(true, (forceSecure ? "https:" : location.protocol));
+	if(typeof force == "boolean")												// Web page!
+		force = (force ? "https:" : (typeof window != "undefined" ? location.protocol : "http:"));
+
+	var protocol = self.getProtocol(true, force);
 
 	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
-self.externalResourceURL = function(unique_name)
+self.externalResourceURL = function(unique_name, protocol)
 	{
-	return self.getEdgeURL(false, false, true) + unique_name + "/";
+	return self.getEdgeURL((protocol ? protocol : false), false, true) + unique_name + "/";
 	}
 
 // Get secure or insecure port based on web pages protocol or requested security
@@ -58,6 +61,9 @@ self.isSecure = function()
 // Return current protocol
 self.getProtocol = function(withScheme, protocol_)
 	{
+	if(typeof window == "undefined" )											// Node.js!
+		return protocol_ + (withScheme ? "://" : ":");
+
 	var url, m;
 	var protocol = (protocol_ ? protocol_ : location.protocol);
 
@@ -150,8 +156,8 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 			str = encodeURIComponent(str);
 			}
 		else
-			str = query[i]; 
-			
+			str = query[i];
+
 		search += (search != "" ? "&" : "") + i + "=" + str;
 		}
 
@@ -312,7 +318,7 @@ self.doOperation = function(jsonData, callback)
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL(true, null, true) + config.OPERATION;		
+		operationUrl = self.getEdgeURL(true, null, true) + config.OPERATION;
 		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
 			try {

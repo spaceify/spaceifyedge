@@ -4115,8 +4115,8 @@ self.showInstalledApplications = function(callback)
 
 self.renderTile = function(manifest, callback)
 	{
-	var xhr, element, url, query;
-	var port, src, sp_host, spe_host, sp_path, icon, id;
+	var element, query;
+	var port, sp_host, spe_host, sp_path, icon, id;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
@@ -4126,55 +4126,25 @@ self.renderTile = function(manifest, callback)
 			spe_host = network.getEdgeURL(false, false, true);
 
 			if(appURL.implementsWebServer && port)
-				{
 				sp_host = network.getEdgeURL(false, port, true);
-				sp_path = config.TILEFILE;
-				}
 			else
-				{
 				sp_host = network.externalResourceURL(manifest.unique_name);
-				sp_path = config.TILEFILE;
-				}
+
+			sp_path = config.TILEFILE;
 
 			id = "apptile_" + manifest.unique_name.replace("/", "_");
 			scope("edgeBody").addTile({type: "appTile", container: manifest.type, manifest: manifest, id:id, callback:
 				function()
 					{
+					query = {};
+					query.sp_host = encodeURIComponent(sp_host);
+					query.sp_path = encodeURIComponent(sp_path);
+					query.spe_host = encodeURIComponent(spe_host);
+
 					element = document.getElementById(id);
-					src = sp_host + sp_path;
+					element.src = sp_host + sp_path + network.remakeQueryString(query, {}, {}, "", true);
 
-					xhr = new XMLHttpRequest();
-					xhr.addEventListener("loadend", function(e)
-						{
-						if (xhr.readyState == 4)
-							{
-							element.onload = function(e)
-								{
-								window.URL.revokeObjectURL(element.src);
-
-								callback();
-								};
-
-							if(xhr.response)
-								{
-								url = window.URL.createObjectURL(xhr.response);
-
-								query = network.parseQuery(sp_path);
-
-								query.url = "blob";
-								query.sp_host = encodeURIComponent(sp_host);
-								query.sp_path = encodeURIComponent(sp_path);
-								query.spe_host = encodeURIComponent(spe_host);
-
-								element.src = url + network.remakeQueryString(query, {}, {}, "", true);
-								}
-							else
-								callback();
-							}
-						});
-					xhr.open("GET", src, true);
-					xhr.responseType = "blob";
-					xhr.send();
+					callback();
 					}
 				});
 			});
@@ -4272,17 +4242,20 @@ var config = new classes.SpaceifyConfig();
 var utility = new classes.SpaceifyUtility();
 
 // Get the URL to the Spaceify Edge
-self.getEdgeURL = function(forceSecure, port, withEndSlash)
+self.getEdgeURL = function(force, port, withEndSlash)
 	{
-	var protocol = self.getProtocol(true, (forceSecure ? "https:" : location.protocol));
+	if(typeof force == "boolean")												// Web page!
+		force = (force ? "https:" : (typeof window != "undefined" ? location.protocol : "http:"));
+
+	var protocol = self.getProtocol(true, force);
 
 	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
-self.externalResourceURL = function(unique_name)
+self.externalResourceURL = function(unique_name, protocol)
 	{
-	return self.getEdgeURL(false, false, true) + unique_name + "/";
+	return self.getEdgeURL((protocol ? protocol : false), false, true) + unique_name + "/";
 	}
 
 // Get secure or insecure port based on web pages protocol or requested security
@@ -4302,6 +4275,9 @@ self.isSecure = function()
 // Return current protocol
 self.getProtocol = function(withScheme, protocol_)
 	{
+	if(typeof window == "undefined" )											// Node.js!
+		return protocol_ + (withScheme ? "://" : ":");
+
 	var url, m;
 	var protocol = (protocol_ ? protocol_ : location.protocol);
 
@@ -4394,8 +4370,8 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 			str = encodeURIComponent(str);
 			}
 		else
-			str = query[i]; 
-			
+			str = query[i];
+
 		search += (search != "" ? "&" : "") + i + "=" + str;
 		}
 
@@ -4556,7 +4532,7 @@ self.doOperation = function(jsonData, callback)
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL(true, null, true) + config.OPERATION;		
+		operationUrl = self.getEdgeURL(true, null, true) + config.OPERATION;
 		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
 			try {
@@ -5827,6 +5803,7 @@ var start = function(application_, options)
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_80"] : null);
+					httpServer.setSessionManager(null, config.SESSION_TOKEN_NAME);
 					httpServer.listen.sync(opts);
 
 					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
@@ -5839,6 +5816,7 @@ var start = function(application_, options)
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_443"] : null);
+					httpsServer.setSessionManager(null, config.SESSION_TOKEN_NAME);
 					httpsServer.listen.sync(opts);
 
 					HTTPS_PORT = httpsServer.getPort();

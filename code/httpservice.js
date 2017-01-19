@@ -16,6 +16,7 @@ var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
+var SpaceifyNetwork = require("./spaceifynetwork");
 var ValidateApplication = require("./validateapplication");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
 
@@ -29,8 +30,9 @@ var httpsServer = new WebServer();
 var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
-var coreConnection = new WebSocketRpcConnection();
+var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
+var coreConnection = new WebSocketRpcConnection();
 
 var edgeSettings = {};
 var coreDisconnectionTimerId = null;
@@ -248,57 +250,26 @@ var nativeDebianRemoved = fibrous( function(result, connObj) { remApp(result.man
 
 var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = settings; });
 
-var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecure, callback)
+//var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecure, callback)
+var requestListener = function(currentRequest, callback)
 	{
 	var service;
 	var openServices;
 	var pathPos, appPos;
 	var servicesByServiceName = {};
-	var pathname = urlObj.pathname.replace(/^\/|\/$/, "");
+	var pathname = currentRequest.urlObj.pathname.replace(/^\/|\/$/, "");
 	var pathnameLength = pathname.length;
 	var pathparts = pathname.split("/");
 	var part = pathparts.shift() || "";
-	var responseCode, contentType, port, location, content;
+	var appURL, port, protocol, location, content, spe_host, sp_host, sp_path;
 
-	/*
-	DEPRECATED
-	// Redirection request to apps internal web server "service/" or get apps service object "service/object/" -- -- -- -- -- -- -- -- -- -- //
-	if(part == "service")
-		{
-		part = "service/" + (pathparts.length > 0 && pathparts[0] == "object" ? "object/" : "");
-
-		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace(part, "")], self)))
-			return callback(null, {type: "load", wwwPath: "", pathname: ""});
-
-		if(part == "service/")
-			{
-			responseCode = 302;
-			contentType = "html";
-			port = (!isSecure ? service.port : service.securePort);
-			location = (!isSecure ? "http" : "https") + "://" + config.EDGE_HOSTNAME + ":" + port + utility.remakeQueryString(urlObj.query, [], {}, "/");
-			content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
-			}
-		else
-			{
-			responseCode = 200;
-			contentType = "json";
-			content = JSON.stringify(service);
-			}
-
-		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
-		}
-	*/
 	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
 	if(part == "service")
 		{
 		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace("service/", "")], self)))
 			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
-		responseCode = 200;
-		contentType = "json";
-		content = JSON.stringify(service);
-
-		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
+		callback(null, {type: "write", content: JSON.stringify(service), contentType: "json", responseCode: 200, location: ""});
 		}
 	else if(part == "services")
 		{
@@ -313,13 +284,9 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 			servicesByServiceName[openServices[i].service_name][openServices[i].unique_name] = openServices[i];
 			}
 
-		responseCode = 200;
-		contentType = "json";
-		content = JSON.stringify(servicesByServiceName);
-
-		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
+		callback(null, {type: "write", content: JSON.stringify(servicesByServiceName), contentType: "json", responseCode: 200, location: ""});
 		}
-	// Path points to apps resource -- -- -- -- -- -- -- -- -- -- //
+	// Path points to apps resource or URL is short url -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
 		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
@@ -336,9 +303,40 @@ var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecu
 																					// E.g. path = s/a/image.jpg, if unique_name = s/a -> ok
 				if(part == "/" || part == "")										//      path = s/a1/image.jpg, if unique_name = s/a -> not ok
 					{
-					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
-//blob:http://edge.spaceify.net/00d3b6c0-394a-4b8c-9acc-a2936bd3cbcc?tile.html=null&url=blob&sp_host=http%3A%2F%2Fedge.spaceify.net%2Frandomz%2F&sp_path=tile.html&spe_host=http%3A%2F%2Fedge.spaceify.net%2F
-					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part});
+					part = currentRequest.urlObj.path.replace(apps[appPos].unique_name + part, "");
+
+					if(part == "/")													// Short URL - make redirection
+						{
+						location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
+						location = (!currentRequest.isSecure ? "http" : "https") + "://" + location + part;
+
+						protocol = (!currentRequest.isSecure ? "http" : "https");
+
+						appURL = coreConnection.sync.callRpc("getApplicationURL", [apps[appPos].unique_name], self);
+
+						port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
+
+						spe_host = network.getEdgeURL(protocol, false, true);
+
+						if(appURL.implementsWebServer && port)
+							sp_host = network.getEdgeURL(protocol, port, true);
+						else
+							sp_host = network.externalResourceURL(apps[appPos].unique_name, protocol);
+
+						sp_path = "index.html";
+
+						currentRequest.GET.sp_host = encodeURIComponent(sp_host);
+						currentRequest.GET.sp_path = encodeURIComponent(sp_path);
+						currentRequest.GET.spe_host = encodeURIComponent(spe_host);
+
+						location += "remote.html/" + network.remakeQueryString(currentRequest.GET, {}, {}, "", true);
+
+						content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
+
+						callback(null, {type: "write", content: content, contentType: "html", responseCode: 302, location: location});
+						}
+					else															// Resource
+						callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part});
 
 					return;
 					}
