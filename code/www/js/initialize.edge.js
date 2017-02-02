@@ -1,2 +1,0 @@
-if(typeof spaceifyApp!=="undefined")spaceifyApp.bootstrap();
-if(typeof window.spaceifyReady=="function"){spaceifyReady();}else{var evt=document.createEvent("Event");evt.initEvent("spaceifyReady",true,true);window.dispatchEvent(evt);}

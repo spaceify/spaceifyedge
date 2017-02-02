@@ -383,7 +383,7 @@ var sendResponse = function(err, result, id, connectionId)
 			{
 			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
 
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
 			}
 		else
 			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -1086,7 +1086,7 @@ var sendResponse = function(err, result, id, connectionId)
 			{
 			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
 
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
 			}
 		else
 			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -3520,9 +3520,9 @@ var self = this;
 var config = new classes.SpaceifyConfig();
 var network = new classes.SpaceifyNetwork();
 
-var pipeId = null;
+var tunnelId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -3689,7 +3689,7 @@ var call = function(method, params, callback)
 		}
 	else
 		{
-		connection.callClientRpc(pipeId, method, params, self, function(err, data)
+		connection.callClientRpc(tunnelId, method, params, self, function(err, data)
 			{
 			callback(err, data);
 			});
@@ -3698,9 +3698,8 @@ var call = function(method, params, callback)
 
 var connect = function(method, params, callback)
 	{
-	var hostname;
+	var host, hostname, protocol;
 	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
-	var protocol = (!useSecure ? "ws" : "wss");
 
 	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
@@ -3727,11 +3726,17 @@ var connect = function(method, params, callback)
 		}
 	else
 		{
-		connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: port, protocol: protocol}, null, function(id)
+		connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
 			{
-			pipeId = id;
-			isConnected = true;
-			call(method, params, callback);
+			protocol = (!useSecure ? "http" : "https");
+			host = network.getEdgeURL(false, null, false);
+
+			connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+				{
+				tunnelId = id;
+				isConnected = true;
+				call(method, params, callback);
+				});
 			});
 		}
 	}
@@ -3792,12 +3797,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
 	errors = [];
 	warnings = [];
+	var protocol, host;
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
@@ -3835,13 +3841,30 @@ self.connect = function(managerOrigin_, callerOrigin_)
 			}
 		else
 			{
-			connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
+			/*connection.createWebSocketTunnel({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
 				{
 				pipeId = id;
 				isConnected = true;
-				piperClient.callClientRpc(pipeId, "confirm", [messageId]);
+				connection.callClientRpc(pipeId, "confirm", [messageId]);
 				managerOrigin.connected();
-				});
+				});*/
+
+			connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
+				{
+				protocol = network.getProtocol(false, null);
+				host = network.getEdgeURL(false, null, false);
+
+				connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+					{
+					pipeId = id;
+					isConnected = true;
+
+					piperClient.callClientRpc(pipeId, "confirm", [messageId], this, function(err, data)
+						{
+						managerOrigin.connected()
+						});
+					});
+				});				
 			}
 		});
 	}
@@ -4256,7 +4279,9 @@ self.getEdgeURL = function(force, port, withEndSlash)
 
 	var protocol = self.getProtocol(true, force);
 
-	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	var hostname = (typeof window != "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
+
+	return protocol + hostname + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource

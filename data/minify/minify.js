@@ -29,7 +29,7 @@ this.make = function()
 		var targetPath = (process.argv.length >= 5 ? process.argv[4] : "/var/lib/spaceify/code/www/");
 
 		if(operation != "js" && operation != "css" && operation != "loader" && operation != "loaderb" && operation != "all")
-			throw "Operation must be js, css, loader or all. Exiting.";
+			throw "Operation must be js, css, loader, loaderb or all. Exiting.";
 
 		process.stdout.write("\n :: Minify/uglify - operation '" + operation + "', source '" + sourcePath + "', destination '" + targetPath + "'");
 
@@ -50,7 +50,7 @@ this.make = function()
 			result = result.replace(/"use strict";/g, "");
 			if(hasJSDirectory)
 				fs.writeFileSync(targetPath + "js/spaceify.loader.js", result, "utf8");
-			fs.writeFileSync(targetPath + "spaceifyloader/libs/spaceify.loader.js", result, "utf8");
+			fs.writeFileSync(targetPath + "spaceifyloader/js/spaceify.loader.js", result, "utf8");
 
 			if(operation == "loaderb")
 				{
@@ -59,7 +59,7 @@ this.make = function()
 					result += fs.readFileSync(loader.js[i], "utf8");
 				if(hasJSDirectory)
 					fs.writeFileSync(targetPath + "js/spaceify.loader.bundle.js", result, "utf8");
-				fs.writeFileSync(targetPath + "spaceifyloader/libs/spaceify.loader.bundle.js", "\n" + result, "utf8");
+				fs.writeFileSync(targetPath + "spaceifyloader/js/spaceify.loader.bundle.js", "\n" + result, "utf8");
 				}
 			}
 
@@ -174,13 +174,6 @@ this.make = function()
 
 			fs.appendFileSync(targetPath + "js/spaceify.edge.js", "\n\n" + result + ";", "utf8");
 			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n\n" + result + ";", "utf8");
-
-				// Initializing -- -- -- -- -- -- -- -- -- -- //
-					// ++ EDGE ++ //
-			result = fs.readFileSync(sourcePath + "js/initialize.edge.js", "utf8");
-
-			fs.appendFileSync(targetPath + "js/spaceify.edge.js", "\n\n" + result, "utf8");
-			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n\n" + result, "utf8");
 		}
 
 		//	//	//	//	//

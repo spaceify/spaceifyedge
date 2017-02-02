@@ -29,12 +29,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
 	errors = [];
 	warnings = [];
+	var protocol, host;
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
@@ -72,13 +73,30 @@ self.connect = function(managerOrigin_, callerOrigin_)
 			}
 		else
 			{
-			connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
+			/*connection.createWebSocketTunnel({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
 				{
 				pipeId = id;
 				isConnected = true;
-				piperClient.callClientRpc(pipeId, "confirm", [messageId]);
+				connection.callClientRpc(pipeId, "confirm", [messageId]);
 				managerOrigin.connected();
-				});
+				});*/
+
+			connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
+				{
+				protocol = network.getProtocol(false, null);
+				host = network.getEdgeURL(false, null, false);
+
+				connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+					{
+					pipeId = id;
+					isConnected = true;
+
+					piperClient.callClientRpc(pipeId, "confirm", [messageId], this, function(err, data)
+						{
+						managerOrigin.connected()
+						});
+					});
+				});				
 			}
 		});
 	}

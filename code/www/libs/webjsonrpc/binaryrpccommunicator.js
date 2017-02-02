@@ -255,7 +255,7 @@ var sendResponse = function(err, result, id, connectionId)
 			{
 			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
 
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
 			}
 		else
 			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);

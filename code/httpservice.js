@@ -255,23 +255,26 @@ var requestListener = function(currentRequest, callback)
 	{
 	var service;
 	var openServices;
-	var pathPos, appPos;
+	var partPos, appPos, uname;
+	var startsWithAppName = false;
 	var servicesByServiceName = {};
-	var pathname = currentRequest.urlObj.pathname.replace(/^\/|\/$/, "");
-	var pathnameLength = pathname.length;
-	var pathparts = pathname.split("/");
-	var part = pathparts.shift() || "";
+	var pathName = currentRequest.urlObj.pathname.replace(/^\/|\/$/, "");
+	var pathNameLength = pathName.length;
+	var pathParts = pathName.split("/");
+	var firstPart = pathParts.shift() || "";
+		pathParts = pathName.split("/");
+	var pathPartsLength = pathParts.length;
 	var appURL, port, protocol, location, content, spe_host, sp_host, sp_path;
 
 	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
-	if(part == "service")
+	if(firstPart == "service")
 		{
-		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace("service/", "")], self)))
+		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathName.replace("service/", "")], self)))
 			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
 		callback(null, {type: "write", content: JSON.stringify(service), contentType: "json", responseCode: 200, location: ""});
 		}
-	else if(part == "services")
+	else if(firstPart == "services")
 		{
 		if(!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
 			return callback(null, {type: "load", wwwPath: "", pathname: ""});
@@ -290,60 +293,65 @@ var requestListener = function(currentRequest, callback)
 	else
 		{
 		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
-			{
-			for(pathPos = 0; pathPos < pathnameLength; pathPos++)					// Compare unique_name with pathname from the beginning
+			{ // ToDo: compare a/b/c to [a/b, a/b/c] => always returns a/b
+			for(partPos = 0, uname = ""; partPos < pathPartsLength; partPos++)
 				{
-				if(pathPos > apps[appPos].lengthM1 || pathname[pathPos] != apps[appPos].unique_name[pathPos])
-					break;
-				}
+				uname += (uname != "" ? "/" : "") + pathParts[partPos];
 
-			if(pathPos == apps[appPos].length)										// The beginning of the pathname was same
-				{																	// but it must end with "/" or "" to be
-				part = pathname[pathPos] || "";										// completely identical with the unique_name
-																					// E.g. path = s/a/image.jpg, if unique_name = s/a -> ok
-				if(part == "/" || part == "")										//      path = s/a1/image.jpg, if unique_name = s/a -> not ok
+				if(uname == apps[appPos].unique_name)
 					{
-					part = currentRequest.urlObj.path.replace(apps[appPos].unique_name + part, "");
-
-					if(part == "/")													// Short URL - make redirection
-						{
-						location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
-						location = (!currentRequest.isSecure ? "http" : "https") + "://" + location + part;
-
-						protocol = (!currentRequest.isSecure ? "http" : "https");
-
-						appURL = coreConnection.sync.callRpc("getApplicationURL", [apps[appPos].unique_name], self);
-
-						port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
-
-						spe_host = network.getEdgeURL(protocol, false, true);
-
-						if(appURL.implementsWebServer && port)
-							sp_host = network.getEdgeURL(protocol, port, true);
-						else
-							sp_host = network.externalResourceURL(apps[appPos].unique_name, protocol);
-
-						sp_path = "index.html";
-
-						currentRequest.GET.sp_host = encodeURIComponent(sp_host);
-						currentRequest.GET.sp_path = encodeURIComponent(sp_path);
-						currentRequest.GET.spe_host = encodeURIComponent(spe_host);
-
-						location += "remote.html/" + network.remakeQueryString(currentRequest.GET, {}, {}, "", true);
-
-						content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
-
-						callback(null, {type: "write", content: content, contentType: "html", responseCode: 302, location: location});
-						}
-					else															// Resource
-						callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part});
-
-					return;
+					startsWithAppName = true;
+					break;
 					}
 				}
+
+			if(startsWithAppName)
+				break;
 			}
 
-		if(appPos == apps.length)
+		if(startsWithAppName)
+			{
+			if(partPos == pathPartsLength - 1)										// Short URL - make redirection
+				{
+console.log("REDIRECT");
+				location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
+				location = (!currentRequest.isSecure ? "http" : "https") + "://" + location;
+
+				protocol = (!currentRequest.isSecure ? "http" : "https");
+
+				appURL = coreConnection.sync.callRpc("getApplicationURL", [apps[appPos].unique_name], self);
+
+				port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
+
+				spe_host = network.getEdgeURL(protocol, false, true);
+
+				if(appURL.implementsWebServer && port)
+					sp_host = network.getEdgeURL(protocol, port, true);
+				else
+					sp_host = network.externalResourceURL(apps[appPos].unique_name, protocol);
+
+				sp_path = "index.html";
+
+				currentRequest.GET.sp_host = encodeURIComponent(sp_host);
+				currentRequest.GET.sp_path = encodeURIComponent(sp_path);
+				currentRequest.GET.spe_host = encodeURIComponent(spe_host);
+
+				location += "/remote.html/" + network.remakeQueryString(currentRequest.GET, {}, {}, "", true);
+
+				content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
+
+				callback(null, {type: "write", content: content, contentType: "html", responseCode: 302, location: location});
+				}
+			else																	// Resource - load
+				{
+				pathName = currentRequest.urlObj.path.replace(apps[appPos].unique_name, "");
+pathName = pathName.replace(/^\/*/, "");
+pathName = pathName.split("?");
+console.log("--------------------", apps[appPos].wwwPath + pathName[0]);
+				callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: pathName[0]});
+				}
+			}
+		else
 			callback(null, {type: ""});
 		}
 	}
@@ -354,7 +362,7 @@ var addApp = function(manifest)
 	var length = manifest.unique_name.length;
 	var wwwPath = unique.getWwwPath(manifest.type, manifest.unique_name, config);
 
-	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, wwwPath: wwwPath});
+	apps.push({unique_name: manifest.unique_name, length: length, wwwPath: wwwPath});
 	}
 
 var remApp = function(unique_name)
@@ -391,9 +399,9 @@ var manageSessions = function(currentRequest)
 //console.log("- BEFORE", sessiontoken);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
-	if(!session)														// Create a session if it doesn't exist yet
+	if(!session)																	// Create a session if it doesn't exist yet
 		sessiontoken = createSession();
-	else																// Update an existing session
+	else																			// Update an existing session
 		sessions[sessiontoken].timestamp = Date.now();
 //console.log("- AFTER", Object.keys(sessions));
 	return sessions[sessiontoken];
@@ -421,7 +429,7 @@ var createSession = function()
 
 var cleanUp = function()
 	{
-	var sts = Object.keys(sessions);									// Remove expired sessions
+	var sts = Object.keys(sessions);												// Remove expired sessions
 //console.log("------------- cleanUp");
 	for(var i = 0; i < sts.length; i++)
 		{

@@ -35,7 +35,9 @@ self.getEdgeURL = function(force, port, withEndSlash)
 
 	var protocol = self.getProtocol(true, force);
 
-	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	var hostname = (typeof window != "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
+
+	return protocol + hostname + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource

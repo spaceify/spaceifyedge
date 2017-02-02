@@ -28,9 +28,9 @@ var self = this;
 var config = new classes.SpaceifyConfig();
 var network = new classes.SpaceifyNetwork();
 
-var pipeId = null;
+var tunnelId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -197,7 +197,7 @@ var call = function(method, params, callback)
 		}
 	else
 		{
-		connection.callClientRpc(pipeId, method, params, self, function(err, data)
+		connection.callClientRpc(tunnelId, method, params, self, function(err, data)
 			{
 			callback(err, data);
 			});
@@ -206,9 +206,8 @@ var call = function(method, params, callback)
 
 var connect = function(method, params, callback)
 	{
-	var hostname;
+	var host, hostname, protocol;
 	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
-	var protocol = (!useSecure ? "ws" : "wss");
 
 	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
@@ -235,11 +234,17 @@ var connect = function(method, params, callback)
 		}
 	else
 		{
-		connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: port, protocol: protocol}, null, function(id)
+		connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
 			{
-			pipeId = id;
-			isConnected = true;
-			call(method, params, callback);
+			protocol = (!useSecure ? "http" : "https");
+			host = network.getEdgeURL(false, null, false);
+
+			connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+				{
+				tunnelId = id;
+				isConnected = true;
+				call(method, params, callback);
+				});
 			});
 		}
 	}

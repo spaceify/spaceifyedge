@@ -809,7 +809,7 @@ var sendResponse = function(err, result, id, connectionId)
 			{
 			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
 
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
 			}
 		else
 			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -1512,7 +1512,7 @@ var sendResponse = function(err, result, id, connectionId)
 			{
 			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
 
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id});
+			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
 			}
 		else
 			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
@@ -3946,9 +3946,9 @@ var self = this;
 var config = new classes.SpaceifyConfig();
 var network = new classes.SpaceifyNetwork();
 
-var pipeId = null;
+var tunnelId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -4115,7 +4115,7 @@ var call = function(method, params, callback)
 		}
 	else
 		{
-		connection.callClientRpc(pipeId, method, params, self, function(err, data)
+		connection.callClientRpc(tunnelId, method, params, self, function(err, data)
 			{
 			callback(err, data);
 			});
@@ -4124,9 +4124,8 @@ var call = function(method, params, callback)
 
 var connect = function(method, params, callback)
 	{
-	var hostname;
+	var host, hostname, protocol;
 	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
-	var protocol = (!useSecure ? "ws" : "wss");
 
 	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
@@ -4153,11 +4152,17 @@ var connect = function(method, params, callback)
 		}
 	else
 		{
-		connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: port, protocol: protocol}, null, function(id)
+		connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
 			{
-			pipeId = id;
-			isConnected = true;
-			call(method, params, callback);
+			protocol = (!useSecure ? "http" : "https");
+			host = network.getEdgeURL(false, null, false);
+
+			connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+				{
+				tunnelId = id;
+				isConnected = true;
+				call(method, params, callback);
+				});
 			});
 		}
 	}
@@ -4218,12 +4223,13 @@ var isNodeJs = (typeof exports !== "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs ? new WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
 	errors = [];
 	warnings = [];
+	var protocol, host;
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
@@ -4261,13 +4267,30 @@ self.connect = function(managerOrigin_, callerOrigin_)
 			}
 		else
 			{
-			connection.createWebSocketPipe({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
+			/*connection.createWebSocketTunnel({host: config.EDGE_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSsl: true}, null, function(id)
 				{
 				pipeId = id;
 				isConnected = true;
-				piperClient.callClientRpc(pipeId, "confirm", [messageId]);
+				connection.callClientRpc(pipeId, "confirm", [messageId]);
 				managerOrigin.connected();
-				});
+				});*/
+
+			connection.connect(LoaderUtil.SERVER_ADDRESS.host, LoaderUtil.SERVER_ADDRESS.port, LoaderUtil.SERVER_ADDRESS.isSsl, LoaderUtil.SERVER_ADDRESS.groupId, function()
+				{
+				protocol = network.getProtocol(false, null);
+				host = network.getEdgeURL(false, null, false);
+
+				connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
+					{
+					pipeId = id;
+					isConnected = true;
+
+					piperClient.callClientRpc(pipeId, "confirm", [messageId], this, function(err, data)
+						{
+						managerOrigin.connected()
+						});
+					});
+				});				
 			}
 		});
 	}
@@ -4682,7 +4705,9 @@ self.getEdgeURL = function(force, port, withEndSlash)
 
 	var protocol = self.getProtocol(true, force);
 
-	return protocol + config.EDGE_HOSTNAME + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
+	var hostname = (typeof window != "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
+
+	return protocol + hostname + (port ? ":" + port : "") + (withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
@@ -6850,6 +6875,3 @@ window.spConfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var
 window.spLocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","loading":"Loading...","copyright":"Copyright © 2014 - 2017 Spaceify Oy"},"index":{"title":"Welcome to Spaceify","version":"v","splash_welcome":"Welcome to Spaceify powered wireless network.","splash_info":"1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install certificate' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.","splash_accept_action":"Accept","splash_certificate_action":"Install certificate","spacelets":"Spacelets","sandboxed":"Sandboxed","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate"},"admin/index":{"title":"Spaceify - Admin","logout":"Log Out"},"admin/login":{"title":"Spaceify - AppStore Log In","password":"Password","login":"Log In"},"appstore/index":{"title":"Spaceify - AppStore"}}};
 
 window.spTiles={"tile":"<div class=\"edgeTile\"><img id=\"{{ ::id }}\" sp_src=\"{{ ::sp_src }}\" width=\"64\" height=\"64\"><div class=\"edgeText\">{{ ::manifest.name }}</div><div class=\"edgeText edgeSubText\">{{ ::manifest.developer.name }}</div></div>","appTile":"<iframe class=\"edgeTile\" id=\"{{ ::id }}\" frameborder=\"0\"></iframe>"};
-
-if(typeof spaceifyApp!=="undefined")spaceifyApp.bootstrap();
-if(typeof window.spaceifyReady=="function"){spaceifyReady();}else{var evt=document.createEvent("Event");evt.initEvent("spaceifyReady",true,true);window.dispatchEvent(evt);}
