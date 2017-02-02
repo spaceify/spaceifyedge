@@ -2690,10 +2690,7 @@ self.onClientConnected = function(client)
 				targetId = client.getClientId();
 
 				if (tunnelReadyListener)
-{
-console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 					tunnelReadyListener();
-}
 				});
 			}
 		}
