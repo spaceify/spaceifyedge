@@ -4107,7 +4107,25 @@ if (typeof exports !== "undefined")
 	}
 
 	// static variables
-LoaderUtil.prototype.SERVER_ADDRESS = (function() { return { host: "spaceify.net", port: 1979, groupId: "jouni", isSsl: false }; })();
+LoaderUtil.prototype.SERVER_ADDRESS = (function()
+	{
+	var groupId = "testgroup";
+
+	/* groupId matters only in remote operation!!! */
+	if (typeof window !== "undefined")
+		{
+		var subdomain = window.location.hostname.split(".");
+
+		// Assume for now, that hostname has always three parts, e.g. shop.spaceify.net or museum.spaceify.net
+		if (subdomain.length == 3)
+			{
+			if (subdomain[0] != "edge")													// The default local subdomain can not be used in remote operation
+				groupId = subdomain[0];
+			}
+		}
+
+	return { host: "spaceify.net", port: 1979, groupId: groupId, isSsl: false };
+	})();
 LoaderUtil.prototype.WEBRTC_CONFIG = (function() { return { "iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}] }; })();
 LoaderUtil.prototype.piperClient = (function() { return new PiperClient(); })();
 

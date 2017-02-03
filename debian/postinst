@@ -127,7 +127,18 @@ core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 
 ################## DNS CONFIGURATION #########################################
 
-dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\naddress=/resource.spaceify.net/10.0.0.1\ndhcp-range=10.0.0.2,10.0.0.254,4h\ndhcp-option=3,10.0.0.1\ndhcp-option=6,10.0.0.1\ndhcp-option=15,edge.spaceify.net\ndhcp-authoritative"
+edge_name=$(< /var/lib/spaceify/data/db/edge.id)												# edge_name equals groupdId in remote operation domain
+edge_name=$(echo $edge_name | awk -F : '{print $2}')
+
+dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \n"
+dnsmasqconf="${dnsmasqconf}address=/edge.spaceify.net/10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}address=/${edge_name}/10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}address=/resource.spaceify.net/10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}dhcp-range=10.0.0.2,10.0.0.254,4h\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=3,10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=6,10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=15,edge.spaceify.net\n"
+dnsmasqconf="${dnsmasqconf}dhcp-authoritative"
 
 #If NetworkManager is installed, configure the dnsmasq that shipped with it
 

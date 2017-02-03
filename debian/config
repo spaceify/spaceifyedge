@@ -105,6 +105,13 @@ do
 				STATE=1
 			fi
 
+			if 
+			
+			edge_name_lc=$(echo $edge_name | awk '{print tolower($0)}')
+			if [ "$edge_name_lc" == "edge" ]; then
+				STATE=1
+			fi
+
 		else
 
 			dbStatus=30
