@@ -29,8 +29,10 @@
 		var config = null;
 		var network = null;
 
-		function angularReady()
+		window.addEventListener("spaceifyReady", function()
 			{
+			angular.bootstrap(document, ["spaceifyApp"]);
+
 			window.spaceifyCache = new SpaceifyCache();
 
 			net = new SpaceifyNet();
@@ -75,7 +77,7 @@
 					],
 					this, null, function(err, data, id, ms) { });
 				});
-			}
+			});
 
 			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
 		function spaceletInstalled(result, connObj, callback)

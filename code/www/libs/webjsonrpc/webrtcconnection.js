@@ -7,19 +7,15 @@ var RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate || win
 function WebRtcConnection(rtcConfig)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
+var logger = new Logger("WebRtcConnection", "selogs");
 
 var id = null;
 var ownStream = null;
@@ -42,7 +38,7 @@ peerConnection.ondatachannel = function(e)
 	{
 	var temp = e.channel || e; // Chrome sends event, FF sends raw channel
 
-	logger.info("WebRtcConnection::peerConnection.ondatachannel", e);
+	logger.log("WebRtcConnection::peerConnection.ondatachannel", e);
 
 	dataChannel = temp;
 	dataChannel.binaryType = "arraybuffer";
@@ -52,7 +48,7 @@ peerConnection.ondatachannel = function(e)
 
 var onsignalingstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::onsignalingstatechange", state);
+	logger.log("WebRtcConnection::onsignalingstatechange", state);
 
 	//if ( eventListener == "function" && peerConnection.signalingState == "closed")
 	//	eventListener.onDisconnected(partnerId);
@@ -60,7 +56,7 @@ var onsignalingstatechange = function(state)
 
 var oniceconnectionstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::oniceconnectionstatechange", state);
+	logger.log("WebRtcConnection::oniceconnectionstatechange", state);
 
 	if ( eventListener == "function" && (peerConnection.iceConnectionState == "disconnected" || peerConnection.iceConnectionState == "closed"))
 		eventListener.onDisconnected(partnerId);
@@ -68,17 +64,17 @@ var oniceconnectionstatechange = function(state)
 
 var onicegatheringstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::onicegatheringstatechange", state);
+	logger.log("WebRtcConnection::onicegatheringstatechange", state);
 	};
 
 var onIceCandidate = function(e)
 	{
-	logger.info("WebRtcConnection::onIceCanditate - partnerId:", partnerId, ", event:", e, "> iceListener was", iceListener);
+	logger.log("WebRtcConnection::onIceCanditate - partnerId:", partnerId, ", event:", e, "> iceListener was", iceListener);
 
 	// A null ice canditate means that all canditates have been given
 	if (e.candidate == null)
 		{
-		logger.info("> All Ice candidates listed");
+		logger.log("> All Ice candidates listed");
 		//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 		}
 	else
@@ -94,7 +90,7 @@ peerConnection.onicecandidate = onIceCandidate;
 
 self.close = function()
 	{
-	logger.info("WebRtcConnection::close");
+	logger.log("WebRtcConnection::close");
 
 	//peerConnection.removeStream(ownStream);
 	dataChannel.close();
@@ -133,14 +129,14 @@ self.sendBinary = function(data)
 
 self.onDataChannelClosed = function(e)
 	{
-	logger.info("WebRtcConnection::onDataChannelClosed", e);
+	logger.log("WebRtcConnection::onDataChannelClosed", e);
 
 	eventListener.onDisconnected(self);
 	}
 
 self.onDataChannelOpen = function(e)
 	{
-	logger.info("WebRtcConnection::onDataChannelOpen", e);
+	logger.log("WebRtcConnection::onDataChannelOpen", e);
 
 	dataChannel.binaryType = "arraybuffer";
 	dataChannel.onclose = self.onDataChannelClosed;
@@ -151,7 +147,7 @@ self.onDataChannelOpen = function(e)
 
 self.onMessage = function(message)
 	{
-	//logger.info("WebRtcConnection::onMessage", message.data);
+	//logger.log("WebRtcConnection::onMessage", message.data);
 
 	try	{
 		if (listener)
@@ -166,19 +162,19 @@ self.onMessage = function(message)
 self.setId = function(id_)
 	{
 	id = id_;
-	//logger.info("WebRtcConnection::setId", id);
+	//logger.log("WebRtcConnection::setId", id);
 	};
 
 self.getId = function()
 	{
-	//logger.info("WebRtcConnection::getId", id);
+	//logger.log("WebRtcConnection::getId", id);
 
 	return id;
 	};
 
 self.getPartnerId = function()
 	{
-	//logger.info("WebRtcConnection::getPartnerId", partnerId);
+	//logger.log("WebRtcConnection::getPartnerId", partnerId);
 
 	return partnerId;
 	};
@@ -203,7 +199,7 @@ self.setIceListener = function(lis)
 	iceListener = lis;
 	//peerConnection.onicecandidate = function(cand) {self.onIceCandidate(cand);};
 
-	logger.info("WebRtcConnection::setIceListener", lis);
+	logger.log("WebRtcConnection::setIceListener", lis);
 	};
 
 self.setStreamListener = function(lis)
@@ -221,14 +217,14 @@ self.setEventListener = function(lis)
 
 self.onStream = function(e)
 	{
-	logger.info("WebRtcConnection::onStream", e);
+	logger.log("WebRtcConnection::onStream", e);
 
 	streamListener.onStream(e.stream, partnerId);
 	}
 
 self.onRemoveStream = function(e)
 	{
-	logger.info("WebRtcConnection::onStream", e);
+	logger.log("WebRtcConnection::onStream", e);
 
 	streamListener.onRemoveStream(e.stream, partnerId);
 	}
@@ -250,18 +246,18 @@ self.createConnectionOffer = function(callback)
 
 	peerConnection.createOffer(function (desc)
 		{
-		logger.info("WebRtcConnection::peerConnectio.createOffer - Called its callback:", desc);
+		logger.log("WebRtcConnection::peerConnectio.createOffer - Called its callback:", desc);
 
 		localDescription = desc;
 
 		/*
 		peerConnection.onicecandidate = function(e)
 			{
-			logger.info(e.candidate);
+			logger.log(e.candidate);
 
 			if (e.candidate == null)
 				{
-				logger.info("> All Ice candidates listed");
+				logger.log("> All Ice candidates listed");
 
 				//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 				callback(peerConnection.localDescription, partnerId);
@@ -290,11 +286,11 @@ self.createConnectionOffer = function(callback)
 
 self.onConnectionAnswerReceived = function(descriptor)
 	{
-	logger.info("WebRtcConnection::onConnectionAnswerReceived, descriptor:", descriptor);
+	logger.log("WebRtcConnection::onConnectionAnswerReceived, descriptor:", descriptor);
 
 	peerConnection.setRemoteDescription(new RTCSessionDescription(descriptor), function()
 		{
-		logger.info("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK");
+		logger.log("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK");
 		},
 		function(err)
 			{ // "WebRtcConnection::onConnectionAnswerReceived() setRemoteDescription returned error " + err
@@ -306,12 +302,12 @@ self.onConnectionAnswerReceived = function(descriptor)
 
 self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 	{
-	logger.info("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");
+	logger.log("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");
 
 	var desc = new RTCSessionDescription(descriptor);
 	peerConnection.setRemoteDescription(desc, function()
 		{
-		logger.info("WebRtcConnection::onConnectionOfferReceived Remote description set");
+		logger.log("WebRtcConnection::onConnectionOfferReceived Remote description set");
 
 		peerConnection.createAnswer(function (answer)
 				{
@@ -320,7 +316,7 @@ self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 					{
 					if (e.candidate == null)
 						{
-						logger.info("> All Ice candidates listed");
+						logger.log("> All Ice candidates listed");
 
 						//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 						callback(peerConnection.localDescription);
@@ -355,7 +351,7 @@ self.onIceCandidateReceived = function(iceCandidate)
 	peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate),
 			function()
 				{
-				logger.info("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded");
+				logger.log("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded");
 				},
 			function(err)
 				{ // "WebRtcConnection::onIceCandidateReceived adding Ice candidate failed " + err

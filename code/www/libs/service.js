@@ -11,22 +11,20 @@
 function Service(service_name, isServer, connection)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+//var logger = new Logger("Service", "selogs");
 
 var serverUpListener = null;
 var serverDownListener = null;

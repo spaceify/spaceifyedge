@@ -34,7 +34,6 @@ function ApplicationManager()
 {
 var self = this;
 
-var logger = new Logger();
 var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
@@ -44,6 +43,7 @@ var utility = new SpaceifyUtility();
 var securityModel = new SecurityModel();
 var appManServer = new WebSocketRpcServer();
 var coreConnection = new WebSocketRpcConnection();
+var logger = new Logger("ApplicationManager", "selogs");
 
 var options = {};
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
@@ -115,7 +115,7 @@ iptables -D INPUT -p tcp --dport 4949 -j DROP
 	//appManServer.exposeRpcMethodSync("publishPackage", self, publishPackage);
 
 		// Listen - secure server only!!!
-	appManServer.listen.sync({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true, debug: true});
+	appManServer.listen.sync({hostname: config.ALL_IPV4_LOCAL, port: config.APPMAN_PORT_SECURE, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true});
 
 		// Setup messaging server
 	messaging.setAnswerListener(answerListener);
@@ -142,7 +142,7 @@ self.close = fibrous( function()
 var connectToCore = fibrous( function()
 	{ // Establishes a connection to cores server
 	try {
-		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
+		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 		}
 	catch(err)
 		{

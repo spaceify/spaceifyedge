@@ -11,6 +11,7 @@
 
 var fs = require("fs");
 var sqlite3 = require("sqlite3");
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -23,6 +24,7 @@ var self = this;
 
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+//var logger = new Logger("Database", "selogs");
 
 var db = null;
 

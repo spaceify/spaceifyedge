@@ -16,8 +16,8 @@ function DockerImage()
 {
 var self = this;
 
-var logger = new Logger();
 var utility = new SpaceifyUtility();
+var logger = new Logger("DockerImage", "selogs");
 
 var docker = new Docker({socketPath: "/var/run/docker.sock"});
 
@@ -34,7 +34,7 @@ self.stopContainers = fibrous( function(imageID, imageName)
 			{
 			if(containerInfo.ImageID == imageID || containerInfo.Image == imageName)
 				{
-				logger.info(utility.replace(language.STOP_CONTAINER, {"~container": containerInfo.Image}));
+				logger.log(utility.replace(language.STOP_CONTAINER, {"~container": containerInfo.Image}));
 
 				container = docker.getContainer(containerInfo.Id);
 				container.sync.stop({"t": "0"});

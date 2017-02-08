@@ -3,6 +3,8 @@
 /**
  * CallbackBuffer, 12.5.2016 Spaceify Oy
  * 
+ * Keep this class dependency free!!!
+ *
  * @class CallbackBuffer
  */
 
@@ -30,6 +32,4 @@ self.callMethodAndPop = function(id, error, result)
 }
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = CallbackBuffer;
-	}

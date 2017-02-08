@@ -16,82 +16,149 @@ return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,
  * @class Logger
  */
 
-function Logger()
+function Logger(class_, jsonfile_, set_)
 {
-// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-	};
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
+var errorc = null;
 
-var output = true;
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var fileName = "/tmp/debug.txt";
+var isAccessible = function(path, fs) { try { fs.accessSync(path, fs.F_OK); return true; } catch(err) { return false; } }
 
-self.INFO = 1;
-self.ERROR = 2;
-self.WARN = 4;
-self.FORCE = 8;
-self.RETURN = 16;
-self.STDOUT = 32;
-
-var labelStr = {};
-labelStr[self.INFO] = "[i] ";
-labelStr[self.STDOUT] = "";
-labelStr[self.ERROR] = "[e] ";
-labelStr[self.WARN] = "[w] ";
-labelStr[self.FORCE] = "";
-var labels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
-
-var levels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
-
-self.info = function() { out(self.INFO, false, arguments); }
-self.error = function() { printErrors.apply(this, arguments); }
-self.warn = function() { out(self.WARN, false, arguments); }
-self.force = function() { out(self.FORCE, false, arguments); }
-self.stdout = function() { out(self.STDOUT, true, arguments); }
-
-var out = function(level, fromStdout)
+if(isNodeJs)
 	{
-	var strp, strs = arguments[2];
+	var file;
+	var fs = require("fs");
+	var apiPath = "/var/lib/spaceify/code/";
 
-	var str = "";																			// Concatenate strings passed in the arguments, separate strings with space
-	for(var i = 0; i < strs.length; i++)
+	if(isAccessible(apiPath + "spaceifyerror.js"), fs)
+		errorc = require(apiPath + "spaceifyerror");
+
+	if(isAccessible("./" + jsonfile_ + ".json", fs))
+		file = fs.readFileSync("./" + jsonfile_ + ".json", "utf8");
+	else if(isAccessible(apiPath + jsonfile_ + ".json", fs))
+		file = fs.readFileSync(apiPath + jsonfile_ + ".json", "utf8");
+	else
+		file = "{}";
+
+	jsonfile_ = JSON.parse(file);
+	}
+else if(typeof window !== "undefined")
+	{
+	errorc = (window.SpaceifyError ? window.SpaceifyError : null);
+	}
+
+if(errorc)
+	errorc = new errorc();
+
+self.RETURN				= 1;
+var LOG					= "log";
+var DIR					= "dir";
+var INFO				= "info";
+self.ERROR				= "error";
+var ERROR_ = self.ERROR;
+var WARN				= "warn";
+self.FORCE				= "force";
+var FORCE_ = self.FORCE;
+var STDOUT				= "stdout";
+var ALL					= "all";
+
+	// Labels -- -- -- -- -- -- -- -- -- -- //
+var labels = {};
+labels[LOG]				= "[i] ";
+labels[DIR]				= "[d] ";
+labels[INFO]			= "[i] ";
+labels[ERROR_]			= "[e] ";
+labels[WARN]			= "[w] ";
+labels[FORCE_]			= "";
+labels[STDOUT]			= "";
+
+	// -- -- -- -- -- -- -- -- -- -- //
+var disabled = (class_ && jsonfile_ && jsonfile_[class_] ? jsonfile_[class_] : {});
+
+if(set_)
+	{
+	for(var type in set_)
+		disabled[type] = set_[type];
+	}
+
+// Local: disabled = true, not disabled = false (default)
+disabled[LOG]			= (typeof disabled[LOG] !== "undefined" && disabled[LOG] ? disabled[LOG] : false);
+disabled[DIR]			= (typeof disabled[DIR] !== "undefined" && disabled[DIR] ? disabled[DIR] : false);
+disabled[INFO]			= (typeof disabled[INFO] !== "undefined" && disabled[INFO] ? disabled[INFO] : false);
+disabled[ERROR_]		= (typeof disabled[ERROR_] !== "undefined" && disabled[ERROR_] ? disabled[ERROR_] : false);
+disabled[WARN]			= (typeof disabled[WARN] !== "undefined" && disabled[WARN] ? disabled[WARN] : false);
+disabled[ALL]			= (typeof disabled[ALL] !== "undefined" && disabled[ALL] ? disabled[ALL] : false);
+
+// Global: disabled = true, not disabled = false (default)
+if(jsonfile_.global)
+	{
+	var global_ = jsonfile_.global;
+
+	disabled[LOG]		= (typeof global_[LOG] !== "undefined" && global_[LOG] ? global_[LOG] : disabled[LOG]);
+	disabled[DIR]		= (typeof global_[DIR] !== "undefined" && global_[DIR] ? global_[DIR] : disabled[DIR]);
+	disabled[INFO]		= (typeof global_[INFO] !== "undefined" && global_[INFO] ? global_[INFO] : disabled[INFO]);
+	disabled[ERROR_]	= (typeof global_[ERROR_] !== "undefined" && global_[ERROR_] ? global_[ERROR_] : disabled[ERROR_]);
+	disabled[WARN]		= (typeof global_[WARN] !== "undefined" && global_[WARN] ? global_[WARN] : disabled[WARN]);
+	disabled[ALL]		= (typeof global_[ALL] !== "undefined" && global_[ALL] ? global_[ALL] : disabled[ALL]);
+	}
+
+disabled[FORCE_]		= false;
+
+	// -- -- -- -- -- -- -- -- -- -- //
+self.log				= function() { out(LOG, false, arguments); }
+self.dir				= function() { out(DIR, false, arguments); }
+self.info				= function() { out(INFO, false, arguments); }
+self.error				= function() { printErrors.apply(this, arguments); }
+self.warn				= function() { out(WARN, false, arguments); }
+self.force				= function() { out(FORCE_, false, arguments); }
+self.stdout				= function() { out(STDOUT, true, arguments); }
+
+	// -- -- -- -- -- -- -- -- -- -- //
+var out = function(type, fromStdout)
+	{
+	if((disabled[ALL] || disabled[type]) && type != FORCE_)
+		return;
+
+	var str = "", strs = arguments[2], strp, arp;
+
+	if(isNodeJs)
 		{
-		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
-		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+		for(var i = 0; i < strs.length; i++)								// Concatenate strings passed in the arguments, separate strings with space
+			{
+			strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
+			str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+			}
+
+		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");			// Replace control characters 0-9, 11-12, 14-31
+
+		process.stdout.write(labels[type] + str + (fromStdout ? "" : "\n"));
 		}
-
-	if(typeof str == "string")																// Replace control characters 0-9, 11-12, 14-31
-		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");
-
-	var label = ((labels & level) ? labelStr[level] : "");									// Show label only if allowed
-
-	if((output && (levels & level)) || level == self.FORCE)
+	else
 		{
-		var txt = label + str;
-		isNodeJs ? process.stdout.write(txt + (fromStdout ? "" : "\n")) : console.log(txt);
+		arp = Array.prototype.slice.call(arguments[2]);
+
+		if(type == DIR && console.dir)
+			console.dir.apply(this, arp);
+		else if(type == ERROR_ && console.error)
+			console.error.apply(this, arp)
+		else if(type == INFO && console.info)
+			console.info.apply(this, arp);
+		else if(type == WARN && console.warn)
+			console.warn.apply(this, arp);
+		else
+			console.log.apply(this, arp);
 		}
 	}
 
 var printErrors = function(err, printPath, printCode, printType)
 	{
-	var message = errorc.errorToString(err, printPath, printCode);
+	var message = (errorc ? errorc.errorToString(err, printPath, printCode) : err);
 
-	if(printType == self.ERROR)
-		out.call(self, self.ERROR, false, [message]);
-	else if(printType == self.FORCE)
+	if(printType == ERROR_)
+		out.call(self, ERROR_, false, [message]);
+	else if(printType == FORCE_)
 		self.force(message);
 
 	return message;
@@ -99,28 +166,9 @@ var printErrors = function(err, printPath, printCode, printType)
 
 self.setOptions = function(options)
 	{
-	if(options.hasOwnProperty("output"))
-		output = options.output;
-
-	if(options.hasOwnProperty("infoLabel"))
-		labels[self.INFO] = options.infoLabel;
-	if(options.hasOwnProperty("errorLabel"))
-		labels[self.ERROR] = options.errorLabel;
-	if(options.hasOwnProperty("warnLabel"))
-		labels[self.WARN] = options.warnLabel;
-	if(options.hasOwnProperty("forceLabel"))
-		labels[self.FORCE] = options.forceLabel;
-
-	if(options.hasOwnProperty("labels"))
-		labels = options.labels;
-
-	if(options.hasOwnProperty("fileName"))
-		fileName = options.fileName;
-
-	if(options.hasOwnProperty("levels"))
-		levels = options.levels;
+	for(var type in options)
+		disabled[type] = options[type];
 	}
-
 }
 
 if(typeof exports !== "undefined")
@@ -161,26 +209,23 @@ if(typeof exports !== "undefined")
 function BinaryRpcCommunicator(handleBinary)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : window.CallbackBuffer);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var callbackBuffer = new classes.CallbackBuffer();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var callbackBuffer = new CallbackBuffer();
+var logger = new Logger("BinaryRpcCommunicator", "selogs");
 
 var callSequence = 1;
 var exposedRpcMethods = {};
@@ -192,8 +237,6 @@ var disconnectionListeners = [];
 
 var connections = {};
 var latestConnectionId = null;
-
-var options = { debug: true };
 
 var EXPOSE_SYNC = 0;
 var EXPOSE_TRADITIONAL = 1;
@@ -254,13 +297,6 @@ self.getConnection = function(connectionId)
 	return connections[connectionId];
 	};
 
-self.setOptions = function(opts)
-	{
-	options.debug = ("debug" in opts ? opts.debug : false);
-
-	logger.setOptions({output: options.debug});
-	}
-	
 // Outgoing RPC call
 
 self.callRpc = function(methods, params, object, callback, connectionId)
@@ -270,7 +306,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 	var isBatch = false, currentId;
 	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
 
-	logger.info("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
+	logger.log("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
 
 	if (!self.connectionExists(connectionId))
 		return;
@@ -294,7 +330,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 			callObjects.push(callObject);
 
-			logger.info("  " + JSON.stringify(callObject));
+			logger.log("  " + JSON.stringify(callObject));
 			}
 
 		if (typeof callback == "function")
@@ -316,7 +352,7 @@ self.notifyAll = function(method, params)
 	try	{
 		for (var key in connections)
 			{
-			logger.info("BinaryRpcCommunicator::notifyAll() sending message to " + key);
+			logger.log("BinaryRpcCommunicator::notifyAll() sending message to " + key);
 
 			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
 			}
@@ -334,7 +370,7 @@ self.getBufferedAmount = function(connectionId)
 
 self.sendBinary = function(data, connectionId)
 	{
-	logger.info("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
+	logger.log("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
 
 	try	{
 		connections[connectionId].sendBinary(data);
@@ -404,7 +440,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
-			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
 			if (isNodeJs && !isRealSpaceify)
 				{
@@ -446,7 +482,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if (requestId != null)
 			onlyNotifications = false;
 
-		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+		logger.log((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{				
@@ -586,12 +622,12 @@ var addResponse = function(requestId, result, responses)
 		{
 		result = (typeof result === "undefined" ? null : result);
 
-		logger.info("  RESPONSE <- " + JSON.stringify(result));
+		logger.log("  RESPONSE <- " + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO RESPONSE SEND");
 	}
 
 var addError = function(requestId, err, responses)
@@ -600,18 +636,18 @@ var addError = function(requestId, err, responses)
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
-		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
 
 		responses.push({jsonrpc: "2.0", error: err, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO ERROR RESPONSE SEND");
 	}
 
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
-	logger.info("BinaryRpcCommunicator::handleReturnValue()");
+	logger.log("BinaryRpcCommunicator::handleReturnValue()");
 
 	var error = null, result = null;
 
@@ -623,7 +659,7 @@ var handleReturnValue = function(responses, isBatch)
 			}
 		else
 			{
-			logger.info("  RESPONSE: " + JSON.stringify(responses[0]));
+			logger.log("  RESPONSE: " + JSON.stringify(responses[0]));
 
 			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
@@ -656,7 +692,7 @@ var processBatchResponse = function(responses)
 
 	for(var r=0; r<responses.length; r++)
 		{
-		logger.info("  RESPONSE: " + JSON.stringify(responses[r]));
+		logger.log("  RESPONSE: " + JSON.stringify(responses[r]));
 
 		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
@@ -701,7 +737,7 @@ var handleBinary = function(data, connectionId)
 
 self.setupPipe = function(firstId, secondId)
 	{
-	logger.info("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+	logger.log("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
 
 	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
 		return;
@@ -716,7 +752,7 @@ self.setupPipe = function(firstId, secondId)
 
 self.onMessage = function(messageData, connection)
 	{
-	logger.info("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
+	logger.log("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
 
 	try	{
 		var pipeTarget = connection.getPipedTo();
@@ -811,15 +847,15 @@ self.closeConnection = function(connectionId)
 // Do this only in node.js, not in the browser
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = BinaryRpcCommunicator;
-	}
 
 "use strict";
 
 /**
  * CallbackBuffer, 12.5.2016 Spaceify Oy
  * 
+ * Keep this class dependency free!!!
+ *
  * @class CallbackBuffer
  */
 
@@ -847,9 +883,7 @@ self.callMethodAndPop = function(id, error, result)
 }
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = CallbackBuffer;
-	}
 
 "use strict";
 
@@ -866,26 +900,23 @@ if (typeof exports !== "undefined")
 function RpcCommunicator()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : window.CallbackBuffer);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var callbackBuffer = new classes.CallbackBuffer();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var callbackBuffer = new CallbackBuffer();
+var logger = new Logger("RpcCommunicator", "selogs");
 
 var callSequence = 1;
 var exposedRpcMethods = {};
@@ -897,8 +928,6 @@ var disconnectionListeners = [];
 
 var connections = {};
 var latestConnectionId = null;
-
-var options = { debug: true };
 
 var EXPOSE_SYNC = 0;
 var EXPOSE_TRADITIONAL = 1;
@@ -959,13 +988,6 @@ self.getConnection = function(connectionId)
 	return connections[connectionId];
 	};
 
-self.setOptions = function(opts)
-	{
-	options.debug = ("debug" in opts ? opts.debug : false);
-
-	logger.setOptions({output: options.debug});
-	}
-
 // Outgoing RPC call
 
 self.callRpc = function(methods, params, object, callback, connectionId)
@@ -975,7 +997,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 	var isBatch = false, currentId;
 	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
 
-	logger.info("RpcCommunicator::callRpc() connectionId: " + connectionId);
+	logger.log("RpcCommunicator::callRpc() connectionId: " + connectionId);
 
 	if (!self.connectionExists(connectionId))
 		return;
@@ -999,7 +1021,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 			callObjects.push(callObject);
 
-			logger.info("  " + JSON.stringify(callObject));
+			logger.log("  " + JSON.stringify(callObject));
 			}
 
 		if (typeof callback == "function")
@@ -1019,7 +1041,7 @@ self.notifyAll = function(method, params)
 	try	{
 		for (var key in connections)
 			{
-			logger.info("RpcCommunicator::notifyAll() sending message to " + key);
+			logger.log("RpcCommunicator::notifyAll() sending message to " + key);
 
 			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
 			}
@@ -1037,7 +1059,7 @@ self.getBufferedAmount = function(connectionId)
 
 self.sendBinary = function(data, connectionId)
 	{
-	logger.info("RPCCommunicator::sendBinary() " + data.byteLength);
+	logger.log("RPCCommunicator::sendBinary() " + data.byteLength);
 
 	try	{
 		connections[connectionId].sendBinary(data);
@@ -1107,7 +1129,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
-			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
 			if (isNodeJs && !isRealSpaceify)
 				{
@@ -1149,7 +1171,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if (requestId != null)
 			onlyNotifications = false;
 
-		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+		logger.log((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{				
@@ -1289,12 +1311,12 @@ var addResponse = function(requestId, result, responses)
 		{
 		result = (typeof result === "undefined" ? null : result);
 
-		logger.info("  RESPONSE <- " + JSON.stringify(result));
+		logger.log("  RESPONSE <- " + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO RESPONSE SEND");
 	}
 
 var addError = function(requestId, err, responses)
@@ -1303,18 +1325,18 @@ var addError = function(requestId, err, responses)
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
-		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
 
 		responses.push({jsonrpc: "2.0", error: err, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO ERROR RESPONSE SEND");
 	}
 
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
-	logger.info("RpcCommunicator::handleReturnValue()");
+	logger.log("RpcCommunicator::handleReturnValue()");
 
 	var error = null, result = null;
 
@@ -1326,7 +1348,7 @@ var handleReturnValue = function(responses, isBatch)
 			}
 		else
 			{
-			logger.info("  RETURN VALUE: " + JSON.stringify(responses[0]));
+			logger.log("  RETURN VALUE: " + JSON.stringify(responses[0]));
 
 			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
@@ -1359,7 +1381,7 @@ var processBatchResponse = function(responses)
 
 	for(var r=0; r<responses.length; r++)
 		{
-		logger.info("  RETURN VALUE: " + JSON.stringify(responses[r]));
+		logger.log("  RETURN VALUE: " + JSON.stringify(responses[r]));
 
 		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
@@ -1383,7 +1405,7 @@ var processBatchResponse = function(responses)
 
 self.setupPipe = function(firstId, secondId)
 	{
-	logger.info("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+	logger.log("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
 
 	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
 		return;
@@ -1398,7 +1420,7 @@ self.setupPipe = function(firstId, secondId)
 
 self.onMessage = function(messageData, connection)
 	{
-	//logger.info("RpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
+	//logger.log("RpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
 
 	try	{
 		var pipeTarget = connection.getPipedTo();
@@ -1494,9 +1516,7 @@ self.closeConnection = function(connectionId)
 // Do this only in node.js, not in the browser
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = RpcCommunicator;
-	}
 
 "use strict";
 
@@ -1508,24 +1528,21 @@ navigator.getUserMedia = (	navigator.getUserMedia ||
 function WebRtcClient(rtcConfig)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : window.RpcCommunicator);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : window.WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
-var logger = new classes.Logger();
-var config = new classes.SpaceifyConfig();
-var communicator = new classes.RpcCommunicator();
-var connection = new classes.WebSocketConnection();
+
+var config = new SpaceifyConfig();
+var communicator = new RpcCommunicator();
+var connection = new WebSocketConnection();
+var logger = new Logger("WebRtcClient", "selogs");
 
 var ownStream = null;
 var connectionListener = null;
@@ -1538,7 +1555,7 @@ self.setConnectionListener = function(lis)
 
 self.onIceCandidate = function(iceCandidate, partnerId)
 	{
-	logger.info("WebRtcClient::onIceCandidate - Got it, sending it to the other client");
+	logger.log("WebRtcClient::onIceCandidate - Got it, sending it to the other client");
 
 	communicator.callRpc("offerIce", [iceCandidate, partnerId]);
 	};
@@ -1556,7 +1573,7 @@ var createConnection = function(partnerId)
 
 self.shutdown = function(e)
 	{
-	logger.info("WebRtcClient::onbeforeunload");
+	logger.log("WebRtcClient::onbeforeunload");
 
 	for (var id in rtcConnections)
 		{
@@ -1572,7 +1589,7 @@ self.shutdown = function(e)
 
 self.handleRtcOffer = function(descriptor, partnerId, connectionId)
 	{
-	logger.info("WebRtcClient::handleRtcOffer descriptor:", descriptor);
+	logger.log("WebRtcClient::handleRtcOffer descriptor:", descriptor);
 
 	if (!rtcConnections.hasOwnProperty(partnerId))
 		{
@@ -1581,7 +1598,7 @@ self.handleRtcOffer = function(descriptor, partnerId, connectionId)
 
 	rtcConnections[partnerId].onConnectionOfferReceived(descriptor, connectionId, function(answer)
 		{
-		logger.info("WebRtcClient::handleRtcOffer - onConnectionOfferReceived returned");
+		logger.log("WebRtcClient::handleRtcOffer - onConnectionOfferReceived returned");
 
 		communicator.callRpc("acceptConnectionOffer",[answer, partnerId]);
 		});
@@ -1590,14 +1607,14 @@ self.handleRtcOffer = function(descriptor, partnerId, connectionId)
 
 self.handleRtcAnswer = function(descriptor, partnerId, connectionId)
 	{
-	logger.info("WebRtcClient::handleRtcAnswer");
+	logger.log("WebRtcClient::handleRtcAnswer");
 
 	rtcConnections[partnerId].onConnectionAnswerReceived(descriptor);
 	};
 
 self.handleIceCandidate = function(iceCandidate, partnerId, connectionId)
 	{
-	logger.info("WebRtcClient::handleIceCandidate");
+	logger.log("WebRtcClient::handleIceCandidate");
 
 	if (!rtcConnections.hasOwnProperty(partnerId))
 		{
@@ -1611,12 +1628,12 @@ self.handleIceCandidate = function(iceCandidate, partnerId, connectionId)
 
 var connectToCoordinator = function(config, callback)
 	{
-	logger.info("WebRtcClient::connectToCoordinator", "> Websocket connecting to the coordinator");
+	logger.log("WebRtcClient::connectToCoordinator", "> Websocket connecting to the coordinator");
 
 	connection.connect(config, function()
 		{
-		logger.info("WebRtcClient::connectToCoordinator - Websocket Connected to the Coordinator");
-		logger.info("> Creating RPCCommunicator for the Websocket");
+		logger.log("WebRtcClient::connectToCoordinator - Websocket Connected to the Coordinator");
+		logger.log("> Creating RPCCommunicator for the Websocket");
 
 		communicator.addConnection(connection);
 		callback();
@@ -1625,7 +1642,7 @@ var connectToCoordinator = function(config, callback)
 
 self.onDisconnected = function(partnerId)
 	{
-	logger.info("WebRtcClient::onDisconnected");
+	logger.log("WebRtcClient::onDisconnected");
 
 	if (rtcConnections.hasOwnProperty(partnerId))
 		{
@@ -1639,26 +1656,26 @@ self.onDisconnected = function(partnerId)
 
 self.onDataChannelOpen = function(connection)
 	{
-	logger.info("WebRtcClient::onDataChannelOpen");
+	logger.log("WebRtcClient::onDataChannelOpen");
 
 	connectionListener.addConnection(connection);
 	};
 
 self.onStream = function(stream, partnerId)
 	{
-	logger.info("WebRtcClient::onStream");
+	logger.log("WebRtcClient::onStream");
 	};
 
 self.onRemoveStream = function(stream, partnerId)
 	{
-	logger.info("WebRtcClient::onRemoveStream");
+	logger.log("WebRtcClient::onRemoveStream");
 
 	self.onDisconnected(partnerId);
 	};
 
 var connectToPeers = function(announceId, callback)
 	{
-	logger.info("WebRtcClient::connectToPeers - Announcing to the Coordinator");
+	logger.log("WebRtcClient::connectToPeers - Announcing to the Coordinator");
 
 	communicator.callRpc("announce", [announceId], self, self.onPeerIdsArrived);
 	};
@@ -1667,7 +1684,7 @@ var connectToPeers = function(announceId, callback)
 
 self.onPeerIdsArrived = function(err, data, id)
 	{
-	logger.info("WebRtcClient::onPeerIdsArrived - data.length:", data.length);
+	logger.log("WebRtcClient::onPeerIdsArrived - data.length:", data.length);
 
 	var partnerId = 0;
 
@@ -1679,25 +1696,25 @@ self.onPeerIdsArrived = function(err, data, id)
 
 		createConnection(partnerId);
 
-		logger.info("WebRtcClient::onPeerIdsArrived - Trying to create offer to client id", partnerId);
+		logger.log("WebRtcClient::onPeerIdsArrived - Trying to create offer to client id", partnerId);
 
 		//Creating a connection offer
 
 		rtcConnections[partnerId].createConnectionOffer(function(offer, peerId)
 			{
-			logger.info("WebRtcClient::onPeerIdsArrived - Offer created, sending it to the other client", peerId);
+			logger.log("WebRtcClient::onPeerIdsArrived - Offer created, sending it to the other client", peerId);
 
 			communicator.callRpc("offerConnection", [offer, peerId]);
 			});
 		}
 
 	if (data.length === 0)
-		logger.info("> Announce returned 0 client ids, not connecting");
+		logger.log("> Announce returned 0 client ids, not connecting");
 	};
 
 self.run = function(config, callback)
 	{
-	logger.info("WebRtcClient::run");
+	logger.log("WebRtcClient::run");
 
 	window.onbeforeunload = self.shutdown;
 
@@ -1707,11 +1724,11 @@ self.run = function(config, callback)
 
 	connectToCoordinator(config, function()
 		{
-		logger.info("WebRtcClient::run - Connected to the coordinator");
+		logger.log("WebRtcClient::run - Connected to the coordinator");
 
 		connectToPeers(config.announceId, function()
 			{
-			logger.info("WebRtcClient::run - connectToPeers returned");
+			logger.log("WebRtcClient::run - connectToPeers returned");
 			});
 
 		if (callback)
@@ -1729,19 +1746,15 @@ var RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate || win
 function WebRtcConnection(rtcConfig)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
+var logger = new Logger("WebRtcConnection", "selogs");
 
 var id = null;
 var ownStream = null;
@@ -1764,7 +1777,7 @@ peerConnection.ondatachannel = function(e)
 	{
 	var temp = e.channel || e; // Chrome sends event, FF sends raw channel
 
-	logger.info("WebRtcConnection::peerConnection.ondatachannel", e);
+	logger.log("WebRtcConnection::peerConnection.ondatachannel", e);
 
 	dataChannel = temp;
 	dataChannel.binaryType = "arraybuffer";
@@ -1774,7 +1787,7 @@ peerConnection.ondatachannel = function(e)
 
 var onsignalingstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::onsignalingstatechange", state);
+	logger.log("WebRtcConnection::onsignalingstatechange", state);
 
 	//if ( eventListener == "function" && peerConnection.signalingState == "closed")
 	//	eventListener.onDisconnected(partnerId);
@@ -1782,7 +1795,7 @@ var onsignalingstatechange = function(state)
 
 var oniceconnectionstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::oniceconnectionstatechange", state);
+	logger.log("WebRtcConnection::oniceconnectionstatechange", state);
 
 	if ( eventListener == "function" && (peerConnection.iceConnectionState == "disconnected" || peerConnection.iceConnectionState == "closed"))
 		eventListener.onDisconnected(partnerId);
@@ -1790,17 +1803,17 @@ var oniceconnectionstatechange = function(state)
 
 var onicegatheringstatechange = function(state)
 	{
-	logger.info("WebRtcConnection::onicegatheringstatechange", state);
+	logger.log("WebRtcConnection::onicegatheringstatechange", state);
 	};
 
 var onIceCandidate = function(e)
 	{
-	logger.info("WebRtcConnection::onIceCanditate - partnerId:", partnerId, ", event:", e, "> iceListener was", iceListener);
+	logger.log("WebRtcConnection::onIceCanditate - partnerId:", partnerId, ", event:", e, "> iceListener was", iceListener);
 
 	// A null ice canditate means that all canditates have been given
 	if (e.candidate == null)
 		{
-		logger.info("> All Ice candidates listed");
+		logger.log("> All Ice candidates listed");
 		//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 		}
 	else
@@ -1816,7 +1829,7 @@ peerConnection.onicecandidate = onIceCandidate;
 
 self.close = function()
 	{
-	logger.info("WebRtcConnection::close");
+	logger.log("WebRtcConnection::close");
 
 	//peerConnection.removeStream(ownStream);
 	dataChannel.close();
@@ -1855,14 +1868,14 @@ self.sendBinary = function(data)
 
 self.onDataChannelClosed = function(e)
 	{
-	logger.info("WebRtcConnection::onDataChannelClosed", e);
+	logger.log("WebRtcConnection::onDataChannelClosed", e);
 
 	eventListener.onDisconnected(self);
 	}
 
 self.onDataChannelOpen = function(e)
 	{
-	logger.info("WebRtcConnection::onDataChannelOpen", e);
+	logger.log("WebRtcConnection::onDataChannelOpen", e);
 
 	dataChannel.binaryType = "arraybuffer";
 	dataChannel.onclose = self.onDataChannelClosed;
@@ -1873,7 +1886,7 @@ self.onDataChannelOpen = function(e)
 
 self.onMessage = function(message)
 	{
-	//logger.info("WebRtcConnection::onMessage", message.data);
+	//logger.log("WebRtcConnection::onMessage", message.data);
 
 	try	{
 		if (listener)
@@ -1888,19 +1901,19 @@ self.onMessage = function(message)
 self.setId = function(id_)
 	{
 	id = id_;
-	//logger.info("WebRtcConnection::setId", id);
+	//logger.log("WebRtcConnection::setId", id);
 	};
 
 self.getId = function()
 	{
-	//logger.info("WebRtcConnection::getId", id);
+	//logger.log("WebRtcConnection::getId", id);
 
 	return id;
 	};
 
 self.getPartnerId = function()
 	{
-	//logger.info("WebRtcConnection::getPartnerId", partnerId);
+	//logger.log("WebRtcConnection::getPartnerId", partnerId);
 
 	return partnerId;
 	};
@@ -1925,7 +1938,7 @@ self.setIceListener = function(lis)
 	iceListener = lis;
 	//peerConnection.onicecandidate = function(cand) {self.onIceCandidate(cand);};
 
-	logger.info("WebRtcConnection::setIceListener", lis);
+	logger.log("WebRtcConnection::setIceListener", lis);
 	};
 
 self.setStreamListener = function(lis)
@@ -1943,14 +1956,14 @@ self.setEventListener = function(lis)
 
 self.onStream = function(e)
 	{
-	logger.info("WebRtcConnection::onStream", e);
+	logger.log("WebRtcConnection::onStream", e);
 
 	streamListener.onStream(e.stream, partnerId);
 	}
 
 self.onRemoveStream = function(e)
 	{
-	logger.info("WebRtcConnection::onStream", e);
+	logger.log("WebRtcConnection::onStream", e);
 
 	streamListener.onRemoveStream(e.stream, partnerId);
 	}
@@ -1972,18 +1985,18 @@ self.createConnectionOffer = function(callback)
 
 	peerConnection.createOffer(function (desc)
 		{
-		logger.info("WebRtcConnection::peerConnectio.createOffer - Called its callback:", desc);
+		logger.log("WebRtcConnection::peerConnectio.createOffer - Called its callback:", desc);
 
 		localDescription = desc;
 
 		/*
 		peerConnection.onicecandidate = function(e)
 			{
-			logger.info(e.candidate);
+			logger.log(e.candidate);
 
 			if (e.candidate == null)
 				{
-				logger.info("> All Ice candidates listed");
+				logger.log("> All Ice candidates listed");
 
 				//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 				callback(peerConnection.localDescription, partnerId);
@@ -2012,11 +2025,11 @@ self.createConnectionOffer = function(callback)
 
 self.onConnectionAnswerReceived = function(descriptor)
 	{
-	logger.info("WebRtcConnection::onConnectionAnswerReceived, descriptor:", descriptor);
+	logger.log("WebRtcConnection::onConnectionAnswerReceived, descriptor:", descriptor);
 
 	peerConnection.setRemoteDescription(new RTCSessionDescription(descriptor), function()
 		{
-		logger.info("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK");
+		logger.log("WebRtcConnection::onConnectionAnswerReceived() - setRemoteDescription returned OK");
 		},
 		function(err)
 			{ // "WebRtcConnection::onConnectionAnswerReceived() setRemoteDescription returned error " + err
@@ -2028,12 +2041,12 @@ self.onConnectionAnswerReceived = function(descriptor)
 
 self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 	{
-	logger.info("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");
+	logger.log("WebRtcConnection::onConnectionOfferReceived - Trying to set remote description");
 
 	var desc = new RTCSessionDescription(descriptor);
 	peerConnection.setRemoteDescription(desc, function()
 		{
-		logger.info("WebRtcConnection::onConnectionOfferReceived Remote description set");
+		logger.log("WebRtcConnection::onConnectionOfferReceived Remote description set");
 
 		peerConnection.createAnswer(function (answer)
 				{
@@ -2042,7 +2055,7 @@ self.onConnectionOfferReceived = function(descriptor, connectionId, callback)
 					{
 					if (e.candidate == null)
 						{
-						logger.info("> All Ice candidates listed");
+						logger.log("> All Ice candidates listed");
 
 						//iceListener.onIceCandidate(peerConnection.localDescription, partnerId);
 						callback(peerConnection.localDescription);
@@ -2077,7 +2090,7 @@ self.onIceCandidateReceived = function(iceCandidate)
 	peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate),
 			function()
 				{
-				logger.info("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded");
+				logger.log("WebRtcConnection::onIceCandidateReceived - Adding Ice candidate succeeded");
 				},
 			function(err)
 				{ // "WebRtcConnection::onIceCandidateReceived adding Ice candidate failed " + err
@@ -2108,27 +2121,23 @@ self.getPipedTo = function()
 function WebSocketConnection()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-if (typeof exports !== "undefined")
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+
+if(isNodeJs)
 	{
 	global.fs = require("fs");
 	global.WebSocket = require("websocket").w3cwebsocket;
 	}
-
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError)
-	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
+var errorc = new SpaceifyError();
+var logger = new Logger("WebSocketConnection", "selogs");
 
 var url = "";
 var id = null;
@@ -2154,9 +2163,6 @@ self.connect = function(opts, callback)
 	var hostname = opts.hostname || null;
 	var protocol = (!isSecure ? "ws" : "wss");
 	var subprotocol = opts.subprotocol || "json-rpc";
-	var debug = ("debug" in opts ? opts.debug : false);
-
-	logger.setOptions({output: debug});
 
 	try	{
 		url = protocol + "://" + hostname + (port ? ":" + port : "") + (id ? "?id=" + id : "");
@@ -2169,7 +2175,7 @@ self.connect = function(opts, callback)
 
 		socket.onopen = function()
 			{
-			logger.info("WebSocketConnection::onOpen() " + url);
+			logger.log("WebSocketConnection::onOpen() " + url);
 
 			isOpen = true;
 
@@ -2302,13 +2308,13 @@ var onMessage = function(message)
 			{
 			if (message.type == "utf8")
 				{
-				//logger.info("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
+				//logger.log("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
 
 				eventListener.onMessage(message.utf8Data, self);
 				}
 			if (message.type == "binary")
 				{
-				//logger.info("WebSocketConnection::onMessage(binary): " + binaryData.length);
+				//logger.log("WebSocketConnection::onMessage(binary): " + binaryData.length);
 
 				eventListener.onMessage(message.binaryData, self);
 				}
@@ -2322,7 +2328,7 @@ var onMessage = function(message)
 
 var onMessageEvent = function(event)
 	{
-	//logger.info("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
+	//logger.log("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
 
 	try	{
 		if (eventListener)
@@ -2336,7 +2342,7 @@ var onMessageEvent = function(event)
 
 var onSocketClosed = function(reasonCode, description, obj)
 	{
-	logger.info("WebSocketConnection::onSocketClosed() " + url);
+	logger.log("WebSocketConnection::onSocketClosed() " + url);
 
 	try	{
 		isOpen = false;
@@ -2376,10 +2382,8 @@ self.close = function()
 
 }
 
-if (typeof exports !== "undefined")
-	{
+if (typeof window === "undefined")
 	module.exports = WebSocketConnection;
-	}
 
 "use strict";
 
@@ -2392,25 +2396,23 @@ if (typeof exports !== "undefined")
 function WebSocketRpcConnection()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : window.RpcCommunicator);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : window.WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var communicator = new classes.RpcCommunicator();
-var connection = new classes.WebSocketConnection();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var communicator = new RpcCommunicator();
+var connection = new WebSocketConnection();
+//var logger = new Logger("WebSocketRpcConnection", "selogs");
 
 self.connect = function(options, callback)
 	{
@@ -2419,9 +2421,6 @@ self.connect = function(options, callback)
 		if(!err)
 			{
 			communicator.addConnection(connection);
-
-			var debug = ("debug" in options ? options.debug : false);
-			communicator.setOptions({ debug: debug });
 
 			if(callback)
 				callback(null, true);
@@ -2497,10 +2496,8 @@ self.setDisconnectionListener = function(listener)
 
 }
 
-if(typeof exports !== "undefined")
-	{
+if(typeof window === "undefined")
 	module.exports = WebSocketRpcConnection;
-	}
 
 "use strict";
 
@@ -2513,7 +2510,15 @@ if(typeof exports !== "undefined")
 function WebSocketServer()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-if (typeof exports !== "undefined")
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility.js") : window.SpaceifyUtility);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : window.WebSocketConnection);
+
+if(isNodeJs)
 	{
 	global.fs = require("fs");
 	global.URL = require("url");
@@ -2521,25 +2526,13 @@ if (typeof exports !== "undefined")
 	global.https = require("https");
 	global.WSServer = require("websocket").server;
 	}
-
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility),
-	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var logger = new Logger("WebSocketServer", "selogs");
 
 var options = {};
 var manuallyClosed = false;
@@ -2566,13 +2559,10 @@ self.listen = function(opts, callback)
 			options.keepUp = opts.keepUp || "";
 			options.protocol = (!options.isSecure ? "ws" : "wss");
 			options.subprotocol = opts.subprotocol || "json-rpc";
-			options.debug = ("debug" in opts ? opts.debug : false);
 			options.id = opts.id || utility.generateRandomConnectionId({});
 			}
 
-		logger.setOptions({output: options.debug});
-
-		logger.info(utility.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",
+		logger.log(utility.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",
 									{"~pr": options.protocol, "~s": options.subprotocol, "~h": options.hostname, "~po": options.port}));
 
 		manuallyClosed = false;
@@ -2641,7 +2631,7 @@ self.listen = function(opts, callback)
 			{
 			try
 				{
-				var connection = new classes.WebSocketConnection();
+				var connection = new WebSocketConnection();
 				connection.setSocket(request.accept(options.subprotocol, request.origin));
 				connection.setRemoteAddress(request.remoteAddress);
 				connection.setRemotePort(request.remotePort);
@@ -2654,7 +2644,7 @@ self.listen = function(opts, callback)
 
 				eventListener.addConnection(connection);
 
-				logger.info(utility.replace("WebSocketServer::request(~lp) protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
+				logger.log(utility.replace("WebSocketServer::request(~lp) protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
 						{"~lp": options.port, "~p": options.protocol, "~ra": request.remoteAddress, "~rp": request.remotePort, "~o": request.origin, "~i": connection.getId()}, "-"));
 				}
 			catch(err)
@@ -2683,7 +2673,7 @@ self.listen = function(opts, callback)
 self.close = function()
 	{
 	try	{
-		logger.info(utility.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",
+		logger.log(utility.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",
 									{":pr": options.protocol, ":s": options.subprotocol, ":h": options.hostname, ":po": options.port}));
 
 		manuallyClosed = true;
@@ -2767,9 +2757,7 @@ self.setServerDownListener = function(listener)
 }
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = WebSocketServer;
-	}
 
 "use strict";
 
@@ -2782,23 +2770,21 @@ if (typeof exports !== "undefined")
 function WebSocketRpcServer()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-	WebSocketServer: (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : window.RpcCommunicator);
+var WebSocketServer = (isNodeJs ? require(apiPath + "websocketserver") : window.WebSocketServer);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var communicator = new classes.RpcCommunicator();
-var webSocketServer = new classes.WebSocketServer();
+var config = new SpaceifyConfig();
+var communicator = new RpcCommunicator();
+var webSocketServer = new WebSocketServer();
+//var logger = new Logger("WebSocketRpcServer", "selogs");
 
 webSocketServer.setEventListener(communicator);
 
@@ -2807,9 +2793,6 @@ var disconnectionListener = null;
 
 self.listen = function(options, callback)
 	{
-	var debug = ("debug" in options ? options.debug : false);
-	communicator.setOptions({ debug: debug });
-
 	communicator.setConnectionListener(listenConnections);
 	communicator.setDisconnectionListener(listenDisconnections);
 
@@ -2916,7 +2899,7 @@ var listenDisconnections = function(id)
 
 }
 
-if(typeof exports !== "undefined")
+if(typeof window === "undefined")
 	module.exports = WebSocketRpcServer;
 
 "use strict";
@@ -2940,6 +2923,8 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var network = new SpaceifyNetwork();
 var utility = new SpaceifyUtility();
+var spaceifyMessages = new SpaceifyMessages();
+//var logger = new Logger("SpaceifyApplicationManager", "selogs");
 
 var operation;																	// Queue operation, execute operations in order
 var operations = [];
@@ -2947,7 +2932,6 @@ var operations = [];
 var sequence = 0;
 var error = null;
 var result = null;
-var spaceifyMessages = new SpaceifyMessages();
 
 /**
  * @param   package            (1) unique name of a package in the spaceify registry or a URL to a package in the (2) GitHub repository or in the (3) Internet
@@ -3168,6 +3152,8 @@ self.answer = function(result_, answerCallBackId)
 /**
  * Spaceify Synchronous, 29.7.2015 Spaceify Oy
  *
+ * Keep this class dependency free!!!
+ *
  * @class SpaceifySynchronous
  */
 
@@ -3249,6 +3235,8 @@ if(typeof exports !== "undefined")
 
 /**
  * Spaceify Cache, 29.7.2015 Spaceify Oy
+ *
+ * Keep this class dependency free!!!
  *
  * A cache class to reduce unnecessary RPC calls by storing application data.
  * For Spaceify's internal use.
@@ -3383,21 +3371,19 @@ self.getApplicationURL = function(unique_name)
 function SpaceifyConfig()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyUnique: (isNodeJs ? require(apiPath + "spaceifyunique") : SpaceifyUnique)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyUnique = (isNodeJs ? require(apiPath + "spaceifyunique") : window.SpaceifyUnique);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var unique = new classes.SpaceifyUnique();
+var unique = new SpaceifyUnique();
+//var logger = new Logger("SpaceifyConfig", "selogs");
 
-if(typeof exports !== "undefined")
+if(isNodeJs)
 	{
 	var i, file = require("fs").readFileSync("/var/lib/spaceify/code/www/libs/config.json", "utf8");
 
@@ -3407,8 +3393,8 @@ if(typeof exports !== "undefined")
 	}
 else
 	{
-	for(i in window.spConfig)
-		self[i] = window.spConfig[i];
+	for(i in window.seconfig)
+		self[i] = window.seconfig[i];
 	}
 
 self.get = function(c)
@@ -3419,7 +3405,7 @@ self.get = function(c)
 self.makeRealApplicationPaths = function()
 	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
 	  // After this running applications outside and inside Spaceify / docker containers is identical.
-	if(typeof process == "undefined")													// Web page
+	if(!isNodeJs)																// Web page
 		return;
 
 	var manifest;
@@ -3501,28 +3487,27 @@ if(typeof exports !== "undefined")
 function SpaceifyCore()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
 var isSpaceletOrigin = (typeof window !== "undefined" && !window.location.hostname.match(/.*spaceify\.net/) ? true : false);
 
-var classes =
-	{
-	SpaceifyNetwork: (isNodeJs ? function() {} : SpaceifyNetwork),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyNetwork = (isNodeJs ? function() {} : window.SpaceifyNetwork);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : window.WebSocketRpcConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyCore", "selogs");
 
 var tunnelId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : LoaderUtil.piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");
@@ -3784,6 +3769,7 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyMessages", "selogs");
 
 var pipeId = null;
 
@@ -3793,7 +3779,7 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;
@@ -4005,6 +3991,7 @@ var core = new SpaceifyCore();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyNet", "selogs");
 
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
@@ -4084,7 +4071,7 @@ self.setSplashAccepted = function()
 		}
 	catch(err)
 		{
-		logger.error(err, true, true, 0, logger.ERROR);
+		//logger.error(err, true, true, 0, logger.ERROR);
 		}
 	}
 
@@ -4253,23 +4240,21 @@ self.getApplications = function()
 function SpaceifyNetwork()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+//var logger = new Logger("SpaceifyNetwork", "selogs");
 
 // Get the URL to the Spaceify Edge
 self.getEdgeURL = function(force, port, withEndSlash)
@@ -4661,29 +4646,27 @@ if(typeof exports !== "undefined")
 function SpaceifyService()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Service: (isNodeJs ? require(apiPath + "service") : Service),
-	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	WebSocketRpcServer: (isNodeJs ? require(apiPath + "websocketrpcserver") : null),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyNetwork: (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork),
-	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var Service = (isNodeJs ? require(apiPath + "service") : window.Service);
+var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : window.SpaceifyCore);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var WebSocketRpcServer = (isNodeJs ? require(apiPath + "websocketrpcserver") : null);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyNetwork = (isNodeJs ? require(apiPath + "spaceifynetwork") : window.SpaceifyNetwork);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : window.WebSocketRpcConnection);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var core = new classes.SpaceifyCore();
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var core = new SpaceifyCore();
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyService", "selogs");
 
 config.makeRealApplicationPaths();
 
@@ -4735,7 +4718,7 @@ function open(serviceObj, service, isSecure, callback)
 
 	if(!service[service_name])
 		{
-		service[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
+		service[service_name] = new Service(service_name, false, new WebSocketRpcConnection());
 		service[service_name].setConnectionListener(connectionListener);
 		service[service_name].setDisconnectionListener(disconnectionListener);
 		}
@@ -4781,7 +4764,7 @@ var connect = function(service, port, isSecure, callback)
 	if(service.getIsOpen())																	// Don't reopen connections!
 		return callback();
 
-	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt, debug: true }, callback);
+	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
 	}
 
 self.disconnect = function(service_names, callback)
@@ -4863,10 +4846,10 @@ self.listen = fibrous( function(service_name, unique_name, port, securePort, lis
 		listenSecure = true;
 
 	if(!provided[service_name])																// Create the connection objects
-		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		provided[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	if(!providedSecure[service_name])
-		providedSecure[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		providedSecure[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	if(listenUnsecure)
 		listen.sync(provided[service_name], port, false);
@@ -4893,7 +4876,7 @@ var listen = fibrous( function(service, port, isSecure)
 	if(service.getIsOpen())
 		return;
 
-	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp, debug: true });
+	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
 	});
 
 self.close = function(service_name)
@@ -4944,17 +4927,14 @@ if(typeof exports !== "undefined")
 function SpaceifyUtility()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	Language: (isNodeJs ? require(apiPath + "language") : {}),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-	};
-if (typeof exports !== "undefined")
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var Language = (isNodeJs ? require(apiPath + "language") : {});
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+	
+if (isNodeJs)
 	{
 	global.os = require("os");
 	global.fs = require("fs");
@@ -4969,9 +4949,9 @@ var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return f
 
 var self = this;
 
-var logger = new classes.Logger();
-var language = classes.Language;//new Language();
-var config = new classes.SpaceifyConfig();
+var language = Language;//new Language();
+var config = new SpaceifyConfig();
+var logger = new Logger("SpaceifyUtility", "selogs");
 
 	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
 self.loadRemoteFile = fibrous( function(fileUrl)
@@ -5646,6 +5626,7 @@ var self = this;
 var core = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
 var spaceifyNetwork = new SpaceifyNetwork();
+//var logger = new Logger("Spacelet", "selogs");
 
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
@@ -5711,31 +5692,28 @@ self.isSpaceifyNetwork = function(timeout, callback)
 function SpaceifyApplication()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/";
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	WebServer: (isNodeJs ? require(apiPath + "webserver") : function() {}),
-	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-	SpaceifyService: (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var WebServer = (isNodeJs ? require(apiPath + "webserver") : function() {});
+var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : window.SpaceifyCore);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
+var SpaceifyService = (isNodeJs ? require(apiPath + "spaceifyservice") : window.SpaceifyService);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var httpServer = new classes.WebServer();
-var httpsServer = new classes.WebServer();
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
-var spaceifyCore = new classes.SpaceifyCore();
-var spaceifyService = new classes.SpaceifyService();
+var httpServer = new WebServer();
+var httpsServer = new WebServer();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var spaceifyCore = new SpaceifyCore();
+var spaceifyService = new SpaceifyService();
+var logger = new Logger("SpaceifyApplication", "selogs");
 
 config.makeRealApplicationPaths();
 
@@ -5929,7 +5907,7 @@ var connectServices = function(application_, services)
 var initFail = fibrous( function(err)
 	{ // FAILED TO INITIALIALIZE THE APPLICATION. -- -- -- -- -- -- -- -- -- -- //
 	logger.error([";;", err, "::"], true, true, logger.ERROR);
-	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);
+	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);						// console.log is used intentionally!!!
 
 	stop.sync(err);
 	});
@@ -6013,19 +5991,17 @@ if(typeof exports !== "undefined")
 function SpaceifyError(errObj)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
+var config = new SpaceifyConfig();
+//var logger = new Logger("SpaceifyError", "selogs");
 
 self.path = (errObj && errObj.path ? errObj.path : "");
 self.code = (errObj && errObj.code ? errObj.code : "");
@@ -6247,22 +6223,20 @@ if(typeof exports !== "undefined")
 function Service(service_name, isServer, connection)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+//var logger = new Logger("Service", "selogs");
 
 var serverUpListener = null;
 var serverDownListener = null;
@@ -6392,7 +6366,8 @@ if(typeof exports !== "undefined")
 
 /**
  * Unique application, 17.10.2016 Spaceify Oy
- * Dependency free
+ *
+ * Keep this class dependency free!!!
  *
  * @class SpaceifyUnique
  */
@@ -6444,4 +6419,7 @@ self.getWwwPath = function(type, unique_name, config)
 if(typeof exports !== "undefined")
 	module.exports = SpaceifyUnique;
 
-window.spConfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","APP_TYPE_PATHS":{"spacelet":"/var/lib/spaceify/data/spacelets/","sandboxed":"/var/lib/spaceify/data/sandboxed/","sandboxed_debian":"/var/lib/spaceify/data/sandboxed_debian/","native_debian":"/var/lib/spaceify/data/native_debian/"},"INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":80,"EDGE_PORT_HTTPS":443,"CORE_PORT":2947,"CORE_PORT_SECURE":4947,"APPMAN_PORT":2948,"APPMAN_PORT_SECURE":4948,"APPMAN_MESSAGE_PORT":2950,"APPMAN_MESSAGE_PORT_SECURE":4950,"OPERATION":"templates/operation.html","ADMIN_LOGIN_PATH":{"file":"/var/lib/spaceify/code/www/appstore/login.html","content_type":"html"},"APPSTORE":"appstore/","APPSTORE_INDEX_FILE":"appstore/index.html","APPSTORE_INDEX_PATH":{"file":"/var/lib/spaceify/code/www/appstore/index.html","content_type":"html"},"REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"spaceify.org/appstore/getresource.php?resource=","ERROR_PATHS":{"302":{"file":"/var/lib/spaceify/code/www/errors/302.html","content_type":"html"},"404":{"file":"/var/lib/spaceify/code/www/errors/404.html","content_type":"html"},"500":{"file":"/var/lib/spaceify/code/www/errors/500.html","content_type":"html"},"501":{"file":"/var/lib/spaceify/code/www/errors/501.html","content_type":"html"}},"GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","INJECT_TYPES":["javascript","css","file"],"UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","APP_TYPES":["spacelet","sandboxed","sandboxed_debian","native_debian"],"OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","SERVICE_TYPES":["standard","open_local","open","alien","http"],"EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","INDEX_FILE":"index.html","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","IMAGE_TYPES":["image/jpg","image/gif","image/png"],"FIRST_SERVICE_PORT":2777,"FIRST_SERVICE_PORT_SECURE":3777,"SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":10000,"APPLICATION_CATEGORIES":["audio","astronomy","business","chemistry","children","computer_programming","communication","computer-aided_manufacturing","data_management","economy","editing","educational","entertainment","fysics","lifestyle","games","genealogy","government","graphics","health","home","industrial","knowledge_representation","language","legal","library_and_information_science","magazines","mathematics","meteorology","multimedia","music","navigation","news","personal_information_managers","productivity","religious","science","simulation","social","sport","theatre","transport","video","weather","word_processors","workflow"],"SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession"};
+window.seconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","APP_TYPE_PATHS":{"spacelet":"/var/lib/spaceify/data/spacelets/","sandboxed":"/var/lib/spaceify/data/sandboxed/","sandboxed_debian":"/var/lib/spaceify/data/sandboxed_debian/","native_debian":"/var/lib/spaceify/data/native_debian/"},"INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":80,"EDGE_PORT_HTTPS":443,"CORE_PORT":2947,"CORE_PORT_SECURE":4947,"APPMAN_PORT":2948,"APPMAN_PORT_SECURE":4948,"APPMAN_MESSAGE_PORT":2950,"APPMAN_MESSAGE_PORT_SECURE":4950,"OPERATION":"templates/operation.html","ADMIN_LOGIN_PATH":{"file":"/var/lib/spaceify/code/www/appstore/login.html","content_type":"html"},"APPSTORE":"appstore/","APPSTORE_INDEX_FILE":"appstore/index.html","APPSTORE_INDEX_PATH":{"file":"/var/lib/spaceify/code/www/appstore/index.html","content_type":"html"},"REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"spaceify.org/appstore/getresource.php?resource=","ERROR_PATHS":{"302":{"file":"/var/lib/spaceify/code/www/errors/302.html","content_type":"html"},"404":{"file":"/var/lib/spaceify/code/www/errors/404.html","content_type":"html"},"500":{"file":"/var/lib/spaceify/code/www/errors/500.html","content_type":"html"},"501":{"file":"/var/lib/spaceify/code/www/errors/501.html","content_type":"html"}},"GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","INJECT_TYPES":["javascript","css","file"],"UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","APP_TYPES":["spacelet","sandboxed","sandboxed_debian","native_debian"],"OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","SERVICE_TYPES":["standard","open_local","open","alien","http"],"EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","INDEX_FILE":"index.html","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","IMAGE_TYPES":["image/jpg","image/gif","image/png"],"FIRST_SERVICE_PORT":2777,"FIRST_SERVICE_PORT_SECURE":3777,"SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":10000,"APPLICATION_CATEGORIES":["audio","astronomy","business","chemistry","children","computer_programming","communication","computer-aided_manufacturing","data_management","economy","editing","educational","entertainment","fysics","lifestyle","games","genealogy","government","graphics","health","home","industrial","knowledge_representation","language","legal","library_and_information_science","magazines","mathematics","meteorology","multimedia","music","navigation","news","personal_information_managers","productivity","religious","science","simulation","social","sport","theatre","transport","video","weather","word_processors","workflow"],"SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession"};
+
+window.selogs={"global":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Application":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"ApplicationManager":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"AppManService":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"BinaryRpcCommunicator":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Core":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Database":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"DHCPDLog":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"DockerContainer":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"DockerHelper":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"DockerImage":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"EdgeSpaceifyNet":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"HttpService":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Iptables":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Main":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Manager":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Messaging":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"PubSub":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"RpcCommunicator":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SecurityModel":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Service":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyApplication":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyApplicationManager":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyConfig":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyCore":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyError":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyMessages":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyNet":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyNetwork":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyService":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SpaceifyUtility":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"Spacelet":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"SPM":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":true},"ValidateApplication":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebOperation":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebRtcClient":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebRtcConnection":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebServer":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebSocketConnection":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebSocketRpcConnection":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebSocketRpcServer":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false},"WebSocketServer":{"log":false,"dir":false,"info":false,"error":false,"warn":false,"all":false}};
+

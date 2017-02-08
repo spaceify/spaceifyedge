@@ -6,6 +6,7 @@
  * @class Application
  */
 
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var DockerHelper = require("./dockerhelper");
 var SpaceifyUnique = require("./spaceifyunique");
@@ -20,6 +21,7 @@ var unique = new SpaceifyUnique();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
+//var logger = new Logger("Application", "selogs");
 
 var docker_image_id = "";
 var dockerContainer = null;

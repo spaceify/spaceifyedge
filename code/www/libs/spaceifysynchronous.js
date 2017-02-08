@@ -3,6 +3,8 @@
 /**
  * Spaceify Synchronous, 29.7.2015 Spaceify Oy
  *
+ * Keep this class dependency free!!!
+ *
  * @class SpaceifySynchronous
  */
 

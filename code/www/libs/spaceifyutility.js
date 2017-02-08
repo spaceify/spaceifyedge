@@ -9,17 +9,14 @@
 function SpaceifyUtility()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	Language: (isNodeJs ? require(apiPath + "language") : {}),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-	};
-if (typeof exports !== "undefined")
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var Language = (isNodeJs ? require(apiPath + "language") : {});
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+	
+if (isNodeJs)
 	{
 	global.os = require("os");
 	global.fs = require("fs");
@@ -34,9 +31,9 @@ var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return f
 
 var self = this;
 
-var logger = new classes.Logger();
-var language = classes.Language;//new Language();
-var config = new classes.SpaceifyConfig();
+var language = Language;//new Language();
+var config = new SpaceifyConfig();
+var logger = new Logger("SpaceifyUtility", "selogs");
 
 	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
 self.loadRemoteFile = fibrous( function(fileUrl)

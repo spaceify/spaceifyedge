@@ -1,0 +1,380 @@
+{
+  "global":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Application":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "ApplicationManager":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "AppManService":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "BinaryRpcCommunicator":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Core":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Database":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "DHCPDLog":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "DockerContainer":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "DockerHelper":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "DockerImage":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "EdgeSpaceifyNet":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "HttpService":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Iptables":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Main":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Manager":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Messaging":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "PubSub":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "RpcCommunicator":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SecurityModel":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Service":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyApplication":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyApplicationManager":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyConfig":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyCore":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyError":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyMessages":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyNet":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyNetwork":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyService":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SpaceifyUtility":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "Spacelet":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "SPM":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": true
+    },
+  "ValidateApplication":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebOperation":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebRtcClient":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebRtcConnection":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebServer":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebSocketConnection":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebSocketRpcConnection":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebSocketRpcServer":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    },
+  "WebSocketServer":
+    {
+      "log": false,
+      "dir": false,
+      "info": false,
+      "error": false,
+      "warn": false,
+      "all": false
+    }
+}

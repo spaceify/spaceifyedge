@@ -13,6 +13,7 @@ var self = this;
 var core = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
 var spaceifyNetwork = new SpaceifyNetwork();
+//var logger = new Logger("Spacelet", "selogs");
 
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context

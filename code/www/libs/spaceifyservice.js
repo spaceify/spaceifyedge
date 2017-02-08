@@ -12,29 +12,27 @@
 function SpaceifyService()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	Service: (isNodeJs ? require(apiPath + "service") : Service),
-	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	WebSocketRpcServer: (isNodeJs ? require(apiPath + "websocketrpcserver") : null),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyNetwork: (isNodeJs ? require(apiPath + "spaceifynetwork") : SpaceifyNetwork),
-	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var Service = (isNodeJs ? require(apiPath + "service") : window.Service);
+var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : window.SpaceifyCore);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var WebSocketRpcServer = (isNodeJs ? require(apiPath + "websocketrpcserver") : null);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyNetwork = (isNodeJs ? require(apiPath + "spaceifynetwork") : window.SpaceifyNetwork);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : window.WebSocketRpcConnection);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var core = new classes.SpaceifyCore();
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var core = new SpaceifyCore();
+var errorc = new SpaceifyError();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyService", "selogs");
 
 config.makeRealApplicationPaths();
 
@@ -86,7 +84,7 @@ function open(serviceObj, service, isSecure, callback)
 
 	if(!service[service_name])
 		{
-		service[service_name] = new classes.Service(service_name, false, new classes.WebSocketRpcConnection());
+		service[service_name] = new Service(service_name, false, new WebSocketRpcConnection());
 		service[service_name].setConnectionListener(connectionListener);
 		service[service_name].setDisconnectionListener(disconnectionListener);
 		}
@@ -132,7 +130,7 @@ var connect = function(service, port, isSecure, callback)
 	if(service.getIsOpen())																	// Don't reopen connections!
 		return callback();
 
-	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt, debug: true }, callback);
+	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
 	}
 
 self.disconnect = function(service_names, callback)
@@ -214,10 +212,10 @@ self.listen = fibrous( function(service_name, unique_name, port, securePort, lis
 		listenSecure = true;
 
 	if(!provided[service_name])																// Create the connection objects
-		provided[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		provided[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	if(!providedSecure[service_name])
-		providedSecure[service_name] = new classes.Service(service_name, true, new classes.WebSocketRpcServer());
+		providedSecure[service_name] = new Service(service_name, true, new WebSocketRpcServer());
 
 	if(listenUnsecure)
 		listen.sync(provided[service_name], port, false);
@@ -244,7 +242,7 @@ var listen = fibrous( function(service, port, isSecure)
 	if(service.getIsOpen())
 		return;
 
-	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp, debug: true });
+	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
 	});
 
 self.close = function(service_name)

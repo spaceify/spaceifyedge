@@ -33,7 +33,8 @@ css	css/spaceify.css	-	text/css	all
 locale	locales/en_US.json	en_US	application/json	-
 
 # Spaceify's JSON
-json	libs/config.json	-	application/json	spConfig
+json	libs/config.json	-	application/json	seconfig
+json	libs/selogs.json	-	application/json	selogs
 
 # Spaceify's JavaScript
 javascript	libs/logger.js	-	application/javascript	-

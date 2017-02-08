@@ -9,6 +9,7 @@
 var fs = require("fs");
 var url = require("url");
 var crypto = require("crypto");
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var Database = require("./database");
@@ -25,6 +26,7 @@ var self = this;
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+//var logger = new Logger("SecurityModel", "selogs");
 
 var adminSessions = {};
 var remoteSessions = {};

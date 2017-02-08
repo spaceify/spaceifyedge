@@ -24,7 +24,6 @@ function HttpService()
 {
 var self = this;
 
-var logger = new Logger();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var config = new SpaceifyConfig();
@@ -33,6 +32,7 @@ var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
 var coreConnection = new WebSocketRpcConnection();
+var logger = new Logger("HttpService", "selogs");
 
 var edgeSettings = {};
 var coreDisconnectionTimerId = null;
@@ -121,7 +121,6 @@ var createHttpServer = fibrous( function(isSecure)
 						 locale: config.DEFAULT_LOCALE,
 						 localesPath: config.LOCALES_PATH,
 						 serverName: config.SERVER_NAME,
-						 debug: true,
 						 isEdge: true
 						 });
 	});
@@ -133,7 +132,7 @@ var connectToCore = fibrous( function()
 	var applicationData;
 
 	try {
-		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
+		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");
 

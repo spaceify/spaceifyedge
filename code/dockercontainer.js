@@ -21,10 +21,10 @@ function DockerContainer()
 {
 var self = this;
 
-var logger = new Logger();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
+var logger = new Logger("DockerContainer", "selogs");
 
 var exposed;
 var bindings;
@@ -113,7 +113,7 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 		inspectedData = container.sync.inspect();
 		containerId = (inspectedData.ID ? inspectedData.ID : inspectedData.Id);
 		containerIp = inspectedData.NetworkSettings.IPAddress;
-		logger.info("+++", "\ncontainerId: " + containerId, "\ncontainerIp: " + containerIp);
+		logger.log("+++", "\ncontainerId: " + containerId, "\ncontainerIp: " + containerIp);
 		}
 	catch(err) {
 		throw language.E_START_CONTAINER_INSPECT_FAILED.pre("DockerContainer::startContainer", err); }
@@ -124,7 +124,7 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 		hostPort = inspectedData.NetworkSettings.Ports[port][0].HostPort;
 
 		containerPorts.push(hostPort);
-		logger.info("HostPort " + port + " = " + hostPort);
+		logger.log("HostPort " + port + " = " + hostPort);
 
 		export_ports += "export PORT_" + port.replace(/[^0-9]/g, "") + "=" + hostPort + "\n";
 		}

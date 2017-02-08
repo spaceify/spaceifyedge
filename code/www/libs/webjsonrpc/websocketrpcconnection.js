@@ -9,25 +9,23 @@
 function WebSocketRpcConnection()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : window.RpcCommunicator);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : window.WebSocketConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var communicator = new classes.RpcCommunicator();
-var connection = new classes.WebSocketConnection();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var communicator = new RpcCommunicator();
+var connection = new WebSocketConnection();
+//var logger = new Logger("WebSocketRpcConnection", "selogs");
 
 self.connect = function(options, callback)
 	{
@@ -36,9 +34,6 @@ self.connect = function(options, callback)
 		if(!err)
 			{
 			communicator.addConnection(connection);
-
-			var debug = ("debug" in options ? options.debug : false);
-			communicator.setOptions({ debug: debug });
 
 			if(callback)
 				callback(null, true);
@@ -114,7 +109,5 @@ self.setDisconnectionListener = function(listener)
 
 }
 
-if(typeof exports !== "undefined")
-	{
+if(typeof window === "undefined")
 	module.exports = WebSocketRpcConnection;
-	}

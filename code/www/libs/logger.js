@@ -6,82 +6,149 @@
  * @class Logger
  */
 
-function Logger()
+function Logger(class_, jsonfile_, set_)
 {
-// NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig)
-	};
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 var self = this;
 
-var errorc = new classes.SpaceifyError();
-var config = new classes.SpaceifyConfig();
+var errorc = null;
 
-var output = true;
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var fileName = "/tmp/debug.txt";
+var isAccessible = function(path, fs) { try { fs.accessSync(path, fs.F_OK); return true; } catch(err) { return false; } }
 
-self.INFO = 1;
-self.ERROR = 2;
-self.WARN = 4;
-self.FORCE = 8;
-self.RETURN = 16;
-self.STDOUT = 32;
-
-var labelStr = {};
-labelStr[self.INFO] = "[i] ";
-labelStr[self.STDOUT] = "";
-labelStr[self.ERROR] = "[e] ";
-labelStr[self.WARN] = "[w] ";
-labelStr[self.FORCE] = "";
-var labels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
-
-var levels = self.INFO | self.ERROR | self.WARN | self.FORCE | self.STDOUT;
-
-self.info = function() { out(self.INFO, false, arguments); }
-self.error = function() { printErrors.apply(this, arguments); }
-self.warn = function() { out(self.WARN, false, arguments); }
-self.force = function() { out(self.FORCE, false, arguments); }
-self.stdout = function() { out(self.STDOUT, true, arguments); }
-
-var out = function(level, fromStdout)
+if(isNodeJs)
 	{
-	var strp, strs = arguments[2];
+	var file;
+	var fs = require("fs");
+	var apiPath = "/var/lib/spaceify/code/";
 
-	var str = "";																			// Concatenate strings passed in the arguments, separate strings with space
-	for(var i = 0; i < strs.length; i++)
+	if(isAccessible(apiPath + "spaceifyerror.js"), fs)
+		errorc = require(apiPath + "spaceifyerror");
+
+	if(isAccessible("./" + jsonfile_ + ".json", fs))
+		file = fs.readFileSync("./" + jsonfile_ + ".json", "utf8");
+	else if(isAccessible(apiPath + jsonfile_ + ".json", fs))
+		file = fs.readFileSync(apiPath + jsonfile_ + ".json", "utf8");
+	else
+		file = "{}";
+
+	jsonfile_ = JSON.parse(file);
+	}
+else if(typeof window !== "undefined")
+	{
+	errorc = (window.SpaceifyError ? window.SpaceifyError : null);
+	}
+
+if(errorc)
+	errorc = new errorc();
+
+self.RETURN				= 1;
+var LOG					= "log";
+var DIR					= "dir";
+var INFO				= "info";
+self.ERROR				= "error";
+var ERROR_ = self.ERROR;
+var WARN				= "warn";
+self.FORCE				= "force";
+var FORCE_ = self.FORCE;
+var STDOUT				= "stdout";
+var ALL					= "all";
+
+	// Labels -- -- -- -- -- -- -- -- -- -- //
+var labels = {};
+labels[LOG]				= "[i] ";
+labels[DIR]				= "[d] ";
+labels[INFO]			= "[i] ";
+labels[ERROR_]			= "[e] ";
+labels[WARN]			= "[w] ";
+labels[FORCE_]			= "";
+labels[STDOUT]			= "";
+
+	// -- -- -- -- -- -- -- -- -- -- //
+var disabled = (class_ && jsonfile_ && jsonfile_[class_] ? jsonfile_[class_] : {});
+
+if(set_)
+	{
+	for(var type in set_)
+		disabled[type] = set_[type];
+	}
+
+// Local: disabled = true, not disabled = false (default)
+disabled[LOG]			= (typeof disabled[LOG] !== "undefined" && disabled[LOG] ? disabled[LOG] : false);
+disabled[DIR]			= (typeof disabled[DIR] !== "undefined" && disabled[DIR] ? disabled[DIR] : false);
+disabled[INFO]			= (typeof disabled[INFO] !== "undefined" && disabled[INFO] ? disabled[INFO] : false);
+disabled[ERROR_]		= (typeof disabled[ERROR_] !== "undefined" && disabled[ERROR_] ? disabled[ERROR_] : false);
+disabled[WARN]			= (typeof disabled[WARN] !== "undefined" && disabled[WARN] ? disabled[WARN] : false);
+disabled[ALL]			= (typeof disabled[ALL] !== "undefined" && disabled[ALL] ? disabled[ALL] : false);
+
+// Global: disabled = true, not disabled = false (default)
+if(jsonfile_.global)
+	{
+	var global_ = jsonfile_.global;
+
+	disabled[LOG]		= (typeof global_[LOG] !== "undefined" && global_[LOG] ? global_[LOG] : disabled[LOG]);
+	disabled[DIR]		= (typeof global_[DIR] !== "undefined" && global_[DIR] ? global_[DIR] : disabled[DIR]);
+	disabled[INFO]		= (typeof global_[INFO] !== "undefined" && global_[INFO] ? global_[INFO] : disabled[INFO]);
+	disabled[ERROR_]	= (typeof global_[ERROR_] !== "undefined" && global_[ERROR_] ? global_[ERROR_] : disabled[ERROR_]);
+	disabled[WARN]		= (typeof global_[WARN] !== "undefined" && global_[WARN] ? global_[WARN] : disabled[WARN]);
+	disabled[ALL]		= (typeof global_[ALL] !== "undefined" && global_[ALL] ? global_[ALL] : disabled[ALL]);
+	}
+
+disabled[FORCE_]		= false;
+
+	// -- -- -- -- -- -- -- -- -- -- //
+self.log				= function() { out(LOG, false, arguments); }
+self.dir				= function() { out(DIR, false, arguments); }
+self.info				= function() { out(INFO, false, arguments); }
+self.error				= function() { printErrors.apply(this, arguments); }
+self.warn				= function() { out(WARN, false, arguments); }
+self.force				= function() { out(FORCE_, false, arguments); }
+self.stdout				= function() { out(STDOUT, true, arguments); }
+
+	// -- -- -- -- -- -- -- -- -- -- //
+var out = function(type, fromStdout)
+	{
+	if((disabled[ALL] || disabled[type]) && type != FORCE_)
+		return;
+
+	var str = "", strs = arguments[2], strp, arp;
+
+	if(isNodeJs)
 		{
-		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
-		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+		for(var i = 0; i < strs.length; i++)								// Concatenate strings passed in the arguments, separate strings with space
+			{
+			strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
+			str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+			}
+
+		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");			// Replace control characters 0-9, 11-12, 14-31
+
+		process.stdout.write(labels[type] + str + (fromStdout ? "" : "\n"));
 		}
-
-	if(typeof str == "string")																// Replace control characters 0-9, 11-12, 14-31
-		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");
-
-	var label = ((labels & level) ? labelStr[level] : "");									// Show label only if allowed
-
-	if((output && (levels & level)) || level == self.FORCE)
+	else
 		{
-		var txt = label + str;
-		isNodeJs ? process.stdout.write(txt + (fromStdout ? "" : "\n")) : console.log(txt);
+		arp = Array.prototype.slice.call(arguments[2]);
+
+		if(type == DIR && console.dir)
+			console.dir.apply(this, arp);
+		else if(type == ERROR_ && console.error)
+			console.error.apply(this, arp)
+		else if(type == INFO && console.info)
+			console.info.apply(this, arp);
+		else if(type == WARN && console.warn)
+			console.warn.apply(this, arp);
+		else
+			console.log.apply(this, arp);
 		}
 	}
 
 var printErrors = function(err, printPath, printCode, printType)
 	{
-	var message = errorc.errorToString(err, printPath, printCode);
+	var message = (errorc ? errorc.errorToString(err, printPath, printCode) : err);
 
-	if(printType == self.ERROR)
-		out.call(self, self.ERROR, false, [message]);
-	else if(printType == self.FORCE)
+	if(printType == ERROR_)
+		out.call(self, ERROR_, false, [message]);
+	else if(printType == FORCE_)
 		self.force(message);
 
 	return message;
@@ -89,28 +156,9 @@ var printErrors = function(err, printPath, printCode, printType)
 
 self.setOptions = function(options)
 	{
-	if(options.hasOwnProperty("output"))
-		output = options.output;
-
-	if(options.hasOwnProperty("infoLabel"))
-		labels[self.INFO] = options.infoLabel;
-	if(options.hasOwnProperty("errorLabel"))
-		labels[self.ERROR] = options.errorLabel;
-	if(options.hasOwnProperty("warnLabel"))
-		labels[self.WARN] = options.warnLabel;
-	if(options.hasOwnProperty("forceLabel"))
-		labels[self.FORCE] = options.forceLabel;
-
-	if(options.hasOwnProperty("labels"))
-		labels = options.labels;
-
-	if(options.hasOwnProperty("fileName"))
-		fileName = options.fileName;
-
-	if(options.hasOwnProperty("levels"))
-		levels = options.levels;
+	for(var type in options)
+		disabled[type] = options[type];
 	}
-
 }
 
 if(typeof exports !== "undefined")

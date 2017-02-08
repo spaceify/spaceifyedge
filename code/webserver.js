@@ -24,11 +24,11 @@ function WebServer()
 {
 var self = this;
 
-var logger = new Logger();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var webOperation = new WebOperation();
+var logger = new Logger("WebServer", "selogs");
 
 var options = {};
 var isOpen = false;
@@ -83,15 +83,10 @@ self.listen = function(opts, callback)
 
 	options.protocol = (!options.isSecure ? "http" : "https");
 
-	options.debug = ("debug" in opts ? opts.debug : false);
-
 	options.isEdge = ("isEdge" in opts ? opts.isEdge : false);
 
-	//
-	logger.setOptions({output: options.debug});
-
 	// -- --
-	logger.info(utility.replace(language.WEBSERVER_CONNECTING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
+	logger.log(utility.replace(language.WEBSERVER_CONNECTING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
 
 	// -- --
 	eventEmitter.on("processRequest", processRequest);					// Request events, process one request at a time
@@ -176,7 +171,7 @@ self.close = function()
 
 	if(webServer != null)
 		{
-		logger.info(utility.replace(language.WEBSERVER_CLOSING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
+		logger.log(utility.replace(language.WEBSERVER_CLOSING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
 
 		webServer.close();
 		webServer = null;

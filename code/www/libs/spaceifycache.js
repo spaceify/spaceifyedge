@@ -3,6 +3,8 @@
 /**
  * Spaceify Cache, 29.7.2015 Spaceify Oy
  *
+ * Keep this class dependency free!!!
+ *
  * A cache class to reduce unnecessary RPC calls by storing application data.
  * For Spaceify's internal use.
  *

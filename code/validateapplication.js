@@ -9,6 +9,7 @@
  */
 
 var mmm = require("mmmagic");
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language  = require("./language");
 var SpaceifyError = require("./spaceifyerror");
@@ -24,6 +25,7 @@ var errorc = new SpaceifyError();
 var unique = new SpaceifyUnique();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+//var logger = new Logger("ValidateApplication", "selogs");
 
 var errors = [];
 var rules = null;

@@ -9,31 +9,28 @@
 function SpaceifyApplication()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/";
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	WebServer: (isNodeJs ? require(apiPath + "webserver") : function() {}),
-	SpaceifyCore: (isNodeJs ? require(apiPath + "spaceifycore") : SpaceifyCore),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility),
-	SpaceifyService: (isNodeJs ? require(apiPath + "spaceifyservice") : SpaceifyService)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var WebServer = (isNodeJs ? require(apiPath + "webserver") : function() {});
+var SpaceifyCore = (isNodeJs ? require(apiPath + "spaceifycore") : window.SpaceifyCore);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
+var SpaceifyService = (isNodeJs ? require(apiPath + "spaceifyservice") : window.SpaceifyService);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var httpServer = new classes.WebServer();
-var httpsServer = new classes.WebServer();
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
-var spaceifyCore = new classes.SpaceifyCore();
-var spaceifyService = new classes.SpaceifyService();
+var httpServer = new WebServer();
+var httpsServer = new WebServer();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var spaceifyCore = new SpaceifyCore();
+var spaceifyService = new SpaceifyService();
+var logger = new Logger("SpaceifyApplication", "selogs");
 
 config.makeRealApplicationPaths();
 
@@ -227,7 +224,7 @@ var connectServices = function(application_, services)
 var initFail = fibrous( function(err)
 	{ // FAILED TO INITIALIALIZE THE APPLICATION. -- -- -- -- -- -- -- -- -- -- //
 	logger.error([";;", err, "::"], true, true, logger.ERROR);
-	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);
+	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);						// console.log is used intentionally!!!
 
 	stop.sync(err);
 	});

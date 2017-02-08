@@ -8,7 +8,7 @@
  * @class Manager
  */
 
-var Logger = require("./logger");
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var Database = require("./database");
 var language = require("./language");
@@ -24,13 +24,13 @@ function Manager(managerType)
 {
 var self = this;
 
-var logger = new Logger();
 var database = new Database();
 var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var dockerImage = new DockerImage();
+//var logger = new Logger("Manager", "selogs");
 
 var applications = {};
 var applicationsCount = 0;

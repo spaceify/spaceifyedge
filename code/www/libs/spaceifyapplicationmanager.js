@@ -19,6 +19,8 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var network = new SpaceifyNetwork();
 var utility = new SpaceifyUtility();
+var spaceifyMessages = new SpaceifyMessages();
+//var logger = new Logger("SpaceifyApplicationManager", "selogs");
 
 var operation;																	// Queue operation, execute operations in order
 var operations = [];
@@ -26,7 +28,6 @@ var operations = [];
 var sequence = 0;
 var error = null;
 var result = null;
-var spaceifyMessages = new SpaceifyMessages();
 
 /**
  * @param   package            (1) unique name of a package in the spaceify registry or a URL to a package in the (2) GitHub repository or in the (3) Internet

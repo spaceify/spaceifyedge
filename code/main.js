@@ -17,8 +17,8 @@ function Main()
 var self = this;
 
 var core = new Core();
-var logger = new Logger();
 var config = new SpaceifyConfig();
+var logger = new Logger("Main", "selogs");
 
 self.start = fibrous( function()
 	{
@@ -27,8 +27,6 @@ self.start = fibrous( function()
 	process.title = "spaceify";																		// Shown in ps aux
 
 	events();																						// Exit gracefully
-
-	logger.setOptions({labels: logger.ERROR});														// Show only error labels
 
 	try	{
 		// START CORE RUNNING - CORE LISTENS ALL THE SUPPORTED SERVER TYPES

@@ -16,10 +16,10 @@ function Messaging()
 {
 var self = this;
 
-var logger = new Logger();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var webSocketRpcServer = null;
+var logger = new Logger("Messaging", "selogs");
 
 var connections = {};
 var confirmedConnections = {};
@@ -58,7 +58,7 @@ self.listen = function(port, callback)
 		webSocketRpcServer.exposeRpcMethodSync(self.MESSAGE_ANSWER, self, answering);
 		webSocketRpcServer.exposeRpcMethodSync(self.MESSAGE_CONFIRM, self, confirming);
 
-		webSocketRpcServer.listen({hostname: config.ALL_IPV4_LOCAL, port: port, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true, debug: true}, callback);
+		webSocketRpcServer.listen({hostname: config.ALL_IPV4_LOCAL, port: port, isSecure: true, key: key, crt: crt, caCrt: caCrt, keepUp: true}, callback);
 		}
 	catch(err)
 		{

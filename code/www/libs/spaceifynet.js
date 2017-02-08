@@ -20,6 +20,7 @@ var core = new SpaceifyCore();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyNet", "selogs");
 
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
@@ -99,7 +100,7 @@ self.setSplashAccepted = function()
 		}
 	catch(err)
 		{
-		logger.error(err, true, true, 0, logger.ERROR);
+		//logger.error(err, true, true, 0, logger.ERROR);
 		}
 	}
 

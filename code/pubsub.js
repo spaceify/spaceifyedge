@@ -6,6 +6,7 @@
  * @class PubSub
  */
 
+//var Logger = require("./logger");
 var rebus = require("./lib/rebus");
 
 function PubSub()
@@ -13,6 +14,8 @@ function PubSub()
 var self = this;
 
 var rbus = null;
+
+//var logger = new Logger("PubSub", "selogs");
 
 self.open = function(directory)
 	{

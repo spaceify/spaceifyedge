@@ -9,7 +9,15 @@
 function WebSocketServer()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-if (typeof exports !== "undefined")
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility.js") : window.SpaceifyUtility);
+var WebSocketConnection = (isNodeJs ? require(apiPath + "websocketconnection") : window.WebSocketConnection);
+
+if(isNodeJs)
 	{
 	global.fs = require("fs");
 	global.URL = require("url");
@@ -17,25 +25,13 @@ if (typeof exports !== "undefined")
 	global.https = require("https");
 	global.WSServer = require("websocket").server;
 	}
-
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility.js") : SpaceifyUtility),
-	WebSocketConnection: (isNodeJs ? require(apiPath + "websocketconnection") : WebSocketConnection)
-	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var config = new classes.SpaceifyConfig();
-var utility = new classes.SpaceifyUtility();
+var config = new SpaceifyConfig();
+var utility = new SpaceifyUtility();
+var logger = new Logger("WebSocketServer", "selogs");
 
 var options = {};
 var manuallyClosed = false;
@@ -62,13 +58,10 @@ self.listen = function(opts, callback)
 			options.keepUp = opts.keepUp || "";
 			options.protocol = (!options.isSecure ? "ws" : "wss");
 			options.subprotocol = opts.subprotocol || "json-rpc";
-			options.debug = ("debug" in opts ? opts.debug : false);
 			options.id = opts.id || utility.generateRandomConnectionId({});
 			}
 
-		logger.setOptions({output: options.debug});
-
-		logger.info(utility.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",
+		logger.log(utility.replace("WebSocketServer::listen() protocol: ~pr, subprotocol: ~s, hostname: ~h, port: ~po",
 									{"~pr": options.protocol, "~s": options.subprotocol, "~h": options.hostname, "~po": options.port}));
 
 		manuallyClosed = false;
@@ -137,7 +130,7 @@ self.listen = function(opts, callback)
 			{
 			try
 				{
-				var connection = new classes.WebSocketConnection();
+				var connection = new WebSocketConnection();
 				connection.setSocket(request.accept(options.subprotocol, request.origin));
 				connection.setRemoteAddress(request.remoteAddress);
 				connection.setRemotePort(request.remotePort);
@@ -150,7 +143,7 @@ self.listen = function(opts, callback)
 
 				eventListener.addConnection(connection);
 
-				logger.info(utility.replace("WebSocketServer::request(~lp) protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
+				logger.log(utility.replace("WebSocketServer::request(~lp) protocol: ~p, remoteAddress: ~ra, remotePort: ~rp, origin: ~o, id: ~i",
 						{"~lp": options.port, "~p": options.protocol, "~ra": request.remoteAddress, "~rp": request.remotePort, "~o": request.origin, "~i": connection.getId()}, "-"));
 				}
 			catch(err)
@@ -179,7 +172,7 @@ self.listen = function(opts, callback)
 self.close = function()
 	{
 	try	{
-		logger.info(utility.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",
+		logger.log(utility.replace("WebSocketServer::close() protocol: :pr, subprotocol: :s, hostname: :h, port: :po",
 									{":pr": options.protocol, ":s": options.subprotocol, ":h": options.hostname, ":po": options.port}));
 
 		manuallyClosed = true;
@@ -263,6 +256,4 @@ self.setServerDownListener = function(listener)
 }
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = WebSocketServer;
-	}

@@ -9,21 +9,19 @@
 function SpaceifyConfig()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyUnique: (isNodeJs ? require(apiPath + "spaceifyunique") : SpaceifyUnique)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyUnique = (isNodeJs ? require(apiPath + "spaceifyunique") : window.SpaceifyUnique);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var unique = new classes.SpaceifyUnique();
+var unique = new SpaceifyUnique();
+//var logger = new Logger("SpaceifyConfig", "selogs");
 
-if(typeof exports !== "undefined")
+if(isNodeJs)
 	{
 	var i, file = require("fs").readFileSync("/var/lib/spaceify/code/www/libs/config.json", "utf8");
 
@@ -33,8 +31,8 @@ if(typeof exports !== "undefined")
 	}
 else
 	{
-	for(i in window.spConfig)
-		self[i] = window.spConfig[i];
+	for(i in window.seconfig)
+		self[i] = window.seconfig[i];
 	}
 
 self.get = function(c)
@@ -45,7 +43,7 @@ self.get = function(c)
 self.makeRealApplicationPaths = function()
 	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
 	  // After this running applications outside and inside Spaceify / docker containers is identical.
-	if(typeof process == "undefined")													// Web page
+	if(!isNodeJs)																// Web page
 		return;
 
 	var manifest;

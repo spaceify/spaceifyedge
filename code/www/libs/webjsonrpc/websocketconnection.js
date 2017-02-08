@@ -9,27 +9,23 @@
 function WebSocketConnection()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-if (typeof exports !== "undefined")
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+
+if(isNodeJs)
 	{
 	global.fs = require("fs");
 	global.WebSocket = require("websocket").w3cwebsocket;
 	}
-
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
-
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError)
-	};
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
+var errorc = new SpaceifyError();
+var logger = new Logger("WebSocketConnection", "selogs");
 
 var url = "";
 var id = null;
@@ -55,9 +51,6 @@ self.connect = function(opts, callback)
 	var hostname = opts.hostname || null;
 	var protocol = (!isSecure ? "ws" : "wss");
 	var subprotocol = opts.subprotocol || "json-rpc";
-	var debug = ("debug" in opts ? opts.debug : false);
-
-	logger.setOptions({output: debug});
 
 	try	{
 		url = protocol + "://" + hostname + (port ? ":" + port : "") + (id ? "?id=" + id : "");
@@ -70,7 +63,7 @@ self.connect = function(opts, callback)
 
 		socket.onopen = function()
 			{
-			logger.info("WebSocketConnection::onOpen() " + url);
+			logger.log("WebSocketConnection::onOpen() " + url);
 
 			isOpen = true;
 
@@ -203,13 +196,13 @@ var onMessage = function(message)
 			{
 			if (message.type == "utf8")
 				{
-				//logger.info("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
+				//logger.log("WebSocketConnection::onMessage(string): " + JSON.stringify(message.utf8Data));
 
 				eventListener.onMessage(message.utf8Data, self);
 				}
 			if (message.type == "binary")
 				{
-				//logger.info("WebSocketConnection::onMessage(binary): " + binaryData.length);
+				//logger.log("WebSocketConnection::onMessage(binary): " + binaryData.length);
 
 				eventListener.onMessage(message.binaryData, self);
 				}
@@ -223,7 +216,7 @@ var onMessage = function(message)
 
 var onMessageEvent = function(event)
 	{
-	//logger.info("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
+	//logger.log("WebSocketConnection::onMessageEvent() " + JSON.stringify(event.data));
 
 	try	{
 		if (eventListener)
@@ -237,7 +230,7 @@ var onMessageEvent = function(event)
 
 var onSocketClosed = function(reasonCode, description, obj)
 	{
-	logger.info("WebSocketConnection::onSocketClosed() " + url);
+	logger.log("WebSocketConnection::onSocketClosed() " + url);
 
 	try	{
 		isOpen = false;
@@ -277,7 +270,5 @@ self.close = function()
 
 }
 
-if (typeof exports !== "undefined")
-	{
+if (typeof window === "undefined")
 	module.exports = WebSocketConnection;
-	}

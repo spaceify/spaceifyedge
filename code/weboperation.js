@@ -6,6 +6,7 @@
  * @class WebOperation
  */
 
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SecurityModel = require("./securitymodel");
@@ -24,6 +25,7 @@ var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var securityModel = new SecurityModel();
+//var logger = new Logger("WebOperation", "selogs");
 
 var secureConnection = null;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;

@@ -1,6 +1,7 @@
 /**
  * Unique application, 17.10.2016 Spaceify Oy
- * Dependency free
+ *
+ * Keep this class dependency free!!!
  *
  * @class SpaceifyUnique
  */

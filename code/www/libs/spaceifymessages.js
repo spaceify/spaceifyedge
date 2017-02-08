@@ -16,6 +16,7 @@ var errorc = new SpaceifyError();
 var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyMessages", "selogs");
 
 var pipeId = null;
 
@@ -25,7 +26,7 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isSpaceifyNetwork = (typeof window.isSpaceifyNetwork !== "undefined" ? window.isSpaceifyNetwork : false);
 
 var isConnected = false;

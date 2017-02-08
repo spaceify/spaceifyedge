@@ -8,7 +8,7 @@
 
 var fs = require("fs");
 var mkdirp = require("mkdirp");
-var Logger = require("./logger");
+//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var Manager = require("./manager");
 var DHCPDLog = require("./dhcpdlog");
@@ -28,7 +28,6 @@ function Core()
 {
 var self = this;
 
-var logger = new Logger();
 var dhcpdlog = new DHCPDLog();
 var database = new Database();
 var iptables = new Iptables();
@@ -38,6 +37,7 @@ var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
+//var logger = new Logger("Core", "selogs");
 var spaceletManager = new Manager(config.SPACELET);
 var sandboxedManager = new Manager(config.SANDBOXED);
 var sandboxedDebianManager = new Manager(config.SANDBOXED_DEBIAN);
@@ -102,9 +102,11 @@ self.connect = fibrous( function()
 			//webSocketRpcServer.exposeRpcMethodSync("loadOptions", self, loadOptions);
 			}
 
-		webSocketRpcServer.sync.listen({	hostname: config.ALL_IPV4_LOCAL, port: types[i].port,
-											isSecure: types[i].isSecure, key: key, crt: crt, caCrt: caCrt,
-											keepUp: true, debug: true });
+		webSocketRpcServer.sync.listen({
+										hostname: config.ALL_IPV4_LOCAL, port: types[i].port,
+										isSecure: types[i].isSecure, key: key, crt: crt, caCrt: caCrt,
+										keepUp: true
+										});
 
 		servers[webSocketRpcServer.getId()] = webSocketRpcServer;
 		}

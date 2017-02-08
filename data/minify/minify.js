@@ -21,12 +21,16 @@ this.make = function()
 		var json = "";
 		var hasJSDirectory = true;
 
-		if(process.argv.length < 5)
-			process.stdout.write("\n :: Usage: node minify [js|css|loader|loaderb|all] <source directory </var/lib/spaceify/code/www/>> <destination directory </var/lib/spaceify/code/www/>>");
+		if(process.argv.length < 3)
+			{
+			process.stdout.write("\n :: Usage: node minify [js|css|loader|loaderb|all] <source directory> <destination directory>");
+			process.stdout.write("\n ::        <source> defaults to /var/lib/spaceify/code/www");
+			process.stdout.write("\n ::        <destination> defaults to <source>");
+			}
 
 		var operation = (process.argv.length >= 3 ? process.argv[2] : "");
 		var sourcePath = (process.argv.length >= 4 ? process.argv[3] : "/var/lib/spaceify/code/www/");
-		var targetPath = (process.argv.length >= 5 ? process.argv[4] : "/var/lib/spaceify/code/www/");
+		var targetPath = (process.argv.length >= 5 ? process.argv[4] : sourcePath);
 
 		if(operation != "js" && operation != "css" && operation != "loader" && operation != "loaderb" && operation != "all")
 			throw "Operation must be js, css, loader, loaderb or all. Exiting.";
@@ -41,25 +45,46 @@ this.make = function()
 
 		if(operation == "loader" || operation == "loaderb")
 			{
-			process.stdout.write("\n :: Uglifying SpaceifyLoader JavaScript");
-
 			loader = parse(sourcePath, sourcePath + "spaceifyloader/minify.csv");
 			try { fs.accessSync(targetPath + "js", fs.F_OK); } catch(err) { hasJSDirectory = false; }
 
+				// Get JSON -- -- -- -- -- -- -- -- -- -- //
+			process.stdout.write("\n   - Minifying SpaceifyLoader JSON");
+
+			json = "";
+			for(var i = 0; i < loader.json.length; i++)
+				{
+				result = fs.readFileSync(loader.json[i].file, "utf8");
+				result = JSON.minify(result);
+				json += "window." + loader.json[i].parameter + "=" + result + ";";
+				}
+
+				// Process JavaScript -- -- -- -- -- -- -- -- -- -- //
+					// ++ Uglified ++ //
+			process.stdout.write("\n   - Uglifying SpaceifyLoader JavaScript");
+
 			result = UglifyJS.minify(loader.js).code;
 			result = result.replace(/"use strict";/g, "");
-			if(hasJSDirectory)
-				fs.writeFileSync(targetPath + "js/spaceify.loader.js", result, "utf8");
-			fs.writeFileSync(targetPath + "spaceifyloader/js/spaceify.loader.js", result, "utf8");
 
+			fs.writeFileSync(targetPath + "js/spaceify.loader.js", json + "\n\n" + result, "utf8");	
+
+			if(hasJSDirectory)
+				fs.writeFileSync(targetPath + "js/spaceify.loader.js", json + "\n\n" + result, "utf8");
+
+			fs.appendFileSync(targetPath + "spaceifyloader/js/spaceify.loader.js", json + "\n\n" + result, "utf8");
+
+					// ++ Bundled ++ //
 			if(operation == "loaderb")
 				{
 				result = "";
+
 				for(var i = 0; i < loader.js.length; i++)
 					result += fs.readFileSync(loader.js[i], "utf8");
+
 				if(hasJSDirectory)
-					fs.writeFileSync(targetPath + "js/spaceify.loader.bundle.js", result, "utf8");
-				fs.writeFileSync(targetPath + "spaceifyloader/js/spaceify.loader.bundle.js", "\n" + result, "utf8");
+					fs.writeFileSync(targetPath + "js/spaceify.loader.bundle.js", json + "\n\n" + result, "utf8");
+
+				fs.writeFileSync(targetPath + "spaceifyloader/js/spaceify.loader.bundle.js", json + "\n\n" + result, "utf8");
 				}
 			}
 
@@ -74,7 +99,7 @@ this.make = function()
 
 		if(operation == "js" || operation == "all")
 			{
-			process.stdout.write("\n :: Uglifying Edge and App JavaScript");
+			process.stdout.write("\n   - Uglifying Edge and App JavaScript");
 
 				// PREREQUISITIES -- -- -- -- -- -- -- -- -- -- //
 					// ++ EDGE ++ //
@@ -123,14 +148,14 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.bundle.js", "\n\n" + result, "utf8");
 
 				// Minify JSON -- -- -- -- -- -- -- -- -- -- //
-			process.stdout.write("\n :: Minifying Edge and App JSON");
+			process.stdout.write("\n   - Minifying Edge and App JSON");
 
 			json = "";
 			for(var i = 0; i < edge.json.length; i++)
 				{
 				result = fs.readFileSync(edge.json[i].file, "utf8");
 				result = JSON.minify(result);
-				json += "window." + edge.json[i].parameter + "=" + result + ";";
+				json += "window." + edge.json[i].parameter + "=" + result + ";\n\n";
 				}
 
 					// ++ EDGE ++ //
@@ -145,7 +170,7 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.api.jquery.bundle.js", "\n\n" + json, "utf8");
 
 				// Minify locales -- -- -- -- -- -- -- -- -- -- //
-			process.stdout.write("\n :: Minifying Edge language JSON");
+			process.stdout.write("\n   - Minifying Edge language JSON");
 
 			for(var i = 0, obj = {}; i < edge.locale.length; i++)
 				{
@@ -160,7 +185,7 @@ this.make = function()
 			fs.appendFileSync(targetPath + "js/spaceify.edge.bundle.js", "\n\n" + result, "utf8");
 
 				// Pack tiles -- -- -- -- -- -- -- -- -- -- //
-			process.stdout.write("\n :: Packing Edge tiles");
+			process.stdout.write("\n   - Packing Edge tiles");
 
 			for(var i = 0, obj = {}; i < edge.tile.length; i++)
 				{
@@ -183,7 +208,7 @@ this.make = function()
 		//	//	//	//	//
 		if(operation == "css" || operation == "all")
 			{
-			process.stdout.write("\n :: Minifying Edge CSS");
+			process.stdout.write("\n   - Minifying Edge CSS");
 
 			for(var i = 0; i < edge.css.length; i++)
 				{
@@ -203,7 +228,7 @@ this.make = function()
 		}
 	catch(err)
 		{
-		process.stdout.write("\n :: error: " + err + "\n\n");
+		process.stdout.write("\n   - error: " + err + "\n\n");
 		process.exit(1);
 		}
 	}

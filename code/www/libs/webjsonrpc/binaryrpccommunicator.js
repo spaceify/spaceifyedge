@@ -33,26 +33,23 @@
 function BinaryRpcCommunicator(handleBinary)
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 
-var classes =
-	{
-	Logger: (isNodeJs ? require(apiPath + "logger") : Logger),
-	SpaceifyError: (isNodeJs ? require(apiPath + "spaceifyerror") : SpaceifyError),
-	CallbackBuffer: (isNodeJs ? require(apiPath + "callbackbuffer") : CallbackBuffer),
-	SpaceifyUtility: (isNodeJs ? require(apiPath + "spaceifyutility") : SpaceifyUtility)
-	};
+var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyError = (isNodeJs ? require(apiPath + "spaceifyerror") : window.SpaceifyError);
+var CallbackBuffer = (isNodeJs ? require(apiPath + "callbackbuffer") : window.CallbackBuffer);
+var SpaceifyUtility = (isNodeJs ? require(apiPath + "spaceifyutility") : window.SpaceifyUtility);
 var fibrous = (isNodeJs ? require(apiPath + "fibrous") : function(fn) { return fn; });
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var logger = new classes.Logger();
-var errorc = new classes.SpaceifyError();
-var utility = new classes.SpaceifyUtility();
-var callbackBuffer = new classes.CallbackBuffer();
+var errorc = new SpaceifyError();
+var utility = new SpaceifyUtility();
+var callbackBuffer = new CallbackBuffer();
+var logger = new Logger("BinaryRpcCommunicator", "selogs");
 
 var callSequence = 1;
 var exposedRpcMethods = {};
@@ -64,8 +61,6 @@ var disconnectionListeners = [];
 
 var connections = {};
 var latestConnectionId = null;
-
-var options = { debug: true };
 
 var EXPOSE_SYNC = 0;
 var EXPOSE_TRADITIONAL = 1;
@@ -126,13 +121,6 @@ self.getConnection = function(connectionId)
 	return connections[connectionId];
 	};
 
-self.setOptions = function(opts)
-	{
-	options.debug = ("debug" in opts ? opts.debug : false);
-
-	logger.setOptions({output: options.debug});
-	}
-	
 // Outgoing RPC call
 
 self.callRpc = function(methods, params, object, callback, connectionId)
@@ -142,7 +130,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 	var isBatch = false, currentId;
 	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
 
-	logger.info("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
+	logger.log("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
 
 	if (!self.connectionExists(connectionId))
 		return;
@@ -166,7 +154,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 			callObjects.push(callObject);
 
-			logger.info("  " + JSON.stringify(callObject));
+			logger.log("  " + JSON.stringify(callObject));
 			}
 
 		if (typeof callback == "function")
@@ -188,7 +176,7 @@ self.notifyAll = function(method, params)
 	try	{
 		for (var key in connections)
 			{
-			logger.info("BinaryRpcCommunicator::notifyAll() sending message to " + key);
+			logger.log("BinaryRpcCommunicator::notifyAll() sending message to " + key);
 
 			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
 			}
@@ -206,7 +194,7 @@ self.getBufferedAmount = function(connectionId)
 
 self.sendBinary = function(data, connectionId)
 	{
-	logger.info("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
+	logger.log("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
 
 	try	{
 		connections[connectionId].sendBinary(data);
@@ -276,7 +264,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
-			logger.info("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
 			if (isNodeJs && !isRealSpaceify)
 				{
@@ -318,7 +306,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if (requestId != null)
 			onlyNotifications = false;
 
-		logger.info((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
+		logger.log((requestId ? "   REQUEST -> " : "  NOTIFICATION -> ") + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{				
@@ -458,12 +446,12 @@ var addResponse = function(requestId, result, responses)
 		{
 		result = (typeof result === "undefined" ? null : result);
 
-		logger.info("  RESPONSE <- " + JSON.stringify(result));
+		logger.log("  RESPONSE <- " + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO RESPONSE SEND");
 	}
 
 var addError = function(requestId, err, responses)
@@ -472,18 +460,18 @@ var addError = function(requestId, err, responses)
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
-		logger.info("  ERROR RESPONSE <- " + JSON.stringify(err));
+		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
 
 		responses.push({jsonrpc: "2.0", error: err, id: requestId});
 		}
 	//else																					// Notifications can't send responses
-	//	logger.info("  NOTIFICATION - NO ERROR RESPONSE SEND");
+	//	logger.log("  NOTIFICATION - NO ERROR RESPONSE SEND");
 	}
 
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
-	logger.info("BinaryRpcCommunicator::handleReturnValue()");
+	logger.log("BinaryRpcCommunicator::handleReturnValue()");
 
 	var error = null, result = null;
 
@@ -495,7 +483,7 @@ var handleReturnValue = function(responses, isBatch)
 			}
 		else
 			{
-			logger.info("  RESPONSE: " + JSON.stringify(responses[0]));
+			logger.log("  RESPONSE: " + JSON.stringify(responses[0]));
 
 			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
@@ -528,7 +516,7 @@ var processBatchResponse = function(responses)
 
 	for(var r=0; r<responses.length; r++)
 		{
-		logger.info("  RESPONSE: " + JSON.stringify(responses[r]));
+		logger.log("  RESPONSE: " + JSON.stringify(responses[r]));
 
 		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
@@ -573,7 +561,7 @@ var handleBinary = function(data, connectionId)
 
 self.setupPipe = function(firstId, secondId)
 	{
-	logger.info("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+	logger.log("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
 
 	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
 		return;
@@ -588,7 +576,7 @@ self.setupPipe = function(firstId, secondId)
 
 self.onMessage = function(messageData, connection)
 	{
-	logger.info("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
+	logger.log("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
 
 	try	{
 		var pipeTarget = connection.getPipedTo();
@@ -683,6 +671,4 @@ self.closeConnection = function(connectionId)
 // Do this only in node.js, not in the browser
 
 if (typeof exports !== "undefined")
-	{
 	module.exports = BinaryRpcCommunicator;
-	}

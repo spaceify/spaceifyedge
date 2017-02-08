@@ -9,28 +9,27 @@
 function SpaceifyCore()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
 var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
 var isSpaceletOrigin = (typeof window !== "undefined" && !window.location.hostname.match(/.*spaceify\.net/) ? true : false);
 
-var classes =
-	{
-	SpaceifyNetwork: (isNodeJs ? function() {} : SpaceifyNetwork),
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	WebSocketRpcConnection: (isNodeJs ? require(apiPath + "websocketrpcconnection") : WebSocketRpcConnection)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyNetwork = (isNodeJs ? function() {} : window.SpaceifyNetwork);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var WebSocketRpcConnection = (isNodeJs ? require(apiPath + "websocketrpcconnection") : window.WebSocketRpcConnection);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var network = new classes.SpaceifyNetwork();
+var config = new SpaceifyConfig();
+var network = new SpaceifyNetwork();
+//var logger = new Logger("SpaceifyCore", "selogs");
 
 var tunnelId = null;
 var isConnected = false;
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new classes.WebSocketRpcConnection() : LoaderUtil.piperClient);
+var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.piperClient);
 
 var useSecure = (isNodeJs ? true : network.isSecure());
 var caCrt = (isNodeJs ? apiPath + config.SPACEIFY_CRT_WWW : "");

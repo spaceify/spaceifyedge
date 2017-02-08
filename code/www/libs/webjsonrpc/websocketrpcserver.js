@@ -9,23 +9,21 @@
 function WebSocketRpcServer()
 {
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
-var isNodeJs = (typeof exports !== "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var apiPath = (isNodeJs && isRealSpaceify ? "/api/" : "/var/lib/spaceify/code/");
+var apiPath = "/var/lib/spaceify/code/";
+var isNodeJs = (typeof window === "undefined" ? true : false);
 
-var classes =
-	{
-	SpaceifyConfig: (isNodeJs ? require(apiPath + "spaceifyconfig") : SpaceifyConfig),
-	RpcCommunicator: (isNodeJs ? require(apiPath + "rpccommunicator") : RpcCommunicator),
-	WebSocketServer: (isNodeJs ? require(apiPath + "websocketserver") : WebSocketServer)
-	};
+//var Logger = (isNodeJs ? require(apiPath + "logger") : window.Logger);
+var SpaceifyConfig = (isNodeJs ? require(apiPath + "spaceifyconfig") : window.SpaceifyConfig);
+var RpcCommunicator = (isNodeJs ? require(apiPath + "rpccommunicator") : window.RpcCommunicator);
+var WebSocketServer = (isNodeJs ? require(apiPath + "websocketserver") : window.WebSocketServer);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 var self = this;
 
-var config = new classes.SpaceifyConfig();
-var communicator = new classes.RpcCommunicator();
-var webSocketServer = new classes.WebSocketServer();
+var config = new SpaceifyConfig();
+var communicator = new RpcCommunicator();
+var webSocketServer = new WebSocketServer();
+//var logger = new Logger("WebSocketRpcServer", "selogs");
 
 webSocketServer.setEventListener(communicator);
 
@@ -34,9 +32,6 @@ var disconnectionListener = null;
 
 self.listen = function(options, callback)
 	{
-	var debug = ("debug" in options ? options.debug : false);
-	communicator.setOptions({ debug: debug });
-
 	communicator.setConnectionListener(listenConnections);
 	communicator.setDisconnectionListener(listenDisconnections);
 
@@ -143,5 +138,5 @@ var listenDisconnections = function(id)
 
 }
 
-if(typeof exports !== "undefined")
+if(typeof window === "undefined")
 	module.exports = WebSocketRpcServer;
