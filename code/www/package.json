@@ -1,0 +1,25 @@
+{
+  "name": "spaceifyedge",
+  "version": "1.0.0",
+  "description": "Spaceify Edge by Spaceify Oy",
+  "main": "",
+  "devDependencies": {
+    "string-replace-webpack-plugin": "0.0.5",
+    "webpack": "^2.2.1",
+    "webpack-node-externals": "^1.5.4"
+  },
+  "scripts": {
+    "start": "",
+
+    "webpack-edge-prod": "WEBPACK_MODE='edge-prod' node_modules/webpack/bin/webpack.js",
+    "webpack-edge-bundle": "WEBPACK_MODE='edge-bundle' node node_modules/webpack/bin/webpack.js ",
+
+    "webpack-api-prod": "WEBPACK_MODE='api-prod' node node_modules/webpack/bin/webpack.js",
+    "webpack-api-bundle": "WEBPACK_MODE='api-bundle' node node_modules/webpack/bin/webpack.js",
+
+    "webpack-api-prod-jquery": "WEBPACK_MODE='api-prod-jquery' node node_modules/webpack/bin/webpack.js",
+    "webpack-api-bundle-jquery": "WEBPACK_MODE='api-bundle-jquery' node node_modules/webpack/bin/webpack.js"
+  },
+  "author": "Spaceify Oy",
+  "license": "MIT"
+}

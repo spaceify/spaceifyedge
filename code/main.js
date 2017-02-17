@@ -17,8 +17,8 @@ function Main()
 var self = this;
 
 var core = new Core();
-var config = new SpaceifyConfig();
-var logger = new Logger("Main", "selogs");
+var logger = Logger.getLogger("Main");
+var config = SpaceifyConfig.getConfig();
 
 self.start = fibrous( function()
 	{

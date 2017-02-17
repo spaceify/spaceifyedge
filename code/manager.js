@@ -12,7 +12,7 @@
 var fibrous = require("./fibrous");
 var Database = require("./database");
 var language = require("./language");
-var Application = require("./application");
+var Manifest = require("./manifest");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
@@ -26,30 +26,30 @@ var self = this;
 
 var database = new Database();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var dockerImage = new DockerImage();
-//var logger = new Logger("Manager", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("Manager");
 
-var applications = {};
-var applicationsCount = 0;
+var manifests = {};
+var manifestsCount = 0;
 
 self.install = fibrous( function(unique_name, throws)
 	{
-	var manifest;
+	var manifestFile;
 	var dbApplication;
-	var application = null;
+	var manifest = null;
 
 	try	{
 		dbApplication = database.sync.getApplication(unique_name);
 
-		if((manifest = utility.sync.loadJSON(unique.getAppPath(managerType, unique_name, config) + config.MANIFEST, true)) == null)
+		if((manifestFile = utility.sync.loadJSON(unique.getAppPath(managerType, unique_name, config) + config.MANIFEST, true)) == null)
 			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("Manager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": unique_name});
 
-		application = new Application(manifest, dbApplication.develop);
-		application.setDockerImageId(dbApplication.docker_image_id);
-		add(application);
+		manifest = new Manifest(manifestFile, dbApplication.develop);
+		manifest.setDockerImageId(dbApplication.docker_image_id);
+		add(manifest);
 		}
 	catch(err)
 		{
@@ -66,15 +66,15 @@ self.install = fibrous( function(unique_name, throws)
 
 self.start = fibrous( function(unique_name, throws)
 	{
+	var manifest = null;
 	var startObject = {};
-	var application = null;
 
 	try	{
-		application = applications[unique_name];
+		manifest = manifests[unique_name];
 
-		run.sync(application);
+		run.sync(manifest);
 
-		startObject = { providesServices: application.getProvidesServices() };
+		startObject = { providesServices: manifest.getProvidesServices() };
 		}
 	catch(err)
 		{
@@ -85,7 +85,7 @@ self.start = fibrous( function(unique_name, throws)
 	return startObject;
 	});
 
-var run = fibrous( function(application)
+var run = fibrous( function(manifest)
 	{ // Starts the application in a Docker container
 	var ferr;
 	var matches;
@@ -95,20 +95,20 @@ var run = fibrous( function(application)
 	var dockerContainer;
 
 	try	{
-		if(application.sync.isRunning())
+		if(manifest.sync.isRunning())
 			return true;
 
-		if(application.isDevelop())
+		if(manifest.isDevelop())
 			return false;
 
 		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
 				// Make sure there are no containers running with the imageID
-			dockerImage.sync.removeContainers(application.getDockerImageId(), "", null);
+			dockerImage.sync.removeContainers(manifest.getDockerImageId(), "", null);
 
 				// Run
 			var fullApiPath = config.SPACEIFY_CODE_PATH;
-			var fullVolumePath = unique.getVolPath(managerType, application.getUniqueName(), config);
+			var fullVolumePath = unique.getVolPath(managerType, manifest.getUniqueName(), config);
 
 			volumes[config.API_PATH] = {};
 			volumes[config.VOLUME_PATH] = {};
@@ -122,15 +122,15 @@ var run = fibrous( function(application)
 					fullApiPath + ":" + config.SPACEIFY_CODE_PATH + ":ro"
 					];
 
-			application.clearRuntimeServices();
+			manifest.clearRuntimeServices();
 
 			dockerContainer = new DockerContainer();
-			application.setDockerContainer(dockerContainer);
-			dockerContainer.sync.startContainer(application.getProvidesServicesCount(), application.getDockerImageId(), volumes, binds);
+			manifest.setDockerContainer(dockerContainer);
+			dockerContainer.sync.startContainer(manifest.getProvidesServicesCount(), manifest.getDockerImageId(), volumes, binds);
 
-			application.createRuntimeServices(dockerContainer.getPublicPorts(), dockerContainer.getIpAddress());
+			manifest.createRuntimeServices(dockerContainer.getPublicPorts(), dockerContainer.getIpAddress());
 
-			response = dockerContainer.sync.runApplication(application);			// [0] = output from the app, [1] = initialization status
+			response = dockerContainer.sync.runApplication(manifest);				// [0] = output from the app, [1] = initialization status
 
 			if(response[1] == config.APPLICATION_UNINITIALIZED)
 				{
@@ -138,7 +138,7 @@ var run = fibrous( function(application)
 
 				matches = errorc.endWithDot(matches[1]);
 
-				self.sync.stop(application.getUniqueName(), true);					// Stop container
+				self.sync.stop(manifest.getUniqueName(), true);						// Stop container
 
 				throw language.E_START_INIT_FAILED.preFmt("Manager::run", {	"~err": matches,
 																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
@@ -146,12 +146,12 @@ var run = fibrous( function(application)
 			}
 		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			utility.execute.sync("systemctl", ["start", application.getUniqueNameAsServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["start", manifest.getUniqueNameAsServiceName()], {}, null);
 			}
 		}
 	catch(err)
 		{
-		ferr = language.E_RUN_FAILED_TO_RUN.preFmt("Manager::run", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": application.getUniqueName()});
+		ferr = language.E_RUN_FAILED_TO_RUN.preFmt("Manager::run", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": manifest.getUniqueName()});
 		throw errorc.make(ferr, err);
 		}
 	});
@@ -159,46 +159,46 @@ var run = fibrous( function(application)
 self.stop = fibrous( function(unique_name, throws)
 	{
 	var dockerContainer;
-	var application = self.getApplication(unique_name);
+	var manifest = self.getApplication(unique_name);
 
-	if(application)
+	if(manifest)
 		{
 		if(managerType == config.SPACELET || managerType == config.SANDBOXED || managerType == config.SANDBOXED_DEBIAN)
 			{
-			if((dockerContainer = application.getDockerContainer()) != null)
-				dockerContainer.sync.stopContainer(application, throws);
+			if((dockerContainer = manifest.getDockerContainer()) != null)
+				dockerContainer.sync.stopContainer(manifest, throws);
 			}
 		else //if(managerType == config.NATIVE_DEBIAN)
 			{
-			utility.execute.sync("systemctl", ["stop", application.getUniqueNameAsServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["stop", manifest.getUniqueNameAsServiceName()], {}, null);
 			}
 
-		application.clearRuntimeServices();
-		application.setDockerContainer(null);
+		manifest.clearRuntimeServices();
+		manifest.setDockerContainer(null);
 		}
 	});
 
-var add = function(application)
+var add = function(manifest)
 	{
-	applications[application.getUniqueName()] = application;
+	manifests[manifest.getUniqueName()] = manifest;
 
-	applicationsCount = Object.keys(applications).length;
+	manifestsCount = Object.keys(manifests).length;
 	}
 
 self.remove = fibrous( function(unique_name, throws)
 	{
-	var keys = Object.keys(applications);								// Deleting seems to work reliably only in "normal" loop
+	var keys = Object.keys(manifests);									// Deleting seems to work reliably only in "normal" loop
 
 	for(var i = 0; i < keys.length; i++)
 		{
 		if(keys[i] == unique_name || unique_name == "")
 			{
 			self.sync.stop(keys[i], throws);
-			delete applications[keys[i]];
+			delete manifests[keys[i]];
 			}
 		}
 
-	applicationsCount = Object.keys(applications).length;
+	manifestsCount = Object.keys(manifests).length;
 	});
 
 self.removeAll = fibrous( function()
@@ -208,24 +208,24 @@ self.removeAll = fibrous( function()
 
 self.getApplicationCount = function()
 	{
-	return applicationsCount;
+	return manifestsCount;
 	}
 
 	// -- -- -- -- -- -- -- -- -- -- //
 self.getApplication = function(unique_name)
 	{
-	return (unique_name in applications ? applications[unique_name] : null);
+	return (unique_name in manifests ? manifests[unique_name] : null);
 	}
 
 self.getApplicationByIp = function(ip)
 	{ // Only sandboxed applications can return a unique IP 
 	var dc;
 
-	for(var unique_name in applications)
+	for(var unique_name in manifests)
 		{
-		dc = applications[unique_name].getDockerContainer();
+		dc = manifests[unique_name].getDockerContainer();
 		if(dc && dc.getIpAddress() == ip)
-			return applications[unique_name];
+			return manifests[unique_name];
 		}
 
 	return null;
@@ -235,9 +235,9 @@ self.getRuntimeService = function(search)
 	{
 	var service = null;
 
-	for(var unique_name in applications)
+	for(var unique_name in manifests)
 		{
-		if((service = applications[unique_name].getRuntimeService(search.service_name, search.unique_name)))
+		if((service = manifests[unique_name].getRuntimeService(search.service_name, search.unique_name)))
 			break;
 		}
 
@@ -249,9 +249,9 @@ self.getRuntimeServicesByName = function(service_name)
 	var service;
 	var services = {};
 
-	for(var unique_name in applications)
+	for(var unique_name in manifests)
 		{
-		if((service = applications[unique_name].getRuntimeService(service_name, null)))
+		if((service = manifests[unique_name].getRuntimeService(service_name, null)))
 			services[service.unique_name] = service;
 		}
 
@@ -264,10 +264,10 @@ self.getServiceRuntimeStates = function()
 	var services;
 	var status = {};
 
-	for(var unique_name in applications)
+	for(var unique_name in manifests)
 		{
 		state = [];
-		services = applications[unique_name].getRuntimeServices();
+		services = manifests[unique_name].getRuntimeServices();
 
 		if(services.length > 0)
 			{
@@ -283,7 +283,7 @@ self.getServiceRuntimeStates = function()
 							isRegistered: services[i].isRegistered
 							});
 
-			status[unique_name] = { services: state, isDevelop: applications[unique_name].isDevelop() };
+			status[unique_name] = { services: state, isDevelop: manifests[unique_name].isDevelop() };
 			}
 		}
 
@@ -294,7 +294,7 @@ self.getUniqueNames = function()
 	{
 	var uniqueNames = [];
 
-	for(var unique_name in applications)
+	for(var unique_name in manifests)
 		uniqueNames.push(unique_name);
 
 	return uniqueNames;

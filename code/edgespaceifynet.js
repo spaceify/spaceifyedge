@@ -27,9 +27,9 @@ var self = this;
 
 var database = new Database();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
-//var logger = new Logger("EdgeSpaceifyNet", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("EdgeSpaceifyNet");
 
 var EDGE_PASSWORD_SALT_REGX = /^[0-9a-f]{128}$/;
 var EDGE_NAME_REGX = /^[a-zA-Z0-9]{4,32}$/;

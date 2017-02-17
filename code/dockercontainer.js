@@ -21,10 +21,10 @@ function DockerContainer()
 {
 var self = this;
 
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
-var logger = new Logger("DockerContainer", "selogs");
+var config = SpaceifyConfig.getConfig();
+var logger = Logger.getLogger("DockerContainer");
 
 var exposed;
 var bindings;

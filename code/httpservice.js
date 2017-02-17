@@ -26,13 +26,13 @@ var self = this;
 
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
-var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
+var config = SpaceifyConfig.getConfig();
+var logger = Logger.getLogger("HttpService");
 var coreConnection = new WebSocketRpcConnection();
-var logger = new Logger("HttpService", "selogs");
 
 var edgeSettings = {};
 var coreDisconnectionTimerId = null;
@@ -291,6 +291,8 @@ var requestListener = function(currentRequest, callback)
 	// Path points to apps resource or URL is short url -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
+// https://edge.spaceify.net/spaceify/driverphilipshue/images/icon.png
+			
 		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
 			{ // ToDo: compare a/b/c to [a/b, a/b/c] => always returns a/b
 			for(partPos = 0, uname = ""; partPos < pathPartsLength; partPos++)
@@ -312,7 +314,7 @@ var requestListener = function(currentRequest, callback)
 			{
 			if(partPos == pathPartsLength - 1)										// Short URL - make redirection
 				{
-console.log("REDIRECT");
+// console.log("REDIRECT");
 				location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
 				location = (!currentRequest.isSecure ? "http" : "https") + "://" + location;
 
@@ -322,12 +324,14 @@ console.log("REDIRECT");
 
 				port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
 
-				spe_host = network.getEdgeURL(protocol, false, true);
+				spe_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, port: null, withEndSlash: true });
+				//protocol, false, true
 
 				if(appURL.implementsWebServer && port)
-					sp_host = network.getEdgeURL(protocol, port, true);
+					sp_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, port: port, withEndSlash: true });
+					//protocol, port, true
 				else
-					sp_host = network.externalResourceURL(apps[appPos].unique_name, protocol);
+					sp_host = network.externalResourceURL(apps[appPos].unique_name, { forceSecureProtocol: false, ownProtocol: protocol, port: null, withEndSlash: true });
 
 				sp_path = "index.html";
 
@@ -344,9 +348,9 @@ console.log("REDIRECT");
 			else																	// Resource - load
 				{
 				pathName = currentRequest.urlObj.path.replace(apps[appPos].unique_name, "");
-pathName = pathName.replace(/^\/*/, "");
-pathName = pathName.split("?");
-console.log("--------------------", apps[appPos].wwwPath + pathName[0]);
+				pathName = pathName.replace(/^\/*/, "");
+				pathName = pathName.split("?");
+
 				callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: pathName[0]});
 				}
 			}

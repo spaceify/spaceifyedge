@@ -24,9 +24,9 @@ function SecurityModel()
 var self = this;
 
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
-//var logger = new Logger("SecurityModel", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("SecurityModel");
 
 var adminSessions = {};
 var remoteSessions = {};
@@ -346,9 +346,9 @@ self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
 self.sameOriginPolicyStartSpacelet = function(manifest, URL)
 	{
 	var matches = 0;
-	var origins = manifest.origins;
+	var origins = manifest.getOrigins();
 	var hostname = url.parse(URL).hostname;
-//console.log("++++++++++++++++++++++++++", manifest.unique_name, origins, URL);
+//console.log("++++++++++++++++++++++++++", manifest.getUniqueName(), origins, URL);
 return true;
 	for(var i = 0; i < origins.length; i++)
 		{
@@ -385,14 +385,14 @@ var matchOrigin = function(origin, hostname)
 	}
 
 	// REGISTER, UNREGISTER, GET SERVICES -- -- -- -- -- -- -- -- -- -- //
-self.registerService = function(application, service_name, ports)
+self.registerService = function(manifest, service_name, ports)
 	{
-	return application.registerService(service_name, ports, true);
+	return manifest.registerService(service_name, ports, true);
 	}
 
-self.unregisterService = function(application, service_name)
+self.unregisterService = function(manifest, service_name)
 	{
-	return application.registerService(service_name, null, false);
+	return manifest.registerService(service_name, null, false);
 	}
 
 self.getOpenServices = function(services, getHttp, remoteAddress)
@@ -415,7 +415,7 @@ self.getOpenServices = function(services, getHttp, remoteAddress)
 	return result;
 	}
 
-self.getService = function(service, application, remoteAddress)
+self.getService = function(service, manifest, remoteAddress)
 	{
 	var requiresServices;
 	var serviceReturn = null;
@@ -427,16 +427,16 @@ self.getService = function(service, application, remoteAddress)
 		serviceReturn = self.makePublicService(service);
 	else if(self.isApplicationIP(remoteAddress))													// Caller is an application or a spacelet
 		{
-		if(!application)
+		if(!manifest)
 			throw language.E_GET_SERVICE_APPLICATION_NOT_FOUND.pre("SecurityModel::getService");
 
 		if(service.service_type == config.OPEN_LOCAL)												// Service is open for all application and spacelets
 			serviceReturn = self.makePublicService(service);
 		else																						// Open only if service is listed in the required list
 			{
-			requiresServices = application.getRequiresServices();
+			requiresServices = manifest.getRequiresServices();
 			if(!requiresServices)
-				throw language.E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED.preFmt("SecurityModel::getService", {"unique_name": application.getUniqueName()});
+				throw language.E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED.preFmt("SecurityModel::getService", {"unique_name": manifest.getUniqueName()});
 
 			for(var i = 0; i < requiresServices.length; i++)
 				{

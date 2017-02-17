@@ -1,1 +1,1 @@
-www/libs/spaceifyerror.js
+www/src/spaceifyerror.js

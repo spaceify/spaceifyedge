@@ -1,0 +1,27 @@
+(function spaceifyClasses(){
+window.Logger = spe.Logger;
+window.Service = spe.Service;
+window.SpaceifyApplication = spe.SpaceifyApplication;
+window.SpaceifyApplicationManager = spe.SpaceifyApplicationManager;
+window.SpaceifyCache = spe.SpaceifyCache;
+window.SpaceifyConfig = spe.SpaceifyConfig;
+window.SpaceifyCore = spe.SpaceifyCore;
+window.SpaceifyError = spe.SpaceifyError;
+window.SpaceifyMessages = spe.SpaceifyMessages;
+window.SpaceifyNet = spe.SpaceifyNet;
+window.SpaceifyNetwork = spe.SpaceifyNetwork;
+window.SpaceifyService = spe.SpaceifyService;
+window.SpaceifySynchronous = spe.SpaceifySynchronous;
+window.SpaceifyUnique = spe.SpaceifyUnique;
+window.SpaceifyUtility = spe.SpaceifyUtility;
+window.Spacelet = spe.Spacelet;
+window.BinaryRpcCommunicator = spe.BinaryRpcCommunicator;
+window.CallbackBuffer = spe.CallbackBuffer;
+window.RpcCommunicator = spe.RpcCommunicator;
+window.WebRtcClient = spe.WebRtcClient;
+window.WebRtcConnection = spe.WebRtcConnection;
+window.WebSocketConnection = spe.WebSocketConnection;
+window.WebSocketRpcConnection = spe.WebSocketRpcConnection;
+window.WebSocketRpcServer = spe.WebSocketRpcServer;
+window.WebSocketServer = spe.WebSocketServer;
+window.SpaceifyApp = spe.SpaceifyApp;})();

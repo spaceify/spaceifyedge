@@ -9,7 +9,7 @@ var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var ApplicationManager = require("./applicationmanager");
 
-var logger = new Logger("AppManService", "selogs");
+var logger = Logger.getLogger("AppManService");
 
 fibrous.run( function()
 	{

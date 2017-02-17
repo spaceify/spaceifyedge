@@ -32,12 +32,12 @@ var dhcpdlog = new DHCPDLog();
 var database = new Database();
 var iptables = new Iptables();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
-//var logger = new Logger("Core", "selogs");
+//var logger = Logger.getLogger("Core");
+var config = SpaceifyConfig.getConfig();
 var spaceletManager = new Manager(config.SPACELET);
 var sandboxedManager = new Manager(config.SANDBOXED);
 var sandboxedDebianManager = new Manager(config.SANDBOXED_DEBIAN);
@@ -179,15 +179,15 @@ var disconnectionListener = function(connectionId, serverId, isSecure)
 var registerService = fibrous( function(service_name, ports, connObj)
 	{ // ALLOW REGISTRATION ONLY FOR APPLICATIONS AND EDGE(=LOCAL IP)
 	var isObj;
-	var application;
+	var manifest;
 	var service = null;
 
 	// APPLICATION - REGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
 	if(securityModel.isApplicationIP(connObj.remoteAddress))
 		{
-		application = get("getApplicationByIp", connObj.remoteAddress);
+		manifest = get("getApplicationByIp", connObj.remoteAddress);
 
-		if(!application)
+		if(!manifest)
 			throw language.E_REGISTER_SERVICE_ACCESS_DENIED.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
 
 		ports = null;	// Applications running in docker containers can not register services with custom ports
@@ -200,18 +200,18 @@ var registerService = fibrous( function(service_name, ports, connObj)
 		if(!isObj || (isObj && (!("unique_name" in ports) || !("port" in ports) || !("securePort" in ports))))
 			throw language.E_REGISTER_SERVICE_PORTS_ARGUMENT.pre("Core::registerService");
 
-		application = get("getApplication", ports.unique_name);
+		manifest = get("getApplication", ports.unique_name);
 
-		if(!application)
+		if(!manifest)
 			throw language.E_REGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::registerService", {"~unique_name": ports.unique_name});
 
-		application.createRuntimeService(service_name, ports, connObj.remoteAddress);
+		manifest.createRuntimeService(service_name, ports, connObj.remoteAddress);
 		}
 	else
 		throw language.E_REGISTER_SERVICE_ACCESS_DENIED.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
 
 	// APPLICATIONS CAN REGISTER ONLY THEIR OWN SERVICES = SERVICE NAME FOUND IN ITS SERVICES
-	service = securityModel.registerService(application, service_name, ports);
+	service = securityModel.registerService(manifest, service_name, ports);
 
 	if(!service)
 		throw language.E_REGISTER_SERVICE_SERVICE_NAME_UNDEFINED.preFmt("Core::registerService", {"~name": service_name});
@@ -221,30 +221,30 @@ var registerService = fibrous( function(service_name, ports, connObj)
 
 var unregisterService = fibrous( function(service_name, unique_name, connObj)
 	{ // ALLOW UNREGISTRATION ONLY FOR APPLICATIONS AND EDGE(=LOCAL IP)
-	var application;
+	var manifest;
 	var service = null;
 
 	// APPLICATION - UNREGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
 	if(securityModel.isApplicationIP(connObj.remoteAddress))
 		{
-		application = get("getApplicationByIp", connObj.remoteAddress);
+		manifest = get("getApplicationByIp", connObj.remoteAddress);
 
-		if(!application)
+		if(!manifest)
 			throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});
 		}
 	// EDGE - UNREGISTRATION ATTEMPT FROM A NATIVE DEBIAN OR DEVELOP MODE APPLICATION
 	else if(securityModel.isLocalIP(connObj.remoteAddress))
 		{
-		application = get("getApplication", unique_name);
+		manifest = get("getApplication", unique_name);
 
-		if(!application)
+		if(!manifest)
 			throw language.E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::unregisterService", {"~unique_name": unique_name});
 		}
 	else
 		throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});
 
 	// APPLICATION CAN UNREGISTER ONLY ITS OWN SERVICES = SERVICE NAME FOUND IN THE SERVICES
-	service = securityModel.unregisterService(application, service_name);
+	service = securityModel.unregisterService(manifest, service_name);
 
 	if(!service)
 		throw language.E_UNREGISTER_SERVICE_SERVICE_NAME_UNDEFINED.pre("Core::unregisterService", {name: service_name});
@@ -254,34 +254,34 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 
 var getService = fibrous( function(service_name, unique_name, connObj)
 	{ // Get service either by service name or service name and unique_name
-	var application;
-	var applicationByIp;
+	var manifest;
 	var runtimeService;
 
 	if(unique_name)
 		{
-		application = get("getApplication", unique_name);
-		if(!application)
+		manifest = get("getApplication", unique_name);
+
+		if(!manifest)
 			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::getService", {"~name": unique_name});
 		}
 
-	applicationByIp = get("getApplicationByIp", connObj.remoteAddress);
+	manifest = get("getApplicationByIp", connObj.remoteAddress);
 	runtimeService = get("getRuntimeService", {service_name: service_name, unique_name: unique_name});
 
 	if(!runtimeService)
 		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getService", {"~name": service_name});
 
-	return securityModel.getService(runtimeService, applicationByIp, connObj.remoteAddress);
+	return securityModel.getService(runtimeService, manifest, connObj.remoteAddress);
 	});
 
 var getServices = fibrous( function(service_name, connObj)
 	{ // Get all services with the requested service name
 	var service;
-	var application;
+	var manifest;
 	var runtimeServices;
 	var preparedRuntimeServices = {};
 
-	application = get("getApplicationByIp", connObj.remoteAddress);
+	manifest = get("getApplicationByIp", connObj.remoteAddress);
 	runtimeServices = get("getRuntimeServicesByName", service_name);
 
 	if(Object.keys(runtimeServices).length == 0)
@@ -290,7 +290,7 @@ var getServices = fibrous( function(service_name, connObj)
 	for(var unique_name in runtimeServices)
 		{
 		try {
-			service = securityModel.getService(runtimeServices[unique_name], application, connObj.remoteAddress);
+			service = securityModel.getService(runtimeServices[unique_name], manifest, connObj.remoteAddress);
 			preparedRuntimeServices[unique_name] = service;
 			}
 		catch(err)
@@ -302,7 +302,7 @@ var getServices = fibrous( function(service_name, connObj)
 
 var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 	{ // Get all the open and allowed open_local runtime services from all the unique applications in the list
-	var application;
+	var manifest;
 	var runtimeServices = [];
 
 	if(unique_names.length == 0)
@@ -315,11 +315,12 @@ var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 
 	for(var i = 0; i < unique_names.length; i++)
 		{
-		application = get("getApplication", unique_names[i]);
-		if(!application)
+		manifest = get("getApplication", unique_names[i]);
+
+		if(!manifest)
 			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
-		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(application.getRuntimeServices(), getHttp, connObj.remoteAddress) );
+		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(manifest.getRuntimeServices(), getHttp, connObj.remoteAddress) );
 		}
 
 	return runtimeServices;
@@ -388,12 +389,12 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		if(securityModel.isApplicationIP(connObj.remoteAddress))
 			throw language.E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS.pre("Core::startSpacelet");
 
-		manifest = getManifest.sync(unique_name, false, false, connObj);
+		manifest = get("getApplication", unique_name)
 
 		if(!manifest)
 			throw language.E_START_SPACELET_NOT_INSTALLED.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
 
-		if(manifest.type != config.SPACELET)
+		if(manifest.getType() != config.SPACELET)
 			throw language.E_START_SPACELET_IS_NOT_SPACELET.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
 
 		if(!securityModel.sameOriginPolicyStartSpacelet(manifest, connObj.origin))
@@ -405,7 +406,7 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, false);
 
 		// Events
-		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
+		startObject.manifest = extendManifest(manifest);
 		startObject.openRuntimeServices = openRuntimeServices;
 		delete startObject.providesServices;
 
@@ -458,7 +459,6 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 	{ // Removes, and when necessary stops, application or spacelet and removes it from cores lists
 	var event;
 	var manifest;
-	var application;
 	var isRemoved = true;
 
 	try {
@@ -467,24 +467,24 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// REMOVE APPLICATION
-		if(!(application = get("getApplication", unique_name)))
+		manifest = get("getApplication", unique_name)
+
+		if(!manifest)
 			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
 
-		manifest = getManifest.sync(unique_name, true, false, connObj);
-
-		getManager(application.getType()).sync.remove(unique_name, true);
+		getManager(manifest.getType()).sync.remove(unique_name, true);
 
 		// Events
-		if(application.getType() == config.SPACELET)
+		if(manifest.getType() == config.SPACELET)
 			event = config.EVENT_SPACELET_REMOVED;
-		else if(application.getType() == config.SANDBOXED)
+		else if(manifest.getType() == config.SANDBOXED)
 			event = config.EVENT_SANDBOXED_REMOVED;
-		else if(application.getType() == config.SANDBOXED_DEBIAN)
+		else if(manifest.getType() == config.SANDBOXED_DEBIAN)
 			event = config.EVENT_SANDBOXED_DEBIAN_REMOVED;
-		else if(application.getType() == config.NATIVE_DEBIAN)
+		else if(manifest.getType() == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_REMOVED;
 
-		callEvent(event, { manifest: manifest });
+		callEvent(event, { manifest: extendManifest(manifest) });
 		}
 	catch(err)
 		{
@@ -500,7 +500,7 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 var startApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	{ // Start application or spacelet
 	var event;
-	var application;
+	var manifest;
 	var startObject = {};
 	var isStarted = true;
 	var applicationStatus;
@@ -511,25 +511,25 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// START APPLICATION
-		if(!(application = get("getApplication", unique_name)))
+		if(!(manifest = get("getApplication", unique_name)))
 			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::startApplication", {"~name": unique_name});
 
-		if(application.isDevelop())
-			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
+		if(manifest.isDevelop())
+			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.getType()]});
 
-		//if(application.sync.isRunning())
-		//	throw language.E_PACKAGE_ALREADY_RUNNING.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
+		//if(manifest.sync.isRunning())
+		//	throw language.E_PACKAGE_ALREADY_RUNNING.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.getType()]});
 
-		startObject = getManager(application.getType()).sync.start(unique_name, true);
+		startObject = getManager(manifest.getType()).sync.start(unique_name, true);
 
 		// Events
-		if(application.getType() == config.SPACELET)
+		if(manifest.getType() == config.SPACELET)
 			event = config.EVENT_SPACELET_STARTED;
-		else if(application.getType() == config.SANDBOXED)
+		else if(manifest.getType() == config.SANDBOXED)
 			event = config.EVENT_SANDBOXED_STARTED;
-		else if(application.getType() == config.SANDBOXED_DEBIAN)
+		else if(manifest.getType() == config.SANDBOXED_DEBIAN)
 			event = config.EVENT_SANDBOXED_DEBIAN_STARTED;
-		else if(application.getType() == config.NATIVE_DEBIAN)
+		else if(manifest.getType() == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_STARTED;
 
 		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
@@ -553,7 +553,6 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	{ // Stops application or spacelet
 	var event;
 	var manifest;
-	var application;
 	var isStopped = true;
 	var applicationStatus;
 
@@ -563,20 +562,18 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// STOP APPLICATION
-		if(!(application = get("getApplication", unique_name)))
+		if(!(manifest = get("getApplication", unique_name)))
 			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::stopApplication", {"~name": unique_name});
 
-		if(application.isDevelop())
-			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
+		if(manifest.isDevelop())
+			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.getType()]});
 
-		//if(!application.sync.isRunning())
-		//	throw language.E_PACKAGE_ALREADY_STOPPED.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[application.getType()]});
+		//if(!manifest.sync.isRunning())
+		//	throw language.E_PACKAGE_ALREADY_STOPPED.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[manifest.getType()]});
 
-		getManager(application.getType()).sync.stop(unique_name, true);
+		getManager(manifest.getType()).sync.stop(unique_name, true);
 
 		// Events
-		manifest = getManifest.sync(unique_name, true, false, connObj);
-
 		if(manifest.type == config.SPACELET)
 			event = config.EVENT_SPACELET_STOPPED;
 		else if(manifest.type == config.SANDBOXED)
@@ -586,7 +583,7 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 		else if(manifest.type == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_STOPPED;
 
-		callEvent(event, { manifest: manifest });
+		callEvent(event, { manifest: extendManifest(manifest) });
 		}
 	catch(err)
 		{
@@ -601,19 +598,19 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 
 var getApplicationStatus = fibrous( function(unique_name, connObj)
 	{
-	var application = get("getApplication", unique_name);
+	var manifest = get("getApplication", unique_name);
 
-	if(!application)
+	if(!manifest)
 		return { isRunning: false, isDevelop: false };
 
-	return { isRunning: application.sync.isRunning(), isDevelop: application.isDevelop() };
+	return { isRunning: manifest.sync.isRunning(), isDevelop: manifest.isDevelop() };
 	});
 
 var isApplicationRunning = fibrous( function(unique_name, connObj)
 	{
-	var application = get("getApplication", unique_name);
+	var manifest = get("getApplication", unique_name);
 
-	return (application ? application.sync.isRunning() : false);
+	return (manifest ? manifest.sync.isRunning() : false);
 	});
 
 var getApplicationData = fibrous( function(connObj)
@@ -659,16 +656,16 @@ var getApplicationData = fibrous( function(connObj)
 
 var getApplicationURL = fibrous( function(unique_name, connObj)
 	{ // Get application or spacelet URL
-	var application;
+	var manifest;
 	var port, securePort, url, secureUrl;
 
 	try {
-		if(!(application = get("getApplication", unique_name)))
+		if(!(manifest = get("getApplication", unique_name)))
 			throw "";
 
-		var type = application.getType();
-		var implementsWebServer = application.implementsWebServer();
-		var httpService = application.getRuntimeService(config.HTTP, unique_name);
+		var type = manifest.getType();
+		var implementsWebServer = manifest.implementsWebServer();
+		var httpService = manifest.getRuntimeService(config.HTTP, unique_name);
 
 		if(implementsWebServer && httpService)											// Use applications internal server
 			{
@@ -696,30 +693,35 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 			};
 	});
 
-var getManifest = fibrous( function(unique_name, uniqueDirectory, throws, connObj)
+var getManifest = fibrous( function(unique_name, extend, throws, connObj)
 	{ // Get application or spacelet manifest, get extended information if it is requested
-	var tileFile;
-	var application;
+	var hasTile;
+	var isRunning;
 	var manifest = null;
 
-	application = get("getApplication", unique_name);
+	manifest = get("getApplication", unique_name);
 
-	if(!application && throws)
+	if(!manifest && throws)
 		throw language.E_GET_MANIFEST_FAILED.preFmt("Core::getManifest", {"~name": unique_name});
 
-	if(application)
-		manifest = application.getManifest();
-
-	if( application && uniqueDirectory)
-		{		
-		tileFile = unique.getWwwPath(application.getType(), unique_name, config) + config.TILEFILE;
-
-		manifest.hasTile = utility.sync.isLocal(tileFile, "file");
-		manifest.isRunning = application.sync.isRunning();
-		}
+	if(manifest && extend)
+		manifest = extendManifest(manifest);
+	else
+		manifest = manifest.getManifest();
 
 	return manifest;
 	});
+var extendManifest = function(manifest)
+	{
+	var hasTile = manifest.hasTile();
+	var isRunning = manifest.sync.isRunning();
+
+	manifest = manifest.getManifest();
+	manifest.hasTile = hasTile;
+	manifest.isRunning = isRunning;
+
+	return manifest;
+	}
 
 var getServiceRuntimeStates = fibrous( function(sessionId, connObj)
 	{ // Get application or spacelet runtime services

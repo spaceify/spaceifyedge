@@ -243,8 +243,8 @@ cp /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.crt /var/lib/spaceify/code
 
 	# ----- File permissions etc. ----- #
 
-#mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true							# dhcp server directories/files
-#chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
+# mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true						# dhcp server directories/files
+# chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 # chown - R root:spaceify /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 
 mkdir -p /var/lib/spaceify/data/ipt-data > /dev/null 2>&1 || true							# iptables directories/files
@@ -267,6 +267,8 @@ rm /var/log/spaceifyipt.log > /dev/null 2>&1 || true
 rm /var/log/spaceify.log > /dev/null 2>&1 || true
 
 chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check log sizes hourly
+
+ln -s /var/lib/spaceify/code/www/libs js
 
 # ----------
 # ----------

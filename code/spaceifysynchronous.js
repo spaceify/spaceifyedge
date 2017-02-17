@@ -1,1 +1,1 @@
-www/libs/spaceifysynchronous.js
+www/src/spaceifysynchronous.js

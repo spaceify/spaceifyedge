@@ -15,7 +15,7 @@ var self = this;
 
 var rbus = null;
 
-//var logger = new Logger("PubSub", "selogs");
+//var logger = Logger.getLogger("PubSub");
 
 self.open = function(directory)
 	{

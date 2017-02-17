@@ -1,1 +1,1 @@
-www/libs/service.js
+www/src/service.js

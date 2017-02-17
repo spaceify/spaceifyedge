@@ -9,6 +9,7 @@
 //var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
+var Manifest = require("./manifest");
 var SecurityModel = require("./securitymodel");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -21,11 +22,11 @@ function WebOperation()
 var self = this;
 
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
+var config = SpaceifyConfig.getConfig();
 var securityModel = new SecurityModel();
-//var logger = new Logger("WebOperation", "selogs");
+//var logger = Logger.getLogger("WebOperation");
 
 var secureConnection = null;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
@@ -225,7 +226,9 @@ self.getData = fibrous( function(operation, userData, isSecure)
 
 			for(var i = 0; i < dbApps.length; i++)
 				{
-				manifest = utility.sync.loadJSON(unique.getAppPath(dbApps[i].type, dbApps[i].unique_name, config) + config.MANIFEST, true);
+				manifest = Manifest.load(dbApps[i].type, dbApps[i].unique_name);
+
+				manifest = manifest.getManifest();
 				manifest.isRunning = dbApps[i].isRunning;
 				data[dbApps[i].type].push(manifest);
 				}

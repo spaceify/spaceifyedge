@@ -1,0 +1,13 @@
+{
+  "name": "spaceify",
+  "version": "1.0.0",
+  "description": "Prepended and appended user defined files to the beginning or end of the webpack chunk(s) as strings.",
+  "main": "index.js",
+  "keywords": [
+    "prepend",
+    "append",
+    "chunk"
+  ],
+  "author": "Spaceify Oy",
+  "license": "MIT"
+}

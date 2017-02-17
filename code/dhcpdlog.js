@@ -16,8 +16,8 @@ function DHCPDLog()
 var self = this;
 
 var pubSub = new PubSub();
-var config = new SpaceifyConfig();
-//var logger = new Logger("DHCPDLog", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("DHCPDLog");
 
 self.saveToFile = function(type, ip, macOrDuid, hostname)
 	{

@@ -20,7 +20,7 @@ var self = this;
 
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
-var logger = new Logger("DockerHelper", "selogs");
+var logger = Logger.getLogger("DockerHelper");
 
 var standardInput = null;
 var standardOutput = null;

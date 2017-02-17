@@ -11,6 +11,7 @@
 var mmm = require("mmmagic");
 //var Logger = require("./logger");
 var fibrous = require("./fibrous");
+var Manifest = require("./manifest");
 var language  = require("./language");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyUnique = require("./spaceifyunique");
@@ -23,9 +24,9 @@ var self = this;
 
 var errorc = new SpaceifyError();
 var unique = new SpaceifyUnique();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
-//var logger = new Logger("ValidateApplication", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("ValidateApplication");
 
 var errors = [];
 var rules = null;
@@ -54,11 +55,11 @@ self.validatePackage = fibrous( function(package_path, save_path_manifest)
 			throw language.E_VALIDATE_PACKAGE_NO_MANIFEST_FILE.pre("ValidateApplication::validate");
 
 		// VALIDATE MANIFEST
-		manifest = self.validateManifestFile.sync(manifest_path);
+		manifest = validateManifestFile.sync(manifest_path);
 
 		// VALIDATE DIRECTORIES AND FILES IN THE PACKAGE
 		if(errors.length == 0)
-			self.validateDirectories.sync(application_path, manifest);
+			validateDirectories.sync(application_path, manifest);
 
 		// SAVE MANIFEST IF SAVE PATH IS SET
 		if(save_path_manifest && errors.length == 0)
@@ -72,10 +73,10 @@ self.validatePackage = fibrous( function(package_path, save_path_manifest)
 	if(errors.length > 0)																			// Throw the list of accumulated errors
 		throw errors;
 
-	return manifest;
+	return Manifest.load(manifest.type, manifest.unique_name);
 	});
 
-self.validateDirectories = fibrous( function(application_path, manifest)
+var validateDirectories = fibrous( function(application_path, manifest)
 	{ // CHECKS THAT THE FILES DEFINED IN THE MANIFEST ARE IN THE PACKAGE
 	var i;
 	var obj;
@@ -183,14 +184,14 @@ self.validateDirectories = fibrous( function(application_path, manifest)
 		}
 	});
 
-self.validateManifestFile = fibrous( function(manifest_path)
+var validateManifestFile = fibrous( function(manifest_path)
 	{
 	var manifest = {};
 
 	try {
 		manifest = utility.sync.loadJSON(manifest_path, true, true);
 
-		self.validateManifest.sync(manifest);
+		validateManifest.sync(manifest);
 		}
 	catch(err)
 		{
@@ -200,7 +201,7 @@ self.validateManifestFile = fibrous( function(manifest_path)
 	return manifest;
 	});
 
-self.validateManifest = fibrous( function(manifest)
+var validateManifest = fibrous( function(manifest)
 	{
 	var i, j
 	var rule;
@@ -413,7 +414,7 @@ var isUnique = function(rule, vobj, type)
 
 	}
 
-self.suggestedApplication = function(value, params)
+var suggestedApplication = function(value, params)
 	{
 	var regx;
 	var values = value.split(/@/);
@@ -432,7 +433,7 @@ self.suggestedApplication = function(value, params)
 	return true;
 	}
 
-self.serviceName = function(value, params)
+var serviceName = function(value, params)
 	{ // JavaScript doesn't support negative look behinds and /^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$(?<!\/http|https)/ won't work!
 	if(value.match(/(\/http|https|\/)$/))															// Can't be with http or https, because they are 
 		return false;																				// reserved services, or end with /
@@ -443,7 +444,7 @@ self.serviceName = function(value, params)
 	return true;
 	}
 
-self.testArray = function(value, params)
+var testArray = function(value, params)
 	{
 	var isStringArray = true;
 

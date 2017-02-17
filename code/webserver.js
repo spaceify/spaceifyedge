@@ -5,7 +5,7 @@
  * 
  * @class WebServer
  */
-// minify.csv, src/loaderutil.js, src/spxmlhttprequest.js, src/spaceifyloader.common.js
+
 var fs = require("fs");
 var url = require("url");
 var http = require("http");
@@ -25,10 +25,10 @@ function WebServer()
 var self = this;
 
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
 var webOperation = new WebOperation();
-var logger = new Logger("WebServer", "selogs");
+var config = SpaceifyConfig.getConfig();
+var logger = Logger.getLogger("WebServer");
 
 var options = {};
 var isOpen = false;

@@ -35,13 +35,13 @@ var self = this;
 var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+var logger = Logger.getLogger("SPM");
+var config = SpaceifyConfig.getConfig();
 var securityModel = new SecurityModel();
 var edgeSpaceifyNet = new EdgeSpaceifyNet();
-var logger = new Logger("SPM", "selogs");
 
 var exitCode = 0;
 var appManConnection = null;
@@ -272,7 +272,7 @@ var connect = fibrous( function(openMessaging)
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
-		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
+		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
 
 		// Messaging (Setup by ApplicationManager)
 		if(openMessaging)
@@ -289,7 +289,7 @@ var connect = fibrous( function(openMessaging)
 			appManMessageConnection.exposeRpcMethodSync("questionTimedOut", self, questionTimedOut);
 			appManMessageConnection.exposeRpcMethodSync("end", self, end);
 
-			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
 
 			messageId = appManConnection.sync.callRpc("requestMessageId", [sessionId], self);								// Request a messageId
 			appManMessageConnection.callRpc("confirm", [messageId]);

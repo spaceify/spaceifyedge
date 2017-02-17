@@ -17,7 +17,7 @@ function DockerImage()
 var self = this;
 
 var utility = new SpaceifyUtility();
-var logger = new Logger("DockerImage", "selogs");
+var logger = Logger.getLogger("DockerImage");
 
 var docker = new Docker({socketPath: "/var/run/docker.sock"});
 

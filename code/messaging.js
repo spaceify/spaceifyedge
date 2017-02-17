@@ -16,10 +16,10 @@ function Messaging()
 {
 var self = this;
 
-var config = new SpaceifyConfig();
-var utility = new SpaceifyUtility();
 var webSocketRpcServer = null;
-var logger = new Logger("Messaging", "selogs");
+var utility = new SpaceifyUtility();
+var config = SpaceifyConfig.getConfig();
+var logger = Logger.getLogger("Messaging");
 
 var connections = {};
 var confirmedConnections = {};

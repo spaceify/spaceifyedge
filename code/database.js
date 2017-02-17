@@ -22,9 +22,9 @@ function Database()
 {
 var self = this;
 
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
-//var logger = new Logger("Database", "selogs");
+var config = SpaceifyConfig.getConfig();
+//var logger = Logger.getLogger("Database");
 
 var db = null;
 
@@ -148,17 +148,17 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 		if(!isOpen())
 			openDB();
 
-		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.type]);
+		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.getType()]);
 
 		/*
 		DEPRECATED
-		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
+		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
+		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
 		*/
 		inject_identifier = "";
-		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
+		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
 
-		params = [manifest.unique_name, docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+		params = [manifest.getUniqueName(), docker_image_id, manifest.getType(), manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
 
 		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
@@ -166,7 +166,7 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 
 		/*
 		DEPRECATED
-		if(manifest.type == config.SPACELET)
+		if(manifest.getType() == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
@@ -192,11 +192,11 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 
 		/*
 		DEPRECATED
-		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
+		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
 		*/
 		inject_identifier = "";
 
-		params = [docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
+		params = [docker_image_id, manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, manifest.getUniqueName()];
 
 		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
@@ -204,7 +204,7 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 
 		/*
 		DEPRECATED
-		if(manifest.type == config.SPACELET)
+		if(manifest.getType() == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
@@ -249,17 +249,18 @@ self.removeApplication = fibrous( function(unique_name)
 var addProvidedServices = fibrous( function(manifest)
 	{
 	var stmt;
+	var provides_services = manifest.getProvidesServices();
 
 	try {
-		if(!("provides_services" in manifest))
+		if(provides_services.length == 0)
 			return;
 
-		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.unique_name);
+		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.getUniqueName());
 
 		stmt = db.prepare("INSERT INTO provided_services (unique_name, service_name, service_type) VALUES(?, ?, ?)");
 
-		for(var i = 0; i < manifest.provides_services.length; i++)
-			stmt.sync.run([manifest.unique_name, manifest.provides_services[i].service_name, manifest.provides_services[i].service_type]);
+		for(var i = 0; i < provides_services.length; i++)
+			stmt.sync.run([manifest.getUniqueName(), provides_services[i].service_name, provides_services[i].service_type]);
 		}
 	catch(err)
 		{
@@ -278,16 +279,17 @@ var addInjectHostnames = fibrous( function(manifest)
 	DEPRECATED
 	var stmt;
 	var inject_hostname;
+	var inject_hostnames = manifest.getInjectHostnames();
 
 	try {
-		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", manifest.unique_name);
+		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", manifest.getUniqueName());
 
 		stmt = db.prepare("INSERT INTO inject_hostnames (unique_name, inject_hostname) VALUES(?, ?)");
 
-		for(var i = 0; i < manifest.inject_hostnames.length; i++)
+		for(var i = 0; i < inject_hostnames.length; i++)
 			{
-			inject_hostname = manifest.inject_hostnames[i].replace("*", "%");			// IN MANIFEST: *.google.* -> CHANGED FOR SQLITE: %.google.%
-			stmt.sync.run([manifest.unique_name, inject_hostname]);
+			inject_hostname = inject_hostnames[i].replace("*", "%");				// IN MANIFEST: *.google.* -> CHANGED FOR SQLITE: %.google.%
+			stmt.sync.run([manifest.getUniqueName(), inject_hostname]);
 			}
 		}
 	catch(err)
@@ -313,26 +315,27 @@ var addInjectFiles = fibrous( function(manifest)
 	var wwwPath;
 	var directory;
 	var urlOrPath;
+	var inject_files = manifest.getInjectFiles();
 
 	try {
-		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.unique_name);
+		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.getUniqueName());
 
 		stmt = db.prepare("INSERT INTO inject_files (unique_name, urlOrPath, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
 
-		wwwPath = unique.getWwwPath(config.SPACELET, manifest.unique_name, config);
+		wwwPath = unique.getWwwPath(config.SPACELET, manifest.getUniqueName(), config);
 
 		order = 1;
-		for(var i = 0; i < manifest.inject_files.length; i++)
+		for(var i = 0; i < inject_files.length; i++)
 			{
-			directory = (manifest.inject_files[i].directory ? manifest.inject_files[i].directory.trim() : "");
+			directory = (inject_files[i].directory ? inject_files[i].directory.trim() : "");
 			if(directory != "" && directory.search(/\/$/) == -1)
 				directory += "/";
-			file = manifest.inject_files[i].file.trim();
-			type = manifest.inject_files[i].type.trim();
+			file = inject_files[i].file.trim();
+			type = inject_files[i].type.trim();
 
 			urlOrPath = (type == config.FILE ? wwwPath : config.EDGE_HOSTNAME + "/");							// Inject as URL or file
 
-			stmt.sync.run([manifest.unique_name, urlOrPath, directory, file, type, order++]);
+			stmt.sync.run([manifest.getUniqueName(), urlOrPath, directory, file, type, order++]);
 			}
 		}
 	catch(err)
