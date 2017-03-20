@@ -4,7 +4,7 @@ var self = this;
 
 var spaceifyApp = window.angular.module("spaceifyApp", []);
 
-	// BOOTSTRAPPED IN js/spaceify.edge.js!!! -- -- -- -- -- -- -- -- -- -- //
+	// BOOTSTRAP MANUALLY AFTER 'spaceifyReady' EVENT: angular.bootstrap(document, ["spaceifyApp"]); -- -- -- -- -- -- -- -- -- -- //
 
 	// CONTROLLERS -- -- -- -- -- -- -- -- -- -- //
 spaceifyApp.controller("bodyController", ["$scope", "$window", "$compile", "$timeout", function($scope, $window, $compile, $timeout)

@@ -1,6 +1,7 @@
 module.exports =
 {
-LoggerConfig: require("./loggerconfig.js"),
+Config: require("./config.js"),
+ConfigLoader: require("./configloader.js"),
 Logger: require("./logger.js"),
 Service: require("./service.js"),
 SpaceifyApplication: require("./spaceifyapplication.js"),
@@ -25,6 +26,7 @@ WebRtcConnection: require("./webjsonrpc/webrtcconnection.js"),
 WebSocketConnection: require("./webjsonrpc/websocketconnection.js"),
 WebSocketRpcConnection: require("./webjsonrpc/websocketrpcconnection.js"),
 WebSocketRpcServer: require("./webjsonrpc/websocketrpcserver.js"),
-WebSocketServer: require("./webjsonrpc/websocketserver.js")
+WebSocketServer: require("./webjsonrpc/websocketserver.js"),
+Connection: require("./webjsonrpc/connection.js")
 };
 

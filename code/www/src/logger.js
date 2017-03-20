@@ -159,80 +159,34 @@ Logger.ifFileExists = function(path)
 
 Logger.getLogger = function(class_, override_)
 	{
-	var all_;
-	var config;
-	var lib = null;
-	var logger = null;
-	var loggerConfig = null;
-	var LoggerConfig = null;
+	var lib;
+	var ConfigLoader;
 
-		// Get configuration file -- -- -- -- -- -- -- -- -- -- //
 	if(typeof window === "undefined")
 		{
 		var apipath = "/var/lib/spaceify/code/";
 
-		if(Logger.ifFileExists(__dirname + "/loggerconfig.js"))
-			LoggerConfig = require(__dirname + "/loggerconfig.js");
-		else if(Logger.ifFileExists(apipath + "loggerconfig.js"))
-			LoggerConfig = require(apipath + "loggerconfig.js");
+		if(Logger.ifFileExists(__dirname + "/configloader.js"))
+			ConfigLoader = require(__dirname + "/configloader.js");
+		else if(Logger.ifFileExists(apipath + "configloader.js"))
+			ConfigLoader = require(apipath + "configloader.js");
 		}
 	else if(typeof window !== "undefined")
 		{
 		lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
-
-		LoggerConfig = (lib.LoggerConfig ? lib.LoggerConfig : null);
+		ConfigLoader = (lib.ConfigLoader ? lib.ConfigLoader : null);
 		}
 
-	loggerConfig = (LoggerConfig ? LoggerConfig.getConfig() : null);
+	var config = ConfigLoader(class_, override_);
 
-		// Process configuration
-	if(!loggerConfig)												// Configuration file not found
+	var all_ = (typeof config.all !== "undefined" ? config.all : null);
+	if(all_ !== null)											// Class specific override
 		{
-		config = {};
-		}
-	else
-		{
-		if(loggerConfig[class_])									// Class found
-			{
-			config = loggerConfig[class_];
-			}
-		else if(loggerConfig["default_"])							// Try default
-			{
-			config = loggerConfig.default_;
-			}
-		else														// Fallback
-			{
-			config = {};
-			}
-
-		all_ = (typeof config.all !== "undefined" ? config.all : null);
-		if(all_ !== null)											// Class specific override
-			{
-			for(var g in config)
-				config[g] = all_;
-			}
-
-		if(loggerConfig["global_"])									// Global override
-			{
-			all_ = (typeof loggerConfig["global_"].all !== "undefined" ? loggerConfig["global_"].all : null);
-
-			for(var g in loggerConfig.global_)
-				{
-				if(loggerConfig.global_[g] !== null || all_ !== null)
-					config[g] = (all_ ? all_ : loggerConfig.global_[g]);
-				}
-			}
-
-		if(override_)												// User override
-			{
-			all_ = (typeof override.all  !== "undefined" ? override.all : null);
-
-			for(var g in override_)
-				{
-				if(override_[g] !== null || all_ !== null)
-					config[g] = (all_ ? all_ : loggerConfig.global_[g]);
-				}
-			}
+		config['log'] = all_;
+		config['dir'] = all_;
+		config['info'] = all_;
+		config['error'] = all_;
+		config['warn'] = all_;
 		}
 
 	return new Logger(config);

@@ -158,6 +158,7 @@ self.callRpc = function()
 	// -- -- -- -- -- -- -- -- -- -- //
 connection.setConnectionListener(listenConnection);							// Bubble events from connections and servers to this class
 connection.setDisconnectionListener(listenDisconnection);
+
 if(isServer)
 	{
 	connection.setServerUpListener(listenServerUp);

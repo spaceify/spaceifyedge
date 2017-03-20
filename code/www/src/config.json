@@ -89,7 +89,7 @@
   "APPMAN_MESSAGE_PORT": 2950,
   "APPMAN_MESSAGE_PORT_SECURE": 4950,
 
-  "OPERATION": "templates/operation.html",
+  "OPERATION": "operation.html",
 
   "ADMIN_LOGIN_PATH": {"file": "/var/lib/spaceify/code/www/appstore/login.html", "content_type": "html"},
 

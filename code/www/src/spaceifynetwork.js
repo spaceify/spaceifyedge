@@ -43,13 +43,18 @@ var config = SpaceifyConfig.getConfig();
 //var logger = Logger.getLogger("SpaceifyNetwork");
 
 // Get the URL to the Spaceify Edge
-self.getEdgeURL = function(options)
+self.getEdgeURL = function(opts)
 	{
+	var options = {};
+	options.forceSecureProtocol = (typeof opts.forceSecureProtocol !== "undefined" ? opts.forceSecureProtocol : null);
+	options.ownProtocol = (typeof opts.ownProtocol !== "undefined" ? opts.ownProtocol : null);
+	options.withEndSlash = (typeof opts.withEndSlash !== "undefined" ? opts.withEndSlash : false);
+
 	var protocol = self.getProtocol(true, options.ownProtocol, options.forceSecureProtocol);
 
-	var hostname = (typeof window != "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
+	var hostname = (typeof window !== "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
 
-	return protocol + hostname + (options.port ? ":" + options.port : "") + (options.withEndSlash ? "/" : "");
+	return protocol + hostname + (options.withEndSlash ? "/" : "");
 	}
 
 // Get URL to applications resource
@@ -81,7 +86,7 @@ self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
 		{
 		protocol = "";
 		}
-	else if(typeof window == "undefined")										// Node.js!
+	else if(typeof window === "undefined")										// Node.js!
 		{
 		if(ownProtocol === null)
 			protocol = "";
@@ -123,25 +128,6 @@ self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
 // Parse URL query
 self.parseQuery = function(url)
 	{
-	/*var query = {}, parts, pairs;
-	var regx = new RegExp("=", "i");
-
-	if((parts = url.split("?")).length != 2)
-		return query;
-
-	pairs = parts[1].split("&");
-
-	for(var i = 0; i < pairs.length; i++)
-		{
-		if(regx.exec(pairs[i]))													// Name and value
-			query[RegExp.leftContext] = RegExp.rightContext;
-		else																	// Only name
-			query[pairs[i]] = null;
-		}
-
-	return query;*/
-
-	// Adapted from http://james.padolsey.com/snippets/parsing-urls-with-the-dom/
 	var parameters = {}, part, pair, pairs;
 
 	url = decodeURIComponent(url);
@@ -173,10 +159,10 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	{ // Tip: exclude and include can be used in combination to replace values = first exclude old then include new.
 	var i, hash, str, search = "";
 
-	for(i in exclude)
+	for(i = 0; i < exclude.length; i++)
 		{
-		if(i in query)
-			delete query[i];
+		if(exclude[i] in query)
+			delete query[exclude[i]];
 		}
 
 	for(i in include)
@@ -218,19 +204,10 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 // Test is client in Spaceify's local network
 self.isSpaceifyNetwork = function(timeout, callback)
 	{
-	var xhr = new window.XMLHttpRequest();
-
-	xhr.open("HEAD", window.location.protocol + "//10.0.0.1/templates/test.txt", true);
-	xhr.timeout = timeout;
-	xhr.onreadystatechange = function()
-		{
-		if (xhr.readyState == 4)
-			{
-			callback(xhr.status >= 200 && xhr.status < 304 ? true : false);
-			}
-		};
-
-	xhr.send();
+	if(typeof window === "undefined" || typeof window.spl === "undefined")		// SpaceifyLoader must exist
+		callback(false);
+	else
+		window.spl.testNetworkLocation(timeout, callback);
 	}
 
 self.parseURL = function(url)
@@ -242,7 +219,7 @@ self.parseURL = function(url)
 	// parseUri 1.2.2
 	// (c) Steven Levithan <stevenlevithan.com>
 	// MIT License
-	var	o	=
+	var	o =
 		{
 		strictMode: false,
 		key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
@@ -267,11 +244,6 @@ self.parseURL = function(url)
 	});
 
 	return uri;
-	}
-
-self.implementsWebServer = function(manifest)
-	{
-	return (manifest.implements && manifest.implements.indexOf(config.WEB_SERVER) != -1 ? true : false);
 	}
 
 self.isPortInUse = function(port, callback)
@@ -352,7 +324,7 @@ self.doOperation = function(jsonData, callback)
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL({ forceSecureProtocol: true, ownProtocol: null, port: null, withEndSlash: true }) + config.OPERATION;
+		operationUrl = self.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true }) + config.OPERATION;
 		//true, null, true
 
 		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)

@@ -3,8 +3,10 @@
 rm binaryrpccommunicator.js > /dev/null 2>&1
 rm callbackbuffer.js > /dev/null 2>&1
 rm config.json > /dev/null 2>&1
+rm connection.js > /dev/null 2>&1
 rm logger.js > /dev/null 2>&1
-rm loggerconfig.js > /dev/null 2>&1
+rm config.js > /dev/null 2>&1
+rm configloader.js > /dev/null 2>&1
 rm rpccommunicator.js > /dev/null 2>&1
 rm service.js > /dev/null 2>&1
 rm spaceifyapplication.js > /dev/null 2>&1
@@ -26,8 +28,10 @@ rm websocketserver.js > /dev/null 2>&1
 ln -s www/src/webjsonrpc/binaryrpccommunicator.js binaryrpccommunicator.js > /dev/null 2>&1
 ln -s www/src/webjsonrpc/callbackbuffer.js callbackbuffer.js > /dev/null 2>&1
 ln -s www/src/config.json config.json > /dev/null 2>&1
+ln -s www/src/webjsonrpc/connection.js connection.js > /dev/null 2>&1
 ln -s www/src/logger.js logger.js > /dev/null 2>&1
-ln -s www/src/loggerconfig.js loggerconfig.js > /dev/null 2>&1
+ln -s www/src/config.js config.js > /dev/null 2>&1
+ln -s www/src/configloader.js configloader.js > /dev/null 2>&1
 ln -s www/src/webjsonrpc/rpccommunicator.js rpccommunicator.js > /dev/null 2>&1
 ln -s www/src/service.js service.js > /dev/null 2>&1
 ln -s www/src/spaceifyapplication.js spaceifyapplication.js > /dev/null 2>&1

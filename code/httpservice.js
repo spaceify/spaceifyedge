@@ -41,7 +41,8 @@ var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
-var apps = [];																		// Spacelets, sandboxed, sandboxed debian and native debian applications
+var apps = {};																		// Spacelets, sandboxed, sandboxed debian and native debian applications
+var appCount = 0;
 
 var cleanUpIntervalId;																// Make clean up interval less than session interval
 var CLEAN_UP_INTERVAL = 600 * 1000;
@@ -132,7 +133,7 @@ var connectToCore = fibrous( function()
 	var applicationData;
 
 	try {
-		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
 
 		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");
 
@@ -254,16 +255,13 @@ var requestListener = function(currentRequest, callback)
 	{
 	var service;
 	var openServices;
-	var partPos, appPos, uname;
-	var startsWithAppName = false;
+	var hasApplication = false;
 	var servicesByServiceName = {};
+	var unique_name, unique_name_last_index;
 	var pathName = currentRequest.urlObj.pathname.replace(/^\/|\/$/, "");
-	var pathNameLength = pathName.length;
 	var pathParts = pathName.split("/");
-	var firstPart = pathParts.shift() || "";
-		pathParts = pathName.split("/");
-	var pathPartsLength = pathParts.length;
-	var appURL, port, protocol, location, content, spe_host, sp_host, sp_path;
+	var firstPart = pathParts[0] || "";
+	var appURL, protocol, location, content, host, sp_port, sp_host, spe_host, sp_path;
 
 	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
 	if(firstPart == "service")
@@ -291,28 +289,31 @@ var requestListener = function(currentRequest, callback)
 	// Path points to apps resource or URL is short url -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
-// https://edge.spaceify.net/spaceify/driverphilipshue/images/icon.png
-			
-		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
-			{ // ToDo: compare a/b/c to [a/b, a/b/c] => always returns a/b
-			for(partPos = 0, uname = ""; partPos < pathPartsLength; partPos++)
-				{
-				uname += (uname != "" ? "/" : "") + pathParts[partPos];
+		if(currentRequest.GET.appshorturl)											// Remote request
+			unique_name = currentRequest.GET.appshorturl;
+		else																		// Local request
+			unique_name = pathParts.join("/");
 
-				if(uname == apps[appPos].unique_name)
-					{
-					startsWithAppName = true;
-					break;
-					}
+		if(unique_name.charAt(unique_name.length - 1) == "/")
+			unique_name = unique_name.substr(0, unique_name.length - 1);
+
+		unique_name_last_index = unique_name.length;
+
+		do	{																		// Compare the unique names of installed applications to the unique_name
+			unique_name = unique_name.substr(0, unique_name_last_index);
+
+			if(apps[unique_name])
+				{
+				hasApplication = true;
+				break;
 				}
 
-			if(startsWithAppName)
-				break;
-			}
+			unique_name_last_index = unique_name.lastIndexOf("/");
+			} while(unique_name_last_index != -1);
 
-		if(startsWithAppName)
+		if(hasApplication)
 			{
-			if(partPos == pathPartsLength - 1)										// Short URL - make redirection
+			if(unique_name_last_index == unique_name.length)						// Short URL - make redirection, path contains nothing but the unique_name
 				{
 // console.log("REDIRECT");
 				location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
@@ -320,38 +321,43 @@ var requestListener = function(currentRequest, callback)
 
 				protocol = (!currentRequest.isSecure ? "http" : "https");
 
-				appURL = coreConnection.sync.callRpc("getApplicationURL", [apps[appPos].unique_name], self);
+				appURL = coreConnection.sync.callRpc("getApplicationURL", [unique_name], self);
 
-				port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
+				sp_port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
 
-				spe_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, port: null, withEndSlash: true });
-				//protocol, false, true
+				spe_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, withEndSlash: true });
 
-				if(appURL.implementsWebServer && port)
-					sp_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, port: port, withEndSlash: true });
-					//protocol, port, true
+				if(appURL.implementsWebServer && sp_port)
+					{
+					host = spe_host;
+					sp_host = spe_host;
+					}
 				else
-					sp_host = network.externalResourceURL(apps[appPos].unique_name, { forceSecureProtocol: false, ownProtocol: protocol, port: null, withEndSlash: true });
+					{
+					host = network.externalResourceURL(unique_name, { forceSecureProtocol: false, ownProtocol: protocol, withEndSlash: true });
+					sp_host = host;
+					}
 
 				sp_path = "index.html";
 
+				currentRequest.GET.sp_port = sp_port;
 				currentRequest.GET.sp_host = encodeURIComponent(sp_host);
 				currentRequest.GET.sp_path = encodeURIComponent(sp_path);
 				currentRequest.GET.spe_host = encodeURIComponent(spe_host);
 
-				location += "/remote.html/" + network.remakeQueryString(currentRequest.GET, {}, {}, "", true);
+				location += "/remote.html" + network.remakeQueryString(currentRequest.GET, ["appshorturl"], {}, "", true);
 
-				content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
+				content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": sp_port});
 
 				callback(null, {type: "write", content: content, contentType: "html", responseCode: 302, location: location});
 				}
 			else																	// Resource - load
 				{
-				pathName = currentRequest.urlObj.path.replace(apps[appPos].unique_name, "");
+				pathName = currentRequest.urlObj.path.replace(unique_name, "");
 				pathName = pathName.replace(/^\/*/, "");
 				pathName = pathName.split("?");
 
-				callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: pathName[0]});
+				callback(null, {type: "load", wwwPath: apps[unique_name].wwwPath, pathname: pathName[0]});
 				}
 			}
 		else
@@ -362,34 +368,25 @@ var requestListener = function(currentRequest, callback)
 	// UTILITY -- -- -- -- -- -- -- -- -- -- //
 var addApp = function(manifest)
 	{
-	var length = manifest.unique_name.length;
 	var wwwPath = unique.getWwwPath(manifest.type, manifest.unique_name, config);
 
-	apps.push({unique_name: manifest.unique_name, length: length, wwwPath: wwwPath});
+	apps[manifest.unique_name] = { wwwPath: wwwPath };
+
+	appCount++;
 	}
 
 var remApp = function(unique_name)
 	{
-	var index;
-
-	if((index = getAppIndex(unique_name)) != -1)
-		apps.splice(index, 1);
+	if(apps[unique_name])
+		{
+		delete apps[unique_name];
+		appCount--;
+		}
 	}
 
 /*var setAppRunningState = function(unique_name, state)
 	{
 	}*/
-
-var getAppIndex = function(unique_name)
-	{
-	for(var i = 0; i < apps.length; i++)
-		{
-		if(apps[i].unique_name == unique_name)
-			return i;
-		}
-
-	return -1;
-	}
 
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
 var manageSessions = function(currentRequest)

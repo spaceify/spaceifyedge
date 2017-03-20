@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * LoggerConfig, 8.2.2017 Spaceify Oy
+ * Config, 8.2.2017 Spaceify Oy
  *
  * This configuration is used in Spaceify project.
  *
@@ -18,18 +18,18 @@
  *    true = all the output types are enabled
  *    null = the override is not applied to the output types
  *
- * If the configuration for a class is not found, the default (default_) configuration
+ * If the configuration for a class is not found, the default (defaultConfig) configuration
  * is used as a fallback. The default configuration operates identically to the individual
  * class configurations.
  *
- * There is a global (global_) override configuration. The global oveverride is applied
+ * There is a global (globalConfigOverride) override configuration. The global oveverride is applied
  * to all of the corresponding output types of all the individual class configurations.
  * The override takes three values:
  *   false = the output type of all the individual classes are disabled
  *    true = the output type of all the individual classes are enabled
  *    null = the override is not applied to the output type of the class
  *
- * NOTICE: the global_ and default_ configurations are mandatory variables in the loggerconfig.js file!
+ * NOTICE: the globalConfigOverride and defaultConfig configurations are mandatory variables in the config.js file!
  *
  * Order of precedence of the configurations
  *   Global configuration takes precedencence of class configurations
@@ -38,471 +38,431 @@
  *
  * e.g.
  *      MyClass is unaltered
- *      global_ = { log: null, dir: null, info: null, error: null, warn: null, all: null };
+ *      globalConfigOverride = { log: null, dir: null, info: null, error: null, warn: null, all: null };
  *      MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
  *   => MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
  *
  *      MyClass 'all' overrides its output types
- *      global_ = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: null };
+ *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: null };
  *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true,  all: false };
  *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: false };
  *
  *      Global error is set to false and overrides MyClass error with false
- *      global_ = { log: null, dir: null, info: null, error: false, warn: null, all: null };
+ *      globalConfigOverride = { log: null, dir: null, info: null, error: false, warn: null, all: null };
  *      MyClass = { log: true, dir: true, info: true, error: true,  warn: true, all: null };
  *   => MyClass = { log: true, dir: true, info: true, error: false, warn: true, all: null };
  *
  *      Global 'all' is set to false and all the output types of MyClass are overridden with false
- *      global_ = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: false };
+ *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: false };
  *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true, all: null };
  *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: null };
  *
- * @class LoggerConfig
+ * @class Config
  */
 
-function LoggerConfig()
+var Config =
 {
-var self = this;
 
-	// MANDATORY CONFIGURATION - Global configuration overrides the individual class configurations
-self.globale =
+	// MANDATORY CONFIGURATION - Global configuration overrides (overrides the individual class configurations)
+globalConfigOverride:
 	{
-	log: null,
-	dir: null,
-	info: null,
-	error: null,
-	warn: null,
-	all: null
-	};
+	all: true,
+	myoverride: 123,
+	mydefault2: 3
+	},
 
-	// MANDATORY CONFIGURATION - Default configuration is used if class configuration does not exist
-self.default_ =
+	// MANDATORY CONFIGURATION - Default configuration (always used as base config)
+defaultConfig:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
 	warn: true,
-	all: null
-	};
+	all: null,
+	mydefault1: 1,
+	mydefault2: 2
+	},
 
-	// Class configurations
-self.Manifest =
+	// Class configurations (overrides defaultConfig)
+Manifest:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.ApplicationManager =
+ApplicationManager:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.AppManService =
+AppManService:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.BinaryRpcCommunicator =
+BinaryRpcCommunicator:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Core =
+Core:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Database =
+Database:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.DHCPDLog =
+DHCPDLog:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.DockerContainer =
+DockerContainer:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.DockerHelper =
+DockerHelper:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.DockerImage =
+DockerImage:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.EdgeSpaceifyNet =
+EdgeSpaceifyNet:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.HttpService =
+HttpService:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Iptables =
+Iptables:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Main =
+Main:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Manager =
+Manager:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Messaging =
+Messaging:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.PubSub =
+PubSub:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.RpcCommunicator =
+RpcCommunicator:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SecurityModel =
+SecurityModel:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Service =
+Service:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyApplication =
+SpaceifyApplication:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyApplicationManager =
+SpaceifyApplicationManager:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyConfig =
+SpaceifyConfig:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyCore =
+SpaceifyCore:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyError =
+SpaceifyError:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyMessages =
+SpaceifyMessages:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyNet =
+SpaceifyNet:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyNetwork =
+SpaceifyNetwork:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyService =
+SpaceifyService:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SpaceifyUtility =
+SpaceifyUtility:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.Spacelet =
+Spacelet:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.SPM =
+SPM:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: false
-	};
+	warn: true
+	},
 
-self.ValidateApplication =
+ValidateApplication:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebOperation =
+WebOperation:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebRtcClient =
+WebRtcClient:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebRtcConnection =
+WebRtcConnection:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebServer =
+WebServer:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebSocketConnection =
+WebSocketConnection:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebSocketRpcConnection =
+WebSocketRpcConnection:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebSocketRpcServer =
+WebSocketRpcServer:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-self.WebSocketServer =
+WebSocketServer:
 	{
 	log: true,
 	dir: true,
 	info: true,
 	error: true,
-	warn: true,
-	all: null
-	};
+	warn: true
+	},
 
-}
-
-LoggerConfig.getConfig = function()
+Connection:
 	{
-	return new LoggerConfig();
-	};
+	log: true,
+	dir: true,
+	info: true,
+	error: true,
+	warn: true
+	}
+};
 
 if(typeof exports !== "undefined")
-	module.exports = LoggerConfig;
+	module.exports = Config;

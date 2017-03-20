@@ -24,6 +24,8 @@ var network = new lib.SpaceifyNetwork();
 var config = lib.SpaceifyConfig.getConfig();
 //var logger = lib.Logger.getLogger("SpaceifyNet");
 
+var WWW_PORT = 80;
+
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
 	{
@@ -108,24 +110,24 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	document.getElementById("certIframe").src = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true }) + "spaceify.crt";
-	//false, false, true
+	document.getElementById("certIframe").src = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true }) + "spaceify.crt";
+
 	return true;
 	}
 
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
 self.loadAppstorePage = function()
 	{
-	var edgeURL = network.getEdgeURL({ forceSecureProtocol: true, ownProtocol: null, port: null, withEndSlash: true });
-	//true, null, true
-	spaceifyLoader.loadPage(edgeURL + config.APPSTORE_INDEX_FILE, edgeURL + config.APPSTORE, edgeURL);
+	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
 self.loadLaunchPage = function()
 	{
-	var edgeURL = network.getEdgeURL({ forceSecureProtocol: true, ownProtocol: null, port: null, withEndSlash: true });
-	//true, null, true
-	spaceifyLoader.loadPage(edgeURL + config.INDEX_FILE, edgeURL, edgeURL);
+	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -167,35 +169,41 @@ self.showInstalledApplications = function(callback)
 self.renderTile = function(manifest, callback)
 	{
 	var element, query;
-	var port, sp_host, spe_host, sp_path, icon, id;
+	var sp_port, host, sp_host, spe_host, sp_path, icon, id;
 
 	if(manifest.hasTile)																			// Application supplies its own tile
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
-			port = (!network.isSecure() ? appURL.port : appURL.securePort);
-			spe_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true });
-			//false, false, true
+			sp_port = (!network.isSecure() ? appURL.port : appURL.securePort);
 
-			if(appURL.implementsWebServer && port)
-				sp_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: null, port: port, withEndSlash: true });
-				//false, port, true
+			spe_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
+
+			if(appURL.implementsWebServer && sp_port)
+				{
+				host = spe_host;
+				sp_host = spe_host;
+				}
 			else
-				sp_host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true });
+				{
+				host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, withEndSlash: true });
+				sp_host = host;
+				}
 
 			sp_path = config.TILEFILE;
 
 			id = "apptile_" + manifest.unique_name.replace("/", "_");
-			scope("edgeBody").addTile({type: "apptile", container: manifest.type, manifest: manifest, id:id, callback:
+			scope("edgeBody").addTile({type: "apptile", container: manifest.type, manifest: manifest, id: id, callback:
 				function()
 					{
 					query = {};
+					query.sp_port = sp_port;
 					query.sp_host = encodeURIComponent(sp_host);
 					query.sp_path = encodeURIComponent(sp_path);
 					query.spe_host = encodeURIComponent(spe_host);
 
 					element = document.getElementById(id);
-					element.src = sp_host + sp_path + network.remakeQueryString(query, {}, {}, "", true);
+					element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
 
 					callback();
 					}
@@ -211,15 +219,14 @@ self.renderTile = function(manifest, callback)
 			}
 		else
 			{
-			sp_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true });
-			//false, false, true
+			sp_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
 			sp_path = "images/icon.png";
 			}
 
 		id = "iconimage_" + manifest.unique_name.replace("/", "_");
 		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, id: id, sp_src: sp_host + sp_path, callback: function()
 			{
-			spaceifyLoader.loadData(document.getElementById(id), callback);
+			spaceifyLoader.loadData(document.getElementById(id), {}, callback);
 			} });
 		}
 

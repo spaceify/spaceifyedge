@@ -13,52 +13,38 @@ var self = this;
 // NODE.JS / REAL SPACEIFY - - - - - - - - - - - - - - - - - - - -
 var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwork ? window.isSpaceifyNetwork : false);
-var isSpaceletOrigin = (typeof window !== "undefined" && !window.location.hostname.match(/.*spaceify\.net/) ? true : false);
 
 var lib = null;
-var spllib = null;
 //var Logger = null;
-var LoaderUtil = null;
-var SpaceifyNetwork = null;
+var Connection = null;
 var SpaceifyConfig = null;
-var WebSocketRpcConnection = null;
+var SpaceifyNetwork = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
 	//Logger = require(lib + "logger");
-	LoaderUtil = null;
-	SpaceifyNetwork = function() {};
+	Connection = require(lib + "connection");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
-	WebSocketRpcConnection = require(lib + "websocketrpcconnection");
+	SpaceifyNetwork = function() {};
 	}
 else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
-	spllib = (window.WEBPACK_SPL_LIBRARY ? window.WEBPACK_SPL_LIBRARY : window);
 
 	//Logger = lib.Logger;
-	LoaderUtil = spllib.LoaderUtil.getLoaderUtil();
-	SpaceifyNetwork = lib.SpaceifyNetwork;
+	Connection = lib.Connection;
 	SpaceifyConfig = lib.SpaceifyConfig;
-	WebSocketRpcConnection = lib.WebSocketRpcConnection;
+	SpaceifyNetwork = lib.SpaceifyNetwork;
 	}
 
+var connection = new Connection();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
 //var logger = Logger.getLogger("SpaceifyCore");
-var connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
 
 var callQueue = [];
-
-var tunnelId = null;
-var isConnected = false;
-var isConnecting = false;
-
-var useSecure = (isNodeJs ? true : network.isSecure());
-var caCrt = (isNodeJs ? config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW : "");
 
 self.startSpacelet = function(unique_name, callback)
 	{
@@ -205,19 +191,28 @@ self.loadOptions = function(unique_name, directory, filename, callback)
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
 var callRpc = function(method, params, callback)
 	{
-	var callObj;
+	var callObj, isSecure, port, hostname, caCrt;
 
-	if(isConnecting)
+	if(connection.isConnecting())
 		{
 		callQueue.push({ method: method, params: params, callback: callback });
 		}
-	else if(!isConnected)
+	else if(!connection.isConnected())
 		{
-		isConnecting = true;
+		callQueue.push({ method: method, params: params, callback: callback });
 
-		callQueue.push({ method: method, params: params, callback: callback });	
+		isSecure = (isNodeJs ? true : network.isSecure());
+		port = (!isSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
+		caCrt = (isNodeJs ? config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW : "");
 
-		connect(function(err, data)
+		if(!isNodeJs)																		// Web page
+			hostname = network.getEdgeURL({});
+		else if(isRealSpaceify)																// Node.js
+			hostname = config.EDGE_IP;
+		else																				// Develop mode
+			hostname = config.CONNECTION_HOSTNAME;
+
+		connection.connect({ hostname: hostname, port: port, isSecure: isSecure, caCrt: caCrt }, function(err, data)
 			{
 			if(err)
 				{
@@ -244,7 +239,7 @@ var nextRpcCall = function()
 
 	if(typeof callObj !== "undefined")
 		{
-		call(callObj.method, callObj.params, function()
+		connection.callRpc(callObj.method, callObj.params, self, function()
 			{
 			callObj.callback.apply(this, arguments);
 
@@ -253,79 +248,9 @@ var nextRpcCall = function()
 		}
 	}
 
-var call = function(method, params, callback)
-	{
-	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
-		{
-		connection.callRpc(method, params, self, function(err, data, id, ms)
-			{
-			callback(err, data, id, ms);
-			});
-		}
-	else
-		{
-		connection.callClientRpc(tunnelId, method, params, self, function(err, data)
-			{
-			callback(err, data);
-			});
-		}
-	}
-
-var connect = function(callback)
-	{
-	var host, hostname, protocol;
-	var port = (!useSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
-
-	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
-		{
-		if(!isNodeJs)
-			hostname = config.EDGE_HOSTNAME;
-		else if(isRealSpaceify)
-			hostname = config.EDGE_IP;
-		else
-			hostname = config.CONNECTION_HOSTNAME;
-
-		connection.connect({hostname: hostname, port: port, isSecure: useSecure, caCrt: caCrt}, function(err, data)
-			{
-			if(!err)
-				{
-				isConnected = true;
-				isConnecting = false;
-
-				callback(null, true);
-				}
-			else
-				{
-				isConnected = false;
-				isConnecting = false;
-
-				callback(err, null);
-				}
-			});
-		}
-	else
-		{
-		protocol = (!useSecure ? "http" : "https");
-		host = network.getEdgeURL({ forceSecureProtocol: null, ownProtocol: null, port: null, withEndSlash: false });
-		//false, null, false
-
-		connection.createWebSocketTunnel({host: host, port: port, protocol: protocol}, null, function(id)
-			{
-			tunnelId = id;
-			isConnected = true;
-			isConnecting = false;
-
-			callback(null, true);
-			});
-		}
-	}
-
 self.close = function()
 	{
-	if(connection && connection.close)
-		connection.close();
-
-	connection = null;
+	connection.close();
 	}
 
 	// CACHE -- -- -- -- -- -- -- -- -- -- //

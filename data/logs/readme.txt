@@ -1,1 +1,1 @@
-This directory contains the log files Spaceify's process write.
+This directory contains the log files Spaceify's processes write.

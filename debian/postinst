@@ -279,10 +279,10 @@ ln -s /var/lib/spaceify/code/www/libs js
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 
 npm install -g node-gyp
-chown -R _spaceify:_spaceify /var/lib/spaceify/code 
+chown -R _spaceify:_spaceify /var/lib/spaceify/code
 sudo su - _spaceify -c "cd /var/lib/spaceify/code && npm install"
 
-chown -R root:root /var/lib/spaceify/code 
+chown -R root:root /var/lib/spaceify/code
 
 # ----------
 # ----------

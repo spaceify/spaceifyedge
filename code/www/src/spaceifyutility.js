@@ -311,24 +311,6 @@ self.preparePath = function(directory)
 	}
 
 	// WWW / NETWORK -- -- -- -- -- -- -- -- -- -- //
-self.postForm = fibrous( function(url, form)
-	{
-	var result;
-
-	try	{
-		result = request.sync.post(url, form);
-		}
-	catch(err)
-		{
-		throw language.E_POST_FORM_FAILED_TO_INITIATE_HTTP_POST.pre("SpaceifyUtility::postForm", err);
-		}
-
-	if(result.statusCode != 200)
-		throw language.E_POST_FORM_FAILED_TO_POST_FORM.preFmt("SpaceifyUtility::postForm", {"~url": url, "~code": result.statusCode});
-
-	return result;
-	});
-
 self.postPublish = function(applicationPackage, username, password, release_name, callback)
 	{
 	logger.force(language.PACKAGE_POSTING);

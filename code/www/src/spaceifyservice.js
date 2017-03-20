@@ -17,14 +17,14 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
 //var Logger = null;
+var fibrous = null;
 var Service = null;
+var Connection = null;
 var SpaceifyCore = null;
 var SpaceifyError = null;
-var WebSocketRpcServer = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
-var WebSocketRpcConnection = null;
-var fibrous = null;
+var WebSocketRpcServer = null;
 
 if (isNodeJs)
 	{
@@ -34,10 +34,10 @@ if (isNodeJs)
 	Service = require(lib + "service");
 	SpaceifyCore = require(lib + "spaceifycore");
 	SpaceifyError = require(lib + "spaceifyerror");
-	WebSocketRpcServer = require(lib + "websocketrpcserver");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
 	SpaceifyNetwork = require(lib + "spaceifynetwork");
-	WebSocketRpcConnection = require(lib + "websocketrpcconnection");
+	WebSocketRpcServer = require(lib + "websocketrpcserver");
+	Connection = require(lib + "connection");
 	fibrous = require(lib + "fibrous");
 	}
 else
@@ -48,10 +48,10 @@ else
 	Service = lib.Service;
 	SpaceifyCore = lib.SpaceifyCore;
 	SpaceifyError = lib.SpaceifyError;
-	WebSocketRpcServer = null;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
-	WebSocketRpcConnection = lib.WebSocketRpcConnection;
+	WebSocketRpcServer = null;
+	Connection = lib.Connection;
 	fibrous = function(fn) { return fn; };
 	}
 
@@ -109,7 +109,7 @@ function open(serviceObj, service, isSecure, callback)
 
 	if(!service[service_name])
 		{
-		service[service_name] = new Service(service_name, false, new WebSocketRpcConnection());
+		service[service_name] = new Service(service_name, false, new Connection());
 		service[service_name].setConnectionListener(connectionListener);
 		service[service_name].setDisconnectionListener(disconnectionListener);
 		}
