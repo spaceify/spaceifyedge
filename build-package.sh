@@ -52,27 +52,13 @@ cp LICENSE $dst
 cp README.md $dst
 cp versions $dst
 
-cp -r data/minify/ "$dst/data"
-
-# ----------
-# ----------
-# ----------
-# ----------
-# ---------- UGLIFYING/MINIFYING  FILES ---------- #
-nodecmd="node"
-if type nodejs >/dev/null 2>&1; then
-	nodecmd="nodejs"
-fi
-$nodecmd "$dst/data/minify/minify.js" "all" "$dst/code/www/" "$dst/code/www/"
-uglifyMinifyError=$?
-
 # ----------
 # ----------
 # ----------
 # ----------
 # ---------- DO SOME CLEANUP ---------- #
 
-printf " : Cleanup files and directories"
+printf "\n : Cleanup files and directories"
 
 rm -r "$dst/code/node_modules" > /dev/null 2>&1 || true
 rm "$dst/code/www/spaceify.crt" > /dev/null 2>&1 || true
@@ -95,10 +81,14 @@ chown -R root:root debian/
 dpkg-buildpackage -i.svn -us -uc
 dpkgBuildpackageError=$?
 
-if [ $dpkgBuildpackageError == 0 ] && [ $uglifyMinifyError == 0 ]; then
-	printf "\n\e[42mPackage build. Files are in directory $dstBase\e[0m\n\n"
-else
-	printf "\n\e[101mBuilding package failed: uglifyMinifyError=$uglifyMinifyError, dpkgBuildpackageError=$dpkgBuildpackageError\e[0m\n\n"
+if [ $dpkgBuildpackageError != 0 ]; then
 
-	rm -r /tmp/build/ > /dev/null 2>&1 || true
+	printf "\n\e[101mBuilding package failed: $dpkgBuildpackageError\e[0m.\n\n"
+
+	rm -r /tmp/build/ > /dev/null 2>&1 || true	
+
+else
+
+	printf "\n\e[42mPackage build. Files are in directory $dstBase\e[0m.\n\n"
+
 fi

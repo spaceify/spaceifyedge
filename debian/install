@@ -1,5 +1,5 @@
 code/*.js* var/lib/spaceify/code
-code/libs/* var/lib/spaceify/code/libs
+code/lib/* var/lib/spaceify/code/lib
 code/www/index.html var/lib/spaceify/code/www
 code/www/location.conf var/lib/spaceify/code/www
 code/www/operation.html var/lib/spaceify/code/www

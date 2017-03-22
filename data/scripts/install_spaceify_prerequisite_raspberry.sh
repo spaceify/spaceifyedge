@@ -9,5 +9,5 @@ sh -c 'usermod -aG docker $SUDO_USER'
 systemctl enable docker.service
 
 apt-get update
-apt-get install dh-systemd apt-utils
+apt-get install -y dh-systemd apt-utils
 
