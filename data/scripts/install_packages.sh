@@ -3,9 +3,9 @@
 # ----- Wait for the servers to come up so that the applications can be reinstalled ----- #
 printf "\n\e[4mWaiting for the Spaceify's servers to come up\e[0m\n\n"
 
-core_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "CORE_PORT_SECURE" | sed 's/[^0-9]*//g')
-appman_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
-message_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_MESSAGE_PORT_SECURE" | sed 's/[^0-9]*//g')
+core_port=$(cat /var/lib/spaceify/code/config.json | grep "CORE_PORT_SECURE" | sed 's/[^0-9]*//g')
+appman_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
+message_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_MESSAGE_PORT_SECURE" | sed 's/[^0-9]*//g')
 
 r=0
 up_count=0

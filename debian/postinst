@@ -25,6 +25,7 @@ comm_out_spaceify="# Commented out by Spaceify: "
 eth=$(</var/lib/spaceify/data/interfaces/ethernet)
 wlan=$(</var/lib/spaceify/data/interfaces/wlan)
 is_internal=$(</var/lib/spaceify/data/interfaces/is_internal)
+edge_name=$(</var/lib/spaceify/data/db/edge_name)
 
 # ----------
 # ----------
@@ -120,19 +121,16 @@ fi
 #monit=$( echo "${monit}${end_spaceify}\n" )
 #printf "$monit" > /etc/monit/monitrc
 
-core_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "CORE_PORT" | sed 's/[^0-9]*//g')
+core_port=$(cat /var/lib/spaceify/code/config.json | grep "CORE_PORT" | sed 's/[^0-9]*//g')
 core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 #sed -i "s/%1/${core_port}/" /etc/monit/conf.d/spaceify.conf									# change the monitored port to the configuration
 
 
 ################## DNS CONFIGURATION #########################################
 
-edge_name=$(< /var/lib/spaceify/data/db/edge.id)												# edge_name equals groupdId in remote operation domain
-edge_name=$(echo $edge_name | awk -F : '{print $2}')
-
 dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \n"
 dnsmasqconf="${dnsmasqconf}address=/edge.spaceify.net/10.0.0.1\n"
-dnsmasqconf="${dnsmasqconf}address=/${edge_name}/10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}address=/${edge_name}/10.0.0.1\n"									# edge_name = groupId in remote operation
 dnsmasqconf="${dnsmasqconf}address=/resource.spaceify.net/10.0.0.1\n"
 dnsmasqconf="${dnsmasqconf}dhcp-range=10.0.0.2,10.0.0.254,4h\n"
 dnsmasqconf="${dnsmasqconf}dhcp-option=3,10.0.0.1\n"
@@ -293,11 +291,11 @@ chown -R root:root /var/lib/spaceify/code
 printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
 
 if [[ -n $(uname -a |& grep -i "ubun") ]]; then
-	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
-	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+	distro=$(cat /var/lib/spaceify/code/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
 elif [[ -n $(uname -a |& grep -i "rasp") ]]; then
-	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
-	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+	distro=$(cat /var/lib/spaceify/code/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
 fi
 $(sqlite3 $dbpath "UPDATE information SET distribution='$distro'")
 

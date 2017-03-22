@@ -125,6 +125,8 @@ var sessionId = null;
 
 var manualDisconnection = false;
 
+logger.setOptions({ log: false, dir: false, info: false, error: false, warn: false });				// Disable all logging
+
 self.start = fibrous( function()
 	{
 	var arg;
@@ -255,7 +257,6 @@ self.start = fibrous( function()
 		}
 	catch(err)
 		{
-console.log(err);
 		logger.error(err, false, false, logger.FORCE);
 		}
 	finally
@@ -827,7 +828,7 @@ var systemStatus = fibrous( function()
 	var result = appManConnection.sync.callRpc("systemStatus", [], self);
 
 	for(var i in result)
-		lines += i + "=" + result[i] + "\n";
+		lines += (lines != "" ? "\n" : "") + i + "=" + result[i];
 
 	console.log(lines);											// Clients expect to get the results through their stdin!!!
 	});

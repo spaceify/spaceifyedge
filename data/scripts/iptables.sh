@@ -14,7 +14,7 @@ end_spaceify="# Added by Spaceify ends"
 comm_out_spaceify="# Commented out by Spaceify: "
 
 eth=$(</var/lib/spaceify/data/interfaces/ethernet)
-#appman_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
+#appman_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
 
 # ----------
 # ----------
