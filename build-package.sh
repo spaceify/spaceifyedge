@@ -83,12 +83,12 @@ dpkgBuildpackageError=$?
 
 if [ $dpkgBuildpackageError != 0 ]; then
 
-	printf "\n\e[101mBuilding package failed: $dpkgBuildpackageError\e[0m.\n\n"
+	printf "\n\e[101mBuilding package failed: $dpkgBuildpackageError.\e[0m\n\n"
 
-	rm -r /tmp/build/ > /dev/null 2>&1 || true	
+	rm -r /tmp/build/ > /dev/null 2>&1 || true
 
 else
 
-	printf "\n\e[42mPackage build. Files are in directory $dstBase\e[0m.\n\n"
+	printf "\n\e[42mPackage build. Files are in directory $dstBase.\e[0m\n\n"
 
 fi
