@@ -70,6 +70,7 @@
 
   "EDGE_IP": "10.0.0.1",
   "EDGE_HOSTNAME": "edge.spaceify.net",
+  "EDGE_DOMAIN": "spaceify.net",
   "EDGE_SHORT_HOSTNAME": "e.n",
   "EDGE_SUBNET": "10.0.0.0/16",
   "ALL_IPV4_LOCAL": "0.0.0.0",

@@ -42,6 +42,8 @@ var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
 //var logger = Logger.getLogger("SpaceifyNetwork");
 
+var dregx = new RegExp(config.EDGE_DOMAIN.replace(".", "\\.") + "$", "i");
+
 // Get the URL to the Spaceify Edge
 self.getEdgeURL = function(opts)
 	{
@@ -52,7 +54,12 @@ self.getEdgeURL = function(opts)
 
 	var protocol = self.getProtocol(true, options.ownProtocol, options.forceSecureProtocol);
 
-	var hostname = (typeof window !== "undefined" ? window.location.hostname : config.EDGE_HOSTNAME);
+	// Origin: local/remote edge webpage or webpage running spacelet (URL not ending with EDGE_DOMAIN); defaults to spacelet
+	var hostname = config.EDGE_HOSTNAME;
+	if(typeof window !== "undefined" && window.location.hostname.match(dregx) !== null)
+		{
+		hostname = window.location.hostname;
+		}
 
 	return protocol + hostname + (options.withEndSlash ? "/" : "");
 	}
@@ -199,15 +206,6 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	path = path + (search ? "?" + search : "") + (hash ? hash : "");
 
 	return path;
-	}
-
-// Test is client in Spaceify's local network
-self.isSpaceifyNetwork = function(timeout, callback)
-	{
-	if(typeof window === "undefined" || typeof window.spl === "undefined")		// SpaceifyLoader must exist
-		callback(false);
-	else
-		window.spl.testNetworkLocation(timeout, callback);
 	}
 
 self.parseURL = function(url)

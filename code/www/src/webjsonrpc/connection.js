@@ -17,7 +17,6 @@ var isSpaceifyNetwork = (typeof window !== "undefined" && window.isSpaceifyNetwo
 var isSpaceletOrigin = (typeof window !== "undefined" && !window.location.hostname.match(/.*spaceify\.net/) ? true : false);
 
 var lib = null;
-var spllib = null;
 var LoaderUtil = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
@@ -34,9 +33,8 @@ if (isNodeJs)
 else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
-	spllib = (window.WEBPACK_SPL_LIBRARY ? window.WEBPACK_SPL_LIBRARY : window);
 
-	LoaderUtil = spllib.LoaderUtil.getLoaderUtil();
+	LoaderUtil = (window.WEBPACK_SPL_LIBRARY ? window.WEBPACK_SPL_LIBRARY.LoaderUtil.getLoaderUtil() : {});
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
 	WebSocketRpcConnection = lib.WebSocketRpcConnection;
