@@ -1,6 +1,6 @@
 {
   "name": "spaceifyedge",
-  "version": "0.5.1",
+  "version": "0.7.0",
   "description": "The New Generation (lightweight) Spaceify Edge Platform.",
   "author": {
     "name": "Spaceify Oy",
@@ -22,8 +22,8 @@
   "main": "main.js",
 
   "engines": {
-    "node": ">=5.10.1",
-    "npm": ">=3.8.3"
+    "node": ">=6.5.0",
+    "npm": ">=3.10.3"
   },
 
   "dependencies": {

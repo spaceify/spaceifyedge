@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Update version in files
-# Tagegd GitHub update and building debian package executes this script and it must not be executed singly.
+# Updates version information to files
+# Building debian package executes this script and it must not be executed manually.
+#
 # Spaceify Oy 2014
 
 printf "\n : Updating version information to files"
@@ -43,10 +44,20 @@ fi
 # ---------- README.md ---------- #
 
 readme=$(< documentation/README.template)
-readme=${readme/_version_/$edgeVersion}
+readme=${readme//_version_/$edgeVersion}
 readme=${readme/_tag_/$edgeTag}
 
 printf "$readme" > README.md
+
+# ----------
+# ----------
+# ----------
+# ----------
+# ---------- package.json ---------- #
+regx=".*\\\"version\\\":.*\\\".*\\\""
+repl="  \"version\": \"$edgeVersion\""
+
+sed -i "s/$regx/$repl/g" code/package.json
 
 # ----------
 # ----------

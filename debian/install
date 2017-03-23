@@ -10,6 +10,7 @@ code/www/errors/* var/lib/spaceify/code/www/errors
 code/www/fonts/* var/lib/spaceify/code/www/fonts
 code/www/images/* var/lib/spaceify/code/www/images
 code/www/libs/* var/lib/spaceify/code/www/libs
+code/www/js var/lib/spaceify/code/www
 code/www/locales/* var/lib/spaceify/code/www/locales
 code/www/templates/* var/lib/spaceify/code/www/templates
 code/www/src/*.js* var/lib/spaceify/code/www/src

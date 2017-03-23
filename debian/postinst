@@ -266,7 +266,7 @@ rm /var/log/spaceify.log > /dev/null 2>&1 || true
 
 chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check log sizes hourly
 
-ln -s /var/lib/spaceify/code/www/libs js
+ln -s /var/lib/spaceify/code/www/libs js > /dev/null 2>&1 || true
 
 # ----------
 # ----------

@@ -89,6 +89,6 @@ if [ $dpkgBuildpackageError != 0 ]; then
 
 else
 
-	printf "\n\e[42mPackage build. Files are in directory $dstBase.\e[0m\n\n"
+	printf "\n\e[42mPackage for Spaceify version $edgeVersion is now build. Files are in directory $dstBase.\e[0m\n\n"
 
 fi
