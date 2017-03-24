@@ -4,7 +4,8 @@
 # Spaceify Oy 2013
 
 printf "\n\e[4mRetrieving git submodule(s)\e[0m\n"
-git submodule update --init --recursive
+#git submodule update --init --recursive
+git submodule update --recursive --remote
 
 printf "\n\e[4mBuilding Spaceify debian package\e[0m\n"
 
