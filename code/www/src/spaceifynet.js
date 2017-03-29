@@ -110,7 +110,11 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	document.getElementById("certIframe").src = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true }) + "spaceify.crt";
+	var src = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true }) + "spaceify.crt";
+
+	document.getElementById("certIframe").setAttribute("sp_src", src);
+
+	spaceifyLoader.loadData(document.getElementById("certIframe"), {}, null);
 
 	return true;
 	}
