@@ -9,7 +9,7 @@
  * Deprecated edge_id.uiid format (only edge_id is usable)
  * edge_id, edge_password
  *
- * @class EdgeSpaceifyNet
+ * @class RegisterEdge
  */
 
 var fs = require("fs");
@@ -21,7 +21,7 @@ var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 
-function EdgeSpaceifyNet()
+function RegisterEdge()
 {
 var self = this;
 
@@ -29,13 +29,13 @@ var database = new Database();
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("EdgeSpaceifyNet");
+//var logger = Logger.getLogger("RegisterEdge");
 
 var EDGE_PASSWORD_SALT_REGX = /^[0-9a-f]{128}$/;
 var EDGE_NAME_REGX = /^[a-zA-Z0-9]{4,32}$/;
 var EDGE_ID_REGX = /^([0-9a-f]{8}-)([0-9a-f]{4}-){3}([0-9a-f]{12})$/;
 
-var EDGE_NAME_FILE = "/var/lib/spaceify/data/db/edge_name";
+// var EDGE_NAME_FILE = "/var/lib/spaceify/data/db/edge_name";
 
 self.createEdgeId = fibrous( function(throws)
 	{
@@ -46,7 +46,7 @@ self.createEdgeId = fibrous( function(throws)
 		// File or Database -- -- -- -- -- -- -- -- -- -- //
 		newEdgeId = createNewId("array");
 
-		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE_TMP, "file"))		// Use existing registration file
+		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE_TMP, "file"))		// Use existing registration file placed in the /tmp/ directory
 			{
 			edgeIdFile = fs.sync.readFile(config.SPACEIFY_REGISTRATION_FILE_TMP, {encoding: "utf8"});
 			parts = edgeIdFile.split(",");
@@ -70,8 +70,8 @@ self.createEdgeId = fibrous( function(throws)
 			edge_require_password = (edgeSettings.hasOwnProperty("edge_require_password") && edgeSettings.edge_require_password ? edgeSettings.edge_require_password : newEdgeId[5]);
 			}
 
-		if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Use edge name from file if it exists
-			edge_name = fs.sync.readFile(EDGE_NAME_FILE, {encoding: "utf8"});
+		// if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Use edge name from file if it exists
+		//	edge_name = fs.sync.readFile(EDGE_NAME_FILE, {encoding: "utf8"});
 
 		edge_id = (edge_id.match(EDGE_ID_REGX) ? edge_id : newEdgeId[0]);			// Validate values
 		edge_name = (edge_name.match(EDGE_NAME_REGX) ? edge_name : newEdgeId[1]);
@@ -87,8 +87,8 @@ self.createEdgeId = fibrous( function(throws)
 		edgeSettings = {edge_id: parts[0], edge_name: parts[1], edge_password: parts[2], edge_salt: parts[3], edge_enable_remote: parts[4], edge_require_password: parts[5]};
 		database.sync.saveEdgeSettings(edgeSettings);
 
-		if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Remove edge_name file only if saving the data is successful
-			fs.sync.unlink(EDGE_NAME_FILE);
+		// if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Remove edge_name file only if saving the data is successful
+		//	fs.sync.unlink(EDGE_NAME_FILE);
 
 		if(!throws)
 			console.log("OK");
@@ -102,7 +102,7 @@ self.createEdgeId = fibrous( function(throws)
 			errStr  = "Registering this edge node failed: '" + err.message.trim() + "'. The registration is required for some operations of ";
 			errStr += "Spaceify and it is highly recommended to finish the registration. Try to finish the registration manually by running "
 			errStr += "command: spm register";
-			console.log(errStr);
+			//console.log(errStr);
 			}
 		else
 			throw err;
@@ -145,9 +145,9 @@ if(process.argv.length == 3 && process.argv[2] == "createEdgeId")
 	{
 	fibrous.run( function()
 		{
-		var edgeSpaceifyNet = new EdgeSpaceifyNet();
-		edgeSpaceifyNet.sync.createEdgeId(false);
+		var registerEdge = new RegisterEdge();
+		registerEdge.sync.createEdgeId(false);
 		}, function(err, data) {} );
 	}
 
-module.exports = EdgeSpaceifyNet;
+module.exports = RegisterEdge;

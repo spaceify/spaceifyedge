@@ -25,7 +25,7 @@ comm_out_spaceify="# Commented out by Spaceify: "
 eth=$(</var/lib/spaceify/data/interfaces/ethernet)
 wlan=$(</var/lib/spaceify/data/interfaces/wlan)
 is_internal=$(</var/lib/spaceify/data/interfaces/is_internal)
-edge_name=$(</var/lib/spaceify/data/db/edge_name)
+# edge_name=$(</var/lib/spaceify/data/db/edge_name)
 
 # ----------
 # ----------
@@ -35,6 +35,8 @@ edge_name=$(</var/lib/spaceify/data/db/edge_name)
 
 . /var/lib/spaceify/data/scripts/database.sh						# database mangement, get previous version information
 dbpath="/var/lib/spaceify/data/db/spaceify.db"
+
+edge_name=$(sqlite3 $dbpath "SELECT edge_name FROM user;" 2>/dev/null)
 
 # ----------
 # ----------
@@ -130,8 +132,10 @@ core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 
 dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \n"
 dnsmasqconf="${dnsmasqconf}address=/edge.spaceify.net/10.0.0.1\n"
-dnsmasqconf="${dnsmasqconf}address=/${edge_name}/10.0.0.1\n"									# edge_name = groupId in remote operation
-dnsmasqconf="${dnsmasqconf}address=/resource.spaceify.net/10.0.0.1\n"
+
+if [ "$edge_name" != "" ]; then
+	dnsmasqconf="${dnsmasqconf}address=/${edge_name}.spaceify.net/10.0.0.1\n"				# edge_name = groupId in remote operation
+fi
 dnsmasqconf="${dnsmasqconf}dhcp-range=10.0.0.2,10.0.0.254,4h\n"
 dnsmasqconf="${dnsmasqconf}dhcp-option=3,10.0.0.1\n"
 dnsmasqconf="${dnsmasqconf}dhcp-option=6,10.0.0.1\n"
@@ -266,13 +270,16 @@ rm /var/log/spaceify.log > /dev/null 2>&1 || true
 
 chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check log sizes hourly
 
-ln -s /var/lib/spaceify/code/www/libs js > /dev/null 2>&1 || true
+od=$(pwd)																					# Backward compatibility
+cd /var/lib/spaceify/code/www/
+ln -s libs/ js > /dev/null 2>&1 || true
+cd $od
 
 # ----------
 # ----------
 # ----------
 # ----------
-# ---------- Install the required node.js modules (versions are defined in the package.json) ---------- #
+# ---------- Install the required node.js modules defined in the package.json ---------- #
 
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 

@@ -24,7 +24,7 @@ var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 var SpaceifyNetwork = require("./spaceifynetwork");
-var EdgeSpaceifyNet = require("./edgespaceifynet");
+var RegisterEdge = require("./registeredge");
 var ApplicationManager = require("./applicationmanager");
 var WebSocketRpcConnection = require("./websocketrpcconnection.js");
 
@@ -41,7 +41,7 @@ var network = new SpaceifyNetwork();
 var logger = Logger.getLogger("SPM");
 var config = SpaceifyConfig.getConfig();
 var securityModel = new SecurityModel();
-var edgeSpaceifyNet = new EdgeSpaceifyNet();
+var registerEdge = new RegisterEdge();
 
 var exitCode = 0;
 var appManConnection = null;
@@ -797,7 +797,7 @@ var register = fibrous( function()
 	var result = false;
 
 	try {
-		edgeSpaceifyNet.sync.createEdgeId(true);
+		registerEdge.sync.createEdgeId(true);
 
 		/* ToDo: Enable this?
 		var settings = database.sync.getEdgeSettings();

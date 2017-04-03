@@ -24,8 +24,8 @@ else
 fi
 
 #
-db_get spaceify/edge_name
-edge_name="$RET"
+# db_get spaceify/edge_name
+# edge_name="$RET"
 
 #
 db_get spaceify/admin_password
@@ -49,7 +49,7 @@ printf "$eth" > /var/lib/spaceify/data/interfaces/ethernet
 printf "$wlan" > /var/lib/spaceify/data/interfaces/wlan
 printf "$is_internal" > /var/lib/spaceify/data/interfaces/is_internal
 
-printf "$edge_name" > /var/lib/spaceify/data/db/edge_name
+# printf "$edge_name" > /var/lib/spaceify/data/db/edge_name
 
 printf "$admin_salt" > /var/lib/spaceify/data/db/admin_salt
 printf "$admin_password" > /var/lib/spaceify/data/db/admin_password

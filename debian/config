@@ -13,17 +13,17 @@ db_subst spaceify/ethernet ADAPTERS "$ADAPTERS"										# replace names in debc
 db_subst spaceify/wlan ADAPTERS "$ADAPTERS"
 
 # Get existing edge name
-if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid /tmp/edge.id; fi				# edge_id.uuid -> edge.id
-if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /var/lib/spaceify/data/db/edge_id.uuid /var/lib/spaceify/data/db/edge.id; fi
-
-if [ -e /tmp/edge.id ]; then
-	edge_name=$(echo $(< /tmp/edge.id) | awk -F ',' '{print $2}')
-elif [ -e /var/lib/spaceify/data/db/edge.id ]; then
-	edge_name=$(echo $(< /var/lib/spaceify/data/db/edge.id) | awk -F ',' '{print $2}')
-else
-	db_get spaceify/edge_name
-	edge_name="$RET"
-fi
+# if [ -e /tmp/edge_id.uuid ]; then mv /tmp/edge_id.uuid /tmp/edge.id; fi				# edge_id.uuid -> edge.id
+# if [ -e /var/lib/spaceify/data/db/edge_id.uuid ]; then mv /var/lib/spaceify/data/db/edge_id.uuid /var/lib/spaceify/data/db/edge.id; fi
+#
+# if [ -e /tmp/edge.id ]; then
+#	edge_name=$(echo $(< /tmp/edge.id) | awk -F ',' '{print $2}')
+# elif [ -e /var/lib/spaceify/data/db/edge.id ]; then
+#	edge_name=$(echo $(< /var/lib/spaceify/data/db/edge.id) | awk -F ',' '{print $2}')
+# else
+#	db_get spaceify/edge_name
+#	edge_name="$RET"
+# fi
 
 # Show questions in order and provide user the ability to back up
 STATE=3
@@ -32,6 +32,7 @@ while [ $STATE -gt 0 -a $STATE -lt 8 ];
 do
 
 	case "$STATE" in
+
 	# Errors
 	1)
 		db_input critical spaceify/password_error || true
@@ -39,11 +40,11 @@ do
 		STATE=5
 	;;
 
-	2)
-		db_input critical spaceify/edge_name_error || true
-		db_go || true; dbStatus=0
-		STATE=6
-	;;
+	# 2)
+	#	db_input critical spaceify/edge_name_error || true
+	#	db_go || true; dbStatus=0
+	#	STATE=6
+	# ;;
 
 	# Questions
 	3)
@@ -86,37 +87,36 @@ do
 			dbStatus=30
 
 		fi
-
 	;;
 
-	7)
-		db_set spaceify/edge_name $edge_name
+	# 7)
+	#	db_set spaceify/edge_name $edge_name
+	#
+	#	db_input critical spaceify/edge_name || true
+	#
+	#	if db_go; then
+	#
+	#		dbStatus=0
+	#
+	#		db_get spaceify/edge_name
+	#		edge_name="$RET"
+	#
+	#		if [[ ! $edge_name =~ ^[a-zA-Z0-9]{4,32}$ ]]; then
+	#			STATE=1
+	#		fi
+	#
+	#		edge_name_lc=$(echo $edge_name | awk '{print tolower($0)}')
+	#		if [ "$edge_name_lc" == "edge" ]; then
+	#			STATE=1
+	#		fi
+	#
+	#	else
+	#
+	#		dbStatus=30
+	#
+	#	fi
+	# ;;
 
-		db_input critical spaceify/edge_name || true
-
-		if db_go; then
-
-			dbStatus=0
-
-			db_get spaceify/edge_name
-			edge_name="$RET"
-
-			if [[ ! $edge_name =~ ^[a-zA-Z0-9]{4,32}$ ]]; then
-				STATE=1
-			fi
-
-			edge_name_lc=$(echo $edge_name | awk '{print tolower($0)}')
-			if [ "$edge_name_lc" == "edge" ]; then
-				STATE=1
-			fi
-
-		else
-
-			dbStatus=30
-
-		fi
-
-	;;
 	esac
 
 	# Step
