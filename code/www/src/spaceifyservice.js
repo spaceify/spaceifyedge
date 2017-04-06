@@ -16,7 +16,6 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var fibrous = null;
 var Service = null;
 var Connection = null;
@@ -24,18 +23,19 @@ var SpaceifyCore = null;
 var SpaceifyError = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
+//var SpaceifyLogger = null;
 var WebSocketRpcServer = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	Service = require(lib + "service");
 	SpaceifyCore = require(lib + "spaceifycore");
 	SpaceifyError = require(lib + "spaceifyerror");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
 	SpaceifyNetwork = require(lib + "spaceifynetwork");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	WebSocketRpcServer = require(lib + "websocketrpcserver");
 	Connection = require(lib + "connection");
 	fibrous = require(lib + "fibrous");
@@ -44,12 +44,12 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	//Logger = lib.Logger;
 	Service = lib.Service;
 	SpaceifyCore = lib.SpaceifyCore;
 	SpaceifyError = lib.SpaceifyError;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	WebSocketRpcServer = null;
 	Connection = lib.Connection;
 	fibrous = function(fn) { return fn; };
@@ -59,7 +59,7 @@ var core = new SpaceifyCore();
 var errorc = new SpaceifyError();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig("realpaths");
-//var logger = Logger.getLogger("SpaceifyService");
+//var logger = new SpaceifyLogger("SpaceifyService");
 
 var required = {};									// <= Clients (required services)
 var requiredSecure = {};

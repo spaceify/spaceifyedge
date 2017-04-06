@@ -10,26 +10,7 @@ function Logger(config)
 {
 var self = this;
 
-var errorc = null;
-
 var isNodeJs = (typeof window === "undefined" ? true : false);
-
-if(isNodeJs)
-	{
-	var apipath = "/var/lib/spaceify/code/spaceifyerror";
-
-	if(Logger.ifFileExists("./spaceifyerror.js"))
-		errorc = require("./spaceifyerror");
-	else if(Logger.ifFileExists(apipath))
-		errorc = require(apipath);
-	}
-else if(typeof window !== "undefined")
-	{
-	errorc = (window.SpaceifyError ? window.SpaceifyError : null);
-	}
-
-if(errorc)
-	errorc = new errorc();
 
 self.RETURN		= 1;
 var LOG			= "log";
@@ -68,63 +49,59 @@ enabled[STDOUT]	= true;
 self.log		= function() { out(LOG, false, arguments); }
 self.dir		= function() { out(DIR, false, arguments); }
 self.info		= function() { out(INFO, false, arguments); }
-self.error		= function() { printErrors.apply(this, arguments); }
+self.error		= function() { out(ERROR, false, arguments); }
 self.warn		= function() { out(WARN, false, arguments); }
 self.force		= function() { out(FORCE, false, arguments); }
 self.stdout		= function() { out(STDOUT, true, arguments); }
 
 	// -- -- -- -- -- -- -- -- -- -- //
-var out = function(type, fromStdout)
+
+var out = function(type, useStdout)
 	{
-	if(!enabled[type] && type != FORCE)
+	if (!enabled[type] && type != FORCE)
 		return;
 
 	var str = "", strs = arguments[2], strp;
 
-	if(isNodeJs)
+	for(var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
 		{
-		for(var i = 0; i < strs.length; i++)						// Concatenate strings passed in the arguments, separate strings with space
-			{
-			strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
-			str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
-			}
+		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
+		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+		}
 
-		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");	// Replace control characters 0-9, 11-12, 14-31
+	str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");		// Replace control characters 0-9, 11-12, 14-31
 
-		process.stdout.write(labels[type] + str + (fromStdout ? "" : "\n"));
+	if (isNodeJs)
+		{
+		if (!useStdout)												// console.log prints new line
+			console.log(labels[type] + str);
+		else														// stdout.write doesn't
+			process.stdout.write(labels[type] + str);
 		}
 	else
 		{
-		if(type == DIR && console.dir)
-			console.dir.apply(this, arguments[2]);
-		else if(type == ERROR && console.error)
-			console.error.apply(this, arguments[2])
-		else if(type == INFO && console.info)
-			console.info.apply(this, arguments[2]);
-		else if(type == WARN && console.warn)
-			console.warn.apply(this, arguments[2]);
+		if (type == DIR && console.dir)
+			console.dir(str);
+
+		else if (type == ERROR && console.error)
+			console.error(str);
+
+		else if (type == INFO && console.info)
+			console.info(str);
+
+		else if (type == WARN && console.warn)
+			console.warn(str);
+
 		else
-			console.log.apply(this, arguments[2]);
+			console.log(str);
 		}
-	}
-
-var printErrors = function(err, printPath, printCode, printType)
-	{
-	var message = (errorc ? errorc.errorToString(err, printPath, printCode) : err);
-
-	if(printType == ERROR)
-		out.call(self, ERROR, false, [message]);
-	else if(printType == FORCE)
-		self.force(message);
-
-	return message;
-	}
+	};
 
 self.setOptions = function(options)
 	{
 	for(var type in options)
 		enabled[type] = options[type];
-	}
+	};
 
 self.clone = function(logger)
 	{
@@ -135,62 +112,100 @@ self.clone = function(logger)
 	enabled[INFO]	= enabled_[INFO];
 	enabled[ERROR]	= enabled_[ERROR];
 	enabled[WARN]	= enabled_[WARN];
-	}
+	};
 
 self.getEnabled = function()
 	{
 	return enabled;
-	}
+	};
 
 }
 
-Logger.ifFileExists = function(path)
+Logger.createLogger_ = function(class_)
 	{
-	try {
-		var fs = require("fs");
-		fs.accessSync(path, fs.F_OK);
-		return true;
-		}
-	catch(err)
-		{
-		return false;
-		}
-	}
+	//console.log("Logger::CreateLogger() creating new logger for "+class_);
 
-Logger.getLogger = function(class_, override_)
-	{
 	var lib;
-	var ConfigLoader;
+	var Config;
 
-	if(typeof window === "undefined")
+	if (typeof window === "undefined")
 		{
-		var apipath = "/var/lib/spaceify/code/";
-
-		if(Logger.ifFileExists(__dirname + "/configloader.js"))
-			ConfigLoader = require(__dirname + "/configloader.js");
-		else if(Logger.ifFileExists(apipath + "configloader.js"))
-			ConfigLoader = require(apipath + "configloader.js");
+		try
+			{
+			Config = require("./config.js");
+			}
+		catch (e)
+			{
+			var apipath = "/var/lib/spaceify/code/";
+			Config = require(apipath + "config.js");
+			}
 		}
-	else if(typeof window !== "undefined")
+	else if (typeof window !== "undefined")
 		{
 		lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
-		ConfigLoader = (lib.ConfigLoader ? lib.ConfigLoader : null);
+		Config = (lib.Config ? lib.Config : null);
 		}
 
-	var config = ConfigLoader(class_, override_);
+	var config = Config.getConfig();
 
-	var all_ = (typeof config.all !== "undefined" ? config.all : null);
-	if(all_ !== null)											// Class specific override
+	//console.log("Logger::getLogger()" + JSON.stringify(config));
+
+	var loggerConfig = {};
+
+	// Get base config
+	Config.overrideConfigValues(loggerConfig, config.logger.defaultLoggerConfig);
+
+	// Override with class-specific properties
+
+	if (config.logger.hasOwnProperty(class_))
 		{
-		config['log'] = all_;
-		config['dir'] = all_;
-		config['info'] = all_;
-		config['error'] = all_;
-		config['warn'] = all_;
+		Config.overrideConfigValues(loggerConfig, config.logger[class_]);
 		}
 
-	return new Logger(config);
+	// Override with global override
+	Config.overrideConfigValues(loggerConfig, config.logger.globalConfigOverride);
+
+	// Apply the "all" keyword
+
+	var all_ = (typeof loggerConfig.all !== "undefined" ? loggerConfig.all : null);
+
+	if (all_ !== null)											// Class specific override
+		{
+		loggerConfig['log'] = all_;
+		loggerConfig['dir'] = all_;
+		loggerConfig['info'] = all_;
+		loggerConfig['error'] = all_;
+		loggerConfig['warn'] = all_;
+		}
+
+	return new Logger(loggerConfig);
+	};
+	
+Logger.getLogger = function(class_)
+	{
+	if (!class_)
+		class_ = "mainlog";
+
+	var globalObj = null;
+
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
+
+	else
+		globalObj = window;
+
+	if (!globalObj.hasOwnProperty("speLoggerInstances_"))
+		{
+		globalObj["speLoggerInstances_"] = new Object();
+		}
+
+	if (!globalObj.speLoggerInstances_.hasOwnProperty(class_))
+		{
+		globalObj.speLoggerInstances_[class_] = Logger.createLogger_(class_);
+		}
+
+	return globalObj.speLoggerInstances_[class_];
 	};
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = Logger;

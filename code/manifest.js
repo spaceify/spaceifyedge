@@ -6,9 +6,9 @@
  * @class Manifest
  */
 
-//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var DockerHelper = require("./dockerhelper");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
@@ -21,7 +21,7 @@ var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("Manifest");
+//var logger = new SpaceifyLogger("Manifest");
 
 var manifest = manifest_;
 

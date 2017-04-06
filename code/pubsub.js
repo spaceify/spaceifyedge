@@ -6,8 +6,8 @@
  * @class PubSub
  */
 
-//var Logger = require("./logger");
 var rebus = require("./lib/rebus");
+//var SpaceifyLogger = require("./spaceifylogger");
 
 function PubSub()
 {
@@ -15,7 +15,7 @@ var self = this;
 
 var rbus = null;
 
-//var logger = Logger.getLogger("PubSub");
+//var logger = new SpaceifyLogger("PubSub");
 
 self.open = function(directory)
 	{

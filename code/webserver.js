@@ -11,12 +11,12 @@ var url = require("url");
 var http = require("http");
 var https = require("https");
 var qs = require("querystring");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var contentTypes = require("./contenttypes");
 var WebOperation = require("./weboperation");
 var SpaceifyError = require("./spaceifyerror");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 
@@ -28,7 +28,7 @@ var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var webOperation = new WebOperation();
 var config = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("WebServer");
+var logger = new SpaceifyLogger("WebServer");
 
 var options = {};
 var isOpen = false;

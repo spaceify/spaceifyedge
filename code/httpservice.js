@@ -8,13 +8,13 @@
 
 var url = require("url");
 var crypto = require("crypto");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var WebServer = require("./webserver");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 var SpaceifyNetwork = require("./spaceifynetwork");
 var ValidateApplication = require("./validateapplication");
@@ -31,7 +31,7 @@ var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
 var config = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("HttpService");
+var logger = new SpaceifyLogger("HttpService");
 var coreConnection = new WebSocketRpcConnection();
 
 var edgeSettings = {};

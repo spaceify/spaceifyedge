@@ -11,22 +11,22 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
+var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	}
 else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
-var logger = Logger.getLogger("WebRtcConnection");
+var logger = new SpaceifyLogger("WebRtcConnection");
 
 var id = null;
 var ownStream = null;

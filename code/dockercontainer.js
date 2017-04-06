@@ -9,12 +9,12 @@
 //Includes
 
 var events = require("events");
-var Logger = require("./logger");
 var Docker = require("dockerode");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var DockerHelper = require("./dockerhelper");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function DockerContainer()
@@ -24,7 +24,7 @@ var self = this;
 var utility = new SpaceifyUtility();
 var dockerHelper = new DockerHelper();
 var config = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("DockerContainer");
+var logger = new SpaceifyLogger("DockerContainer");
 
 var exposed;
 var bindings;

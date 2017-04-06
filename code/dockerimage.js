@@ -7,9 +7,9 @@
  */
 
 var Docker = require("dockerode");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function DockerImage()
@@ -17,7 +17,7 @@ function DockerImage()
 var self = this;
 
 var utility = new SpaceifyUtility();
-var logger = Logger.getLogger("DockerImage");
+var logger = new SpaceifyLogger("DockerImage");
 
 var docker = new Docker({socketPath: "/var/run/docker.sock"});
 

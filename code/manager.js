@@ -8,7 +8,6 @@
  * @class Manager
  */
 
-//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var Database = require("./database");
 var language = require("./language");
@@ -16,6 +15,7 @@ var Manifest = require("./manifest");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 var DockerContainer = require("./dockercontainer");
 var DockerImage = require("./dockerimage");
@@ -30,7 +30,7 @@ var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var dockerImage = new DockerImage();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("Manager");
+//var logger = new SpaceifyLogger("Manager");
 
 var manifests = {};
 var manifestsCount = 0;

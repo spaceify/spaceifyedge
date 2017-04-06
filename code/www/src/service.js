@@ -15,8 +15,8 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 //var SpaceifyConfig = null;
+//var SpaceifyLogger = null;
 var SpaceifyUtility = null;
 var fibrous = null;
 
@@ -24,8 +24,8 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = require(lib + "spaceifyutility");
 	fibrous = require(lib + "fibrous");
 	}
@@ -33,15 +33,15 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	//Logger = lib.Logger;
 	//SpaceifyConfig = lib.SpaceifyConfig;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	var SpaceifyUtility = lib.SpaceifyUtility;
 	var fibrous = function(fn) { return fn; };
 	}
 
 var utility = new SpaceifyUtility();
 //var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("Service");
+//var logger = new SpaceifyLogger("Service");
 
 var serverUpListener = null;
 var serverDownListener = null;

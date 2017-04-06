@@ -15,7 +15,7 @@ var self = this;
 var lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
 var core = new lib.SpaceifyCore();
-//var logger = lib.Logger.getLogger("Spacelet");
+//var logger = new lib.SpaceifyLogger("Spacelet");
 var spaceifyService = new lib.SpaceifyService();
 var spaceifyNetwork = new lib.SpaceifyNetwork();
 

@@ -17,7 +17,7 @@ var lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 var connection = new lib.Connection();
 var network = new lib.SpaceifyNetwork();
 var config = lib.SpaceifyConfig.getConfig();
-//var logger = lib.Logger.getLogger("SpaceifyMessages");
+//var logger = new lib.SpaceifyLogger("SpaceifyMessages");
 
 var messageId;
 var errors = [];

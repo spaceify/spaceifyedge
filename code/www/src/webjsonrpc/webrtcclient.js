@@ -12,7 +12,7 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
+var SpaceifyLogger = null;
 //var SpaceifyConfig = null;
 var RpcCommunicator = null;
 var WebSocketConnection = null;
@@ -21,7 +21,7 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
 	RpcCommunicator = require(lib + "rpccommunicator");
 	WebSocketConnection = require(lib + "websocketconnection");
@@ -30,7 +30,7 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	//SpaceifyConfig = lib.SpaceifyConfig;
 	RpcCommunicator = lib.RpcCommunicator;
 	WebSocketConnection = lib.WebSocketConnection;
@@ -39,7 +39,7 @@ else
 var communicator = new RpcCommunicator();
 var connection = new WebSocketConnection();
 //var speconfig = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("WebRtcClient");
+var logger = new SpaceifyLogger("WebRtcClient");
 
 var ownStream = null;
 var connectionListener = null;

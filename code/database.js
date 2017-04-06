@@ -11,11 +11,11 @@
 
 var fs = require("fs");
 var sqlite3 = require("sqlite3");
-//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function Database()
@@ -24,7 +24,7 @@ var self = this;
 
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("Database");
+//var logger = new SpaceifyLogger("Database");
 
 var db = null;
 

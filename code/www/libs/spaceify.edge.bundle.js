@@ -319,14 +319,14 @@ return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,
 
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("fs"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("path"), require("request"), require("url"));
+		module.exports = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else if(typeof define === 'function' && define.amd)
-		define("spe", ["fs", "websocket", "adm-zip", "child_process", "http", "https", "mkdirp", "net", "os", "path", "request", "url"], factory);
+		define("spe", ["fs", "path", "websocket", "adm-zip", "child_process", "http", "https", "mkdirp", "net", "os", "request", "url"], factory);
 	else if(typeof exports === 'object')
-		exports["spe"] = factory(require("fs"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("path"), require("request"), require("url"));
+		exports["spe"] = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else
-		root["spe"] = factory(root["fs"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["path"], root["request"], root["url"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_36__, __WEBPACK_EXTERNAL_MODULE_58__, __WEBPACK_EXTERNAL_MODULE_59__, __WEBPACK_EXTERNAL_MODULE_60__, __WEBPACK_EXTERNAL_MODULE_61__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__) {
+		root["spe"] = factory(root["fs"], root["path"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["request"], root["url"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_34__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_60__, __WEBPACK_EXTERNAL_MODULE_61__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -392,7 +392,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 68);
+/******/ 	return __webpack_require__(__webpack_require__.s = 69);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -403,23 +403,10 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 1;
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyconfig": 7
+	"./spaceifyconfig": 6
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -435,7 +422,20 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 2;
+webpackContext.id = 1;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 2;
 
 
 /***/ }),
@@ -453,16 +453,228 @@ webpackEmptyContext.id = 3;
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
+"use strict";
+/* WEBPACK VAR INJECTION */(function(module) {
+
+/**
+ * Config, 2.3.2017 Spaceify Oy
+ *
+ * @class Config
+ */
+
+function Config()
+{
+var self = this;
+
+//console.log("in Config::Config()");
+
+var baseConfig = null;
+var overridingConfig = null;
+var config = null;
+var path = null;
+
+// Hack to use real require in webpack
+var doRequire = function(module)
+	{
+	return eval("require")(module);
+	};
+
+// Load the default speconfig.js file and apply overrides in the order:
+// 1. module.parent.speconfig
+// 2. "speconfig.js"
+// 3. process.cwd()/speconfig.js
+
+if (typeof window === "undefined") //in node.js
+	{
+	path = __webpack_require__(34);
+	try	{
+		var apipath = "/var/lib/spaceify/code/";
+		baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
+
+		//console.log("Loded base config from /var/lib/spaceify/code/");
+		}
+	catch (e)
+		{
+		baseConfig = __webpack_require__(10);
+
+		//console.log("Loaded base config from the spaceifyconnect package");
+		}
+
+	if (!baseConfig)
+		{
+		//console.log("Error loading base config, exiting");
+
+		process.exit(1);
+		}
+	// load and apply the overriding configs
+
+	try	{
+		overridingConfig = doRequire(module.parent.speconfig);
+		Config.overrideConfigValues(baseConfig, overridingConfig);
+
+		//console.log("Loaded overriding config from module.parent.speconfig");
+		}
+	catch (e)
+		{}
+	finally
+		{
+		try
+			{
+			overridingConfig = doRequire("speconfig");
+			Config.overrideConfigValues(baseConfig, overridingConfig);
+
+			//console.log("Loaded overriding config from \"speconfig\"");
+			}
+		catch (e)
+			{}
+		finally
+			{
+			try
+				{
+				//console.log("Trying to load overriding config from working directory "+process.cwd());
+
+				overridingConfig = doRequire(path.resolve(process.cwd(), "speconfig.js"));
+				Config.overrideConfigValues(baseConfig, overridingConfig);
+
+				//console.log("Loaded overriding config from working directory");
+				}
+			catch (e)
+				{
+				//console.log(e);
+				}
+			finally
+				{
+				//console.log("Loading config files completed");
+				}
+			}
+		}
+
+	}
+
+else if (typeof window !== "undefined")	//in browser
+	{
+	var lib = window;
+
+	if (window.spe)	// browser using a bundled spaceifyconnect
+		{
+		lib = window.spe;
+		}
+
+	baseConfig = lib.SpeBaseConfig;
+
+	if (lib.SpeConfig)
+		overrideConfigValues(baseConfig, lib.SpeConfig);
+	}
+
+/*
+if (!baseConfig)						// Default configuration not found
+	{
+	config = {};
+	}
+else
+	{
+	config = {};
+
+	// Apply configuration from webpack or window or nodejs config
+	if(ConfigClass["defaultConfig"])							// Set defaultConfig as base
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass.defaultConfig);
+
+	if (ConfigClass[class_])										// Class found
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass[class_]);
+
+	if (ConfigClass["globalConfigOverride"])						// Global override
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass["globalConfigOverride"]);
+
+	if(override_)												// User override (when calling this function)
+		config = ConfigLoader.overrideConfigValues(config, override_);
+	}
+*/
+//console.log("Config::Config() "+JSON.stringify(baseConfig));
+config = baseConfig;
+
+self.getConfig = function()
+	{
+	return config;
+	}
 }
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 4;
 
+
+Config.overrideConfigValues = function(obj1, obj2)
+	{
+	for (var p in obj2)
+		{
+		try
+			{
+			// Property in destination object set; update its value.
+			if ( obj2[p].constructor==Object )
+				{
+				obj1[p] = Config.overrideConfigValues(obj1[p], obj2[p]);
+				}
+			else
+				{
+				obj1[p] = obj2[p];
+				}
+			}
+
+		catch(e)
+			{
+			// Property in destination object not set; create it and set its value.
+			obj1[p] = obj2[p];
+			}
+		}
+
+	return obj1;
+	}
+
+/*
+Config.overrideConfigValues = function(config, overridingValues)
+	{
+	var newConfig = config;
+
+	for (var g in overridingValues)
+		{
+		if (overridingValues[g] !== null)
+			newConfig[g] = overrideValues_[g];
+		}
+	return newConfig;
+	};
+*/
+Config.destroySingleton = function()
+	{
+	var globalObj = null;
+
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
+	else
+		globalObj = window;
+
+	globalObj.speConfigInstance_ = null;
+	};
+
+Config.getConfig = function()
+	{
+	var globalObj = null;
+
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
+	else
+		globalObj = window;
+
+	if (!globalObj.speConfigInstance_)
+		{
+		globalObj.speConfigInstance_ = new Config();
+		Object.freeze(globalObj.speConfigInstance_);
+		}
+
+	return globalObj.speConfigInstance_.getConfig();
+	};
+
+if(true)
+	module.exports = Config;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)(module)))
 
 /***/ }),
 /* 5 */
@@ -472,577 +684,218 @@ webpackEmptyContext.id = 4;
 
 
 /**
- * Config, 8.2.2017 Spaceify Oy
+ * Logger, 18.12.2013 Spaceify Oy
  *
- * This configuration is used in Spaceify project.
- *
- * Supported console output types:
- *   log, dir, info, error and warn
- *
- * The configuration logic is based on 'enable output' and operates with boolean values:
- *   false = output is disabled
- *    true = output is enabled
- *
- * The individual console output types can be overridden with the 'all' configuration.
- * The override takes three values:
- *   false = all the output types are disabled
- *    true = all the output types are enabled
- *    null = the override is not applied to the output types
- *
- * If the configuration for a class is not found, the default (defaultConfig) configuration
- * is used as a fallback. The default configuration operates identically to the individual
- * class configurations.
- *
- * There is a global (globalConfigOverride) override configuration. The global oveverride is applied
- * to all of the corresponding output types of all the individual class configurations.
- * The override takes three values:
- *   false = the output type of all the individual classes are disabled
- *    true = the output type of all the individual classes are enabled
- *    null = the override is not applied to the output type of the class
- *
- * NOTICE: the globalConfigOverride and defaultConfig configurations are mandatory variables in the config.js file!
- *
- * Order of precedence of the configurations
- *   Global configuration takes precedencence of class configurations
- * Order of precedence of the console output types
- *   'all' in a configuration (global or class) takes precedence the output types
- *
- * e.g.
- *      MyClass is unaltered
- *      globalConfigOverride = { log: null, dir: null, info: null, error: null, warn: null, all: null };
- *      MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
- *   => MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
- *
- *      MyClass 'all' overrides its output types
- *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: null };
- *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true,  all: false };
- *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: false };
- *
- *      Global error is set to false and overrides MyClass error with false
- *      globalConfigOverride = { log: null, dir: null, info: null, error: false, warn: null, all: null };
- *      MyClass = { log: true, dir: true, info: true, error: true,  warn: true, all: null };
- *   => MyClass = { log: true, dir: true, info: true, error: false, warn: true, all: null };
- *
- *      Global 'all' is set to false and all the output types of MyClass are overridden with false
- *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: false };
- *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true, all: null };
- *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: null };
- *
- * @class Config
+ * @class Logger
  */
 
-var Config =
+function Logger(config)
 {
+var self = this;
 
-	// MANDATORY CONFIGURATION - Global configuration overrides (overrides the individual class configurations)
-globalConfigOverride:
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+self.RETURN		= 1;
+var LOG			= "log";
+var DIR			= "dir";
+var INFO		= "info";
+self.ERROR		= "error";
+var ERROR = self.ERROR;
+var WARN		= "warn";
+self.FORCE		= "force";
+var FORCE = self.FORCE;
+var STDOUT		= "stdout";
+
+	// Labels -- -- -- -- -- -- -- -- -- -- //
+var labels = {};
+labels[LOG]		= "[i] ";
+labels[DIR]		= "[d] ";
+labels[INFO]	= "[i] ";
+labels[ERROR]	= "[e] ";
+labels[WARN]	= "[w] ";
+labels[FORCE]	= "";
+labels[STDOUT]	= "";
+
+	// -- -- -- -- -- -- -- -- -- -- //
+var enabled = (config ? config : {});
+
+// Local: enabled = true (default), not enabled = false
+enabled[LOG]	= (typeof enabled[LOG] !== "undefined" ? enabled[LOG] : true);
+enabled[DIR]	= (typeof enabled[DIR] !== "undefined"  ? enabled[DIR] : true);
+enabled[INFO]	= (typeof enabled[INFO] !== "undefined"  ? enabled[INFO] : true);
+enabled[ERROR]	= (typeof enabled[ERROR] !== "undefined"  ? enabled[ERROR] : true);
+enabled[WARN]	= (typeof enabled[WARN] !== "undefined"  ? enabled[WARN] : true);
+enabled[FORCE]	= true;
+enabled[STDOUT]	= true;
+
+	// -- -- -- -- -- -- -- -- -- -- //
+self.log		= function() { out(LOG, false, arguments); }
+self.dir		= function() { out(DIR, false, arguments); }
+self.info		= function() { out(INFO, false, arguments); }
+self.error		= function() { out(ERROR, false, arguments); }
+self.warn		= function() { out(WARN, false, arguments); }
+self.force		= function() { out(FORCE, false, arguments); }
+self.stdout		= function() { out(STDOUT, true, arguments); }
+
+	// -- -- -- -- -- -- -- -- -- -- //
+
+var out = function(type, useStdout)
 	{
-	all: true,
-	myoverride: 123,
-	mydefault2: 3
-	},
+	if (!enabled[type] && type != FORCE)
+		return;
 
-	// MANDATORY CONFIGURATION - Default configuration (always used as base config)
-defaultConfig:
+	var str = "", strs = arguments[2], strp;
+
+	for(var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
+		{
+		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
+		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
+		}
+
+	str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");		// Replace control characters 0-9, 11-12, 14-31
+
+	if (isNodeJs)
+		{
+		if (!useStdout)												// console.log prints new line
+			console.log(labels[type] + str);
+		else														// stdout.write doesn't
+			process.stdout.write(labels[type] + str);
+		}
+	else
+		{
+		if (type == DIR && console.dir)
+			console.dir(str);
+
+		else if (type == ERROR && console.error)
+			console.error(str);
+
+		else if (type == INFO && console.info)
+			console.info(str);
+
+		else if (type == WARN && console.warn)
+			console.warn(str);
+
+		else
+			console.log(str);
+		}
+	};
+
+self.setOptions = function(options)
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true,
-	all: null,
-	mydefault1: 1,
-	mydefault2: 2
-	},
+	for(var type in options)
+		enabled[type] = options[type];
+	};
 
-	// Class configurations (overrides defaultConfig)
-Manifest:
+self.clone = function(logger)
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	var enabled_ = logger.getEnabled();
 
-ApplicationManager:
+	enabled[LOG]	= enabled_[LOG];
+	enabled[DIR]	= enabled_[DIR];
+	enabled[INFO]	= enabled_[INFO];
+	enabled[ERROR]	= enabled_[ERROR];
+	enabled[WARN]	= enabled_[WARN];
+	};
+
+self.getEnabled = function()
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	return enabled;
+	};
 
-AppManService:
+}
+
+Logger.createLogger_ = function(class_)
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	//console.log("Logger::CreateLogger() creating new logger for "+class_);
 
-BinaryRpcCommunicator:
+	var lib;
+	var Config;
+
+	if (typeof window === "undefined")
+		{
+		try
+			{
+			Config = __webpack_require__(4);
+			}
+		catch (e)
+			{
+			var apipath = "/var/lib/spaceify/code/";
+			Config = __webpack_require__(47)(apipath + "config.js");
+			}
+		}
+	else if (typeof window !== "undefined")
+		{
+		lib = (window.spe ? window.spe : window);
+		Config = (lib.Config ? lib.Config : null);
+		}
+
+	var config = Config.getConfig();
+
+	//console.log("Logger::getLogger()" + JSON.stringify(config));
+
+	var loggerConfig = {};
+
+	// Get base config
+	Config.overrideConfigValues(loggerConfig, config.logger.defaultLoggerConfig);
+
+	// Override with class-specific properties
+
+	if (config.logger.hasOwnProperty(class_))
+		{
+		Config.overrideConfigValues(loggerConfig, config.logger[class_]);
+		}
+
+	// Override with global override
+	Config.overrideConfigValues(loggerConfig, config.logger.globalConfigOverride);
+
+	// Apply the "all" keyword
+
+	var all_ = (typeof loggerConfig.all !== "undefined" ? loggerConfig.all : null);
+
+	if (all_ !== null)											// Class specific override
+		{
+		loggerConfig['log'] = all_;
+		loggerConfig['dir'] = all_;
+		loggerConfig['info'] = all_;
+		loggerConfig['error'] = all_;
+		loggerConfig['warn'] = all_;
+		}
+
+	return new Logger(loggerConfig);
+	};
+	
+Logger.getLogger = function(class_)
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	if (!class_)
+		class_ = "mainlog";
 
-Core:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	var globalObj = null;
 
-Database:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
 
-DHCPDLog:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	else
+		globalObj = window;
 
-DockerContainer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	if (!globalObj.hasOwnProperty("speLoggerInstances_"))
+		{
+		globalObj["speLoggerInstances_"] = new Object();
+		}
 
-DockerHelper:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	if (!globalObj.speLoggerInstances_.hasOwnProperty(class_))
+		{
+		globalObj.speLoggerInstances_[class_] = Logger.createLogger_(class_);
+		}
 
-DockerImage:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	return globalObj.speLoggerInstances_[class_];
+	};
 
-EdgeSpaceifyNet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-HttpService:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Iptables:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Main:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Manager:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Messaging:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-PubSub:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-RpcCommunicator:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SecurityModel:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Service:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyApplication:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyApplicationManager:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyConfig:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyCore:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyError:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyMessages:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyNet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyNetwork:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyService:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyUtility:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Spacelet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SPM:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-ValidateApplication:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebOperation:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebRtcClient:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebRtcConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketRpcConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketRpcServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Connection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	}
-};
-
-if(true)
-	module.exports = Config;
+if (true)
+	module.exports = Logger;
 
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(__dirname) {
-
-/**
- * ConfigLoader, 2.3.2017 Spaceify Oy
- *
- * @class ConfigLoader
- */
-
-var ConfigLoader = function(class_, override_)
-	{
-		// Get configuration file -- -- -- -- -- -- -- -- -- -- //
-	var ConfigClass = null;
-	var lib = null;
-
-	if(typeof window === "undefined")
-		{
-		var apipath = "/var/lib/spaceify/code/";
-
-		//if(ConfigLoader.ifFileExists(__dirname + "/config.custom.js"))
-		//	ConfigClass = require(__dirname + "/config.custom.js");
-		//else if(ConfigLoader.ifFileExists(apipath + "config.custom.js"))
-		//	ConfigClass = require(apipath + "config.custom.js");
-		//else
-		if(ConfigLoader.ifFileExists(__dirname + "/config.js"))
-			ConfigClass = __webpack_require__(5);
-		else if(ConfigLoader.ifFileExists(apipath + "config.js"))
-			ConfigClass = __webpack_require__(47)(apipath + "config.js");
-		}
-	else if(typeof window !== "undefined")
-		{
-		if (window.Config)
-			lib = window;
-
-		else if (window.spe)
-			lib = window.spe;
-
-		ConfigClass = (lib.Config ? lib.Config : null);
-		}
-
-		// Process configuration
-	var config;
-	if(!ConfigClass)												// Configuration not found
-		{
-		config = {};
-		}
-	else
-		{
-		config = {};
-
-		// Apply configuration from webpack or window or nodejs config
-		if(ConfigClass["defaultConfig"])							// Set defaultConfig as base
-			config = ConfigLoader.overrideConfigValues(config, ConfigClass.defaultConfig);
-
-		if(ConfigClass[class_])										// Class found
-			config = ConfigLoader.overrideConfigValues(config, ConfigClass[class_]);
-
-		if(ConfigClass["globalConfigOverride"])						// Global override
-			config = ConfigLoader.overrideConfigValues(config, ConfigClass["globalConfigOverride"]);
-
-		if(override_)												// User override (when calling this function)
-			config = ConfigLoader.overrideConfigValues(config, override_);
-		}
-
-	return config;
-	}
-
-ConfigLoader.ifFileExists = function(path)
-	{
-	try {
-		var fs = __webpack_require__(0);
-		fs.accessSync(path, fs.F_OK);
-		return true;
-		}
-	catch(err)
-		{
-		return false;
-		}
-	}
-
-ConfigLoader.overrideConfigValues = function(config_, overrideValues_)
-	{
-	var newConfig = JSON.parse(JSON.stringify(config_));
-	for(var g in overrideValues_)
-		{
-		if(overrideValues_[g] !== null)
-			newConfig[g] = overrideValues_[g];
-		}
-	return newConfig;
-	}
-
-
-
-if(true)
-	module.exports = ConfigLoader;
-
-/* WEBPACK VAR INJECTION */}.call(exports, "/"))
-
-/***/ }),
-/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1123,7 +976,7 @@ self.makeRealApplicationPaths = function()
 	var volumePath;
 	var cwd = process.cwd();
 
-	var SpaceifyUnique = __webpack_require__(20);
+	var SpaceifyUnique = __webpack_require__(21);
 	var unique = new SpaceifyUnique();
 
 	self["API_PATH"] = self["SPACEIFY_CODE_PATH"];
@@ -1199,7 +1052,7 @@ if(true)
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1426,6 +1279,67 @@ if(true)
 
 
 /***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Logger wrapper for Spaceify edge, 5.4.2017 Spaceify Oy
+ *
+ * @class SpaceifyLogger
+ */
+
+function SpaceifyLogger(class_)
+{
+var self = this;
+
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var Logger = null;
+var SpaceifyError = null;
+
+if (isNodeJs)
+	{
+	var apipath = "/var/lib/spaceify/code/";
+
+	try { Logger = __webpack_require__(5); } catch (e) { Logger = __webpack_require__(49)(apipath + "logger"); }
+	try { SpaceifyError = __webpack_require__(7); } catch (e) { SpaceifyError = __webpack_require__(13)(apipath + "spaceifyerror"); }
+	}
+else if (typeof window !== "undefined")
+	{
+	Logger = (window.Logger ? window.Logger : null);
+	SpaceifyError = (window.SpaceifyError ? window.SpaceifyError : null);
+	}
+
+var errorc = new SpaceifyError();
+var logger = Logger.getLogger(class_);
+
+self.log		= function(message) { logger.log(message); }
+self.dir		= function(message) { logger.dir(message); }
+self.info		= function(message) { logger.info(message); }
+self.error		= function(err, path, code, type)
+	{
+	var message = (errorc ? errorc.errorToString(err, path, code) : err);
+
+	if (type == logger.ERROR)
+		logger.error(logger.ERROR, false, [message]);
+	else if (type == logger.FORCE)
+		logger.force(message);
+
+	return message;
+	}
+self.warn		= function(message) { logger.warn(message); }
+self.force		= function(message) { logger.force(message); }
+self.stdout		= function(message) { logger.stdout(message); }
+}
+
+if (true)
+	module.exports = SpaceifyLogger;
+
+
+/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1448,7 +1362,6 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var fibrous = null;
 var Service = null;
 var Connection = null;
@@ -1456,18 +1369,19 @@ var SpaceifyCore = null;
 var SpaceifyError = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
+//var SpaceifyLogger = null;
 var WebSocketRpcServer = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	Service = __webpack_require__(50)(lib + "service");
-	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
-	SpaceifyError = __webpack_require__(32)(lib + "spaceifyerror");
-	SpaceifyConfig = __webpack_require__(2)(lib + "spaceifyconfig");
+	SpaceifyCore = __webpack_require__(30)(lib + "spaceifycore");
+	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyNetwork = __webpack_require__(51)(lib + "spaceifynetwork");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	WebSocketRpcServer = __webpack_require__(54)(lib + "websocketrpcserver");
 	Connection = __webpack_require__(29)(lib + "connection");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
@@ -1476,12 +1390,12 @@ else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//Logger = lib.Logger;
 	Service = lib.Service;
 	SpaceifyCore = lib.SpaceifyCore;
 	SpaceifyError = lib.SpaceifyError;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	WebSocketRpcServer = null;
 	Connection = lib.Connection;
 	fibrous = function(fn) { return fn; };
@@ -1491,7 +1405,7 @@ var core = new SpaceifyCore();
 var errorc = new SpaceifyError();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig("realpaths");
-//var logger = Logger.getLogger("SpaceifyService");
+//var logger = new SpaceifyLogger("SpaceifyService");
 
 var required = {};									// <= Clients (required services)
 var requiredSecure = {};
@@ -1748,6 +1662,516 @@ if(true)
 
 
 /**
+ * Config, 8.2.2017 Spaceify Oy
+ *
+ * This configuration is used with the 'spaceify connect'.
+ *
+ * Supported console output types:
+ *   log, dir, info, error and warn
+ *
+ * The configuration logic is based on 'enable output' and operates with boolean values:
+ *   false = output is disabled
+ *    true = output is enabled
+ *
+ * The individual console output types can be overridden with the 'all' configuration.
+ * The override takes three values:
+ *   false = all the output types are disabled
+ *    true = all the output types are enabled
+ *    null = the override is not applied to the output types
+ *
+ * If the configuration for a class is not found, the default (defaultConfig) configuration
+ * is used as a fallback. The default configuration operates identically to the individual
+ * class configurations.
+ *
+ * There is a global (globalConfigOverride) override configuration. The global oveverride is applied
+ * to all of the corresponding output types of all the individual class configurations.
+ * The override takes three values:
+ *   false = the output type of all the individual classes are disabled
+ *    true = the output type of all the individual classes are enabled
+ *    null = the override is not applied to the output type of the class
+ *
+ * NOTICE: the globalConfigOverride and defaultConfig configurations are mandatory variables in the config.js file!
+ *
+ * Order of precedence of the configurations
+ *   Global configuration takes precedencence of class configurations
+ * Order of precedence of the console output types
+ *   'all' in a configuration (global or class) takes precedence the output types
+ *
+ * e.g.
+ *      MyClass is unaltered
+ *      globalConfigOverride = { log: null, dir: null, info: null, error: null, warn: null, all: null };
+ *      MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
+ *   => MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
+ *
+ *      MyClass 'all' overrides its output types
+ *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: null };
+ *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true,  all: false };
+ *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: false };
+ *
+ *      Global error is set to false and overrides MyClass error with false
+ *      globalConfigOverride = { log: null, dir: null, info: null, error: false, warn: null, all: null };
+ *      MyClass = { log: true, dir: true, info: true, error: true,  warn: true, all: null };
+ *   => MyClass = { log: true, dir: true, info: true, error: false, warn: true, all: null };
+ *
+ *      Global 'all' is set to false and all the output types of MyClass are overridden with false
+ *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: false };
+ *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true, all: null };
+ *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: null };
+ *
+ * @class Config
+ */
+
+var SpeBaseConfig =
+{
+WEBRTC_CONFIG: {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]},
+
+connection:
+	{
+	MAINURL: "http://spaceify.net/games/"
+	},
+
+connectionGuard:
+	{
+	GUARDING_INTERVAL: 2000,
+	MAXIMUM_UNANSWERED_CALLBACKS: 20
+	},
+
+reconnector:
+	{
+	INITIAL_DELAY: 500,
+	DELAY_INCREMENT: 1000,
+	MAXIMUM_DELAY: 32000
+	},
+
+spaceifyPiper:
+	{
+	DEFAULT_GROUP: "testgroup",
+	HTTP_ADDRESS:  {host: "localhost", port: 80},
+	SERVER_ADDRESS: {host: "spaceify.net", port: 1979},
+	},
+
+logger:
+	{
+	// Global configuration overrides (overrides the individual class configurations)
+
+	loggerConfigOverride:
+		{
+		all: true,
+		myoverride: 123,
+		mydefault2: 3
+		},
+
+	// MANDATORY CONFIGURATION - Default configuration (always used as base config)
+
+	defaultLoggerConfig:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true,
+		all: null,
+		mydefault1: 1,
+		mydefault2: 2
+		},
+
+	// Class configurations (overrides defaultConfig)
+	ApplicationManager:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	AppManService:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	BinaryRpcCommunicator:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Core:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Database:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	DHCPDLog:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	DockerContainer:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	DockerHelper:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	DockerImage:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	RegisterEdge:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	HttpService:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Iptables:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Main:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Manager:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Manifest:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Messaging:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	PubSub:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	RpcCommunicator:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SecurityModel:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Service:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyApplication:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyApplicationManager:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyConfig:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyCore:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyError:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyMessages:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyNet:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyNetwork:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyService:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SpaceifyUtility:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Spacelet:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	SPM:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	ValidateApplication:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebOperation:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebRtcClient:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebRtcConnection:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebServer:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebSocketConnection:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebSocketRpcConnection:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebSocketRpcServer:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	WebSocketServer:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	Connection:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		}
+	},
+
+testValue: "TestValueFromBaseConfig"
+};
+
+//Object.freeze(SpeBaseConfig);
+
+if (true)
+	module.exports = SpeBaseConfig;
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
  * WebSocketConnection, 12.5.2016 Spaceify Oy
  *
  * @class WebSocketConnection
@@ -1760,29 +2184,29 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var SpaceifyError = null;
+var SpaceifyLogger = null;
 
 if(isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
 	global.fs = __webpack_require__(0);
-	global.WebSocket = __webpack_require__(36).w3cwebsocket;
+	global.WebSocket = __webpack_require__(35).w3cwebsocket;
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyError = lib.SpaceifyError;
 	}
 
 var errorc = new SpaceifyError();
-var logger = Logger.getLogger("WebSocketConnection");
+var logger = new SpaceifyLogger("WebSocketConnection");
 
 var url = "";
 var id = null;
@@ -2035,7 +2459,7 @@ if (true)
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2054,27 +2478,27 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var SpaceifyError = null;
 var SpaceifyUtility = null;
 var RpcCommunicator = null;
+//var SpaceifyLogger = null;
 var WebSocketConnection = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
-	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
+	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
+	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//Logger = lib.Logger;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyError = lib.SpaceifyError;
 	SpaceifyUtility = lib.SpaceifyUtility;
 	RpcCommunicator = lib.RpcCommunicator;
@@ -2085,7 +2509,7 @@ var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var communicator = new RpcCommunicator();
 var connection = new WebSocketConnection();
-//var logger = Logger.getLogger("WebSocketRpcConnection");
+//var logger = new SpaceifyLogger("WebSocketRpcConnection");
 
 self.connect = function(options, callback)
 	{
@@ -2177,36 +2601,11 @@ if (true)
 
 
 /***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var map = {
-	"./spaceifyutility": 21
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 12;
-
-
-/***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./binaryrpccommunicator": 22,
-	"./rpccommunicator": 25
+	"./spaceifyerror": 7
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -2227,15 +2626,26 @@ webpackContext.id = 13;
 
 /***/ }),
 /* 14 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 14;
+var map = {
+	"./spaceifyutility": 22
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 14;
 
 
 /***/ }),
@@ -2243,7 +2653,7 @@ webpackEmptyContext.id = 14;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./websocketconnection": 10
+	"./rpccommunicator": 25
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -2264,210 +2674,43 @@ webpackContext.id = 15;
 
 /***/ }),
 /* 16 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(__dirname) {
-
-/**
- * Logger, 18.12.2013 Spaceify Oy
- *
- * @class Logger
- */
-
-function Logger(config)
-{
-var self = this;
-
-var errorc = null;
-
-var isNodeJs = (typeof window === "undefined" ? true : false);
-
-if(isNodeJs)
-	{
-	var apipath = "/var/lib/spaceify/code/spaceifyerror";
-
-	if(Logger.ifFileExists("./spaceifyerror.js"))
-		errorc = __webpack_require__(8);
-	else if(Logger.ifFileExists(apipath))
-		errorc = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	}
-else if(typeof window !== "undefined")
-	{
-	errorc = (window.SpaceifyError ? window.SpaceifyError : null);
-	}
-
-if(errorc)
-	errorc = new errorc();
-
-self.RETURN		= 1;
-var LOG			= "log";
-var DIR			= "dir";
-var INFO		= "info";
-self.ERROR		= "error";
-var ERROR = self.ERROR;
-var WARN		= "warn";
-self.FORCE		= "force";
-var FORCE = self.FORCE;
-var STDOUT		= "stdout";
-
-	// Labels -- -- -- -- -- -- -- -- -- -- //
-var labels = {};
-labels[LOG]		= "[i] ";
-labels[DIR]		= "[d] ";
-labels[INFO]	= "[i] ";
-labels[ERROR]	= "[e] ";
-labels[WARN]	= "[w] ";
-labels[FORCE]	= "";
-labels[STDOUT]	= "";
-
-	// -- -- -- -- -- -- -- -- -- -- //
-var enabled = (config ? config : {});
-
-// Local: enabled = true (default), not enabled = false
-enabled[LOG]	= (typeof enabled[LOG] !== "undefined" ? enabled[LOG] : true);
-enabled[DIR]	= (typeof enabled[DIR] !== "undefined"  ? enabled[DIR] : true);
-enabled[INFO]	= (typeof enabled[INFO] !== "undefined"  ? enabled[INFO] : true);
-enabled[ERROR]	= (typeof enabled[ERROR] !== "undefined"  ? enabled[ERROR] : true);
-enabled[WARN]	= (typeof enabled[WARN] !== "undefined"  ? enabled[WARN] : true);
-enabled[FORCE]	= true;
-enabled[STDOUT]	= true;
-
-	// -- -- -- -- -- -- -- -- -- -- //
-self.log		= function() { out(LOG, false, arguments); }
-self.dir		= function() { out(DIR, false, arguments); }
-self.info		= function() { out(INFO, false, arguments); }
-self.error		= function() { printErrors.apply(this, arguments); }
-self.warn		= function() { out(WARN, false, arguments); }
-self.force		= function() { out(FORCE, false, arguments); }
-self.stdout		= function() { out(STDOUT, true, arguments); }
-
-	// -- -- -- -- -- -- -- -- -- -- //
-var out = function(type, fromStdout)
-	{
-	if(!enabled[type] && type != FORCE)
-		return;
-
-	var str = "", strs = arguments[2], strp;
-
-	if(isNodeJs)
-		{
-		for(var i = 0; i < strs.length; i++)						// Concatenate strings passed in the arguments, separate strings with space
-			{
-			strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
-			str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
-			}
-
-		str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");	// Replace control characters 0-9, 11-12, 14-31
-
-		process.stdout.write(labels[type] + str + (fromStdout ? "" : "\n"));
-		}
-	else
-		{
-		if(type == DIR && console.dir)
-			console.dir.apply(this, arguments[2]);
-		else if(type == ERROR && console.error)
-			console.error.apply(this, arguments[2])
-		else if(type == INFO && console.info)
-			console.info.apply(this, arguments[2]);
-		else if(type == WARN && console.warn)
-			console.warn.apply(this, arguments[2]);
-		else
-			console.log.apply(this, arguments[2]);
-		}
-	}
-
-var printErrors = function(err, printPath, printCode, printType)
-	{
-	var message = (errorc ? errorc.errorToString(err, printPath, printCode) : err);
-
-	if(printType == ERROR)
-		out.call(self, ERROR, false, [message]);
-	else if(printType == FORCE)
-		self.force(message);
-
-	return message;
-	}
-
-self.setOptions = function(options)
-	{
-	for(var type in options)
-		enabled[type] = options[type];
-	}
-
-self.clone = function(logger)
-	{
-	var enabled_ = logger.getEnabled();
-
-	enabled[LOG]	= enabled_[LOG];
-	enabled[DIR]	= enabled_[DIR];
-	enabled[INFO]	= enabled_[INFO];
-	enabled[ERROR]	= enabled_[ERROR];
-	enabled[WARN]	= enabled_[WARN];
-	}
-
-self.getEnabled = function()
-	{
-	return enabled;
-	}
-
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
 }
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 16;
 
-Logger.ifFileExists = function(path)
-	{
-	try {
-		var fs = __webpack_require__(0);
-		fs.accessSync(path, fs.F_OK);
-		return true;
-		}
-	catch(err)
-		{
-		return false;
-		}
-	}
-
-Logger.getLogger = function(class_, override_)
-	{
-	var lib;
-	var ConfigLoader;
-
-	if(typeof window === "undefined")
-		{
-		var apipath = "/var/lib/spaceify/code/";
-
-		if(Logger.ifFileExists(__dirname + "/configloader.js"))
-			ConfigLoader = __webpack_require__(6);
-		else if(Logger.ifFileExists(apipath + "configloader.js"))
-			ConfigLoader = __webpack_require__(48)(apipath + "configloader.js");
-		}
-	else if(typeof window !== "undefined")
-		{
-		lib = (window.spe ? window.spe : window);
-		ConfigLoader = (lib.ConfigLoader ? lib.ConfigLoader : null);
-		}
-
-	var config = ConfigLoader(class_, override_);
-
-	var all_ = (typeof config.all !== "undefined" ? config.all : null);
-	if(all_ !== null)											// Class specific override
-		{
-		config['log'] = all_;
-		config['dir'] = all_;
-		config['info'] = all_;
-		config['error'] = all_;
-		config['warn'] = all_;
-		}
-
-	return new Logger(config);
-	};
-
-if(true)
-	module.exports = Logger;
-
-/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
 /* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./websocketconnection": 11
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 17;
+
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2488,8 +2731,8 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 //var SpaceifyConfig = null;
+//var SpaceifyLogger = null;
 var SpaceifyUtility = null;
 var fibrous = null;
 
@@ -2497,24 +2740,24 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	SpaceifyUtility = __webpack_require__(12)(lib + "spaceifyutility");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
+	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//Logger = lib.Logger;
 	//SpaceifyConfig = lib.SpaceifyConfig;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	var SpaceifyUtility = lib.SpaceifyUtility;
 	var fibrous = function(fn) { return fn; };
 	}
 
 var utility = new SpaceifyUtility();
 //var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("Service");
+//var logger = new SpaceifyLogger("Service");
 
 var serverUpListener = null;
 var serverDownListener = null;
@@ -2645,7 +2888,7 @@ if(true)
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2666,34 +2909,34 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var Connection = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
+//var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	Connection = __webpack_require__(29)(lib + "connection");
-	SpaceifyConfig = __webpack_require__(2)(lib + "spaceifyconfig");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyNetwork = function() {};
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//Logger = lib.Logger;
 	Connection = lib.Connection;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
 var connection = new Connection();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("SpaceifyCore");
+//var logger = new SpaceifyLogger("SpaceifyCore");
 
 var callQueue = [];
 
@@ -2923,7 +3166,7 @@ if(true)
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2942,34 +3185,34 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var SpaceifyError = null;
 var SpaceifyConfig = null;
 var SpaceifyUtility = null;
+//var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
-	SpaceifyError = __webpack_require__(32)(lib + "spaceifyerror");
-	SpaceifyConfig = __webpack_require__(2)(lib + "spaceifyconfig");
-	SpaceifyUtility = __webpack_require__(12)(lib + "spaceifyutility");
+	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
+	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//var Logger = lib.Logger;
 	SpaceifyError = lib.SpaceifyError;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyUtility = lib.SpaceifyUtility;
+	//var SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("SpaceifyNetwork");
+//var logger = new SpaceifyLogger("SpaceifyNetwork");
 
 var dregx = new RegExp(config.EDGE_DOMAIN.replace(".", "\\.") + "$", "i");
 
@@ -3178,7 +3421,7 @@ self.isPortInUse = function(port, callback)
 	if(!port)
 		return callback(null, true);
 
-	var net = __webpack_require__(63);
+	var net = __webpack_require__(65);
 	var server = net.createServer();
 
 	server.once("error", function(err)
@@ -3338,7 +3581,7 @@ if(true)
 	module.exports = SpaceifyNetwork;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -3397,7 +3640,7 @@ if(true)
 	module.exports = SpaceifyUnique;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3416,41 +3659,41 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var Language = null;
 var SpaceifyConfig = null;
+var SpaceifyLogger = null;
 var fibrous = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = __webpack_require__(30)(lib + "logger");
 	Language = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	SpaceifyConfig = __webpack_require__(2)(lib + "spaceifyconfig");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
+	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
-	global.os = __webpack_require__(64);
+	global.os = __webpack_require__(66);
 	global.fs = __webpack_require__(0);
-	global.path = __webpack_require__(65);
-	global.mkdirp = __webpack_require__(62);
-	global.AdmZip = __webpack_require__(58);
-	global.request = __webpack_require__(66);
-	global.spawn = __webpack_require__(59).spawn;
+	global.path = __webpack_require__(34);
+	global.mkdirp = __webpack_require__(64);
+	global.AdmZip = __webpack_require__(60);
+	global.request = __webpack_require__(67);
+	global.spawn = __webpack_require__(61).spawn;
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
 	Language = {};
 	SpaceifyConfig = lib.SpaceifyConfig;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	fibrous = function(fn) { return fn; };
 	}
 
 var config = SpaceifyConfig.getConfig();
 var language = Language;//new Language();
-var logger = Logger.getLogger("SpaceifyUtility");
+var logger = new SpaceifyLogger("SpaceifyUtility");
 
 	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
 self.loadRemoteFile = fibrous( function(fileUrl)
@@ -4094,715 +4337,6 @@ if(true)
 
 
 /***/ }),
-/* 22 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * BinaryRpcCommunicator, 21.6.2016 Spaceify Oy
- *
- * A class that implements the JSON-RPC 2.0 protocol supporting single, batch and notification requests.
- * Communicates with the outside world with WebSocketConnection or WebRTCConnection objects
- * on the layer below. This is a two-way class that implements both client and server functionality.
- *
- * BinaryRpcCommunicator is a version of the RPCCommunicator class that supports
- * transmitting RPC calls in a binary format over-the-wire. This functionality is
- * turned on if handleBinary contructor parameter is set to "true".
- * The over-the-wire binary format for request is the following:
- *
- * | Message Length | MessageType | ID Length |   ID     | Method length | Method   | Params length | Params
- * | (Uint64)       | (Uint32) =0 | (Uint32)  | (string) | (Uint32)      | (string) | (Uint64)      | (byte[])
- * |----------------|-------------|-----------|----------|---------------|----------|---------------|-------
- * 0                8             12         16
- *
- * The reply format is the following
- *
- * | Message Length | MessageType | ID Length |   ID     | Error length  | Error    | Result length | Result
- * | (Uint64)       | (Uint32) =1 | (Uint32)  |(string)  | (Uint32)      | (string) | (Uint64)      | (byte[])
- * |----------------|-------------|-----------|----------|---------------|----------|---------------|----
- * 0                8            12          16
- *
- * In Javascript, the Params and Result fields are handled as ArrayBuffers, and their interpretation
- * is left to the corresponding RPC methods.
- *
- * class @BinaryRpcCommunicator
- */
-
-function BinaryRpcCommunicator(handleBinary)
-{
-var self = this;
-
-var isNodeJs = (typeof window === "undefined" ? true : false);
-var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
-
-var lib = null;
-var Logger = null;
-var SpaceifyError = null;
-var CallbackBuffer = null;
-var SpaceifyUtility = null;
-var fibrous = null;
-
-if (isNodeJs)
-	{
-	lib = "/var/lib/spaceify/code/";
-
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(33)(lib + "callbackbuffer");
-	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	}
-else
-	{
-	lib = (window.spe ? window.spe : window);
-
-	Logger = lib.Logger;
-	SpaceifyError = lib.SpaceifyError;
-	CallbackBuffer = lib.CallbackBuffer;
-	SpaceifyUtility = lib.SpaceifyUtility;
-	fibrous = function(fn) { return fn; };
-	}
-
-var errorc = new SpaceifyError();
-var utility = new SpaceifyUtility();
-var callbackBuffer = new CallbackBuffer();
-var logger = Logger.getLogger("BinaryRpcCommunicator");
-
-var callSequence = 1;
-var exposedRpcMethods = {};
-
-var eventListener = null;
-var binaryListener = null;
-var connectionListeners = [];
-var disconnectionListeners = [];
-
-var connections = {};
-var latestConnectionId = null;
-
-var EXPOSE_SYNC = 0;
-var EXPOSE_TRADITIONAL = 1;
-var  REQUEST_STR = "  REQUEST      -> ";
-var   NOTIFY_STR = "  NOTIFICATION -> ";
-var RESPONSE_STR = "  RETURN VALUE <- ";
-
-//** Upwards interface towards business logic
-
-self.exposeRpcMethod = function(name, object, method)
-	{
-	try	{
-		exposedRpcMethods[name] = {type: EXPOSE_TRADITIONAL, method: method};
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-self.exposeRpcMethodSync = function(name, object, method)
-	{
-	try	{
-		exposedRpcMethods[name] = {type: EXPOSE_SYNC, method: method};
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-self.setConnectionListener = function(listener)
-	{
-	if (typeof listener == "function")
-		connectionListeners.push(listener);
-	};
-
-self.setDisconnectionListener = function(listener)
-	{
-	if (typeof listener == "function")
-		disconnectionListeners.push(listener);
-	};
-
-self.setBinaryListener = function(listener)
-	{
-	binaryListener = (typeof listener == "function" ? listener : null);
-	};
-
-self.connectionExists = function(connectionId)
-	{
-	if (typeof connectionId !== "undefined" && connections.hasOwnProperty(connectionId) )
-		return true;
-	else if (typeof connectionId === "undefined" && connections.hasOwnProperty(latestConnectionId))
-		return true;
-	else
-		return false;
-	};
-
-self.getConnection = function(connectionId)
-	{
-	return connections[connectionId];
-	};
-
-// Outgoing RPC call
-
-self.callRpc = function(methods, params, object, callback, connectionId)
-	{
-	var callObject;
-	var callObjects = [];
-	var isBatch = false, currentId;
-	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
-
-	logger.log("BinaryRpcCommunicator::callRpc() connectionId: " + connectionId);
-
-	if (!self.connectionExists(connectionId))
-		return;
-
-	try	{
-		if (!(methods instanceof Array))													// Process single request as "a single batch request"
-			{
-			isBatch = false;
-			params = [params];
-			methods = [methods];
-			}
-
-		currentId = callSequence;															// Batch requests have only one callback and the id in
-																							// the callbackBuffer is the id of the first request
-		for(var i=0; i<methods.length; i++)
-			{
-			if (typeof callback == "function")												// Call: expects a response object
-				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i], id: callSequence++};
-			else																			// Notification: doesn't expect a response object
-				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i]};
-
-			callObjects.push(callObject);
-
-			//logger.log(NOTIFY_STR + JSON.stringify(callObject));
-			}
-
-		if (typeof callback == "function")
-			callbackBuffer.pushBack(currentId, object, callback);
-		}
-	catch(err)
-		{
-		return (typeof callback == "function" ? callback(errorc.makeErrorObject(-32000, "callRpc failed.", "BinaryRpcCommunicator::callRpc"), null) : false);
-		}
-
-	var request = isBatch ? callObjects : callObjects[0];									// Send as batch only if call was originally batch
-
-	sendMessage(request, id);
-	};
-
-// Sends a RPC notification to all connections
-self.notifyAll = function(method, params)
-	{
-	try	{
-		for (var key in connections)
-			{
-			logger.log("BinaryRpcCommunicator::notifyAll() sending message to " + key);
-
-			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
-			}
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-self.getBufferedAmount = function(connectionId)
-	{
-	return connections[connectionId].getBufferedAmount();
-	};
-
-self.sendBinary = function(data, connectionId)
-	{
-	logger.log("BinaryRpcCommunicator::sendBinary() " + data.byteLength);
-
-	try	{
-		connections[connectionId].sendBinary(data);
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-//** Private methods
-
-var sendBinaryCall = function(callId, method, params, connectionId)
-	{
-	var messageBuffer = new ArrayBuffer(8+4+callId.length+4+method.length+8+params.byteLength);
-	var view = new DataView(messageBuffer);
-	var messageArray = new Uint8Array(messageBuffer);
-
-	view.setUint32(4, messageBuffer.byteLength - 8);
-	view.setUint32(8, callId.length);
-	view.setUint32(8 + 4 + callId.length, method.length);
-
-	//messageArray.subarray(8 + 4, 8 + 4 + 4 + callId.length).set(params);
-	//messageArray.subarray(8 + 4 + callId.length + 4 + method.length + 8, messageBuffer.byteLength).set(params);
-
-	messageArray.subarray(8 + 4 + callId.length + 4 + method.length + 8, messageBuffer.byteLength).set(params);
-	};
-
-var sendMessage = function(message, connectionId)
-	{
-	try	{
-		connections[connectionId].send(JSON.stringify(message));
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-self.sendMessage = sendMessage;	//for testing, remove this later
-
-// Send the return value of the RPC call to the caller
-var sendResponse = function(err, result, id, connectionId)
-	{
-	try	{
-		if (err)
-			{
-			logger.error(["Exception in executing a RPC method.", err], true, true, logger.ERROR);
-
-			sendMessage({"jsonrpc": "2.0", "error": err, "id": id}, connectionId);
-			}
-		else
-			sendMessage({"jsonrpc": "2.0", "result": result, "id": id}, connectionId);
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-var handleMessage = function(requestsOrResponses, connectionId)
-	{
-	var isBatch = true;
-
-	try	{
-		if (!(requestsOrResponses instanceof Array))									// Process single request/response as "a single batch request/response"
-			{ requestsOrResponses = [requestsOrResponses]; isBatch = false; }
-
-		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
-			{
-			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
-
-			if (isNodeJs && !isRealSpaceify)
-				{
-				fibrous.run( function()
-					{
-					handleRPCCall.sync(requestsOrResponses, isBatch, [], true, connectionId);
-					}, function(err, data) { } );
-				}
-			else
-				handleRPCCall(requestsOrResponses, isBatch, [], true, connectionId);
-			}
-		else																			// Received a return value(s) to an RPC call made by us
-			handleReturnValue(requestsOrResponses, isBatch);
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
-	{
-	var result;
-	var request = requests.shift();
-
-	if (!request)
-		{
-		if (!onlyNotifications && responses.length == 0)
-			responses.push({"jsonrpc": "2.0", "error": {"code": -32603, "message": "Internal JSON-RPC error."}, id: null});
-
-		if (responses.length > 0)															// Batch -> [response objects] || Single -> response object
-			sendMessage((isBatch ? responses : responses[0]), connectionId);
-		}
-	else
-		{
-		var requestId = (request.hasOwnProperty("id") ? request.id : null);
-		var rpcParams = (request.hasOwnProperty("params") ? request.params : []);
-
-		if (requestId != null)
-			onlyNotifications = false;
-
-		logger.log((requestId ? REQUEST_STR : NOTIFY_STR) + JSON.stringify(request));
-
-		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
-			{
-			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32600, "message": "The JSON sent is not a valid Request object."}, "id": null}, responses);
-
-			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-			}
-
-		if (rpcParams !== "undefined" && rpcParams.constructor !== Array )
-			{
-			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid method parameter(s). Parameters must be placed inside an array."}, "id": requestId}, responses);
-
-			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-			}
-
-		if (!exposedRpcMethods.hasOwnProperty(request.method))								// Unknown method
-			{
-			addResponse(requestId, {"jsonrpc": "2.0", "error": {"code": -32601, "message": "The method does not exist / is not available: " + request.method + "."}, "id": requestId}, responses);
-
-			return handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-			}
-
-		try	{
-			var rpcMethod = exposedRpcMethods[request.method];
-
-			var got = rpcParams.length;														// Check parameter count
-			var expected = (rpcMethod.type == EXPOSE_SYNC ? (isRealSpaceify ? rpcMethod.method.length : rpcMethod.method.getLength()) - 1 : rpcMethod.method.length - 2);
-																							// Synchronous: ..., connObj
-			if (expected < got)																// Traditional: ..., connObj, callback
-				rpcParams.splice(expected - got, got - expected);
-			else if (expected > got)
-				{
-				expected = expected - got;
-				while(expected--)
-					rpcParams.push(null);
-				}
-
-			var connObj =	{
-							requestId: requestId,
-							connectionId: connectionId,
-							isSecure: connections[connectionId].getIsSecure()
-							};
-
-			if (!isRealSpaceify)
-				{
-				connObj.origin = connections[connectionId].getOrigin(),
-				connObj.remotePort = connections[connectionId].getRemotePort(),
-				connObj.remoteAddress = connections[connectionId].getRemoteAddress()
-				}
-
-			if (rpcMethod.type == EXPOSE_SYNC && !isRealSpaceify)							// Core methods wrapped in fibrous
-				{
-				//result = rpcMethod.method.sync(...rpcParams, connObj);
-
-				rpcParams.push(connObj);
-				result = rpcMethod.method.sync.apply(rpcMethod.object, rpcParams);
-
-				addResponse(requestId, result, responses);
-
-				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-				}
-			else if (rpcMethod.type == EXPOSE_SYNC && isRealSpaceify)						// Application methods exposed with exposeRpcMethodSync
-				{
-				//result = rpcMethod.method(...rpcParams, connObj);
-
-				rpcParams.push(connObj);
-				result = rpcMethod.method.apply(rpcMethod.object, rpcParams);
-
-				addResponse(requestId, result, responses);
-
-				handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-				}
-			else																			// Traditional callback based methods
-				{
-				if (requestId != null)															// Request
-					{
-					/*rpcMethod.method(...rpcParams, connObj, function(err, data)
-						{
-						if (err)
-							{
-							addError(requestId, err, responses);
-
-							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-							}
-						else
-							{
-							addResponse(requestId, data, responses);
-
-							handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-							}
-						});*/
-
-					rpcParams.push(connObj, function(err, data)
-						{
-						callbackReturns(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId);
-						});
-					rpcMethod.method.apply(rpcMethod.object, rpcParams);
-					}
-				else																			// Notification
-					{
-					//rpcMethod.method(...rpcParams, connObj, null);
-
-					rpcParams.push(connObj);
-					rpcMethod.method.apply(rpcMethod.object, rpcParams);
-
-					handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-					}
-				}
-			}
-		catch(err)
-			{
-			addError(requestId, err, responses);
-
-			handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-			}
-		}
-	};
-
-var callbackReturns = function(err, data, requestId, requests, isBatch, responses, onlyNotifications, connectionId)
-	{
-	if (err)
-		{
-		addError(requestId, err, responses);
-
-		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-		}
-	else
-		{
-		addResponse(requestId, data, responses);
-		handleRPCCall(requests, isBatch, responses, onlyNotifications, connectionId);
-		}
-	}
-
-var addResponse = function(requestId, result, responses)
-	{
-	if (requestId != null)																	// Requests send responses
-		{
-		result = (typeof result === "undefined" ? null : result);
-
-		logger.log("  RESPONSE <- " + JSON.stringify(result));
-
-		responses.push({jsonrpc: "2.0", result: result, id: requestId});
-		}
-	//else																					// Notifications can't send responses
-	//	logger.log("  NOTIFICATION - NO RESPONSE SEND");
-	}
-
-var addError = function(requestId, err, responses)
-	{
-	if (requestId != null)																	// Requests send responses
-		{
-		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
-
-		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
-
-		responses.push({jsonrpc: "2.0", error: err, id: requestId});
-		}
-	//else																					// Notifications can't send responses
-	//	logger.log("  NOTIFICATION - NO ERROR RESPONSE SEND");
-	}
-
-// Handle incoming return values for a RPC call that we have made previously
-var handleReturnValue = function(responses, isBatch)
-	{
-	logger.log("BinaryRpcCommunicator::handleReturnValue()");
-
-	var error = null, result = null;
-
-	try	{
-		if (isBatch)
-			{
-			var processed = processBatchResponse(responses);
-			callbackBuffer.callMethodAndPop(processed.smallestId, processed.errors, processed.results);
-			}
-		else
-			{
-			logger.log(RESPONSE_STR + JSON.stringify(responses[0]));
-
-			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
-				return;
-
-			if (responses[0].hasOwnProperty("error"))
-				{
-				error = responses[0].error;
-				result = null;
-				}
-			else if (responses[0].hasOwnProperty("result"))
-				{
-				error = null;
-				result = responses[0].result;
-				}
-
-			callbackBuffer.callMethodAndPop(responses[0].id, error, result);
-			}
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-var processBatchResponse = function(responses)
-	{ // Process raw JSON-RPC objects returned by batch JSON-RPC call. Returns an array containing
-	  // [{error: .., result: ...}, {error: ..., result: ....}, ...] objects.
-	var smallestId = -1;
-	var errors = {}, results = {}
-
-	for(var r=0; r<responses.length; r++)
-		{
-		logger.log(RESPONSE_STR + JSON.stringify(responses[r]));
-
-		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
-			continue;
-
-		smallestId = Math.max(smallestId, responses[r].id);
-
-		if (responses[r].hasOwnProperty("error"))
-			{
-			errors[responses[r].id] = responses[r].error;
-			results[responses[r].id] = null;
-			}
-		else if (responses[r].hasOwnProperty("result"))
-			{
-			errors[responses[r].id] = null;
-			results[responses[r].id] = results[r].result;
-			}
-		}
-
-	return {smallestId: smallestId, errors: errors, results: results};
-	}
-
-var handleBinary = function(data, connectionId)
-	{
-	var view = new DataView(data);
-	var dataArray = new Uint8Array(data);
-
-	var messageSize = view.getUint32(4);
-	var messageType = view.getUint32(8);
-	var idSize = view.getUint32(12);
-
-	var id = dataArray.subarray(16, 16+idSize);
-	var idString = String.fromCharCode.apply(null, id);
-
-	var methodSize = view.getUint32(16+idSize);
-
-	var method = dataArray.subarray(16+idSize+4, 16+idSize+4+methodSize);
-	var methodString = String.fromCharCode.apply(null, method);
-
-	var paramsSize = view.getUint32( 16+idSize+4+methodSize+4);
-	var params = dataArray.subarray(16+idSize+4+methodSize+4+4, 16+idSize+4+methodSize+4+4+paramsSize);
-	}
-
-self.setupPipe = function(firstId, secondId)
-	{
-	logger.log("BinaryRpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
-
-	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
-		return;
-
-	connections[firstId].setPipedTo(secondId);
-	connections[secondId].setPipedTo(firstId);
-	};
-
-//** Downwards interface towards a connection
-
-//** MessageListener interface implementation
-
-self.onMessage = function(messageData, connection)
-	{
-	//logger.log("BinaryRpcCommunicator::onMessage(" + typeof messageData + ") " + messageData);
-
-	try	{
-		var pipeTarget = connection.getPipedTo();
-
-		if (pipeTarget != null)
-			{
-			connections[pipeTarget].send(messageData);
-
-			return;
-			}
-
-		if (messageData instanceof ArrayBuffer)
-			{
-			handleBinary(messageData, connection.getId());
-
-			return;
-			}
-
-		// JSON-RPC
-		try {
-			messageData = JSON.parse(messageData);
-
-			handleMessage(messageData, connection.getId());
-			}
-		catch (err)
-			{
-			sendMessage({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Invalid JSON."}, "id": null}, connection.getId());
-			}
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-//** EventListener interface implementation (events originate from server)
-
-self.addConnection = function(conn)
-	{
-	try	{
-		if (!conn.getId())
-			conn.setId(utility.generateRandomConnectionId(connections));	// Use random connectionId to make ddos a little more difficult
-
-		connections[conn.getId()] = conn;
-		conn.setEventListener(self);
-
-		for(var i=0; i<connectionListeners.length; i++)						// Bubble the event to client
-			connectionListeners[i](conn.getId());
-
-		latestConnectionId = conn.getId();
-		return conn.getId();
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-self.onDisconnected = function(connectionId)
-	{
-	try	{
-		self.closeConnection(connectionId);
-
-		for(var i=0; i<disconnectionListeners.length; i++)			// Bubble the event to clients
-			disconnectionListeners[i](connectionId);
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-//** ---------------------------------------
-
-self.closeConnection = function(connectionId)
-	{
-	try	{
-		if (connectionId in connections)
-			{
-			connections[connectionId].close();
-			delete connections[connectionId];
-			}
-		}
-	catch(err)
-		{
-		logger.error(err, true, true, logger.ERROR);
-		}
-	};
-
-self.setOptions = function(options)
-	{
-	if(logger && options.logger)
-		logger.clone(options.logger);
-	}
-
-}
-
-// Do this only in node.js, not in the browser
-
-if (true)
-	module.exports = BinaryRpcCommunicator;
-
-
-/***/ }),
 /* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4879,7 +4413,7 @@ if (isNodeJs)
 	LoaderUtil = null;
 	SpaceifyNetwork = function() {};
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketRpcConnection = __webpack_require__(56)(lib + "websocketrpcconnection");
+	WebSocketRpcConnection = __webpack_require__(58)(lib + "websocketrpcconnection");
 	}
 else
 	{
@@ -5042,8 +4576,8 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var SpaceifyError = null;
+var SpaceifyLogger = null;
 var CallbackBuffer = null;
 var SpaceifyUtility = null;
 var fibrous = null;
@@ -5052,9 +4586,9 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(33)(lib + "callbackbuffer");
+	CallbackBuffer = __webpack_require__(55)(lib + "callbackbuffer");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -5062,7 +4596,7 @@ else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyError = lib.SpaceifyError;
 	CallbackBuffer = lib.CallbackBuffer;
 	SpaceifyUtility = lib.SpaceifyUtility;
@@ -5072,7 +4606,7 @@ else
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var callbackBuffer = new CallbackBuffer();
-var logger = Logger.getLogger("RpcCommunicator");
+var logger = new SpaceifyLogger("RpcCommunicator");
 
 var callSequence = 1;
 var exposedRpcMethods = {};
@@ -5704,22 +5238,22 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
+var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
-var logger = Logger.getLogger("WebRtcConnection");
+var logger = new SpaceifyLogger("WebRtcConnection");
 
 var id = null;
 var ownStream = null;
@@ -6100,7 +5634,7 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
+//var SpaceifyLogger = null;
 //var SpaceifyConfig = null;
 var RpcCommunicator = null;
 var WebSocketServer = null;
@@ -6109,16 +5643,16 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
-	WebSocketServer = __webpack_require__(57)(lib + "websocketserver");
+	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
+	WebSocketServer = __webpack_require__(59)(lib + "websocketserver");
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	//Logger = window.Logger;
+	//SpaceifyLogger = window.SpaceifyLogger;
 	//SpaceifyConfig = window.SpaceifyConfig;
 	RpcCommunicator = window.RpcCommunicator;
 	WebSocketServer = window.WebSocketServer;
@@ -6127,7 +5661,7 @@ else
 //var config = SpaceifyConfig.getConfig();
 var communicator = new RpcCommunicator();
 var webSocketServer = new WebSocketServer();
-//var logger = Logger.getLogger("WebSocketRpcServer");
+//var logger = new SpaceifyLogger("WebSocketRpcServer");
 
 webSocketServer.setEventListener(communicator);
 
@@ -6269,7 +5803,7 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
+var SpaceifyLogger = null;
 var SpaceifyConfig = null;
 var SpaceifyUtility = null;
 var WebSocketConnection = null;
@@ -6278,22 +5812,22 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
+	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
 
 	global.fs = __webpack_require__(0);
-	global.URL = __webpack_require__(67);
-	global.http = __webpack_require__(60);
-	global.https = __webpack_require__(61);
-	global.WSServer = __webpack_require__(36).server;
+	global.URL = __webpack_require__(68);
+	global.http = __webpack_require__(62);
+	global.https = __webpack_require__(63);
+	global.WSServer = __webpack_require__(35).server;
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = window.Logger;
+	SpaceifyLogger = window.SpaceifyLogger;
 	SpaceifyConfig = window.SpaceifyConfig;
 	SpaceifyUtility = window.SpaceifyUtility;
 	WebSocketConnection = window.WebSocketConnection;
@@ -6301,7 +5835,7 @@ else
 
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("WebSocketServer");
+var logger = new SpaceifyLogger("WebSocketServer");
 
 var options = {};
 var manuallyClosed = false;
@@ -6536,8 +6070,8 @@ if (true)
 var map = {
 	"./webjsonrpc/connection": 24,
 	"./webjsonrpc/webrtcconnection": 26,
-	"./webjsonrpc/websocketconnection": 10,
-	"./webjsonrpc/websocketrpcconnection": 11
+	"./webjsonrpc/websocketconnection": 11,
+	"./webjsonrpc/websocketrpcconnection": 12
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6561,7 +6095,7 @@ webpackContext.id = 29;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./logger": 16
+	"./spaceifycore": 19
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6585,7 +6119,7 @@ webpackContext.id = 30;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifycore": 18
+	"./spaceifylogger": 8
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6606,86 +6140,44 @@ webpackContext.id = 31;
 
 /***/ }),
 /* 32 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./spaceifyerror": 8
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 32;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 32;
 
 
 /***/ }),
 /* 33 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./callbackbuffer": 23
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 33;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 33;
 
 
 /***/ }),
 /* 34 */
 /***/ (function(module, exports) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 34;
-
+module.exports = __WEBPACK_EXTERNAL_MODULE_34__;
 
 /***/ }),
 /* 35 */
 /***/ (function(module, exports) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 35;
-
+module.exports = __WEBPACK_EXTERNAL_MODULE_35__;
 
 /***/ }),
 /* 36 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_36__;
-
-/***/ }),
-/* 37 */
 /***/ (function(module, exports) {
 
 function SpaceifyApp()
@@ -6803,7 +6295,7 @@ var spaceifyApp = new SpaceifyApp();
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6823,10 +6315,10 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var WebServer = null;
 var SpaceifyCore = null;
 var SpaceifyConfig = null;
+var SpaceifyLogger = null;
 var SpaceifyUtility = null;
 var SpaceifyService = null;
 var fibrous = null;
@@ -6835,11 +6327,11 @@ if(isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = __webpack_require__(30)(lib + "logger");
 	WebServer = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
-	SpaceifyConfig = __webpack_require__(2)(lib + "spaceifyconfig");
-	SpaceifyUtility = __webpack_require__(12)(lib + "spaceifyutility");
+	SpaceifyCore = __webpack_require__(30)(lib + "spaceifycore");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
+	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
+	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
 	SpaceifyService = __webpack_require__(52)(lib + "spaceifyservice");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -6847,10 +6339,10 @@ else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
 	WebServer = function() {};
 	SpaceifyCore = lib.SpaceifyCore;
 	SpaceifyConfig = lib.SpaceifyConfig;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
 	SpaceifyService = lib.SpaceifyService;
 	fibrous = function(fn) { return fn; };
@@ -6866,7 +6358,7 @@ var utility = new SpaceifyUtility();
 var spaceifyCore = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
 var config = SpaceifyConfig.getConfig("realpaths");
-var logger = Logger.getLogger("SpaceifyApplication");
+var logger = new SpaceifyLogger("SpaceifyApplication");
 
 var manifest = null;
 var application = null;
@@ -7135,7 +6627,7 @@ if(true)
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7163,7 +6655,7 @@ var network = new lib.SpaceifyNetwork();
 var utility = new lib.SpaceifyUtility();
 var config = lib.SpaceifyConfig.getConfig();
 var spaceifyMessages = new lib.SpaceifyMessages();
-//var logger = lib.Logger.getLogger("SpaceifyApplicationManager");
+//var logger = new lib.SpaceifyLogger("SpaceifyApplicationManager");
 
 var operation;																	// Queue operation, execute operations in order
 var operations = [];
@@ -7391,7 +6883,7 @@ if(true)
 	module.exports = SpaceifyApplicationManager;
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7530,7 +7022,7 @@ if(true)
 
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7553,7 +7045,7 @@ var lib = (window.spe ? window.spe : window);
 var connection = new lib.Connection();
 var network = new lib.SpaceifyNetwork();
 var config = lib.SpaceifyConfig.getConfig();
-//var logger = lib.Logger.getLogger("SpaceifyMessages");
+//var logger = new lib.SpaceifyLogger("SpaceifyMessages");
 
 var messageId;
 var errors = [];
@@ -7713,7 +7205,7 @@ if(true)
 	module.exports = SpaceifyMessages;
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7741,7 +7233,7 @@ var core = new lib.SpaceifyCore();
 var utility = new lib.SpaceifyUtility();
 var network = new lib.SpaceifyNetwork();
 var config = lib.SpaceifyConfig.getConfig();
-//var logger = lib.Logger.getLogger("SpaceifyNet");
+//var logger = new lib.SpaceifyLogger("SpaceifyNet");
 
 var WWW_PORT = 80;
 
@@ -8001,7 +7493,7 @@ if(true)
 
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8091,7 +7583,7 @@ if(true)
 	module.exports = SpaceifySynchronous;
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8112,7 +7604,7 @@ var self = this;
 var lib = (window.spe ? window.spe : window);
 
 var core = new lib.SpaceifyCore();
-//var logger = lib.Logger.getLogger("Spacelet");
+//var logger = new lib.SpaceifyLogger("Spacelet");
 var spaceifyService = new lib.SpaceifyService();
 var spaceifyNetwork = new lib.SpaceifyNetwork();
 
@@ -8174,7 +7666,7 @@ if(true)
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8192,7 +7684,7 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
+var SpaceifyLogger = null;
 //var SpaceifyConfig = null;
 var RpcCommunicator = null;
 var WebSocketConnection = null;
@@ -8201,16 +7693,16 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
-	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
+	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
+	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
 	}
 else
 	{
 	lib = (window.spe ? window.spe : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	//SpaceifyConfig = lib.SpaceifyConfig;
 	RpcCommunicator = lib.RpcCommunicator;
 	WebSocketConnection = lib.WebSocketConnection;
@@ -8219,7 +7711,7 @@ else
 var communicator = new RpcCommunicator();
 var connection = new WebSocketConnection();
 //var speconfig = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("WebRtcClient");
+var logger = new SpaceifyLogger("WebRtcClient");
 
 var ownStream = null;
 var connectionListener = null;
@@ -8420,16 +7912,107 @@ if (true)
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 46;
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var SpeConfig =
+{
+SERVER_ADDRESS: {host: "localhost", port: 1979},
+WEBRTC_CONFIG: {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]},
+
+connection:
+	{
+	MAINURL: "http://spaceify.net/games/"
+	},
+
+connectionGuard:
+	{
+	GUARDING_INTERVAL: 2000,
+	MAXIMUM_UNANSWERED_CALLBACKS: 20
+	},
+
+reconnector:
+	{
+	INITIAL_DELAY: 500,
+	DELAY_INCREMENT: 1000,
+	MAXIMUM_DELAY: 32000
+	},
+	
+spaceifyPiper:
+	{
+	DEFAULT_GROUP: "testgroup",
+	HTTP_ADDRESS:  {host: "localhost", port: 80},
+	SERVER_ADDRESS: {host: "spaceify.net", port: 1979},
+	},
+
+logger:
+	{
+	// Overrides everything (including the individual class configurations)
+	
+	loggerConfigOverride:
+		{
+		all: true
+		},
+
+	// Class configurations (overrides defaultLoggerConfig)
+
+		// x
+	
+	// Default logger config
+	
+	defaultLoggerConfig:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true,
+		all: null,
+		mydefault1: 1,
+		mydefault2: 2
+		}
+	},	
+
+// a test value for the unit tests
+
+testValue: "TestValueFromSpeConfig"
+};
+
+Object.freeze(SpeConfig);
+
+if (true)
+	module.exports = SpeConfig;
 
 
 /***/ }),
@@ -8437,8 +8020,10 @@ webpackEmptyContext.id = 46;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./config.js": 5,
-	"./spaceifyconfig.js": 7
+	"./config.js": 4,
+	"./spaceifyconfig.js": 6,
+	"./spebaseconfig.js": 10,
+	"./speconfig.js": 46
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8459,10 +8044,24 @@ webpackContext.id = 47;
 
 /***/ }),
 /* 48 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 48;
+
+
+/***/ }),
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./configloader.js": 6
+	"./logger": 5,
+	"./spaceifylogger": 8
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8478,20 +8077,7 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 48;
-
-
-/***/ }),
-/* 49 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 49;
+webpackContext.id = 49;
 
 
 /***/ }),
@@ -8499,7 +8085,7 @@ webpackEmptyContext.id = 49;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./service": 17,
+	"./service": 18,
 	"./spaceifyservice": 9
 };
 function webpackContext(req) {
@@ -8524,7 +8110,7 @@ webpackContext.id = 50;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifynetwork": 19
+	"./spaceifynetwork": 20
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8606,23 +8192,10 @@ webpackContext.id = 54;
 
 /***/ }),
 /* 55 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 55;
-
-
-/***/ }),
-/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./websocketrpcconnection": 11
+	"./callbackbuffer": 23
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8638,11 +8211,61 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 56;
+webpackContext.id = 55;
+
+
+/***/ }),
+/* 56 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 56;
 
 
 /***/ }),
 /* 57 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 57;
+
+
+/***/ }),
+/* 58 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./websocketrpcconnection": 12
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 58;
+
+
+/***/ }),
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8662,20 +8285,8 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 57;
+webpackContext.id = 59;
 
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_58__;
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports) {
-
-module.exports = require("child_process");
 
 /***/ }),
 /* 60 */
@@ -8687,7 +8298,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_60__;
 /* 61 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_61__;
+module.exports = require("child_process");
 
 /***/ }),
 /* 62 */
@@ -8727,39 +8338,47 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_67__;
 
 /***/ }),
 /* 68 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_68__;
+
+/***/ }),
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports =
 {
-Config: __webpack_require__(5),
-ConfigLoader: __webpack_require__(6),
-Logger: __webpack_require__(16),
-Service: __webpack_require__(17),
-SpaceifyApplication: __webpack_require__(38),
-SpaceifyApplicationManager: __webpack_require__(39),
-SpaceifyCache: __webpack_require__(40),
-SpaceifyConfig: __webpack_require__(7),
-SpaceifyCore: __webpack_require__(18),
-SpaceifyError: __webpack_require__(8),
-SpaceifyMessages: __webpack_require__(41),
-SpaceifyNet: __webpack_require__(42),
-SpaceifyNetwork: __webpack_require__(19),
+Config: __webpack_require__(4),
+SpeBaseConfig: __webpack_require__(10),
+Logger: __webpack_require__(5),
+SpaceifyError: __webpack_require__(7),
+SpaceifyLogger: __webpack_require__(8),
+
+Service: __webpack_require__(18),
+SpaceifyApplication: __webpack_require__(37),
+SpaceifyApplicationManager: __webpack_require__(38),
+SpaceifyCache: __webpack_require__(39),
+SpaceifyConfig: __webpack_require__(6),
+SpaceifyCore: __webpack_require__(19),
+SpaceifyMessages: __webpack_require__(40),
+SpaceifyNet: __webpack_require__(41),
+SpaceifyNetwork: __webpack_require__(20),
 SpaceifyService: __webpack_require__(9),
-SpaceifySynchronous: __webpack_require__(43),
-SpaceifyUnique: __webpack_require__(20),
-SpaceifyUtility: __webpack_require__(21),
-Spacelet: __webpack_require__(44),
-BinaryRpcCommunicator: __webpack_require__(22),
+SpaceifySynchronous: __webpack_require__(42),
+SpaceifyUnique: __webpack_require__(21),
+SpaceifyUtility: __webpack_require__(22),
+Spacelet: __webpack_require__(43),
+//BinaryRpcCommunicator: require("./webjsonrpc/binaryrpccommunicator.js"),
 CallbackBuffer: __webpack_require__(23),
 RpcCommunicator: __webpack_require__(25),
-WebRtcClient: __webpack_require__(45),
+WebRtcClient: __webpack_require__(44),
 WebRtcConnection: __webpack_require__(26),
-WebSocketConnection: __webpack_require__(10),
-WebSocketRpcConnection: __webpack_require__(11),
+WebSocketConnection: __webpack_require__(11),
+WebSocketRpcConnection: __webpack_require__(12),
 WebSocketRpcServer: __webpack_require__(27),
 WebSocketServer: __webpack_require__(28),
 Connection: __webpack_require__(24),
-SpaceifyApp: __webpack_require__(37)
+SpaceifyApp: __webpack_require__(36)
 };
 
 
@@ -8788,7 +8407,7 @@ window.SpaceifySynchronous = spe.SpaceifySynchronous;
 window.SpaceifyUnique = spe.SpaceifyUnique;
 window.SpaceifyUtility = spe.SpaceifyUtility;
 window.Spacelet = spe.Spacelet;
-window.BinaryRpcCommunicator = spe.BinaryRpcCommunicator;
+//window.BinaryRpcCommunicator = spe.BinaryRpcCommunicator;
 window.CallbackBuffer = spe.CallbackBuffer;
 window.RpcCommunicator = spe.RpcCommunicator;
 window.WebRtcClient = spe.WebRtcClient;

@@ -14,10 +14,10 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var WebServer = null;
 var SpaceifyCore = null;
 var SpaceifyConfig = null;
+var SpaceifyLogger = null;
 var SpaceifyUtility = null;
 var SpaceifyService = null;
 var fibrous = null;
@@ -26,10 +26,10 @@ if(isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
 	WebServer = require(lib + "webserver");
 	SpaceifyCore = require(lib + "spaceifycore");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = require(lib + "spaceifyutility");
 	SpaceifyService = require(lib + "spaceifyservice");
 	fibrous = require(lib + "fibrous");
@@ -38,10 +38,10 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
 	WebServer = function() {};
 	SpaceifyCore = lib.SpaceifyCore;
 	SpaceifyConfig = lib.SpaceifyConfig;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
 	SpaceifyService = lib.SpaceifyService;
 	fibrous = function(fn) { return fn; };
@@ -57,7 +57,7 @@ var utility = new SpaceifyUtility();
 var spaceifyCore = new SpaceifyCore();
 var spaceifyService = new SpaceifyService();
 var config = SpaceifyConfig.getConfig("realpaths");
-var logger = Logger.getLogger("SpaceifyApplication");
+var logger = new SpaceifyLogger("SpaceifyApplication");
 
 var manifest = null;
 var application = null;

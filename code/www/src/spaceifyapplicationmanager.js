@@ -22,7 +22,7 @@ var network = new lib.SpaceifyNetwork();
 var utility = new lib.SpaceifyUtility();
 var config = lib.SpaceifyConfig.getConfig();
 var spaceifyMessages = new lib.SpaceifyMessages();
-//var logger = lib.Logger.getLogger("SpaceifyApplicationManager");
+//var logger = new lib.SpaceifyLogger("SpaceifyApplicationManager");
 
 var operation;																	// Queue operation, execute operations in order
 var operations = [];

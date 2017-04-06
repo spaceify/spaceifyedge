@@ -5,11 +5,11 @@
  * 
  */
 
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
+var SpaceifyLogger = require("./spaceifylogger");
 var ApplicationManager = require("./applicationmanager");
 
-var logger = Logger.getLogger("AppManService");
+var logger = new SpaceifyLogger("AppManService");
 
 fibrous.run( function()
 	{

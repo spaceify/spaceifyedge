@@ -9,12 +9,12 @@
 var fs = require("fs");
 var url = require("url");
 var crypto = require("crypto");
-//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var Database = require("./database");
 var rangeCheck = require("range_check");
 var SpaceifyError = require("./spaceifyerror");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
@@ -26,7 +26,7 @@ var self = this;
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("SecurityModel");
+//var logger = new SpaceifyLogger("SecurityModel");
 
 var adminSessions = {};
 var remoteSessions = {};

@@ -6,9 +6,9 @@
  * @class Messaging
  */
 
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 var WebSocketRpcServer = require("./websocketrpcserver");
 
@@ -19,7 +19,7 @@ var self = this;
 var webSocketRpcServer = null;
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-var logger = Logger.getLogger("Messaging");
+var logger = new SpaceifyLogger("Messaging");
 
 var connections = {};
 var confirmedConnections = {};

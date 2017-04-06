@@ -13,34 +13,34 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var SpaceifyError = null;
 var SpaceifyConfig = null;
 var SpaceifyUtility = null;
+//var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	SpaceifyError = require(lib + "spaceifyerror");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
 	SpaceifyUtility = require(lib + "spaceifyutility");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	}
 else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	//var Logger = lib.Logger;
 	SpaceifyError = lib.SpaceifyError;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyUtility = lib.SpaceifyUtility;
+	//var SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("SpaceifyNetwork");
+//var logger = new SpaceifyLogger("SpaceifyNetwork");
 
 var dregx = new RegExp(config.EDGE_DOMAIN.replace(".", "\\.") + "$", "i");
 

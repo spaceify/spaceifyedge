@@ -18,8 +18,8 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var SpaceifyError = null;
+var SpaceifyLogger = null;
 var CallbackBuffer = null;
 var SpaceifyUtility = null;
 var fibrous = null;
@@ -28,7 +28,7 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyError = require(lib + "spaceifyerror");
 	CallbackBuffer = require(lib + "callbackbuffer");
 	SpaceifyUtility = require(lib + "spaceifyutility");
@@ -38,7 +38,7 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyError = lib.SpaceifyError;
 	CallbackBuffer = lib.CallbackBuffer;
 	SpaceifyUtility = lib.SpaceifyUtility;
@@ -48,7 +48,7 @@ else
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var callbackBuffer = new CallbackBuffer();
-var logger = Logger.getLogger("RpcCommunicator");
+var logger = new SpaceifyLogger("RpcCommunicator");
 
 var callSequence = 1;
 var exposedRpcMethods = {};

@@ -7,17 +7,17 @@
  */
 
 var Core = require("./core");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var Iptables = require("./iptables");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyLogger = require("./spaceifylogger");
 
 function Main()
 {
 var self = this;
 
 var core = new Core();
-var logger = Logger.getLogger("Main");
+var logger = new SpaceifyLogger("Main");
 var config = SpaceifyConfig.getConfig();
 
 self.start = fibrous( function()

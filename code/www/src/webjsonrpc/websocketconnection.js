@@ -13,14 +13,14 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var SpaceifyError = null;
+var SpaceifyLogger = null;
 
 if(isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyError = require(lib + "spaceifyerror");
 
 	global.fs = require("fs");
@@ -30,12 +30,12 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyError = lib.SpaceifyError;
 	}
 
 var errorc = new SpaceifyError();
-var logger = Logger.getLogger("WebSocketConnection");
+var logger = new SpaceifyLogger("WebSocketConnection");
 
 var url = "";
 var id = null;

@@ -22,7 +22,7 @@ var core = new lib.SpaceifyCore();
 var utility = new lib.SpaceifyUtility();
 var network = new lib.SpaceifyNetwork();
 var config = lib.SpaceifyConfig.getConfig();
-//var logger = lib.Logger.getLogger("SpaceifyNet");
+//var logger = new lib.SpaceifyLogger("SpaceifyNet");
 
 var WWW_PORT = 80;
 

@@ -9,9 +9,9 @@
 var fs = require("fs");
 var net = require("net");
 var Docker = require("dockerode");
-var Logger = require("./logger");
 var language = require("./language");
 var SpaceifyError = require("./spaceifyerror");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function DockerHelper()
@@ -20,7 +20,7 @@ var self = this;
 
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
-var logger = Logger.getLogger("DockerHelper");
+var logger = new SpaceifyLogger("DockerHelper");
 
 var standardInput = null;
 var standardOutput = null;

@@ -6,10 +6,10 @@
  * @class DHCPDLog
  */
 
-//var Logger = require("./logger");
 var PubSub = require("./pubsub");
 var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
+//var SpaceifyLogger = require("./spaceifylogger");
 
 function DHCPDLog()
 {
@@ -17,7 +17,7 @@ var self = this;
 
 var pubSub = new PubSub();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("DHCPDLog");
+//var logger = new SpaceifyLogger("DHCPDLog");
 
 self.saveToFile = function(type, ip, macOrDuid, hostname)
 	{

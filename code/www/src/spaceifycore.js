@@ -15,34 +15,34 @@ var isNodeJs = (typeof window === "undefined" ? true : false);
 var isRealSpaceify = (isNodeJs && typeof process.env.IS_REAL_SPACEIFY !== "undefined" ? true : false);
 
 var lib = null;
-//var Logger = null;
 var Connection = null;
 var SpaceifyConfig = null;
 var SpaceifyNetwork = null;
+//var SpaceifyLogger = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	//Logger = require(lib + "logger");
 	Connection = require(lib + "connection");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyNetwork = function() {};
 	}
 else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	//Logger = lib.Logger;
 	Connection = lib.Connection;
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyNetwork = lib.SpaceifyNetwork;
+	//SpaceifyLogger = lib.SpaceifyLogger;
 	}
 
 var connection = new Connection();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("SpaceifyCore");
+//var logger = new SpaceifyLogger("SpaceifyCore");
 
 var callQueue = [];
 

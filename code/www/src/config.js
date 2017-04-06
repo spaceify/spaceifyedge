@@ -1,468 +1,217 @@
 "use strict";
 
 /**
- * Config, 8.2.2017 Spaceify Oy
- *
- * This configuration is used in Spaceify project.
- *
- * Supported console output types:
- *   log, dir, info, error and warn
- *
- * The configuration logic is based on 'enable output' and operates with boolean values:
- *   false = output is disabled
- *    true = output is enabled
- *
- * The individual console output types can be overridden with the 'all' configuration.
- * The override takes three values:
- *   false = all the output types are disabled
- *    true = all the output types are enabled
- *    null = the override is not applied to the output types
- *
- * If the configuration for a class is not found, the default (defaultConfig) configuration
- * is used as a fallback. The default configuration operates identically to the individual
- * class configurations.
- *
- * There is a global (globalConfigOverride) override configuration. The global oveverride is applied
- * to all of the corresponding output types of all the individual class configurations.
- * The override takes three values:
- *   false = the output type of all the individual classes are disabled
- *    true = the output type of all the individual classes are enabled
- *    null = the override is not applied to the output type of the class
- *
- * NOTICE: the globalConfigOverride and defaultConfig configurations are mandatory variables in the config.js file!
- *
- * Order of precedence of the configurations
- *   Global configuration takes precedencence of class configurations
- * Order of precedence of the console output types
- *   'all' in a configuration (global or class) takes precedence the output types
- *
- * e.g.
- *      MyClass is unaltered
- *      globalConfigOverride = { log: null, dir: null, info: null, error: null, warn: null, all: null };
- *      MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
- *   => MyClass = { log: true, dir: true, info: true, error: true, warn: true, all: null };
- *
- *      MyClass 'all' overrides its output types
- *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: null };
- *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true,  all: false };
- *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: false };
- *
- *      Global error is set to false and overrides MyClass error with false
- *      globalConfigOverride = { log: null, dir: null, info: null, error: false, warn: null, all: null };
- *      MyClass = { log: true, dir: true, info: true, error: true,  warn: true, all: null };
- *   => MyClass = { log: true, dir: true, info: true, error: false, warn: true, all: null };
- *
- *      Global 'all' is set to false and all the output types of MyClass are overridden with false
- *      globalConfigOverride = { log: null,  dir: null,  info: null,  error: null,  warn: null, all: false };
- *      MyClass = { log: true,  dir: true,  info: true,  error: true,  warn: true, all: null };
- *   => MyClass = { log: false, dir: false, info: false, error: false, warn: false, all: null };
+ * Config, 2.3.2017 Spaceify Oy
  *
  * @class Config
  */
 
-var Config =
+function Config()
 {
+var self = this;
 
-	// MANDATORY CONFIGURATION - Global configuration overrides (overrides the individual class configurations)
-globalConfigOverride:
-	{
-	all: true,
-	myoverride: 123,
-	mydefault2: 3
-	},
+//console.log("in Config::Config()");
 
-	// MANDATORY CONFIGURATION - Default configuration (always used as base config)
-defaultConfig:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true,
-	all: null,
-	mydefault1: 1,
-	mydefault2: 2
-	},
+var baseConfig = null;
+var overridingConfig = null;
+var config = null;
+var path = null;
 
-	// Class configurations (overrides defaultConfig)
-Manifest:
+// Hack to use real require in webpack
+var doRequire = function(module)
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	return eval("require")(module);
+	};
 
-ApplicationManager:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+// Load the default speconfig.js file and apply overrides in the order:
+// 1. module.parent.speconfig
+// 2. "speconfig.js"
+// 3. process.cwd()/speconfig.js
 
-AppManService:
+if (typeof window === "undefined") //in node.js
 	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	path = require('path');
+	try	{
+		var apipath = "/var/lib/spaceify/code/";
+		baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
 
-BinaryRpcCommunicator:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+		//console.log("Loded base config from /var/lib/spaceify/code/");
+		}
+	catch (e)
+		{
+		baseConfig = require("./spebaseconfig.js");
 
-Core:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+		//console.log("Loaded base config from the spaceifyconnect package");
+		}
 
-Database:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	if (!baseConfig)
+		{
+		//console.log("Error loading base config, exiting");
 
-DHCPDLog:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+		process.exit(1);
+		}
+	// load and apply the overriding configs
 
-DockerContainer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+	try	{
+		overridingConfig = doRequire(module.parent.speconfig);
+		Config.overrideConfigValues(baseConfig, overridingConfig);
 
-DockerHelper:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+		//console.log("Loaded overriding config from module.parent.speconfig");
+		}
+	catch (e)
+		{}
+	finally
+		{
+		try
+			{
+			overridingConfig = doRequire("speconfig");
+			Config.overrideConfigValues(baseConfig, overridingConfig);
 
-DockerImage:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+			//console.log("Loaded overriding config from \"speconfig\"");
+			}
+		catch (e)
+			{}
+		finally
+			{
+			try
+				{
+				//console.log("Trying to load overriding config from working directory "+process.cwd());
 
-EdgeSpaceifyNet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+				overridingConfig = doRequire(path.resolve(process.cwd(), "speconfig.js"));
+				Config.overrideConfigValues(baseConfig, overridingConfig);
 
-HttpService:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
+				//console.log("Loaded overriding config from working directory");
+				}
+			catch (e)
+				{
+				//console.log(e);
+				}
+			finally
+				{
+				//console.log("Loading config files completed");
+				}
+			}
+		}
 
-Iptables:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Main:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Manager:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Messaging:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-PubSub:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-RpcCommunicator:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SecurityModel:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Service:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyApplication:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyApplicationManager:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyConfig:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyCore:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyError:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyMessages:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyNet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyNetwork:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyService:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SpaceifyUtility:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Spacelet:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-SPM:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-ValidateApplication:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebOperation:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebRtcClient:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebRtcConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketRpcConnection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketRpcServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-WebSocketServer:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
-	},
-
-Connection:
-	{
-	log: true,
-	dir: true,
-	info: true,
-	error: true,
-	warn: true
 	}
-};
+
+else if (typeof window !== "undefined")	//in browser
+	{
+	var lib = window;
+
+	if (window.WEBPACK_MAIN_LIBRARY)	// browser using a bundled spaceifyconnect
+		{
+		lib = window.WEBPACK_MAIN_LIBRARY;
+		}
+
+	baseConfig = lib.SpeBaseConfig;
+
+	if (lib.SpeConfig)
+		overrideConfigValues(baseConfig, lib.SpeConfig);
+	}
+
+/*
+if (!baseConfig)						// Default configuration not found
+	{
+	config = {};
+	}
+else
+	{
+	config = {};
+
+	// Apply configuration from webpack or window or nodejs config
+	if(ConfigClass["defaultConfig"])							// Set defaultConfig as base
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass.defaultConfig);
+
+	if (ConfigClass[class_])										// Class found
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass[class_]);
+
+	if (ConfigClass["globalConfigOverride"])						// Global override
+		config = ConfigLoader.overrideConfigValues(config, ConfigClass["globalConfigOverride"]);
+
+	if(override_)												// User override (when calling this function)
+		config = ConfigLoader.overrideConfigValues(config, override_);
+	}
+*/
+//console.log("Config::Config() "+JSON.stringify(baseConfig));
+config = baseConfig;
+
+self.getConfig = function()
+	{
+	return config;
+	}
+}
+
+
+Config.overrideConfigValues = function(obj1, obj2)
+	{
+	for (var p in obj2)
+		{
+		try
+			{
+			// Property in destination object set; update its value.
+			if ( obj2[p].constructor==Object )
+				{
+				obj1[p] = Config.overrideConfigValues(obj1[p], obj2[p]);
+				}
+			else
+				{
+				obj1[p] = obj2[p];
+				}
+			}
+
+		catch(e)
+			{
+			// Property in destination object not set; create it and set its value.
+			obj1[p] = obj2[p];
+			}
+		}
+
+	return obj1;
+	}
+
+/*
+Config.overrideConfigValues = function(config, overridingValues)
+	{
+	var newConfig = config;
+
+	for (var g in overridingValues)
+		{
+		if (overridingValues[g] !== null)
+			newConfig[g] = overrideValues_[g];
+		}
+	return newConfig;
+	};
+*/
+Config.destroySingleton = function()
+	{
+	var globalObj = null;
+
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
+	else
+		globalObj = window;
+
+	globalObj.speConfigInstance_ = null;
+	};
+
+Config.getConfig = function()
+	{
+	var globalObj = null;
+
+	if (typeof(window) === "undefined") //nodejs
+		globalObj = global;
+	else
+		globalObj = window;
+
+	if (!globalObj.speConfigInstance_)
+		{
+		globalObj.speConfigInstance_ = new Config();
+		Object.freeze(globalObj.speConfigInstance_);
+		}
+
+	return globalObj.speConfigInstance_.getConfig();
+	};
 
 if(typeof exports !== "undefined")
 	module.exports = Config;

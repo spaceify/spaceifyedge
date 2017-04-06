@@ -13,18 +13,18 @@ var self = this;
 var isNodeJs = (typeof window === "undefined" ? true : false);
 
 var lib = null;
-var Logger = null;
 var Language = null;
 var SpaceifyConfig = null;
+var SpaceifyLogger = null;
 var fibrous = null;
 
 if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Logger = require(lib + "logger");
 	Language = require(lib + "language");
 	SpaceifyConfig = require(lib + "spaceifyconfig");
+	SpaceifyLogger = require(lib + "spaceifylogger");
 	fibrous = require(lib + "fibrous");
 
 	global.os = require("os");
@@ -39,15 +39,15 @@ else
 	{
 	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
-	Logger = lib.Logger;
 	Language = {};
 	SpaceifyConfig = lib.SpaceifyConfig;
+	SpaceifyLogger = lib.SpaceifyLogger;
 	fibrous = function(fn) { return fn; };
 	}
 
 var config = SpaceifyConfig.getConfig();
 var language = Language;//new Language();
-var logger = Logger.getLogger("SpaceifyUtility");
+var logger = new SpaceifyLogger("SpaceifyUtility");
 
 	// FILE SYSTEM -- -- -- -- -- -- -- -- -- -- //
 self.loadRemoteFile = fibrous( function(fileUrl)

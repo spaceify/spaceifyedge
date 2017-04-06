@@ -14,10 +14,10 @@
 
 var fs = require("fs");
 var crypto = require("crypto");
-//var Logger = require("./logger");
 var fibrous = require("./fibrous");
 var Database = require("./database");
 var SpaceifyError = require("./spaceifyerror");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 
@@ -29,7 +29,7 @@ var database = new Database();
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-//var logger = Logger.getLogger("RegisterEdge");
+//var logger = SpaceifyLogger("RegisterEdge");
 
 var EDGE_PASSWORD_SALT_REGX = /^[0-9a-f]{128}$/;
 var EDGE_NAME_REGX = /^[a-zA-Z0-9]{4,32}$/;
