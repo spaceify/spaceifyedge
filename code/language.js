@@ -57,7 +57,7 @@ var language =
 
 	"E_SET_SPLASH_ACCEPTED_FAILED": new SpaceifyError({"code": 2021, "message": "Failed to add the MAC address to the accepted addresses list."}),
 
-	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start spacelet."}),
+	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start the spacelet."}),
 
 	"E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS": new SpaceifyError({"code": 2026, "message": "Applications can not start spacelets."}),
 	"E_START_SPACELET_NOT_INSTALLED": new SpaceifyError({"code": 2027, "message": "Spacelet ~unique_name is not installed."}),

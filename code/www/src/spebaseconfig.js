@@ -62,33 +62,6 @@
 
 var SpeBaseConfig =
 {
-WEBRTC_CONFIG: {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]},
-
-connection:
-	{
-	MAINURL: "http://spaceify.net/games/"
-	},
-
-connectionGuard:
-	{
-	GUARDING_INTERVAL: 2000,
-	MAXIMUM_UNANSWERED_CALLBACKS: 20
-	},
-
-reconnector:
-	{
-	INITIAL_DELAY: 500,
-	DELAY_INCREMENT: 1000,
-	MAXIMUM_DELAY: 32000
-	},
-
-spaceifyPiper:
-	{
-	DEFAULT_GROUP: "testgroup",
-	HTTP_ADDRESS:  {host: "localhost", port: 80},
-	SERVER_ADDRESS: {host: "spaceify.net", port: 1979},
-	},
-
 logger:
 	{
 	// Global configuration overrides (overrides the individual class configurations)
@@ -109,7 +82,7 @@ logger:
 		info: true,
 		error: true,
 		warn: true,
-		all: null,
+		all: true,
 		mydefault1: 1,
 		mydefault2: 2
 		},
@@ -207,11 +180,11 @@ logger:
 
 	HttpService:
 		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
+		log: false,
+		dir: false,
+		info: false,
+		error: false,
+		warn: false
 		},
 
 	Iptables:
@@ -441,11 +414,11 @@ logger:
 
 	WebServer:
 		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
+		log: false,
+		dir: false,
+		info: false,
+		error: false,
+		warn: false
 		},
 
 	WebSocketConnection:

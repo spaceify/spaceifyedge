@@ -343,13 +343,12 @@ self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
 	});
 
 	// SAME ORIGIN POLICY -- -- -- -- -- -- -- -- -- -- //
-self.sameOriginPolicyStartSpacelet = function(manifest, URL)
+self.checkSameOriginPolicy = function(manifest, URL)
 	{
 	var matches = 0;
 	var origins = manifest.getOrigins();
 	var hostname = url.parse(URL).hostname;
-//console.log("++++++++++++++++++++++++++", manifest.getUniqueName(), origins, URL);
-return true;
+
 	for(var i = 0; i < origins.length; i++)
 		{
 		if(matchOrigin(origins[i], hostname))

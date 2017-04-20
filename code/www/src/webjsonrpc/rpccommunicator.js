@@ -648,12 +648,6 @@ self.closeConnection = function(connectionId)
 		}
 	};
 
-self.setOptions = function(options)
-	{
-	if(logger && options.logger)
-		logger.clone(options.logger);
-	}
-
 }
 
 // Do this only in node.js, not in the browser

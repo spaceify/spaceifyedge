@@ -52,9 +52,6 @@ self.listen = function(options, callback)
 	communicator.setConnectionListener(listenConnections);
 	communicator.setDisconnectionListener(listenDisconnections);
 
-	if(options.logger)
-		communicator.setOptions({ logger: options.logger });
-
 	try {
 		webSocketServer.listen(options, callback);
 		}

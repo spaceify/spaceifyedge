@@ -6,7 +6,7 @@
  * @class Logger
  */
 
-function Logger(config)
+function Logger(config, class_)
 {
 var self = this;
 
@@ -61,22 +61,36 @@ var out = function(type, useStdout)
 	if (!enabled[type] && type != FORCE)
 		return;
 
-	var str = "", strs = arguments[2], strp;
+	var str = "";
+	var strs = arguments[2];
+	var strp = null;
 
-	for(var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
+	for (var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
 		{
 		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
 		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
 		}
 
+	if (type==ERROR)
+		{
+		str += new Error().stack;
+		}
+
 	str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");		// Replace control characters 0-9, 11-12, 14-31
+
+	if (!useStdout)
+		{
+		var dateString = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+		str = dateString +" "+labels[type]+"["+class_+"] "+ str;
+		}
 
 	if (isNodeJs)
 		{
 		if (!useStdout)												// console.log prints new line
-			console.log(labels[type] + str);
+			console.log(str);
 		else														// stdout.write doesn't
-			process.stdout.write(labels[type] + str);
+			process.stdout.write(str);
 		}
 	else
 		{
@@ -123,8 +137,7 @@ self.getEnabled = function()
 
 Logger.createLogger_ = function(class_)
 	{
-	//console.log("Logger::CreateLogger() creating new logger for "+class_);
-
+	console.log("Logger::CreateLogger() creating new logger for "+class_);
 	var lib;
 	var Config;
 
@@ -165,6 +178,7 @@ Logger.createLogger_ = function(class_)
 	// Override with global override
 	Config.overrideConfigValues(loggerConfig, config.logger.globalConfigOverride);
 
+
 	// Apply the "all" keyword
 
 	var all_ = (typeof loggerConfig.all !== "undefined" ? loggerConfig.all : null);
@@ -178,9 +192,9 @@ Logger.createLogger_ = function(class_)
 		loggerConfig['warn'] = all_;
 		}
 
-	return new Logger(loggerConfig);
+	return new Logger(loggerConfig, class_);
 	};
-	
+
 Logger.getLogger = function(class_)
 	{
 	if (!class_)
@@ -194,17 +208,18 @@ Logger.getLogger = function(class_)
 	else
 		globalObj = window;
 
-	if (!globalObj.hasOwnProperty("speLoggerInstances_"))
+
+	if (!globalObj.hasOwnProperty("spLoggerInstances_"))
 		{
-		globalObj["speLoggerInstances_"] = new Object();
+		globalObj["spLoggerInstances_"] = new Object();
 		}
 
-	if (!globalObj.speLoggerInstances_.hasOwnProperty(class_))
+	if (!globalObj.spLoggerInstances_.hasOwnProperty(class_))
 		{
-		globalObj.speLoggerInstances_[class_] = Logger.createLogger_(class_);
+		globalObj.spLoggerInstances_[class_] = Logger.createLogger_(class_);
 		}
 
-	return globalObj.speLoggerInstances_[class_];
+	return globalObj.spLoggerInstances_[class_];
 	};
 
 if (typeof exports !== "undefined")

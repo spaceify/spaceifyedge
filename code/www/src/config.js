@@ -99,7 +99,7 @@ else if (typeof window !== "undefined")	//in browser
 	{
 	var lib = window;
 
-	if (window.WEBPACK_MAIN_LIBRARY)	// browser using a bundled spaceifyconnect
+	if (window.WEBPACK_MAIN_LIBRARY)	// browser using a bundled spaceifyedge
 		{
 		lib = window.WEBPACK_MAIN_LIBRARY;
 		}
@@ -107,7 +107,7 @@ else if (typeof window !== "undefined")	//in browser
 	baseConfig = lib.SpeBaseConfig;
 
 	if (lib.SpeConfig)
-		overrideConfigValues(baseConfig, lib.SpeConfig);
+		Config.overrideConfigValues(baseConfig, lib.SpeConfig);
 	}
 
 /*

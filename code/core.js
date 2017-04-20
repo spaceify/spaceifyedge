@@ -397,7 +397,7 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		if(manifest.getType() != config.SPACELET)
 			throw language.E_START_SPACELET_IS_NOT_SPACELET.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
 
-		if(!securityModel.sameOriginPolicyStartSpacelet(manifest, connObj.origin))
+		if(!securityModel.checkSameOriginPolicy(manifest, connObj.origin))
 			throw language.E_START_SPACELET_FORBIDDEN_ORIGIN.pre("Core::startSpacelet");
 
 		spaceletManager.sync.install(unique_name, true);

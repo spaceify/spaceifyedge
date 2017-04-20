@@ -54,9 +54,6 @@ self.connect = function(options, callback)
 			{
 			communicator.addConnection(connection);
 
-			if(options.logger)
-				communicator.setOptions({ logger: options.logger });
-
 			if(callback)
 				callback(null, true);
 			}

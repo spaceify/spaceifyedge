@@ -90,31 +90,31 @@ var options = AUTH + "|" + DEVE + "|" + SPAC + "|" + SAND + "|" + SANDD + "|" + 
 var optsRegex = new RegExp("^(" + options + ")$");
 
 // (a)ngle, (p)ipe, (s)pace, (l)eft, (m)iddle, (t)ee
-var       p = "¦";
-var      ps = "¦ ";
+var       p = "│";
+var      ps = "│ ";
 var      ss = "  ";
-var     all = "+--";
-var    sall = " +--";
-var     mlt = "+--";
-var    smlt = " +--";
-var     alt = "+--";
-var    salt = " +--";
-var     mll = "+--";
-var    smll = " +--";
-var pspsall = "¦ ¦ +--";
-var pspsmlt = "¦ ¦ +--";
-var sspsmll = "  ¦ +--";
-var pspsmll = "¦ ¦ +--";
-var   ssmll = "  +--";
-var   psmll = "¦ +--";
-var   ssmlt = "  +--";
-var   psmlt = "¦ +--";
-var sspsmlt = "  ¦ +--";
-var sspsalt = "  ¦ +--";
-var      al = "+-";
-var      ml = "+-";
-var     tee = "-";
-var    left = "-";
+var     all = "└──";
+var    sall = " └──";
+var     mlt = "├─┬";
+var    smlt = " ├─┬";
+var     alt = "└─┬";
+var    salt = " └─┬";
+var     mll = "├──";
+var    smll = " ├──";
+var pspsall = "│ │ └──";
+var pspsmlt = "│ │ ├─┬";
+var sspsmll = "  │ ├──";
+var pspsmll = "│ │ ├──";
+var   ssmll = "  ├──";
+var   psmll = "│ ├──";
+var   ssmlt = "  ├─┬";
+var   psmlt = "│ ├─┬";
+var sspsmlt = "  │ ├─┬";
+var sspsalt = "  │ └─┬";
+var      al = "└─";
+var      ml = "├─";
+var     tee = "┬";
+var    left = "─";
 
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
@@ -273,7 +273,7 @@ var connect = fibrous( function(openMessaging)
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
-		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
+		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		// Messaging (Setup by ApplicationManager)
 		if(openMessaging)
@@ -290,7 +290,7 @@ var connect = fibrous( function(openMessaging)
 			appManMessageConnection.exposeRpcMethodSync("questionTimedOut", self, questionTimedOut);
 			appManMessageConnection.exposeRpcMethodSync("end", self, end);
 
-			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
+			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 			messageId = appManConnection.sync.callRpc("requestMessageId", [sessionId], self);								// Request a messageId
 			appManMessageConnection.callRpc("confirm", [messageId]);

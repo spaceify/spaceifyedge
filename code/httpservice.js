@@ -133,7 +133,7 @@ var connectToCore = fibrous( function()
 	var applicationData;
 
 	try {
-		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, logger: logger});
+		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");
 
@@ -315,7 +315,6 @@ var requestListener = function(currentRequest, callback)
 			{
 			if(unique_name_last_index == unique_name.length)						// Short URL - make redirection, path contains nothing but the unique_name
 				{
-// console.log("REDIRECT");
 				location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
 				location = (!currentRequest.isSecure ? "http" : "https") + "://" + location;
 
@@ -391,19 +390,19 @@ var remApp = function(unique_name)
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
 var manageSessions = function(currentRequest)
 	{
-//console.log(""); console.log(""); console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
+//console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
 	var sessiontoken = currentRequest.request.headers[config.SESSION_TOKEN_NAME] || null;	// First source is header and backup source is cookie
-
+//console.log("- TRIED SESSION", sessiontoken);
 	if(!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in currentRequest.cookies)
 		sessiontoken = currentRequest.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
-//console.log("- BEFORE", sessiontoken);
+//console.log("- TRIED COOKIE", sessiontoken);
 	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
 
-	if(!session)																	// Create a session if it doesn't exist yet
+	if(!session)																			// Create a session if it doesn't exist yet
 		sessiontoken = createSession();
-	else																			// Update an existing session
+	else																					// Update an existing session
 		sessions[sessiontoken].timestamp = Date.now();
-//console.log("- AFTER", Object.keys(sessions));
+//console.log("- SESSIONS", Object.keys(sessions), "\n\n");
 	return sessions[sessiontoken];
 	}
 
@@ -421,7 +420,7 @@ var createSession = function()
 		if (!sessions.hasOwnProperty(sessiontoken))
 			break;
 		}
-
+//console.log("- CREATING", sessiontoken);
 	sessions[sessiontoken] = {userData: {}, timestamp: Date.now(), token: sessiontoken}
 
 	return sessiontoken;

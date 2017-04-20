@@ -34,6 +34,9 @@ var logger = Logger.getLogger(class_);
 self.log		= function(message) { logger.log(message); }
 self.dir		= function(message) { logger.dir(message); }
 self.info		= function(message) { logger.info(message); }
+self.warn		= function(message) { logger.warn(message); }
+self.force		= function(message) { logger.force(message); }
+self.stdout		= function(message) { logger.stdout(message); }
 self.error		= function(err, path, code, type)
 	{
 	var message = (errorc ? errorc.errorToString(err, path, code) : err);
@@ -45,9 +48,22 @@ self.error		= function(err, path, code, type)
 
 	return message;
 	}
-self.warn		= function(message) { logger.warn(message); }
-self.force		= function(message) { logger.force(message); }
-self.stdout		= function(message) { logger.stdout(message); }
+
+self.setOptions = function(options)
+	{
+	logger.setOptions(options);
+	};
+
+self.clone = function(logger_)
+	{
+	logger.setOptions(logger_);
+	};
+
+self.getEnabled = function()
+	{
+	return logger.getEnabled();
+	};
+
 }
 
 if (typeof exports !== "undefined")
