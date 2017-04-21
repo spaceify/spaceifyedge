@@ -32,13 +32,15 @@ function SPM()
 {
 var self = this;
 
+var logger = new SpaceifyLogger("SPM");
+	logger.cloneInstanceToBaseConfiguration();
+	logger.setOptions({ enabled: { log: false, dir: false, info: false, error: false, warn: false }, showLabels: false });				// Disable all logging
 var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
-var logger = new SpaceifyLogger("SPM");
 var config = SpaceifyConfig.getConfig();
 var securityModel = new SecurityModel();
 var registerEdge = new RegisterEdge();
@@ -124,8 +126,6 @@ var messageId;
 var sessionId = null;
 
 var manualDisconnection = false;
-
-logger.setOptions({ log: false, dir: false, info: false, error: false, warn: false });				// Disable all logging
 
 self.start = fibrous( function()
 	{

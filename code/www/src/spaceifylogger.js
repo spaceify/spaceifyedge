@@ -31,12 +31,12 @@ else if (typeof window !== "undefined")
 var errorc = new SpaceifyError();
 var logger = Logger.getLogger(class_);
 
-self.log		= function(message) { logger.log(message); }
-self.dir		= function(message) { logger.dir(message); }
-self.info		= function(message) { logger.info(message); }
-self.warn		= function(message) { logger.warn(message); }
-self.force		= function(message) { logger.force(message); }
-self.stdout		= function(message) { logger.stdout(message); }
+self.log		= function() { logger.log.apply(self, logger.convertArguments(arguments)); }
+self.dir		= function() { logger.dir.apply(self, logger.convertArguments(arguments)); }
+self.info		= function() { logger.info.apply(self, logger.convertArguments(arguments)); }
+self.warn		= function() { logger.warnapply(self, logger.convertArguments(arguments)); }
+self.force		= function() { logger.force.apply(self, logger.convertArguments(arguments)); }
+self.stdout		= function() { logger.stdout.apply(self, logger.convertArguments(arguments)); }
 self.error		= function(err, path, code, type)
 	{
 	var message = (errorc ? errorc.errorToString(err, path, code) : err);
@@ -62,6 +62,11 @@ self.clone = function(logger_)
 self.getEnabled = function()
 	{
 	return logger.getEnabled();
+	};
+
+self.cloneInstanceToBaseConfiguration = function()
+	{
+	logger.cloneInstanceToBaseConfiguration();
 	};
 
 }

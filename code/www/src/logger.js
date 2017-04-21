@@ -33,6 +33,8 @@ labels[WARN]	= "[w] ";
 labels[FORCE]	= "";
 labels[STDOUT]	= "";
 
+var showLabels	= true;
+
 	// -- -- -- -- -- -- -- -- -- -- //
 var enabled = (config ? config : {});
 
@@ -62,7 +64,7 @@ var out = function(type, useStdout)
 		return;
 
 	var str = "";
-	var strs = arguments[2];
+	var strs = self.convertArguments(arguments[2]);
 	var strp = null;
 
 	for (var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
@@ -71,14 +73,14 @@ var out = function(type, useStdout)
 		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
 		}
 
-	if (type==ERROR)
+	if (type == ERROR)
 		{
 		str += new Error().stack;
 		}
 
 	str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");		// Replace control characters 0-9, 11-12, 14-31
 
-	if (!useStdout)
+	if (!useStdout && showLabels)
 		{
 		var dateString = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
@@ -113,8 +115,16 @@ var out = function(type, useStdout)
 
 self.setOptions = function(options)
 	{
-	for(var type in options)
-		enabled[type] = options[type];
+	if (typeof options.enabled !== "undefined")
+		{
+		for (var type in options.enabled)
+			{
+			enabled[type] = options.enabled[type];
+			}
+		}
+
+	if (typeof options.showLabels !== "undefined")
+		showLabels = options.showLabels;
 	};
 
 self.clone = function(logger)
@@ -133,11 +143,58 @@ self.getEnabled = function()
 	return enabled;
 	};
 
+/**
+  * Clone the values from this instance of the logger to the global base configuration
+  * => Other instance of the logger get the same values as this instance
+  */
+self.cloneInstanceToBaseConfiguration = function()
+	{
+	var iLogger;
+	var globalObj = (typeof(window) === "undefined" ? global : window);
+
+	if (globalObj.baseConfig_ && globalObj.baseConfig_.logger)
+		{
+		iLogger = globalObj.baseConfig_.logger;
+
+		for (var i in iLogger)
+			{
+			if (i != class_)
+				{
+				iLogger[i][LOG]		= enabled[LOG];
+				iLogger[i][DIR]		= enabled[DIR];
+				iLogger[i][INFO]	= enabled[INFO];
+				iLogger[i][ERROR]	= enabled[ERROR];
+				iLogger[i][WARN]	= enabled[WARN];
+				}
+			}
+		}
+	};
+
+/**
+ * Convert arguments to array and sanitize empty arguments
+ */
+self.convertArguments = function()
+	{
+	var args;
+
+	if (Object.keys(arguments[0]).length == 0)
+		{
+		args = [""];
+		}
+	else
+		{
+		args = Array.prototype.slice.call(arguments[0]);
+		}
+
+	return args;
+	}
+
 }
 
 Logger.createLogger_ = function(class_)
 	{
-	console.log("Logger::CreateLogger() creating new logger for "+class_);
+	//console.log("Logger::CreateLogger() creating new logger for "+class_);
+
 	var lib;
 	var Config;
 
@@ -177,7 +234,6 @@ Logger.createLogger_ = function(class_)
 
 	// Override with global override
 	Config.overrideConfigValues(loggerConfig, config.logger.globalConfigOverride);
-
 
 	// Apply the "all" keyword
 

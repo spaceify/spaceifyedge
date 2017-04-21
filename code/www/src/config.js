@@ -24,24 +24,36 @@ var doRequire = function(module)
 	};
 
 // Load the default speconfig.js file and apply overrides in the order:
-// 1. module.parent.speconfig
-// 2. "speconfig.js"
-// 3. process.cwd()/speconfig.js
+// 1. make base config global
+// 2. module.parent.speconfig
+// 3. "speconfig.js"
+// 4. process.cwd()/speconfig.js
+
+var globalObj = (typeof(window) === "undefined" ? global : window);
+
+if (typeof globalObj.baseConfig_)
+	{
+	baseConfig = globalObj.baseConfig_;
+	}
 
 if (typeof window === "undefined") //in node.js
 	{
 	path = require('path');
-	try	{
-		var apipath = "/var/lib/spaceify/code/";
-		baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
 
-		//console.log("Loded base config from /var/lib/spaceify/code/");
-		}
-	catch (e)
+	if (!baseConfig)
 		{
-		baseConfig = require("./spebaseconfig.js");
+		try	{
+			var apipath = "/var/lib/spaceify/code/";
+			baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
 
-		//console.log("Loaded base config from the spaceifyconnect package");
+			//console.log("Loaded base config from /var/lib/spaceify/code/");
+			}
+		catch (e)
+			{
+			baseConfig = require("./spebaseconfig.js");
+
+			//console.log("Loaded base config from the spaceifyconnect package");
+			}
 		}
 
 	if (!baseConfig)
@@ -50,6 +62,7 @@ if (typeof window === "undefined") //in node.js
 
 		process.exit(1);
 		}
+
 	// load and apply the overriding configs
 
 	try	{
@@ -94,7 +107,6 @@ if (typeof window === "undefined") //in node.js
 		}
 
 	}
-
 else if (typeof window !== "undefined")	//in browser
 	{
 	var lib = window;
@@ -104,7 +116,8 @@ else if (typeof window !== "undefined")	//in browser
 		lib = window.WEBPACK_MAIN_LIBRARY;
 		}
 
-	baseConfig = lib.SpeBaseConfig;
+	if (!baseConfig)
+		baseConfig = lib.SpeBaseConfig;
 
 	if (lib.SpeConfig)
 		Config.overrideConfigValues(baseConfig, lib.SpeConfig);
@@ -134,14 +147,15 @@ else
 	}
 */
 //console.log("Config::Config() "+JSON.stringify(baseConfig));
-config = baseConfig;
+
+globalObj.baseConfig_ = baseConfig;
 
 self.getConfig = function()
 	{
-	return config;
+	return baseConfig;
 	}
-}
 
+}
 
 Config.overrideConfigValues = function(obj1, obj2)
 	{

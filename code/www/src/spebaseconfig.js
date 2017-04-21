@@ -369,11 +369,11 @@ logger:
 
 	SPM:
 		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
+		log: false,
+		dir: false,
+		info: false,
+		error: false,
+		warn: false
 		},
 
 	ValidateApplication:
