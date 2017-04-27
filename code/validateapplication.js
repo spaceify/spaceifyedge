@@ -73,7 +73,7 @@ self.validatePackage = fibrous( function(package_path, save_path_manifest)
 	if(errors.length > 0)																			// Throw the list of accumulated errors
 		throw errors;
 
-	return Manifest.load(manifest.type, manifest.unique_name);
+	return Manifest.load(manifest_path, null);
 	});
 
 var validateDirectories = fibrous( function(application_path, manifest)
@@ -352,7 +352,7 @@ var isValue = function(value, validator)
 	else if(validator.type == "list")
 		return rules.lists[validator.match].indexOf(value) != -1;
 	else if(validator.type == "function")
-		return self[validator.name](value, validator.params);
+		return validators[validator.name](value, validator.params);
 	}
 
 var isUnique = function(rule, vobj, type)
@@ -414,50 +414,54 @@ var isUnique = function(rule, vobj, type)
 
 	}
 
-var suggestedApplication = function(value, params)
+	// Validation functions -- -- -- -- -- -- -- -- -- -- //
+var validators = 
 	{
-	var regx;
-	var values = value.split(/@/);
-
-	if(values.length > 2)																			// More than one @
-		return false;
-
-	regx = rules.regxs[params[0]];
-	if(values[0].match(new RegExp(regx)))															// Match against regular expression "unique_name"
-		return false;
-
-	regx = rules.regxs[params[1]];
-	if(values.length == 2 && values[1].match(new RegExp(regx)))										// Match against regular expression "version"
-		return false;
-
-	return true;
-	}
-
-var serviceName = function(value, params)
-	{ // JavaScript doesn't support negative look behinds and /^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$(?<!\/http|https)/ won't work!
-	if(value.match(/(\/http|https|\/)$/))															// Can't be with http or https, because they are 
-		return false;																				// reserved services, or end with /
-
-	if(!value.match(/^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$/))								// Must match this predefined rule for service names
-		return false;
-
-	return true;
-	}
-
-var testArray = function(value, params)
-	{
-	var isStringArray = true;
-
-	for(var i = 0; i < value.length; i++)
+	suggestedApplication: function(value, params)
 		{
-		if(!isValue(value[i], params))
-			{
-			isStringArray = false;
-			break;
-			}
-		}
+		var regx;
+		var values = value.split(/@/);
 
-	return (value.length == 0 ? false : isStringArray);
+		if(values.length > 2)																		// More than one @
+			return false;
+
+		regx = rules.regxs[params[0]];
+		if(values[0].match(new RegExp(regx)))														// Match against regular expression "unique_name"
+			return false;
+
+		regx = rules.regxs[params[1]];
+		if(values.length == 2 && values[1].match(new RegExp(regx)))									// Match against regular expression "version"
+			return false;
+
+		return true;
+		},
+
+	serviceName: function(value, params)
+		{ // JavaScript doesn't support negative look behinds and /^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$(?<!\/http|https)/ won't work!
+		if(value.match(/(\/http|https|\/)$/))														// Can't be with http or https, because they are 
+			return false;																			// reserved services, or end with /
+
+		if(!value.match(/^(spaceify.org\/services\/[0-9a-z_\/]{3,106})$/))							// Must match this predefined rule for service names
+			return false;
+
+		return true;
+		},
+
+	testArray: function(value, params)
+		{
+		var isStringArray = true;
+
+		for(var i = 0; i < value.length; i++)
+			{
+			if(!isValue(value[i], params))
+				{
+				isStringArray = false;
+				break;
+				}
+			}
+
+		return (value.length == 0 ? false : isStringArray);
+		}
 	}
 
 	// -- -- -- -- -- -- -- -- -- -- //

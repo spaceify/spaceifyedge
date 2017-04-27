@@ -389,7 +389,7 @@ fi
 
 printf "\n\e[4mCreating registration information for this edge node\e[0m\n"
 
-result=$(node /var/lib/spaceify/code/edgespaceifynet.js "createEdgeId")
+result=$(node /var/lib/spaceify/code/registeredge.js "createEdgeId")
 
 printf "\n$result\n"
 

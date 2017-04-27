@@ -446,21 +446,29 @@ self.hasTile = function()
 
 }
 
-Manifest.load = function(type, unique_name, develop)
+Manifest.load = function(typeOrPath, unique_name, develop)
 	{
+	var path;
 	var manifest;
 	var unique = new SpaceifyUnique();
 	var config = SpaceifyConfig.getConfig();
 	var utility = new SpaceifyUtility();
 
 	try {
-		if((manifest = utility.sync.loadJSON(unique.getAppPath(type, unique_name, config) + config.MANIFEST, true)) == null)
+		if(!unique_name)																		// Path to manifest
+			path = typeOrPath;
+		else																					// Resolve the path by type and unique name
+			path = unique.getAppPath(typeOrPath, unique_name, config) + config.MANIFEST;
+
+		if((manifest = utility.sync.loadJSON(path, true)) == null)
 			throw false;
 
 		manifest = new Manifest(manifest, develop);
 		}
 	catch(err)
 		{
+// var x = JSON.stringify(err);
+// require("fs").writeFileSync("/tmp/ok.txt", x);
 		manifest = null;
 		}
 
