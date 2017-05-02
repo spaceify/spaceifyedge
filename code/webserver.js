@@ -89,7 +89,7 @@ self.listen = function(opts, callback)
 	logger.log(utility.replace(language.WEBSERVER_CONNECTING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
 
 	// -- --
-	eventEmitter.on("processRequest", processRequest);					// Request events, process one request at a time
+	//eventEmitter.on("processRequest", processRequest);				// Request events, process one request at a time
 
 	// -- --
 	if(!options.isSecure)												// Start a http server
@@ -146,7 +146,7 @@ self.listen = function(opts, callback)
 								});
 
 				//eventEmitter.emit("processRequest");
-				processRequest(request.url);
+				processRequest();
 				});
 			});
 
@@ -220,7 +220,7 @@ self.setSessionManager = function(manager, tokenName)
 
 	// -- -- -- -- -- -- -- -- -- -- //
 
-var processRequest = function(urli)													// Process request in order
+var processRequest = function()														// Process request in order
 	{
 	if(!processingRequest && requests.length > 0)
 		{
