@@ -31,9 +31,9 @@ var doRequire = function(module)
 
 var globalObj = (typeof(window) === "undefined" ? global : window);
 
-if (typeof globalObj.baseConfig_)
+if (typeof globalObj.speBaseConfig_)
 	{
-	baseConfig = globalObj.baseConfig_;
+	baseConfig = globalObj.speBaseConfig_;
 	}
 
 if (typeof window === "undefined") //in node.js
@@ -148,7 +148,7 @@ else
 */
 //console.log("Config::Config() "+JSON.stringify(baseConfig));
 
-globalObj.baseConfig_ = baseConfig;
+globalObj.speBaseConfig_ = baseConfig;
 
 self.getConfig = function()
 	{

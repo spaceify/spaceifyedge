@@ -144,7 +144,9 @@ self.listen = function(opts, callback)
 								cookies: parseCookies(request),
 								protocol: (urlObj.protocol ? urlObj.protocol : "http:")
 								});
-				eventEmitter.emit("processRequest");
+
+				//eventEmitter.emit("processRequest");
+				processRequest(request.url);
 				});
 			});
 
@@ -216,23 +218,30 @@ self.setSessionManager = function(manager, tokenName)
 	sessionManager = (typeof manager == "function" ? manager : null);
 	}
 
-// -- -- -- -- -- -- -- -- -- -- //
-var processRequest = function()
+	// -- -- -- -- -- -- -- -- -- -- //
+
+var processRequest = function(urli)													// Process request in order
 	{
 	if(!processingRequest && requests.length > 0)
 		{
+		processingRequest = true;
+
+		currentRequest = requests.shift();
+
 		fibrous.run( function()
 			{
-			currentRequest = requests.shift();
 			loadContent.sync();
+
+			processingRequest = false;
+
+			processRequest();
+
 			}, function(err, data) { } );
 		}
 	}
 
 var loadContent = fibrous( function()
 	{
-	processingRequest = true;
-
 	var pathname;
 	var reqLisObj;
 	var requestUrl;
@@ -309,8 +318,8 @@ var loadContent = fibrous( function()
 		}
 	finally
 		{
-		processingRequest = false;
-		eventEmitter.emit("processRequest");
+		//eventEmitter.emit("processRequest");
+		processRequest();
 		}
 	});
 

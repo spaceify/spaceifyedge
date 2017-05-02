@@ -164,24 +164,36 @@ var doRequire = function(module)
 	};
 
 // Load the default speconfig.js file and apply overrides in the order:
-// 1. module.parent.speconfig
-// 2. "speconfig.js"
-// 3. process.cwd()/speconfig.js
+// 1. make base config global
+// 2. module.parent.speconfig
+// 3. "speconfig.js"
+// 4. process.cwd()/speconfig.js
+
+var globalObj = (typeof(window) === "undefined" ? global : window);
+
+if (typeof globalObj.speBaseConfig_)
+	{
+	baseConfig = globalObj.speBaseConfig_;
+	}
 
 if (typeof window === "undefined") //in node.js
 	{
 	path = __webpack_require__(34);
-	try	{
-		var apipath = "/var/lib/spaceify/code/";
-		baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
 
-		//console.log("Loded base config from /var/lib/spaceify/code/");
-		}
-	catch (e)
+	if (!baseConfig)
 		{
-		baseConfig = __webpack_require__(10);
+		try	{
+			var apipath = "/var/lib/spaceify/code/";
+			baseConfig = doRequire(path.resolve(apipath, "spebaseconfig.js"));
 
-		//console.log("Loaded base config from the spaceifyconnect package");
+			//console.log("Loaded base config from /var/lib/spaceify/code/");
+			}
+		catch (e)
+			{
+			baseConfig = __webpack_require__(10);
+
+			//console.log("Loaded base config from the spaceifyconnect package");
+			}
 		}
 
 	if (!baseConfig)
@@ -190,6 +202,7 @@ if (typeof window === "undefined") //in node.js
 
 		process.exit(1);
 		}
+
 	// load and apply the overriding configs
 
 	try	{
@@ -234,20 +247,20 @@ if (typeof window === "undefined") //in node.js
 		}
 
 	}
-
 else if (typeof window !== "undefined")	//in browser
 	{
 	var lib = window;
 
-	if (window.spe)	// browser using a bundled spaceifyconnect
+	if (window.spe)	// browser using a bundled spaceifyedge
 		{
 		lib = window.spe;
 		}
 
-	baseConfig = lib.SpeBaseConfig;
+	if (!baseConfig)
+		baseConfig = lib.SpeBaseConfig;
 
 	if (lib.SpeConfig)
-		overrideConfigValues(baseConfig, lib.SpeConfig);
+		Config.overrideConfigValues(baseConfig, lib.SpeConfig);
 	}
 
 /*
@@ -274,14 +287,15 @@ else
 	}
 */
 //console.log("Config::Config() "+JSON.stringify(baseConfig));
-config = baseConfig;
+
+globalObj.speBaseConfig_ = baseConfig;
 
 self.getConfig = function()
 	{
-	return config;
+	return baseConfig;
 	}
-}
 
+}
 
 Config.overrideConfigValues = function(obj1, obj2)
 	{
@@ -371,7 +385,7 @@ if(true)
  * @class Logger
  */
 
-function Logger(config)
+function Logger(config, class_)
 {
 var self = this;
 
@@ -397,6 +411,8 @@ labels[ERROR]	= "[e] ";
 labels[WARN]	= "[w] ";
 labels[FORCE]	= "";
 labels[STDOUT]	= "";
+
+var showLabels	= true;
 
 	// -- -- -- -- -- -- -- -- -- -- //
 var enabled = (config ? config : {});
@@ -426,22 +442,36 @@ var out = function(type, useStdout)
 	if (!enabled[type] && type != FORCE)
 		return;
 
-	var str = "", strs = arguments[2], strp;
+	var str = "";
+	var strs = self.convertArguments(arguments[2]);
+	var strp = null;
 
-	for(var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
+	for (var i = 0; i < strs.length; i++)							// Concatenate strings passed in the arguments, separate strings with space
 		{
 		strp = (typeof strs[i] == "string" ? strs[i] : JSON.stringify(strs[i]));
 		str += (str != "" && str != "\n" && str != "\r" && str != "\r\n" ? " " : "") + strp;
 		}
 
+	if (type == ERROR)
+		{
+		str += new Error().stack;
+		}
+
 	str = str.replace(/[\x00-\x09\x0b-\x0c\x0e-\x1f]/g, "");		// Replace control characters 0-9, 11-12, 14-31
+
+	if (!useStdout && showLabels)
+		{
+		var dateString = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+		str = dateString +" "+labels[type]+"["+class_+"] "+ str;
+		}
 
 	if (isNodeJs)
 		{
 		if (!useStdout)												// console.log prints new line
-			console.log(labels[type] + str);
+			console.log(str);
 		else														// stdout.write doesn't
-			process.stdout.write(labels[type] + str);
+			process.stdout.write(str);
 		}
 	else
 		{
@@ -464,8 +494,16 @@ var out = function(type, useStdout)
 
 self.setOptions = function(options)
 	{
-	for(var type in options)
-		enabled[type] = options[type];
+	if (typeof options.enabled !== "undefined")
+		{
+		for (var type in options.enabled)
+			{
+			enabled[type] = options.enabled[type];
+			}
+		}
+
+	if (typeof options.showLabels !== "undefined")
+		showLabels = options.showLabels;
 	};
 
 self.clone = function(logger)
@@ -483,6 +521,52 @@ self.getEnabled = function()
 	{
 	return enabled;
 	};
+
+/**
+  * Clone the values from this instance of the logger to the global base configuration
+  * => Other instance of the logger get the same values as this instance
+  */
+self.cloneInstanceToBaseConfiguration = function()
+	{
+	var iLogger;
+	var globalObj = (typeof(window) === "undefined" ? global : window);
+
+	if (globalObj.speBaseConfig_ && globalObj.speBaseConfig_.logger)
+		{
+		iLogger = globalObj.speBaseConfig_.logger;
+
+		for (var i in iLogger)
+			{
+			if (i != class_)
+				{
+				iLogger[i][LOG]		= enabled[LOG];
+				iLogger[i][DIR]		= enabled[DIR];
+				iLogger[i][INFO]	= enabled[INFO];
+				iLogger[i][ERROR]	= enabled[ERROR];
+				iLogger[i][WARN]	= enabled[WARN];
+				}
+			}
+		}
+	};
+
+/**
+ * Convert arguments to array and sanitize empty arguments
+ */
+self.convertArguments = function()
+	{
+	var args;
+
+	if (Object.keys(arguments[0]).length == 0)
+		{
+		args = [""];
+		}
+	else
+		{
+		args = Array.prototype.slice.call(arguments[0]);
+		}
+
+	return args;
+	}
 
 }
 
@@ -543,9 +627,9 @@ Logger.createLogger_ = function(class_)
 		loggerConfig['warn'] = all_;
 		}
 
-	return new Logger(loggerConfig);
+	return new Logger(loggerConfig, class_);
 	};
-	
+
 Logger.getLogger = function(class_)
 	{
 	if (!class_)
@@ -558,6 +642,7 @@ Logger.getLogger = function(class_)
 
 	else
 		globalObj = window;
+
 
 	if (!globalObj.hasOwnProperty("speLoggerInstances_"))
 		{
@@ -998,9 +1083,12 @@ else if (typeof window !== "undefined")
 var errorc = new SpaceifyError();
 var logger = Logger.getLogger(class_);
 
-self.log		= function(message) { logger.log(message); }
-self.dir		= function(message) { logger.dir(message); }
-self.info		= function(message) { logger.info(message); }
+self.log		= function() { logger.log.apply(self, logger.convertArguments(arguments)); }
+self.dir		= function() { logger.dir.apply(self, logger.convertArguments(arguments)); }
+self.info		= function() { logger.info.apply(self, logger.convertArguments(arguments)); }
+self.warn		= function() { logger.warnapply(self, logger.convertArguments(arguments)); }
+self.force		= function() { logger.force.apply(self, logger.convertArguments(arguments)); }
+self.stdout		= function() { logger.stdout.apply(self, logger.convertArguments(arguments)); }
 self.error		= function(err, path, code, type)
 	{
 	var message = (errorc ? errorc.errorToString(err, path, code) : err);
@@ -1012,9 +1100,27 @@ self.error		= function(err, path, code, type)
 
 	return message;
 	}
-self.warn		= function(message) { logger.warn(message); }
-self.force		= function(message) { logger.force(message); }
-self.stdout		= function(message) { logger.stdout(message); }
+
+self.setOptions = function(options)
+	{
+	logger.setOptions(options);
+	};
+
+self.clone = function(logger_)
+	{
+	logger.setOptions(logger_);
+	};
+
+self.getEnabled = function()
+	{
+	return logger.getEnabled();
+	};
+
+self.cloneInstanceToBaseConfiguration = function()
+	{
+	logger.cloneInstanceToBaseConfiguration();
+	};
+
 }
 
 if (true)
@@ -1405,33 +1511,6 @@ if(true)
 
 var SpeBaseConfig =
 {
-WEBRTC_CONFIG: {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]},
-
-connection:
-	{
-	MAINURL: "http://spaceify.net/games/"
-	},
-
-connectionGuard:
-	{
-	GUARDING_INTERVAL: 2000,
-	MAXIMUM_UNANSWERED_CALLBACKS: 20
-	},
-
-reconnector:
-	{
-	INITIAL_DELAY: 500,
-	DELAY_INCREMENT: 1000,
-	MAXIMUM_DELAY: 32000
-	},
-
-spaceifyPiper:
-	{
-	DEFAULT_GROUP: "testgroup",
-	HTTP_ADDRESS:  {host: "localhost", port: 80},
-	SERVER_ADDRESS: {host: "spaceify.net", port: 1979},
-	},
-
 logger:
 	{
 	// Global configuration overrides (overrides the individual class configurations)
@@ -1452,7 +1531,7 @@ logger:
 		info: true,
 		error: true,
 		warn: true,
-		all: null,
+		all: true,
 		mydefault1: 1,
 		mydefault2: 2
 		},
@@ -1550,11 +1629,11 @@ logger:
 
 	HttpService:
 		{
-		log: true,
-		dir: true,
-		info: true,
+		log: false,
+		dir: false,
+		info: false,
 		error: true,
-		warn: true
+		warn: false
 		},
 
 	Iptables:
@@ -1739,11 +1818,11 @@ logger:
 
 	SPM:
 		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
+		log: false,
+		dir: false,
+		info: false,
+		error: false,
+		warn: false
 		},
 
 	ValidateApplication:
@@ -2200,9 +2279,6 @@ self.connect = function(options, callback)
 		if(!err)
 			{
 			communicator.addConnection(connection);
-
-			if(options.logger)
-				communicator.setOptions({ logger: options.logger });
 
 			if(callback)
 				callback(null, true);
@@ -4888,12 +4964,6 @@ self.closeConnection = function(connectionId)
 		}
 	};
 
-self.setOptions = function(options)
-	{
-	if(logger && options.logger)
-		logger.clone(options.logger);
-	}
-
 }
 
 // Do this only in node.js, not in the browser
@@ -5354,9 +5424,6 @@ self.listen = function(options, callback)
 	{
 	communicator.setConnectionListener(listenConnections);
 	communicator.setDisconnectionListener(listenDisconnections);
-
-	if(options.logger)
-		communicator.setOptions({ logger: options.logger });
 
 	try {
 		webSocketServer.listen(options, callback);
@@ -7512,38 +7579,10 @@ module.exports = function(module) {
 
 var SpeConfig =
 {
-SERVER_ADDRESS: {host: "localhost", port: 1979},
-WEBRTC_CONFIG: {"iceServers":[{url:"stun:kandela.tv"},{url :"turn:kandela.tv", username:"webrtcuser", credential:"jeejeejee"}]},
-
-connection:
-	{
-	MAINURL: "http://spaceify.net/games/"
-	},
-
-connectionGuard:
-	{
-	GUARDING_INTERVAL: 2000,
-	MAXIMUM_UNANSWERED_CALLBACKS: 20
-	},
-
-reconnector:
-	{
-	INITIAL_DELAY: 500,
-	DELAY_INCREMENT: 1000,
-	MAXIMUM_DELAY: 32000
-	},
-	
-spaceifyPiper:
-	{
-	DEFAULT_GROUP: "testgroup",
-	HTTP_ADDRESS:  {host: "localhost", port: 80},
-	SERVER_ADDRESS: {host: "spaceify.net", port: 1979},
-	},
-
 logger:
 	{
 	// Overrides everything (including the individual class configurations)
-	
+
 	loggerConfigOverride:
 		{
 		all: true
@@ -7552,9 +7591,9 @@ logger:
 	// Class configurations (overrides defaultLoggerConfig)
 
 		// x
-	
+
 	// Default logger config
-	
+
 	defaultLoggerConfig:
 		{
 		log: true,
@@ -7566,11 +7605,11 @@ logger:
 		mydefault1: 1,
 		mydefault2: 2
 		}
-	},	
+	},
 
 // a test value for the unit tests
 
-testValue: "TestValueFromSpeConfig"
+testValue: "TestValueFromSplConfig"
 };
 
 Object.freeze(SpeConfig);

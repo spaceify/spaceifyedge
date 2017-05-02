@@ -28,7 +28,11 @@ logger:
 		mydefault1: 1,
 		mydefault2: 2
 		}
-	}
+	},
+
+// a test value for the unit tests
+
+testValue: "TestValueFromSplConfig"
 };
 
 Object.freeze(SpeConfig);

@@ -183,7 +183,7 @@ logger:
 		log: false,
 		dir: false,
 		info: false,
-		error: false,
+		error: true,
 		warn: false
 		},
 
@@ -414,11 +414,11 @@ logger:
 
 	WebServer:
 		{
-		log: false,
-		dir: false,
-		info: false,
-		error: false,
-		warn: false
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
 		},
 
 	WebSocketConnection:

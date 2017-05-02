@@ -152,9 +152,9 @@ self.cloneInstanceToBaseConfiguration = function()
 	var iLogger;
 	var globalObj = (typeof(window) === "undefined" ? global : window);
 
-	if (globalObj.baseConfig_ && globalObj.baseConfig_.logger)
+	if (globalObj.speBaseConfig_ && globalObj.speBaseConfig_.logger)
 		{
-		iLogger = globalObj.baseConfig_.logger;
+		iLogger = globalObj.speBaseConfig_.logger;
 
 		for (var i in iLogger)
 			{
@@ -265,17 +265,17 @@ Logger.getLogger = function(class_)
 		globalObj = window;
 
 
-	if (!globalObj.hasOwnProperty("spLoggerInstances_"))
+	if (!globalObj.hasOwnProperty("speLoggerInstances_"))
 		{
-		globalObj["spLoggerInstances_"] = new Object();
+		globalObj["speLoggerInstances_"] = new Object();
 		}
 
-	if (!globalObj.spLoggerInstances_.hasOwnProperty(class_))
+	if (!globalObj.speLoggerInstances_.hasOwnProperty(class_))
 		{
-		globalObj.spLoggerInstances_[class_] = Logger.createLogger_(class_);
+		globalObj.speLoggerInstances_[class_] = Logger.createLogger_(class_);
 		}
 
-	return globalObj.spLoggerInstances_[class_];
+	return globalObj.speLoggerInstances_[class_];
 	};
 
 if (typeof exports !== "undefined")

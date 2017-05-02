@@ -24,6 +24,7 @@ function HttpService()
 {
 var self = this;
 
+var logger = new SpaceifyLogger("HttpService"); logger.cloneInstanceToBaseConfiguration();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var unique = new SpaceifyUnique();
@@ -31,7 +32,6 @@ var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
 var config = SpaceifyConfig.getConfig();
-var logger = new SpaceifyLogger("HttpService");
 var coreConnection = new WebSocketRpcConnection();
 
 var edgeSettings = {};
