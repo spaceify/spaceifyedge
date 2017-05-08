@@ -1,6 +1,6 @@
 {
   "name": "spaceifyedge",
-  "version": "0.7.0",
+  "version": "0.0.1",
   "description": "The New Generation (lightweight) Spaceify Edge Platform.",
   "author": {
     "name": "Spaceify Oy",
@@ -28,19 +28,18 @@
 
   "dependencies": {
     "adm-zip": "0.4.7",
-    "async": "2.0.0-rc.2",
-    "clone": "1.0.2",
-    "dockerode": "2.3.1",
+    "async": "2.4.0",
+    "dockerode": "2.4.3",
     "fibers": "1.0.15",
-    "github": "6.0.4",
+    "github": "9.2.0",
     "mkdirp": "0.5.1",
     "mmmagic": "0.4.5",
-    "range_check": "1.2.0",
+    "range_check": "1.4.0",
     "read": "1.0.7",
-    "request": "2.74.0",
-    "sqlite3": "3.1.4",
-    "websocket": "1.0.23",
-    "winston": "2.2.0",
+    "request": "2.81.0",
+    "sqlite3": "3.1.8",
+    "websocket": "1.0.24",
+    "winston": "2.3.1",
     "ypatterns": "0.2.4"
   }
 }

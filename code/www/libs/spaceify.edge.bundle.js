@@ -7120,16 +7120,6 @@ var warnings = [];
 var callerOrigin = null;
 var managerOrigin = null;
 
-connection.exposeRpcMethod("stdout", self, stdout);
-connection.exposeRpcMethod("fail", self, fail);
-connection.exposeRpcMethod("error", self, error);
-connection.exposeRpcMethod("warning", self, warning);
-connection.exposeRpcMethod("notify", self, notify);
-connection.exposeRpcMethod("message", self, message);
-connection.exposeRpcMethod("question", self, question);
-connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
-connection.exposeRpcMethod("end", self, end);
-
 self.connect = function(managerOrigin_, callerOrigin_)
 	{
 	errors = [];
@@ -7141,6 +7131,16 @@ self.connect = function(managerOrigin_, callerOrigin_)
 
 	if(connection.isConnected())
 		return managerOrigin.connected();
+
+	connection.exposeRpcMethod("stdout", self, stdout);
+	connection.exposeRpcMethod("fail", self, fail);
+	connection.exposeRpcMethod("error", self, error);
+	connection.exposeRpcMethod("warning", self, warning);
+	connection.exposeRpcMethod("notify", self, notify);
+	connection.exposeRpcMethod("message", self, message);
+	connection.exposeRpcMethod("question", self, question);
+	connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
+	connection.exposeRpcMethod("end", self, end);
 
 	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
 		{
