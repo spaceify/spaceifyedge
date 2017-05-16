@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-spaceify>
+<html sp-IX>
 	<head body-directive>
 		<!-- -->
 		<meta charset="utf-8">
@@ -17,8 +17,8 @@
 		<!-- -->
 
 		<!-- -->
-		<script src="libs/spaceify.loader.js"></script>
-		<script spe_src="libs/spaceify.edge.js"></script>
+		<script src="libs/spaceify.loader.bundle.js"></script>
+		<script spe_src="libs/spaceify.edge.bundle.js"></script>
 		<!-- -->
 
 		<script>
@@ -41,8 +41,13 @@
 			network = new SpaceifyNetwork();
 			sync = new SpaceifySynchronous();
 
+			config.initialize("");
+
 			if((session = network.getCookie(config.SESSION_TOKEN_NAME_COOKIE)))
-				LoaderUtil.setSession(config.SESSION_TOKEN_NAME, session);
+				{
+				var lib = (window.spl ? window.spl : window);
+				lib.LoaderUtil.getLoaderUtil().setSession(config.SESSION_TOKEN_NAME, session);
+				}
 
 			net.showInstalledApplications(function()
 				{
@@ -235,6 +240,7 @@
 
 				<!-- MISC -- -- -- -- -- -- -- -- -- -- -->
 				<iframe id="certIframe" src="" sp_src="-" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+
 			</div>
 
 		</div>
