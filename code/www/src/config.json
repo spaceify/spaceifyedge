@@ -112,7 +112,8 @@
                  "302": { "file": "/var/lib/spaceify/code/www/errors/302.html", "content_type": "html"},
                  "404": { "file": "/var/lib/spaceify/code/www/errors/404.html", "content_type": "html"},
                  "500": { "file": "/var/lib/spaceify/code/www/errors/500.html", "content_type": "html"},
-                 "501": { "file": "/var/lib/spaceify/code/www/errors/501.html", "content_type": "html"}
+                 "501": { "file": "/var/lib/spaceify/code/www/errors/501.html", "content_type": "html"},
+                 "error": { "message": "Internal error"}
                  },
 
   "GITHUB_HOSTNAME": "github.com",

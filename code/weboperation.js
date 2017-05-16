@@ -69,7 +69,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		if(operation.type == "installApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);	// throws error if client is not logged in
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.package)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -84,7 +84,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "removeApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.unique_name)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -95,7 +95,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "purgeApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.unique_name)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -106,7 +106,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "startApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.unique_name)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -117,7 +117,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "stopApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.unique_name)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -128,7 +128,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "restartApplication" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			if(!operation.unique_name)
 				throw language.E_GET_DATA_UNDEFINED_PARAMETERS.pre("WebOperation::getData");
@@ -139,7 +139,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "requestMessageId" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("requestMessageId", [userData.sessionId], self);
@@ -147,7 +147,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "getCoreSettings" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("getCoreSettings", [userData.sessionId], self);
@@ -155,7 +155,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "saveCoreSettings" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("saveCoreSettings", [operation.settings || {}, userData.sessionId], self);
@@ -163,7 +163,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "getEdgeSettings" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("getEdgeSettings", [userData.sessionId], self);
@@ -171,7 +171,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "saveEdgeSettings" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("saveEdgeSettings", [operation.settings || {}, userData.sessionId], self);
@@ -179,7 +179,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "getServiceRuntimeStates" && userData.sessionId)
 			{
-			isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, true);
+			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
 			data = secureConnection.sync.callRpc("getServiceRuntimeStates", [userData.sessionId], self);
@@ -191,7 +191,9 @@ self.getData = fibrous( function(operation, userData, isSecure)
 
 			if(userData.sessionId)
 				{
-				if(!(isAlreadyLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, false)))
+				isAlreadyLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
+
+				if(!isAlreadyLoggedIn)
 					delete userData.sessionId;
 				}
 
@@ -238,7 +240,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			{
 			if(userData.sessionId)
 				{
-				isLoggedIn = securityModel.sync.isAdminLoggedIn(userData.sessionId, false);
+				isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 				data = isLoggedIn;
 				}
 			}
@@ -251,6 +253,7 @@ self.getData = fibrous( function(operation, userData, isSecure)
 		{
 		if(secureConnection)
 			secureConnection.close();
+
 		secureConnection = null;
 		}
 
@@ -261,6 +264,21 @@ var connect = fibrous( function()
 	{
 	secureConnection = new WebSocketRpcConnection();
 	secureConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
+	});
+
+var isAdminLoggedIn = fibrous( function(sessionId)
+	{
+	var isLoggedIn = false;
+
+	try {
+		isLoggedIn = securityModel.sync.isAdminLoggedIn(sessionId);
+		}
+	catch(err)
+		{
+		isLoggedIn = false;
+		}
+
+	return isLoggedIn
 	});
 
 }

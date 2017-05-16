@@ -225,32 +225,41 @@ self.refreshAdminLogInSession = function(sessionId)
 		adminSessions[sessionId].timestamp = Date.now();
 	}
 
-self.isAdminLoggedIn = fibrous( function(sessionId, throws)
+self.isAdminLoggedIn = function(sessionId, callback)
 	{
 	var coreRPC = null;
-	var isLoggedIn = false;
 
 	try {
 		coreRPC = new WebSocketRpcConnection();
-		coreRPC.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
-		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
-
-		if(!isLoggedIn && throws)
-			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");
+		coreRPC.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt}, function(err, data)
+			{
+			if(err)
+				{
+				callback(err, false);
+				}
+			else
+				{
+				coreRPC.callRpc("isAdminLoggedIn", [sessionId], self, function(err, data)
+					{		
+					if(data === true)
+						callback(null, data);
+					else
+						callback(language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn"), false);
+					});
+				}
+			});
 		}
 	catch(err)
 		{
-		throw err;
+		callback(err, false);
 		}
 	finally
 		{
 		if(coreRPC)
 			coreRPC.close();
 		}
-
-	return isLoggedIn;
-	});
+	}
 
 	// REMOTE OPERATING -- -- -- -- -- -- -- -- -- -- //
 self.remoteClientLogIn = fibrous( function(password, remoteAddress)

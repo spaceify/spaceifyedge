@@ -62,9 +62,6 @@ self.connect = function(opts, callback)
 	var protocol = (!isSecure ? "ws" : "wss");
 	var subprotocol = opts.subprotocol || "json-rpc";
 
-	if(opts.logger)
-		logger.clone(opts.logger);
-
 	try	{
 		url = protocol + "://" + hostname + (port ? ":" + port : "") + (id ? "?id=" + id : "");
 

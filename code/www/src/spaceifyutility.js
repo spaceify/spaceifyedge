@@ -87,37 +87,42 @@ self.loadRemoteFileToLocalFile = fibrous( function(fileUrl, targetDir, targetFil
 	return false;
 	});
 
-self.isLocal = fibrous( function(path, type)
+self.isLocal = function(path, type, callback)
 	{
 	try {
 		var stats = fs.sync.stat(path);
+
 		if(stats && type == "file" && stats.isFile())
-			return true;
+			callback(null, true);
 		else if(stats && type == "directory" && stats.isDirectory())
-			return true;
+			callback(null, true);
+		else
+			callback(null, false);
 		}
 	catch(err)
 		{
+		callback(null, false);
 		}
+	}
 
-	return false;
-	});
-
-self.getPathType = fibrous( function(path)
+self.getPathType = function(path, callback)
 	{
 	try {
-		var stats = fs.sync.stat(path);
-		if(stats && stats.isFile())
-			return "file";
-		else if(stats && stats.isDirectory())
-			return "directory";
+		var stats = fs.stat(path, function(err, data)
+			{
+			if(stats && stats.isFile())
+				callback(null, "file");
+			else if(stats && stats.isDirectory())
+				callback(null, "directory");
+			else
+				callback(null, "undefined");
+			});
 		}
 	catch(err)
 		{
+		callback(null, "undefined");
 		}
-
-	return "undefined";
-	});
+	}
 
 self.deleteDirectory = fibrous( function(source, throws)						// Recursively deletes directory and its files and subdirectories
 	{
