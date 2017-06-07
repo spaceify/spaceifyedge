@@ -46,7 +46,7 @@ self.createEdgeId = fibrous( function(throws)
 		// File or Database -- -- -- -- -- -- -- -- -- -- //
 		newEdgeId = createNewId("array");
 
-		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE_TMP, "file"))		// Use existing registration file placed in the /tmp/ directory
+		if(utility.sync.isFile(config.SPACEIFY_REGISTRATION_FILE_TMP))				// Use existing registration file placed in the /tmp/ directory
 			{
 			edgeIdFile = fs.sync.readFile(config.SPACEIFY_REGISTRATION_FILE_TMP, {encoding: "utf8"});
 			parts = edgeIdFile.split(",");
@@ -70,7 +70,7 @@ self.createEdgeId = fibrous( function(throws)
 			edge_require_password = (edgeSettings.hasOwnProperty("edge_require_password") && edgeSettings.edge_require_password ? edgeSettings.edge_require_password : newEdgeId[5]);
 			}
 
-		// if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Use edge name from file if it exists
+		// if(utility.sync.isFile(EDGE_NAME_FILE))									// Use edge name from file if it exists
 		//	edge_name = fs.sync.readFile(EDGE_NAME_FILE, {encoding: "utf8"});
 
 		edge_id = (edge_id.match(EDGE_ID_REGX) ? edge_id : newEdgeId[0]);			// Validate values
@@ -87,7 +87,7 @@ self.createEdgeId = fibrous( function(throws)
 		edgeSettings = {edge_id: parts[0], edge_name: parts[1], edge_password: parts[2], edge_salt: parts[3], edge_enable_remote: parts[4], edge_require_password: parts[5]};
 		database.sync.saveEdgeSettings(edgeSettings);
 
-		// if(utility.sync.isLocal(EDGE_NAME_FILE, "file"))							// Remove edge_name file only if saving the data is successful
+		// if(utility.sync.isFile(EDGE_NAME_FILE))									// Remove edge_name file only if saving the data is successful
 		//	fs.sync.unlink(EDGE_NAME_FILE);
 
 		if(!throws)

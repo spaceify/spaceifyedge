@@ -48,10 +48,10 @@ self.validatePackage = fibrous( function(package_path, save_path_manifest)
 		manifest_path = application_path + config.MANIFEST;
 
 		// REQUIRED DIRECTORIES AND FILES
-		if(!utility.sync.isLocal(application_path, "directory"))
+		if(!utility.sync.isDirectory(application_path))
 			throw language.E_VALIDATE_PACKAGE_NO_APPLICATION_DIRECTORY.pre("ValidateApplication::validate");
 
-		if(!utility.sync.isLocal(manifest_path, "file"))
+		if(!utility.sync.isFile(manifest_path))
 			throw language.E_VALIDATE_PACKAGE_NO_MANIFEST_FILE.pre("ValidateApplication::validate");
 
 		// VALIDATE MANIFEST
@@ -99,7 +99,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 				obj = manifest.inject_files[i];
 
 				path = utility.preparePath(obj.directory ? obj.directory : "");
-				if(!utility.sync.isLocal(application_path + config.WWW_DIRECTORY + path + obj.file, "file"))
+				if(!utility.sync.isFile(application_path + config.WWW_DIRECTORY + path + obj.file))
 					addError( language.E_VALIDATE_DIRECTORIES_INJECT_FILE.preFmt("ValidateApplication::validateDirectories", {"~file": path + obj.file, "~directory": config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + path + obj.file}) );
 				}
 			}
@@ -116,7 +116,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 				path = utility.preparePath(obj.directory ? obj.directory : "");
 				image = application_path + config.IMAGE_DIRECTORY + path + obj.file;
 
-				if(!utility.sync.isLocal(image, "file"))
+				if(!utility.sync.isFile(image))
 					addError( language.E_VALIDATE_DIRECTORIES_IMAGE_FILE.preFmt("ValidateApplication::validateDirectories", {"~file": obj.file, "~directory": obj.directory}) );
 				else
 					{
@@ -131,7 +131,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 
 		if(manifest.docker_image)																	// Dockerfile
 			{
-			if(!utility.sync.isLocal(application_path + config.DOCKERFILE, "file"))
+			if(!utility.sync.isFile(application_path + config.DOCKERFILE))
 				addError( language.E_VALIDATE_DIRECTORIES_DOCKER_IMAGE.pre("ValidateApplication::validateDirectories") );
 			}
 
@@ -141,7 +141,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 				{
 				for(i = 0; i < manifest.deb_packages.length; i++)
 					{
-					if(!utility.sync.isLocal(application_path + manifest.deb_packages[i].name, "file"))
+					if(!utility.sync.isFile(application_path + manifest.deb_packages[i].name))
 						addError( language.E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY.preFmt("ValidateApplication::validateDirectories", {"~deb": manifest.deb_packages[i].name}) );
 					}
 				}
@@ -156,7 +156,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 					manifest.apt_repositories[i].public_key = key;
 					manifest.apt_repositories[i].isFile = (!isFile ? false : true);
 
-					if(isFile && !utility.sync.isLocal(application_path + key, "file"))
+					if(isFile && !utility.sync.isFile(application_path + key))
 						addError( language.E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY.preFmt("ValidateApplication::validateDirectories", {"~key": key}) );
 					}
 				}
@@ -169,7 +169,7 @@ var validateDirectories = fibrous( function(application_path, manifest)
 				// The service file file
 			serviceFile = unique.getSystemctlServiceName(manifest.unique_name);
 
-			if(!utility.sync.isLocal(application_path + serviceFile, "file"))
+			if(!utility.sync.isFile(application_path + serviceFile))
 				addError( language.E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING.preFmt("ValidateApplication::validateDirectories", {"~service": service}) );
 				*
 				*

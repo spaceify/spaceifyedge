@@ -87,6 +87,16 @@ self.loadRemoteFileToLocalFile = fibrous( function(fileUrl, targetDir, targetFil
 	return false;
 	});
 
+self.isFile = function(path, callback)
+	{
+	self.isLocal(path, "file", callback);
+	}
+
+self.isDirectory = function(path, callback)
+	{
+	self.isLocal(path, "directory", callback);
+	}
+
 self.isLocal = function(path, type, callback)
 	{
 	try {

@@ -870,7 +870,7 @@ self.registerEdge = fibrous( function()
 	var edgeIdFile;
 
 	try {
-		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE, "file"))
+		if(utility.sync.isFile(config.SPACEIFY_REGISTRATION_FILE))
 			{
 			edgeIdFile = fs.sync.readFile(config.SPACEIFY_REGISTRATION_FILE, {encoding: "utf8"});
 			parts = edgeIdFile.split(",");

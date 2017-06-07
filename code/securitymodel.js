@@ -159,7 +159,7 @@ self.findAdminSession = fibrous( function(sessionId)
 	var session;
 
 	// Check temporary session
-	if(utility.sync.isLocal(config.SPACEIFY_TEMP_SESSIONID, "file"))
+	if(utility.sync.isFile(config.SPACEIFY_TEMP_SESSIONID))
 		{
 		session = fs.sync.readFile(config.SPACEIFY_TEMP_SESSIONID, "utf8");
 
@@ -193,7 +193,7 @@ self.createTemporaryAdminSession = fibrous( function(remoteAddress)
 
 self.destroyTemporaryAdminSession = fibrous( function()
 	{
-	if(utility.sync.isLocal(config.SPACEIFY_TEMP_SESSIONID, "file"))
+	if(utility.sync.isFile(config.SPACEIFY_TEMP_SESSIONID))
 		fs.sync.unlink(config.SPACEIFY_TEMP_SESSIONID);
 	});
 

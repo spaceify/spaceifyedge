@@ -226,7 +226,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 			if((isPackage = getPackage.sync(applicationPackage, isSuggested, true, username, password, registry_url, currentWorkingDirectory)) !== true)
 				throw isPackage;
 
-				// Validate the package for any errors
+				// Validate the package
 			sendMessage.sync("");
 			sendMessage.sync(language.PACKAGE_VALIDATING);
 
@@ -402,23 +402,39 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 	{
+	removeOrPurge.sync(unique_name, sessionId, false, connObj);
+	});
+
+var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
+	{
+	removeOrPurge.sync(unique_name, sessionId, true, connObj);
+	});
+
+var removeOrPurge = fibrous( function(unique_name, sessionId, purge, connObj)
+	{
+	var str;
+
 	try {
 			// Preconditions for performing this operation
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
-			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::removeApplication");
+			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::removeOrPurge");
 
 		var dbApp = database.sync.getApplication(unique_name);
 
 		if(!dbApp)
-			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::removeApplication", {"~name": unique_name});
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("ApplicationManager::removeOrPurge", {"~name": unique_name});
 
-			// Remove the application
+			// Remove / Purge the application
+		str = (!purge ? language.PACKAGE_REMOVING : language.PACKAGE_PURGING);
+		sendMessage.sync(utility.replace(str, {"~type": language.APP_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
+
 		database.sync.begin();
 
-		remove.sync(dbApp, sessionId, false);
+		remove.sync(dbApp, sessionId, purge, false);
 
-			// Finalize remove
-		sendMessage.sync(utility.replace(language.PACKAGE_REMOVED, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[dbApp.type]}));
+			// Finalize remove / purge
+		str = (!purge ? language.PACKAGE_REMOVED : language.PACKAGE_PURGED);
+		sendMessage.sync(utility.replace(str, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[dbApp.type]}));
 		}
 	catch(err)
 		{
@@ -433,86 +449,6 @@ var removeApplication = fibrous( function(unique_name, sessionId, connObj)
 
 		sendEnd.sync();
 		}
-
-	return true;
-	});
-
-var purgeApplication = fibrous( function(unique_name, sessionId, connObj)
-	{
-	var dbApp;
-	var path = "";
-	var unique_directory = unique.getUniqueDirectory(unique_name);
-
-		// Preconditions for performing this operation
-	if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
-		{
-		sendErrors.sync(language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::purgeApplication"));
-		sendEnd.sync();
-		return;
-		}
-
-		// Purge - purgin also handles incomplete installations
-	sendMessage.sync(utility.replace(language.PACKAGE_PURGING, {"~name": unique_name}));
-
-	try {
-		dbApp = database.sync.getApplication(unique_name);
-
-		if(dbApp)
-			{
-				// Stop all the instances of running applications having applications unique_name
-			coreConnection.sync.callRpc("removeApplication", [unique_name, sessionId, false], self);
-
-				// Remove database entries
-			sendMessage.sync(language.PACKAGE_REMOVE_FROM_DATABASE);
-
-			database.sync.removeApplication(dbApp.unique_name);
-
-				// Remove existing docker image + containers
-			if(dbApp.type != config.NATIVE_DEBIAN)
-				{
-				sendMessage.sync(language.PACKAGE_REMOVING_DOCKER);
-
-				removeImage(dbApp.docker_image_id, dbApp.unique_name);
-				}
-
-				// Remove Debian packages
-			if(dbApp.type == config.NATIVE_DEBIAN)
-				removeAptAndDpkgInstalled.sync(dbApp.unique_name);
-			}
-		}
-	catch(err)
-		{
-		sendErrors.sync(err);
-		}
-	finally
-		{
-		database.close();
-		}
-
-		// Remove the application folder completely, including the user data
-	if(utility.sync.isLocal(config.SPACELETS_PATH + unique_directory, "directory"))
-		path = config.SPACELETS_PATH + unique_directory;
-	else if(utility.sync.isLocal(config.SANDBOXED_PATH + unique_directory, "directory"))
-		path = config.SANDBOXED_PATH + unique_directory;
-	else if(utility.sync.isLocal(config.SANDBOXED_DEBIAN_PATH + unique_directory, "directory"))
-		path = config.SANDBOXED_DEBIAN_PATH + unique_directory;
-	else if(utility.sync.isLocal(config.NATIVE_DEBIAN_PATH + unique_directory, "directory"))
-		path = config.NATIVE_DEBIAN_PATH + unique_directory;
-
-	if(path != "")
-		{
-		sendMessage.sync(language.PACKAGE_DELETE_FILES);
-
-		utility.sync.deleteDirectory(path);
-		}
-
-		// Finalize purge
-	if(path == "" && !dbApp)
-		sendMessage.sync(language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("", {"~name": unique_name}).message);
-	else
-		sendMessage.sync(language.PACKAGE_PURGED);
-
-	sendEnd.sync();
 
 	return true;
 	});
@@ -892,19 +828,19 @@ self.publishPackage = fibrous( function(applicationPackage, username, password, 
 		currentWorkingDirectoryPackage = currentWorkingDirectory + "/" + applicationPackage;
 
 			// Try local directory <package>
-		if(utility.sync.isLocal(applicationPackage, "directory"))
+		if(utility.sync.isDirectory(applicationPackage))
 			applicationPackage = getLocalPublishDirectory.sync(applicationPackage);
 
 			// Try local directory <currentWorkingDirectory/package>
-		else if(utility.sync.isLocal(currentWorkingDirectoryPackage, "directory"))
+		else if(utility.sync.isDirectory(currentWorkingDirectoryPackage))
 			applicationPackage = getLocalPublishDirectory.sync(currentWorkingDirectoryPackage);
 
 			// Try local <package>.zip
-		else if(utility.sync.isLocal(applicationPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+		else if(utility.sync.isFile(applicationPackage) && applicationPackage.search(/\.zip$/i) != -1)
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.LOCAL_ARCHIVE, "~package": applicationPackage}));
 
 			// Try local <currentWorkingDirectory/package>.zip
-		else if(utility.sync.isLocal(currentWorkingDirectoryPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+		else if(utility.sync.isFile(currentWorkingDirectoryPackage) && applicationPackage.search(/\.zip$/i) != -1)
 			{
 			sendMessage.sync(utility.replace(language.TRYING_TO_PUBLISH, {"~where": language.LOCAL_ARCHIVE, "~package": applicationPackage}));
 			applicationPackage = currentWorkingDirectoryPackage;
@@ -991,7 +927,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try local directory <package>
 	if(isPackage === false)
 		{
-		if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "directory"))
+		if(!isSuggested && try_local && utility.sync.isDirectory(applicationPackage))
 			isPackage = getLocalInstallDirectory.sync(applicationPackage, false);
 	
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
@@ -1001,7 +937,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try local directory <currentWorkingDirectory/package>
 	if(isPackage === false)
 		{
-		if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "directory"))
+		if(!isSuggested && try_local && utility.sync.isDirectory(currentWorkingDirectoryPackage))
 			isPackage = getLocalInstallDirectory.sync(currentWorkingDirectoryPackage, true);
 
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
@@ -1011,7 +947,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try local <package>.zip
 	if(isPackage === false)
 		{
-		if(!isSuggested && try_local && utility.sync.isLocal(applicationPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+		if(!isSuggested && try_local && utility.sync.isFile(applicationPackage) && applicationPackage.search(/\.zip$/i) != -1)
 			isPackage = getLocalInstallZip.sync(applicationPackage, false);
 	
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
@@ -1021,7 +957,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		// Try local <currentWorkingDirectory/package>.zip
 	if(isPackage === false)
 		{
-		if(!isSuggested && try_local && utility.sync.isLocal(currentWorkingDirectoryPackage, "file") && applicationPackage.search(/\.zip$/i) != -1)
+		if(!isSuggested && try_local && utility.sync.isFile(currentWorkingDirectoryPackage) && applicationPackage.search(/\.zip$/i) != -1)
 			isPackage = getLocalInstallZip.sync(currentWorkingDirectoryPackage, true);
 
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
@@ -1036,7 +972,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 			isPackage = utility.unZip(config.WORK_PATH + config.PACKAGE_ZIP, config.WORK_PATH, true);
 
 				// Check for errors before accepting "package"
-			if(utility.sync.isLocal(config.WORK_PATH + config.SPM_ERRORS_JSON, "file"))
+			if(utility.sync.isFile(config.WORK_PATH + config.SPM_ERRORS_JSON))
 				{
 				errfile = fs.sync.readFile(config.WORK_PATH + config.SPM_ERRORS_JSON, {encoding: "utf8"});
 
@@ -1155,7 +1091,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 		if(dbApp)
 			{
-			remove.sync(dbApp, sessionId, false);
+			remove.sync(dbApp, sessionId, false, false);
 			sendMessage.sync("");
 			}
 
@@ -1294,7 +1230,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 			fs.writeFileSync(config.SYSTEMD_PATH + serviceFile, list, "utf8");
 
 				// The ~path replacement in applications start.sh file if it is present in the application directory
-			if(utility.sync.isLocal(volumePath + config.START_SH_FILE, "file"))
+			if(utility.sync.isFile(volumePath + config.START_SH_FILE))
 				{
 				list = fs.readFileSync(volumePath + config.START_SH_FILE, "utf8");
 				list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);
@@ -1338,11 +1274,9 @@ var install = fibrous( function(manifest, develop, sessionId)
 		}
 	});
 
-var remove = fibrous( function(dbApp, sessionId, throws)
+var remove = fibrous( function(dbApp, sessionId, purge, throws)
 	{
 		// Stop all the instances of running applications having applications unique_name
-	sendMessage.sync(utility.replace(language.PACKAGE_REMOVING, {"~type": language.APP_DISPLAY_NAMES[dbApp.type], "~name": dbApp.unique_name}));
-
 	coreConnection.sync.callRpc("removeApplication", [dbApp.unique_name, sessionId, throws], self);
 
 		// Remove database entries
@@ -1366,6 +1300,24 @@ var remove = fibrous( function(dbApp, sessionId, throws)
 	sendMessage.sync(language.PACKAGE_DELETE_FILES);
 
 	removeUniqueData.sync(dbApp);
+
+		// Remove the application folder completely, including the user data
+	if(purge)
+		{
+		var unique_directory = unique.getUniqueDirectory(dbApp.unique_name);
+
+		if(utility.sync.isDirectory(config.SPACELETS_PATH + unique_directory))
+			path = config.SPACELETS_PATH + unique_directory;
+		else if(utility.sync.isDirectory(config.SANDBOXED_PATH + unique_directory))
+			path = config.SANDBOXED_PATH + unique_directory;
+		else if(utility.sync.isDirectory(config.SANDBOXED_DEBIAN_PATH + unique_directory))
+			path = config.SANDBOXED_DEBIAN_PATH + unique_directory;
+		else if(utility.sync.isDirectory(config.NATIVE_DEBIAN_PATH + unique_directory))
+			path = config.NATIVE_DEBIAN_PATH + unique_directory;
+
+		if(path != "")
+			utility.sync.deleteDirectory(path);
+		}
 	});
 
 var removeImage = function(docker_image_id, unique_name)
@@ -1396,7 +1348,7 @@ var removeUniqueData = fibrous( function(obj)
 	utility.sync.deleteDirectory(volumePath + config.APPLICATION_DIRECTORY);
 	utility.sync.deleteDirectory(volumePath + config.TLS_DIRECTORY);
 
-	if(utility.sync.isLocal(config.INSTALLED_PATH + obj.docker_image_id + config.EXT_COMPRESSED, "file"))
+	if(utility.sync.isFile(config.INSTALLED_PATH + obj.docker_image_id + config.EXT_COMPRESSED))
 		fs.sync.unlink(config.INSTALLED_PATH + obj.docker_image_id + config.EXT_COMPRESSED);
 	});
 
@@ -1486,7 +1438,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 		*
 		// Remove service file
 	serviceFile = config.SYSTEMD_PATH + unique.getSystemctlServiceName(manifest.getUniqueName());
-	if(utility.sync.isLocal(serviceFile, "file"))
+	if(utility.sync.isFile(serviceFile))
 		fs.unlinkSync(serviceFile);
 		*
 		*

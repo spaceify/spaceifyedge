@@ -247,7 +247,7 @@ var language =
 	"PACKAGE_STOPPING_EXISTING": "Stopping already installed ~type ~name.",
 	"PACKAGE_STOPPED": "~type stopped.",
 	"PACKAGE_REMOVING": "Removing ~type ~name.",
-	"PACKAGE_PURGING": "Purging ~name.",
+	"PACKAGE_PURGING": "Purging ~type ~name.",
 	"PACKAGE_STARTING": "Starting ~type ~name.",
 	"PACKAGE_DEVELOP": "The ~name ~type is installed in develop mode and is not started. Start it manually.",
 	"PACKAGE_STARTED": "~type started.",

@@ -441,7 +441,7 @@ self.hasTile = function()
 	{
 	var tileFile = unique.getWwwPath(self.getType(), self.getUniqueName(), config) + config.TILEFILE;
 
-	return utility.sync.isLocal(tileFile, "file");
+	return utility.sync.isFile(tileFile);
 	}
 
 }
