@@ -212,5 +212,8 @@
   "EVENT_CORE_SETTINGS_CHANGED": "CoreSettingsChanged",
 
   "SESSION_TOKEN_NAME": "x-edge-session",
-  "SESSION_TOKEN_NAME_COOKIE": "xedgesession"
+  "SESSION_TOKEN_NAME_COOKIE": "xedgesession",
+
+  "WWW_CACHE_MAX_ITEMS": 40,
+  "WWW_CACHE_EXPIRE_TIME": 20
 }

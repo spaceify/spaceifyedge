@@ -21,6 +21,7 @@ var lib = (window.WEBPACK_LIBRARYNAME ? window.WEBPACK_LIBRARYNAME : window);
 var core = new lib.SpaceifyCore();
 var utility = new lib.SpaceifyUtility();
 var network = new lib.SpaceifyNetwork();
+var sam = new lib.SpaceifyApplicationManager();
 var config = lib.SpaceifyConfig.getConfig();
 //var logger = new lib.SpaceifyLogger("SpaceifyNet");
 
@@ -117,6 +118,21 @@ self.loadCertificate = function()
 	spaceifyLoader.loadData(document.getElementById("certIframe"), {}, null);
 
 	return true;
+	}
+
+self.adminLogOut = function()
+	{
+	var sam = new SpaceifyApplicationManager();
+
+	this.error = this.fail = this.warning = this.notify = this.message = function()
+		{}
+
+	this.ok = function()
+		{
+		self.loadLaunchPage();
+		}
+
+	sam.logOut(self, this.ok)
 	}
 
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //

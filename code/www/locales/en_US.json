@@ -30,7 +30,10 @@
     "admin_utilities": "Administration",
 
     "admin_tile_title": "Spaceify Store",
-    "install_certificate_title": "Install Spaceify's certificate"
+    "install_certificate_title": "Install Spaceify's certificate",
+
+    "openadmintools": "Open Admin Tools",
+    "logout": "Log Out"
   },
 
   "admin/index":
@@ -45,7 +48,8 @@
     "title": "Spaceify - AppStore Log In",
 
     "password": "Password",
-    "login": "Log In"
+    "login": "Log In",
+    "backtolaunchpage": "Back to Launchpage"
   },
 
   "appstore/index":

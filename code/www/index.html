@@ -24,6 +24,7 @@
 		<script>
 		var session;
 		var net = null;
+		var sam = null;
 		var core = null;
 		var sync = null;
 		var config = null;
@@ -40,6 +41,7 @@
 			config = new SpaceifyConfig();
 			network = new SpaceifyNetwork();
 			sync = new SpaceifySynchronous();
+			sam = new SpaceifyApplicationManager();
 
 			config.initialize("");
 
@@ -81,6 +83,11 @@
 					nativeDebianRemoved
 					],
 					this, null, function(err, data, id, ms) { });
+				});
+
+			sam.isAdminLoggedIn(this, function(status)
+				{
+				$("#adminlogout").css("display", (status ? "block" : "none"));
 				});
 			});
 
@@ -160,7 +167,8 @@
 		<div class="topBar">
 			<a class="topBarLogoLink" routerLink="/intro"><img spe_src="images/icon-80p.png" alt="" /></a>
 			<div class="topBarLogoText">Spaceify Edge</div>
-			<a class="topBarPageLink" onclick="net.loadAppstorePage(); return false;"><img spe_src="images/settings.png" alt="" /></a>
+			<a class="topBarPageLink" onclick="net.loadAppstorePage(); return false;"><img spe_src="images/settings.png" alt="" title="{{ getString('index', 'openadmintools') }}" /></a>
+			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" title="{{ getString('index', 'logout') }}" /></a>
 		</div>
 
 		<div class="large_background_footer">&nbsp;</div>

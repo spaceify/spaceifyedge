@@ -1,11 +1,8 @@
 0.7.1  Alpha Centauri (developer-pre-alpha)
     * Containers migrated to use Ubuntu 16.04 and Node.js 6.2.2
-
-0.7.0  Alpha Centauri (developer-pre-alpha)
     * Initial remote operation capabilities.
     * Support for native applications.
     * Multiple services can now have the same service name.
-    * api/ folder is deprecated and applications should use /var/lib/spaceify/code/ (api/ stays as alias but some of the functionalities, like develop mode, moght not work as intented).
     * Develop mode installation of spacelets and sanboxed applications for easy debugging.
     * Many bug fixes and improvements to spm, applicationmanager, core, http server and connection and rpc classes.
 
