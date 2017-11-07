@@ -34,9 +34,11 @@ var options = {};
 var isOpen = false;
 var webServer = null;
 
-var sessionManager = null;
+var sessionListener = null;
 var sessionTokenName = "";
 var sessionTokenNameCookie = "";
+
+var securityListener = null;
 
 var requestListener = null;
 var serverUpListener = null;
@@ -78,7 +80,7 @@ self.listen = function(opts, callback)
 	options.wwwPath = opts.wwwPath || config.SPACEIFY_WWW_PATH;
 	options.wwwErrorsPath = opts.wwwErrorsPath || config.SPACEIFY_WWW_ERRORS_PATH;
 
-	options.locale = options.locale || config.DEFAULT_LOCALE;
+	options.locale = opts.locale || config.DEFAULT_LOCALE;
 
 	options.serverName = opts.serverName || config.SERVER_NAME;
 
@@ -88,6 +90,10 @@ self.listen = function(opts, callback)
 
 	options.cookieDomain = opts.cookieDomain || false;
 	options.cookiePath = opts.cookiePath || false;
+	options.cookiePath = opts.cookiePath || false;
+	options.cookieSecure = opts.cookieSecure || false;
+
+	options.sendLocale = opts.sendLocale || false;
 
 	options.cacheMaxItems = opts.cacheMaxItems || config.WWW_CACHE_MAX_ITEMS;
 	options.cacheExpireTime = opts.cacheExpireTime || config.WWW_CACHE_EXPIRE_TIME;
@@ -96,14 +102,14 @@ self.listen = function(opts, callback)
 	logger.log(utility.replace(language.WEBSERVER_CONNECTING, {"~protocol": options.protocol, "~hostname": options.hostname, "~port": options.port}));
 
 	// -- --
-	//eventEmitter.on("processRequest", processRequest);				// Request events, process one request at a time
+	//eventEmitter.on("processRequest", processRequest);									// Request events, process one request at a time
 
 	// -- --
-	if (!options.isSecure)												// Start a http server
+	if (!options.isSecure)																	// Start a http server
 		{
 		webServer = http.createServer();
 		}
-	else																// Start a https server
+	else																					// Start a https server
 		{
 		key = fs.sync.readFile(options.key);
 		crt = fs.sync.readFile(options.crt);
@@ -226,17 +232,22 @@ self.setRequestListener = function(listener)
 	requestListener = (typeof listener == "function" ? listener : null);
 	}
 
-self.setSessionManager = function(manager, tokenName)
+self.setSessionListener = function(manager, tokenName)
 	{
 	sessionTokenName = tokenName;
 	sessionTokenNameCookie = tokenName.replace(/[^0-9a-zA-Z]/g, "");
 	accessControlAllowHeaders.push(tokenName);
-	sessionManager = (typeof manager == "function" ? manager : null);
+	sessionListener = (typeof manager == "function" ? manager : null);
+	}
+
+self.setSecurityListener = function(manager)
+	{
+	securityListener = (typeof manager == "function" ? manager : null);
 	}
 
 	// -- -- -- -- -- -- -- -- -- -- //
 
-var processRequest = function()														// Process request in order
+var processRequest = function()																// Process request in order
 	{
 	if (!processingRequest && requests.length > 0)
 		{
@@ -273,7 +284,7 @@ var loadContent = fibrous( function(_request_)
 			}
 		else
 			{
-			pathname = _request_.urlObj.pathname.replace(/^\/*|\/*$/g, "");	// remove forward slash from the beginning and end
+			pathname = _request_.urlObj.pathname.replace(/^\/*|\/*$/g, "");					// remove forward slash from the beginning and end
 
 			if (requestListener)
 				{
@@ -293,10 +304,11 @@ var loadContent = fibrous( function(_request_)
 					_request_.responseCode = data.responseCode;
 					_request_.location = data.location;
 
-					status = write(_request_);
+					status = write(_request_, true);
 					}
 				}
 
+			/*
 			if (status === false)															// Redirect back to directory if / is not at the end of the directory
 				{
 				wwwPathType = utility.sync.getPathType( checkURL(wwwPath, pathname) );
@@ -314,9 +326,13 @@ var loadContent = fibrous( function(_request_)
 
 					_request_.responseCode = 302;
 
-					status = redirect(_request_);
+					_request_.content = utility.replace(language.E_MOVED_FOUND.message, {"~location": _request_.location , "~serverName": options.serverName, 
+																						 "~hostname": options.hostname, "~port": options.port});
+
+					status = write(_request_, true);
 					}
 				}
+			*/
 
 			if (status === false)															// www
 				status = load(wwwPath, pathname, _request_);
@@ -331,7 +347,7 @@ var loadContent = fibrous( function(_request_)
 				_request_.contentType = config.ERROR_PATHS["404"].content_type;
 				_request_.responseCode = 404;
 
-				status = write(_request_);
+				status = write(_request_, true);
 				}
 
 			if (typeof status !== "boolean" || status === false)
@@ -344,7 +360,7 @@ var loadContent = fibrous( function(_request_)
 		_request_.contentType = config.ERROR_PATHS["500"].content_type;
 		_request_.responseCode = 500;
 
-		write(_request_);
+		write(_request_, true);
 		}
 	finally
 		{
@@ -356,47 +372,62 @@ var loadContent = fibrous( function(_request_)
 var load = function(wwwPath, pathname, _request_)
 	{
 	var html;
-	var fileExt;
+	var locale;
+	var result;
 	var contentType;
 	var pageType = "";
+	var session = null;
 	var status = false;
-	var isLogInPage = false;
-	var isSecurePage = false;
-	var isAngularJS = false;
-	var isOperationPage = false;
 
 	try {
-		wwwPath = checkURL(wwwPath, pathname);										// Check URL validity
+		if (sessionListener)
+			session = sessionListener(_request_);
 
-		_request_.content = checkCache(wwwPath);									// Get the file content as binary
-
-		contentType = pathname.lastIndexOf(".");									// Get content type of the file
-		_request_.contentType = pathname.substr(contentType + 1, pathname.length - contentType - 1);
-
-		if (wwwPath.lastIndexOf(".htm") !== -1)										// Reqular or AngularJS file
+		if (securityListener)
 			{
-			if (_request_.content.length >= 27)
-				{
-				pageType = _request_.content.slice(22, 27);
-				pageType = pageType.toString();
-				}
+			result = securityListener.sync(_request_, pathname, session);
 
-			if (pageType == "sp-IX")
-				isAngularJS = true;
-			else if (pageType == "sp-SE")
-				isAngularJS = isSecurePage = true;
-			else if (pageType == "sp-LG")
-				isAngularJS = isSecurePage = isLogInPage = true;
-			else if (pageType == "sp-OP")
-				isOperationPage = true;
+			pathname = result.pathname;
+			session = result.session;
 			}
 
-		if (isOperationPage)
-			status = renderOperationPage.sync(5, _request_);
-		else if (isAngularJS)														// The web page contains AngularJS
-			status = renderAngularJS(pathname, isSecurePage, isLogInPage, _request_);
-		else																		// Regular web page / resource
-			status = renderHTML.sync(_request_);
+		wwwPath = checkURL(wwwPath, pathname);												// Check URL validity
+
+		_request_.content = checkCache(wwwPath);											// (the content is binary)
+
+		contentType = pathname.lastIndexOf(".");											// Get content type of the file
+		_request_.contentType = pathname.substr(contentType + 1, pathname.length - contentType - 1);
+
+		if (wwwPath.lastIndexOf(".xop") !== -1)
+			{
+			status = executeOperation.sync(5, _request_);
+			}
+		else																				// Regular web page / resource
+			{
+			if (sessionListener)
+				{
+				_request_.headers.push([sessionTokenName, session.token]);
+				_request_.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
+				}
+
+			if (options.sendLocale)
+				{
+				if (_request_.GET && _request_.GET.locale)
+					locale = _request_.GET.locale;
+				else if (_request_.POST.locale)
+					locale = _request_.POST.locale;
+				else if (_request_.cookies.locale)
+					locale = _request_.cookies.locale.value;
+				else if (options.locale)
+					locale = options.locale;
+				else
+					locale = config.DEFAULT_LOCALE;
+
+				_request_.cookies.locale = {value: locale, cookie: "locale=" + locale};
+				}
+
+			status = write(_request_, true);
+			}
 		}
 	catch(err)
 		{
@@ -405,19 +436,7 @@ var load = function(wwwPath, pathname, _request_)
 	return status;
 	}
 
-var renderHTML = fibrous( function(_request_)
-	{
-	/*if (sessionManager)
-		{
-		var session = sessionManager(_request_);
-		_request_.headers.push([sessionTokenName, session.token]);
-		_request_.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
-		}*/
-
-	return write(_request_);
-	});
-
-var renderOperationPage = fibrous( function(attempt, _request_)
+var executeOperation = fibrous( function(attempt, _request_)
 	{
 	var session;
 	var isSecure;
@@ -428,15 +447,15 @@ var renderOperationPage = fibrous( function(attempt, _request_)
 	_request_.contentType = "json";
 	_request_.responseCode = 200;
 
-	if (sessionManager)
+	if (sessionListener)
 		{
 		if (!_request_.POST["operation"])
 			{
-			_request_.content = JSON.stringify({ err: language.E_INVALID_POST_DATA.pre("WebServer::renderOperationPage"), data: null });
+			_request_.content = JSON.stringify({ err: language.E_INVALID_POST_DATA.pre("WebServer::executeOperation"), data: null });
 			}
 		else
 			{
-			session = sessionManager(_request_);
+			session = sessionListener(_request_);
 			_request_.headers.push([sessionTokenName, session.token]);
 			_request_.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
 
@@ -452,117 +471,13 @@ var renderOperationPage = fibrous( function(attempt, _request_)
 		}
 	else
 		{
-		error = language.E_NO_SESSION_MANAGER.pre("WebServer::renderOperationPage");
+		error = language.E_NO_SESSION_MANAGER.pre("WebServer::executeOperation");
 
 		_request_.content = JSON.stringify({ err: error, data: null });
 		}
 
-	return write(_request_);
+	return write(_request_, true);
 	});
-
-var renderAngularJS = function(pathname, isSecurePage, isLogInPage, _request_)
-	{
-	var head;
-	var script;
-	var session;
-	var operationData;
-	var locale = config.DEFAULT_LOCALE;
-
-	if (sessionManager)
-		{
-		session = sessionManager(_request_);
-		_request_.headers.push([sessionTokenName, session.token]);
-		_request_.cookies[sessionTokenNameCookie] = {value: session.token, cookie: sessionTokenNameCookie + "=" + session.token};
-
-		// GET THE LOCALE / LANGUAGE FOR THE CURRENT SESSION, REMEMBER LOCALE
-		if (_request_.GET && _request_.GET.locale)
-			locale = _request_.GET.locale;
-		else if (_request_.POST.locale)
-			locale = _request_.POST.locale;
-		else if (_request_.cookies.locale)
-			locale = _request_.cookies.locale.value;
-		else if (options.locale)
-			locale = options.locale;
-
-		_request_.cookies.locale = {value: locale, cookie: "locale=" + locale};
-
-		// ToDo: Rethink this logic, it propably is not a secure or even a functional way to mix local and remote operation
-			// Accept local and remote requests - Remote HTTPS requests arriving over secure pipe to unsecure web server must not be redirected
-		if (!options.isSecure && _request_.protocol == "http:" && isSecurePage)
-			{
-			_request_.content = checkCache(config.ERROR_PATHS["302"].file, "utf8");
-			_request_.content = _request_.content.replace("~url",  utility.parseURLFromURLObject(_request_.urlObj, config.EDGE_HOSTNAME, "https", _request_.urlObj.port));
-			_request_.content = Buffer.from(_request_.content, "utf8");
-
-			_request_.contentType = config.ERROR_PATHS["302"].content_type;
-			_request_.responseCode = 200;//302?
-			_request_.location = "";
-			}
-			// Secure server or remote https request - Remote HTTPS requests arriving over secure pipe to HTTP web server must not be redirected
-		else
-			{
-			var iss = (options.isSecure || _request_.protocol == "https:") && isSecurePage;
-
-			if (iss)
-				{
-				operationData = webOperation.sync.getData({ type: "isAdminLoggedIn" }, session.userData, options.isSecure);
-
-				if (operationData.error)											// Internal Server Error
-					{
-					_request_.content = config.ERROR_PATHS["500"].file;
-					_request_.contentType = config.ERROR_PATHS["500"].content_type;
-					_request_.responseCode = 500;
-					}
-				else if (!operationData.isLoggedIn && !isLogInPage)					// Show log in if not logged in
-					{
-					_request_.content = config.ADMIN_LOGIN_PATH.file;
-					_request_.contentType = config.ADMIN_LOGIN_PATH.content_type;
-					_request_.responseCode = 200;//302?
-					_request_.location = "";
-					}
-				else if (operationData.isLoggedIn && isLogInPage)					// Show appstore index if already logged in
-					{
-					_request_.content = config.APPSTORE_INDEX_PATH.file;
-					_request_.contentType = config.APPSTORE_INDEX_PATH.content_type;
-					_request_.responseCode = 200;//302?
-					_request_.location = "";
-					}
-
-				if (typeof _request_.content === "string")
-					{
-					_request_.content = checkCache(_request_.content);
-					}
-				}
-			}
-		}
-	else
-		{
-		_request_.content = checkCache(config.ERROR_PATHS["501"].file);
-		_request_.contentType = config.ERROR_PATHS["501"].content_type;
-		_request_.responseCode = 501;
-		}
-
-	return write(_request_);
-	}
-
-var redirect = function(_request_)
-	{
-	_request_.contentType = "html";
-
-	if (_request_.responseCode == 301)
-		_request_.content = utility.replace(language.E_MOVED_PERMANENTLY.message, {"~location": location, "~serverName": options.serverName, "~hostname": options.hostname, "~port": options.port});
-	else if (_request_.responseCode == 302)
-		_request_.content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": options.serverName, "~hostname": options.hostname, "~port": options.port});
-	else if (_request_.responseCode == 404)
-		{
-		_request_.content = checkCache(options.wwwErrorsPath + _request_.responseCode + ".html");
-		_request_.content = _request_.content.toString().replace("%1", makeLocation(_request_, _request_.urlObj.pathname));
-		}
-	else if (_request_.responseCode == 500)
-		_request_.content = checkCache(options.wwwErrorsPath + _request_.responseCode + ".html");
-
-	return write(_request_);
-	}
 
 var write = function(_request_)
 	{
@@ -575,7 +490,7 @@ var write = function(_request_)
 	_request_.headers.push(["Date", now.toUTCString()]);
 	_request_.headers.push(["Access-Control-Allow-Origin", getOrigin(_request_)]);
 	_request_.headers.push(["Access-Control-Allow-Credentials", "true"]);
-	if (sessionManager)
+	if (sessionListener)
 		_request_.headers.push(["Access-Control-Expose-Headers", sessionTokenName]);
 
 	if (_request_.responseCode == 301 || _request_.responseCode == 302)
@@ -583,13 +498,16 @@ var write = function(_request_)
 
 	for (var i in _request_.cookies)
 		{
-		cookie = _request_.cookies[i].cookie
+		cookie = _request_.cookies[i].cookie;
 
 		if(options.cookieDomain)
 			 cookie += "; Domain=" + options.cookieDomain;
 
 		if(options.cookiePath)
 			 cookie += "; Path=" + options.cookiePath;
+
+		if(options.cookieSecure && options.isSecure)
+			 cookie += "; Secure";
 
 		_request_.headers.push(["Set-Cookie", cookie]);
 		}
@@ -612,7 +530,7 @@ var writeOptions = function(_request_)
 	_request_.headers.push(["Date", now.toUTCString()]);
 	_request_.headers.push(["Access-Control-Allow-Origin", getOrigin(_request_)]);
 	_request_.headers.push(["Access-Control-Allow-Credentials", "true"]);
-	if (sessionManager)
+	if (sessionListener)
 		_request_.headers.push(["Access-Control-Expose-Headers", sessionTokenName]);
 
 	if ("access-control-request-headers" in _request_.request.headers)
@@ -659,14 +577,14 @@ var getOrigin = function(_request_)
 var checkURL = function(wwwPath, pathname)
 	{
 	// The pathname must be checked so that loading is possible only from the supplied wwwPath
-	pathname = pathname.replace(/\.\./g, "");										// prevent ../ attacks, e.g. displaying /../../../../../../../../../../../../../../../etc/shadow
+	pathname = pathname.replace(/\.\./g, "");												// prevent ../ attacks, e.g. displaying /../../../../../../../../../../../../../../../etc/shadow
 	pathname = pathname.replace(/\/{2,}/g, "");
 
-	pathname = pathname.replace(/(\[.*?\])|(\{.*?\})/g, "");						// ranges
+	pathname = pathname.replace(/(\[.*?\])|(\{.*?\})/g, "");								// ranges
 
-	pathname = pathname.replace(/[~*^|?$\[\]{}\\]/g, "");							// characters
+	pathname = pathname.replace(/[~*^|?$\[\]{}\\]/g, "");									// characters
 
-	wwwPath = wwwPath + pathname;													// Can not have something//something
+	wwwPath = wwwPath + pathname;															// Can not have something//something
 	wwwPath = wwwPath.replace(/\/{2,}/g, "/");
 
 	return wwwPath;

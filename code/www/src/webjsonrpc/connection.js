@@ -75,7 +75,7 @@ self.connect = function(options, callback)
 		}
 	else
 		{
-		_connection.createWebSocketTunnel({host: network.getEdgeURL({}), port: options.port, protocol: network.getProtocol(false, null, false)}, null, function(id)
+		_connection.createWebSocketTunnel({host: network.getEdgeURL({ protocol: "" }), port: options.port, protocol: network.getProtocol(false, null)}, null, function(id)
 			{
 			tunnelId = id;
 			isConnected = true;

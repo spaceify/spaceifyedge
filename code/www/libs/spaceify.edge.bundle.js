@@ -326,7 +326,7 @@ return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,
 		exports["spe"] = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else
 		root["spe"] = factory(root["fs"], root["path"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["request"], root["url"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_34__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_60__, __WEBPACK_EXTERNAL_MODULE_61__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_34__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -392,7 +392,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 69);
+/******/ 	return __webpack_require__(__webpack_require__.s = 71);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -406,7 +406,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyconfig": 6
+	"./spaceifyconfig": 3
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -440,6 +440,163 @@ webpackEmptyContext.id = 2;
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(__dirname) {
+
+/**
+ * Spaceify configuration, 28.1.2016 Spaceify Oy
+ *
+ * @class SpaceifyConfig
+ */
+
+function SpaceifyConfig()
+{
+var self = this;
+
+self.initialize = function(mode_)
+	{
+	var i, file, configs;
+	var mode = (typeof mode_ !== "undefined" ? mode_ : "");
+
+	if(mode == "webpack" || typeof window === "undefined")								// webpack or Node.js
+		{
+		if(mode == "webpack")
+			file = __webpack_require__(0).readFileSync(__dirname + "/config.json", "utf8");
+		else
+			file = __webpack_require__(0).readFileSync("/var/lib/spaceify/code/config.json", "utf8");
+
+		configs = JSON.parse(file);
+
+		for(i in configs)
+			self[i] = configs[i];
+		}
+	else																				// Webpage
+		{
+		for(i in window.speconfig)
+			self[i] = window.speconfig[i];
+		}
+
+	if(mode == "realpaths")																// Node.js and post-processing
+		self.makeRealApplicationPaths();
+
+	return self;
+	}
+
+self.get = function(c)
+	{
+	return (c in self ? self[c] : null);
+	}
+
+self.toMinifiedJSONString = function()
+	{
+	var str = "", config = "";
+
+	for(var c in self)
+		{
+		if(typeof self[c] !== "function" && typeof self[c] !== "object")
+			{
+			config = self[c];
+
+			if(typeof config === "string")
+				config = config.replace(/\\/g, "\\\\");
+
+			str += (str != "" ? "," : "") + '"' + c + '":"' + config + '"';
+			}
+		}
+
+	return "{" + str + "}";
+	}
+
+self.makeRealApplicationPaths = function()
+	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
+	  // After running this method the applications outside and inside Spaceify / docker containers is identical.
+	if(typeof window !== "undefined")
+		return;
+
+	var manifest;
+	var pathParts;
+	var volumePath;
+	var cwd = process.cwd();
+
+	var SpaceifyUnique = __webpack_require__(21);
+	var unique = new SpaceifyUnique();
+
+	self["API_PATH"] = self["SPACEIFY_CODE_PATH"];
+	self["API_WWW_PATH"] = self["SPACEIFY_WWW_PATH"];
+	self["API_NODE_MODULES_DIRECTORY"] = self["SPACEIFY_NODE_MODULES_PATH"];
+
+	pathParts = cwd.split("/");
+
+	if(pathParts[pathParts.length - 1] == self["APPLICATION_ROOT"])
+		{
+		manifest = getManifest(cwd);
+
+			// Application path with manifest -> cwd is most likely a real application directory
+		if(manifest)
+			{
+			volumePath = cwd.replace("/" + self["APPLICATION_ROOT"], "/");
+
+			self["VOLUME_PATH"] = volumePath;
+			self["VOLUME_TLS_PATH"] = volumePath + self["TLS_DIRECTORY"];
+			self["VOLUME_APPLICATION_PATH"] = volumePath + self["APPLICATION_DIRECTORY"];
+			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["APPLICATION_DIRECTORY"] + self["WWW_DIRECTORY"];
+			}
+		}
+	else
+		{
+		// Not an application path -> lets handle it as volume directory
+		volumePath = cwd + "/";
+
+		manifest = getManifest(cwd);
+
+			// External application such as native application or debug mode application
+		if(manifest)
+			{
+				// Lets assume all the necessary directories are in the current working directory
+			self["VOLUME_PATH"] = volumePath;
+			self["VOLUME_APPLICATION_PATH"] = volumePath;
+			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["WWW_DIRECTORY"];
+
+				// Lets assume there is an installed application and with certificate directory
+			self["VOLUME_TLS_PATH"] = unique.getVolPath(manifest.type, manifest.unique_name, self) + self["VOLUME_TLS_PATH"];
+			}
+		}
+	}
+
+var getManifest = function(path)
+	{
+	var manifest = null;
+
+	try {
+		manifest = __webpack_require__(0).readFileSync(path + "/" + self["MANIFEST"], "utf8");
+
+		manifest = JSON.parse(manifest);
+		}
+	catch(err)
+		{
+		}
+
+	return manifest;
+	}
+
+}
+
+SpaceifyConfig.getConfig = function(mode_)
+	{
+	var config = new SpaceifyConfig();
+
+	return config.initialize(mode_);
+	}
+
+if(true)
+	module.exports = SpaceifyConfig;
+
+/* WEBPACK VAR INJECTION */}.call(exports, "/"))
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports) {
 
 function webpackEmptyContext(req) {
@@ -448,11 +605,11 @@ function webpackEmptyContext(req) {
 webpackEmptyContext.keys = function() { return []; };
 webpackEmptyContext.resolve = webpackEmptyContext;
 module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 3;
+webpackEmptyContext.id = 4;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -695,7 +852,7 @@ if(true)
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)(module)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -903,12 +1060,12 @@ Logger.createLogger_ = function(class_)
 		{
 		try
 			{
-			Config = __webpack_require__(4);
+			Config = __webpack_require__(5);
 			}
 		catch (e)
 			{
 			var apipath = "/var/lib/spaceify/code/";
-			Config = __webpack_require__(47)(apipath + "config.js");
+			Config = __webpack_require__(49)(apipath + "config.js");
 			}
 		}
 	else if (typeof window !== "undefined")
@@ -982,163 +1139,6 @@ Logger.getLogger = function(class_)
 if (true)
 	module.exports = Logger;
 
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(__dirname) {
-
-/**
- * Spaceify configuration, 28.1.2016 Spaceify Oy
- *
- * @class SpaceifyConfig
- */
-
-function SpaceifyConfig()
-{
-var self = this;
-
-self.initialize = function(mode_)
-	{
-	var i, file, configs;
-	var mode = (typeof mode_ !== "undefined" ? mode_ : "");
-
-	if(mode == "webpack" || typeof window === "undefined")								// webpack or Node.js
-		{
-		if(mode == "webpack")
-			file = __webpack_require__(0).readFileSync(__dirname + "/config.json", "utf8");
-		else
-			file = __webpack_require__(0).readFileSync("/var/lib/spaceify/code/config.json", "utf8");
-
-		configs = JSON.parse(file);
-
-		for(i in configs)
-			self[i] = configs[i];
-		}
-	else																				// Webpage
-		{
-		for(i in window.speconfig)
-			self[i] = window.speconfig[i];
-		}
-
-	if(mode == "realpaths")																// Node.js and post-processing
-		self.makeRealApplicationPaths();
-
-	return self;
-	}
-
-self.get = function(c)
-	{
-	return (c in self ? self[c] : null);
-	}
-
-self.toMinifiedJSONString = function()
-	{
-	var str = "", config = "";
-
-	for(var c in self)
-		{
-		if(typeof self[c] !== "function" && typeof self[c] !== "object")
-			{
-			config = self[c];
-
-			if(typeof config === "string")
-				config = config.replace(/\\/g, "\\\\");
-
-			str += (str != "" ? "," : "") + '"' + c + '":"' + config + '"';
-			}
-		}
-
-	return "{" + str + "}";
-	}
-
-self.makeRealApplicationPaths = function()
-	{ // To make application development easier, the configuration paths are made to point to the real directories on the edge computer.
-	  // After running this method the applications outside and inside Spaceify / docker containers is identical.
-	if(typeof window !== "undefined")
-		return;
-
-	var manifest;
-	var pathParts;
-	var volumePath;
-	var cwd = process.cwd();
-
-	var SpaceifyUnique = __webpack_require__(21);
-	var unique = new SpaceifyUnique();
-
-	self["API_PATH"] = self["SPACEIFY_CODE_PATH"];
-	self["API_WWW_PATH"] = self["SPACEIFY_WWW_PATH"];
-	self["API_NODE_MODULES_DIRECTORY"] = self["SPACEIFY_NODE_MODULES_PATH"];
-
-	pathParts = cwd.split("/");
-
-	if(pathParts[pathParts.length - 1] == self["APPLICATION_ROOT"])
-		{
-		manifest = getManifest(cwd);
-
-			// Application path with manifest -> cwd is most likely a real application directory
-		if(manifest)
-			{
-			volumePath = cwd.replace("/" + self["APPLICATION_ROOT"], "/");
-
-			self["VOLUME_PATH"] = volumePath;
-			self["VOLUME_TLS_PATH"] = volumePath + self["TLS_DIRECTORY"];
-			self["VOLUME_APPLICATION_PATH"] = volumePath + self["APPLICATION_DIRECTORY"];
-			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["APPLICATION_DIRECTORY"] + self["WWW_DIRECTORY"];
-			}
-		}
-	else
-		{
-		// Not an application path -> lets handle it as volume directory
-		volumePath = cwd + "/";
-
-		manifest = getManifest(cwd);
-
-			// External application such as native application or debug mode application
-		if(manifest)
-			{
-				// Lets assume all the necessary directories are in the current working directory
-			self["VOLUME_PATH"] = volumePath;
-			self["VOLUME_APPLICATION_PATH"] = volumePath;
-			self["VOLUME_APPLICATION_WWW_PATH"] = volumePath + self["WWW_DIRECTORY"];
-
-				// Lets assume there is an installed application and with certificate directory
-			self["VOLUME_TLS_PATH"] = unique.getVolPath(manifest.type, manifest.unique_name, self) + self["VOLUME_TLS_PATH"];
-			}
-		}
-	}
-
-var getManifest = function(path)
-	{
-	var manifest = null;
-
-	try {
-		manifest = __webpack_require__(0).readFileSync(path + "/" + self["MANIFEST"], "utf8");
-
-		manifest = JSON.parse(manifest);
-		}
-	catch(err)
-		{
-		}
-
-	return manifest;
-	}
-
-}
-
-SpaceifyConfig.getConfig = function(mode_)
-	{
-	var config = new SpaceifyConfig();
-
-	return config.initialize(mode_);
-	}
-
-if(true)
-	module.exports = SpaceifyConfig;
-
-/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
 /* 7 */
@@ -1393,7 +1393,7 @@ if (isNodeJs)
 	{
 	var apipath = "/var/lib/spaceify/code/";
 
-	try { Logger = __webpack_require__(5); } catch (e) { Logger = __webpack_require__(49)(apipath + "logger"); }
+	try { Logger = __webpack_require__(6); } catch (e) { Logger = __webpack_require__(51)(apipath + "logger"); }
 	try { SpaceifyError = __webpack_require__(7); } catch (e) { SpaceifyError = __webpack_require__(13)(apipath + "spaceifyerror"); }
 	}
 else if (typeof window !== "undefined")
@@ -1486,13 +1486,13 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Service = __webpack_require__(50)(lib + "service");
+	Service = __webpack_require__(52)(lib + "service");
 	SpaceifyCore = __webpack_require__(30)(lib + "spaceifycore");
 	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyNetwork = __webpack_require__(51)(lib + "spaceifynetwork");
+	SpaceifyNetwork = __webpack_require__(53)(lib + "spaceifynetwork");
 	//SpaceifyLogger = require(lib + "spaceifylogger");
-	WebSocketRpcServer = __webpack_require__(54)(lib + "websocketrpcserver");
+	WebSocketRpcServer = __webpack_require__(56)(lib + "websocketrpcserver");
 	Connection = __webpack_require__(29)(lib + "connection");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -3177,7 +3177,7 @@ var callRpc = function(method, params, callback)
 		caCrt = (isNodeJs ? config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW : "");
 
 		if(!isNodeJs)																		// Web page
-			hostname = network.getEdgeURL({});
+			hostname = network.getEdgeURL({ protocol: "" });
 		else if(isRealSpaceify)																// Node.js
 			hostname = config.EDGE_IP;
 		else																				// Develop mode
@@ -3297,11 +3297,10 @@ var dregx = new RegExp(config.EDGE_DOMAIN.replace(".", "\\.") + "$", "i");
 self.getEdgeURL = function(opts)
 	{
 	var options = {};
-	options.forceSecureProtocol = (typeof opts.forceSecureProtocol !== "undefined" ? opts.forceSecureProtocol : null);
-	options.ownProtocol = (typeof opts.ownProtocol !== "undefined" ? opts.ownProtocol : null);
+	options.protocol = (typeof opts.protocol !== "undefined" ? opts.protocol : null);
 	options.withEndSlash = (typeof opts.withEndSlash !== "undefined" ? opts.withEndSlash : false);
 
-	var protocol = self.getProtocol(true, options.ownProtocol, options.forceSecureProtocol);
+	var protocol = self.getProtocol(true, options.protocol);
 
 	// Origin: local/remote edge webpage or webpage running spacelet (URL not ending with EDGE_DOMAIN); defaults to spacelet
 	var hostname = config.EDGE_HOSTNAME;
@@ -3328,32 +3327,27 @@ self.getPort = function(port, securePort, isSecure)
 // Returns true if current web page is encrypted
 self.isSecure = function()
 	{
-	var protocol = self.getProtocol(false, null, false);
+	var protocol = self.getProtocol(false, null);
 
 	return (protocol == "http:" ? false : true);
 	}
 
 // Return current protocol
-self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
+self.getProtocol = function(withScheme, cProtocol)
 	{
 	var url, proto, protocol;
 
-	if(ownProtocol === null && forceSecureProtocol === null)					// No protocol
+	if(cProtocol === "")														// No protocol
 		{
 		protocol = "";
 		}
-	else if(typeof window === "undefined")										// Node.js!
+	else if(typeof window === "undefined")										// Node.js!!!
 		{
-		if(ownProtocol === null)
-			protocol = "";
-		else
-			{
-			protocol = (forceSecureProtocol ? "https:" : ownProtocol);
-			}
+		protocol = (cProtocol === null ? "" : cProtocol);
 		}
 	else																		// Web page
 		{
-		protocol = (ownProtocol !== null ? ownProtocol : location.protocol);
+		protocol = (cProtocol !== null ? cProtocol : location.protocol);
 
 		if(protocol == "blob:")
 			{
@@ -3370,9 +3364,6 @@ self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
 			else
 				protocol = "http:";
 			}
-
-		if(forceSecureProtocol)
-			protocol = "https:";
 		}
 
 	if(protocol != "" && !protocol.match(/:$/))
@@ -3498,7 +3489,7 @@ self.isPortInUse = function(port, callback)
 	if(!port)
 		return callback(null, true);
 
-	var net = __webpack_require__(65);
+	var net = __webpack_require__(67);
 	var server = net.createServer();
 
 	server.once("error", function(err)
@@ -3563,6 +3554,7 @@ self.POST_FORM = function(url, post, responseType, callback)
 
 self.doOperation = function(jsonData, callback)
 	{
+	var data;
 	var result;
 	var content;
 	var error = null;
@@ -3571,7 +3563,7 @@ self.doOperation = function(jsonData, callback)
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true }) + config.OPERATION;
+		operationUrl = self.getEdgeURL({ withEndSlash: true }) + config.OPERATION_FILE;
 		//true, null, true
 
 		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
@@ -3590,12 +3582,28 @@ self.doOperation = function(jsonData, callback)
 				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
 				}
 
-			if(result.err)
+			if(!result)
+				{
+				data = null;
+				error = errorc.makeErrorObject("doOperation2", "Response is null.", "SpaceifyNetwork::doOperation");
+				}
+			else if(result.err)
+				{
+				data = result.data;
 				error = result.err;
+				}
 			else if(result.error)
+				{
+				data = result.data;
 				error = result.error;
+				}
+			else
+				{
+				data = result.data;
+				error = null;
+				}
 
-			callback(error, result.data, id, ms);
+			callback(error, data, id, ms);
 			});
 		}
 	catch(err)
@@ -3750,13 +3758,13 @@ if (isNodeJs)
 	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
-	global.os = __webpack_require__(66);
+	global.os = __webpack_require__(68);
 	global.fs = __webpack_require__(0);
 	global.path = __webpack_require__(34);
-	global.mkdirp = __webpack_require__(64);
-	global.AdmZip = __webpack_require__(60);
-	global.request = __webpack_require__(67);
-	global.spawn = __webpack_require__(61).spawn;
+	global.mkdirp = __webpack_require__(66);
+	global.AdmZip = __webpack_require__(62);
+	global.request = __webpack_require__(69);
+	global.spawn = __webpack_require__(63).spawn;
 	}
 else
 	{
@@ -4505,7 +4513,7 @@ if (isNodeJs)
 	LoaderUtil = null;
 	SpaceifyNetwork = function() {};
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketRpcConnection = __webpack_require__(58)(lib + "websocketrpcconnection");
+	WebSocketRpcConnection = __webpack_require__(60)(lib + "websocketrpcconnection");
 	}
 else
 	{
@@ -4552,7 +4560,7 @@ self.connect = function(options, callback)
 		}
 	else
 		{
-		_connection.createWebSocketTunnel({host: network.getEdgeURL({}), port: options.port, protocol: network.getProtocol(false, null, false)}, null, function(id)
+		_connection.createWebSocketTunnel({host: network.getEdgeURL({ protocol: "" }), port: options.port, protocol: network.getProtocol(false, null)}, null, function(id)
 			{
 			tunnelId = id;
 			isConnected = true;
@@ -4680,7 +4688,7 @@ if (isNodeJs)
 
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(55)(lib + "callbackbuffer");
+	CallbackBuffer = __webpack_require__(57)(lib + "callbackbuffer");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -5732,7 +5740,7 @@ if (isNodeJs)
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
 	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
-	WebSocketServer = __webpack_require__(59)(lib + "websocketserver");
+	WebSocketServer = __webpack_require__(61)(lib + "websocketserver");
 	}
 else
 	{
@@ -5901,9 +5909,9 @@ if (isNodeJs)
 	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
 
 	global.fs = __webpack_require__(0);
-	global.URL = __webpack_require__(68);
-	global.http = __webpack_require__(62);
-	global.https = __webpack_require__(63);
+	global.URL = __webpack_require__(70);
+	global.http = __webpack_require__(64);
+	global.https = __webpack_require__(65);
 	global.WSServer = __webpack_require__(35).server;
 	}
 else
@@ -6415,7 +6423,7 @@ if(isNodeJs)
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
 	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
-	SpaceifyService = __webpack_require__(52)(lib + "spaceifyservice");
+	SpaceifyService = __webpack_require__(54)(lib + "spaceifyservice");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
 else
@@ -7143,9 +7151,9 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
-	var protocol, host, options = { hostname: network.getEdgeURL({}), port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true };
+	var protocol, host, options = { hostname: network.getEdgeURL({ protocol: "" }), port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true };
 
-	if(connection.isConnected())
+	if (connection.isConnected())
 		return managerOrigin.connected();
 
 	connection.exposeRpcMethod("stdout", self, stdout);
@@ -7160,20 +7168,27 @@ self.connect = function(managerOrigin_, callerOrigin_)
 
 	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
 		{
-		if(err)
+		if (err)
 			return fail(err);
 
 		messageId = gotId;
 
-		connection.connect(options, function(err, data)
+		if (messageId !== null)
 			{
-			if(err)
-				return fail(err);
+			connection.connect(options, function(err, data)
+				{
+				if (err)
+					return fail(err);
 
-			connection.callRpc("confirm", [messageId]);
+				connection.callRpc("confirm", [messageId]);
 
+				managerOrigin.connected();
+				});
+			}
+		else
+			{
 			managerOrigin.connected();
-			});
+			}
 		});
 	}
 
@@ -7195,12 +7210,12 @@ self.getWarnings = function()
 	// Exposed RPC methods -- -- -- -- -- -- -- -- -- -- //
 var fail = function(err, connObj, callback)
 	{
-	if(callerOrigin.fail)
+	if (callerOrigin.fail)
 		callerOrigin.fail(err);
 
 	managerOrigin.fail(err);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -7208,7 +7223,7 @@ var error = function(err, connObj, callback)
 	{
 	errors.push(err);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -7216,55 +7231,55 @@ var warning = function(message_, code, connObj, callback)
 	{
 	warning.push({message: message_, code: code});
 
-	if(callerOrigin.warning)
+	if (callerOrigin.warning)
 		callerOrigin.warning(message_, code);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var notify = function(message_, code, connObj, callback)
 	{
-	if(callerOrigin.notify)
+	if (callerOrigin.notify)
 		callerOrigin.notify(message_, code, connObj, callback);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var message = function(message_, connObj, callback)
 	{
-	if(callerOrigin.message)
+	if (callerOrigin.message)
 		callerOrigin.message(message_);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var stdout = function(message_, connObj, callback)
 	{
-	if(callerOrigin.stdout)
+	if (callerOrigin.stdout)
 		callerOrigin.stdout(message_);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var question = function(message_, choices, origin, answerCallBackId, connObj, callback)
 	{
-	if(callerOrigin.question)
+	if (callerOrigin.question)
 		callerOrigin.question(message_, choices, origin, answerCallBackId);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var questionTimedOut = function(message_, origin, answerCallBackId, connObj, callback)
 	{
-	if(callerOrigin.questionTimedOut)
+	if (callerOrigin.questionTimedOut)
 		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -7272,7 +7287,7 @@ var end = function(message_, connObj, callback)
 	{
 	managerOrigin.end(1);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -7284,7 +7299,7 @@ self.sendAnswer = function(answer, answerCallBackId)
 
 }
 
-if(true)
+if (true)
 	module.exports = SpaceifyMessages;
 
 /***/ }),
@@ -7320,6 +7335,7 @@ var config = lib.SpaceifyConfig.getConfig();
 //var logger = new lib.SpaceifyLogger("SpaceifyNet");
 
 var WWW_PORT = 80;
+var WWW_PORT_SECURE = 443;
 
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
@@ -7405,7 +7421,7 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	var src = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true }) + "spaceify.crt";
+	var src = network.getEdgeURL({ withEndSlash: true }) + "spaceify.crt";
 
 	document.getElementById("certIframe").setAttribute("sp_src", src);
 
@@ -7414,7 +7430,7 @@ self.loadCertificate = function()
 	return true;
 	}
 
-self.adminLogOut = function()
+self.adminLogOut = function(loadLaunchPage)
 	{
 	var sam = new SpaceifyApplicationManager();
 
@@ -7423,25 +7439,35 @@ self.adminLogOut = function()
 
 	this.ok = function()
 		{
-		self.loadLaunchPage();
+		if(loadLaunchPage)
+			self.loadLaunchPage();
 		}
 
-	sam.logOut(self, this.ok)
+	sam.logOut(self, this.ok);
 	}
 
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
-self.loadAppstorePage = function()
+self.loadAppstorePage = function(mode)
 	{
-	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
-
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
+	var sp_page;
+	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
+	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
+	
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
 self.loadLaunchPage = function()
 	{
-	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
+	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
+	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	}
+
+self.loadSecurePage = function()
+	{
+	var src = network.getEdgeURL({ protocol: "https", withEndSlash: true });
+	window.location.replace(src);
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -7491,7 +7517,7 @@ self.renderTile = function(manifest, callback)
 			{
 			sp_port = (!network.isSecure() ? appURL.port : appURL.securePort);
 
-			spe_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
+			spe_host = network.getEdgeURL({ withEndSlash: true });
 
 			if(appURL.implementsWebServer && sp_port)
 				{
@@ -7500,7 +7526,7 @@ self.renderTile = function(manifest, callback)
 				}
 			else
 				{
-				host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, withEndSlash: true });
+				host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
 				sp_host = host;
 				}
 
@@ -7528,12 +7554,12 @@ self.renderTile = function(manifest, callback)
 		{
 		if((icon = utility.getApplicationIcon(manifest, false)))
 			{
-			sp_host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true });
+			sp_host = network.externalResourceURL(manifest.unique_name, { protocol: "", withEndSlash: true });
 			sp_path = icon;
 			}
 		else
 			{
-			sp_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
+			sp_host = network.getEdgeURL({ withEndSlash: true });
 			sp_path = "images/icon.png";
 			}
 
@@ -8090,49 +8116,46 @@ if (true)
 /* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var map = {
-	"./config.js": 4,
-	"./spaceifyconfig.js": 6,
-	"./spebaseconfig.js": 10,
-	"./speconfig.js": 46
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 47;
+module.exports = function()
+{
+var self = this;
+
+self.make = function()
+	{
+	var SpaceifyConfig = __webpack_require__(3);
+	var config = SpaceifyConfig.getConfig();
+
+	return "(function spaceifyConfig(){window.speconfig=" + config.toMinifiedJSONString() + ";})();\n";
+	}
+}
 
 
 /***/ }),
 /* 48 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 48;
+"use strict";
+/* WEBPACK VAR INJECTION */(function(__dirname) {
 
+var fs = __webpack_require__(0);
+var module_ = __webpack_require__(47);
+
+var config = (new module_()).make();
+
+fs.writeFileSync(__dirname + "/../../libs/spaceify.config.js", config, "utf8");
+
+/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
 /* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./logger": 5,
-	"./spaceifylogger": 8
+	"./config.js": 5,
+	"./spaceifyconfig.js": 3,
+	"./spebaseconfig.js": 10,
+	"./speconfig.js": 46,
+	"./webpack/make.config.js": 48
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8153,27 +8176,15 @@ webpackContext.id = 49;
 
 /***/ }),
 /* 50 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./service": 18,
-	"./spaceifyservice": 9
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 50;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 50;
 
 
 /***/ }),
@@ -8181,7 +8192,8 @@ webpackContext.id = 50;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifynetwork": 20
+	"./logger": 6,
+	"./spaceifylogger": 8
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8205,6 +8217,7 @@ webpackContext.id = 51;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
+	"./service": 18,
 	"./spaceifyservice": 9
 };
 function webpackContext(req) {
@@ -8226,15 +8239,26 @@ webpackContext.id = 52;
 
 /***/ }),
 /* 53 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 53;
+var map = {
+	"./spaceifynetwork": 20
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 53;
 
 
 /***/ }),
@@ -8242,7 +8266,7 @@ webpackEmptyContext.id = 53;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./webjsonrpc/websocketrpcserver": 27
+	"./spaceifyservice": 9
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8263,6 +8287,43 @@ webpackContext.id = 54;
 
 /***/ }),
 /* 55 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 55;
+
+
+/***/ }),
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./webjsonrpc/websocketrpcserver": 27
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 56;
+
+
+/***/ }),
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8282,37 +8343,37 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 55;
-
-
-/***/ }),
-/* 56 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 56;
-
-
-/***/ }),
-/* 57 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 57;
+webpackContext.id = 57;
 
 
 /***/ }),
 /* 58 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 58;
+
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 59;
+
+
+/***/ }),
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8332,11 +8393,11 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 58;
+webpackContext.id = 60;
 
 
 /***/ }),
-/* 59 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8356,20 +8417,8 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 59;
+webpackContext.id = 61;
 
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_60__;
-
-/***/ }),
-/* 61 */
-/***/ (function(module, exports) {
-
-module.exports = require("child_process");
 
 /***/ }),
 /* 62 */
@@ -8381,7 +8430,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_62__;
 /* 63 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_63__;
+module.exports = require("child_process");
 
 /***/ }),
 /* 64 */
@@ -8415,13 +8464,25 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_68__;
 
 /***/ }),
 /* 69 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_69__;
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_70__;
+
+/***/ }),
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports =
 {
-Config: __webpack_require__(4),
+Config: __webpack_require__(5),
 SpeBaseConfig: __webpack_require__(10),
-Logger: __webpack_require__(5),
+Logger: __webpack_require__(6),
 SpaceifyError: __webpack_require__(7),
 SpaceifyLogger: __webpack_require__(8),
 
@@ -8429,7 +8490,7 @@ Service: __webpack_require__(18),
 SpaceifyApplication: __webpack_require__(37),
 SpaceifyApplicationManager: __webpack_require__(38),
 SpaceifyCache: __webpack_require__(39),
-SpaceifyConfig: __webpack_require__(6),
+SpaceifyConfig: __webpack_require__(3),
 SpaceifyCore: __webpack_require__(19),
 SpaceifyMessages: __webpack_require__(40),
 SpaceifyNet: __webpack_require__(41),
@@ -8457,8 +8518,8 @@ SpaceifyApp: __webpack_require__(36)
 /***/ })
 /******/ ]);
 });
-(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","OPERATION":"operation.html","APPSTORE":"appstore/","APPSTORE_INDEX_FILE":"appstore/index.html","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","INDEX_FILE":"index.html","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20"};})();
-(function spaceifyLocales(){window.spelocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","loading":"Loading...","copyright":"Copyright © 2014 - 2017 Spaceify Oy"},"index":{"title":"Welcome to Spaceify","version":"v","splash_welcome":"Welcome to Spaceify powered wireless network.","splash_info":"1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install certificate' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.","splash_accept_action":"Accept","splash_certificate_action":"Install certificate","spacelets":"Spacelets","sandboxed":"Sandboxed","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate","openadmintools":"Open Admin Tools","logout":"Log Out"},"admin/index":{"title":"Spaceify - Admin","logout":"Log Out"},"admin/login":{"title":"Spaceify - AppStore Log In","password":"Password","login":"Log In","backtolaunchpage":"Back to Launchpage"},"appstore/index":{"title":"Spaceify - AppStore"}}};})();
+(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","APPSTORE":"appstore/","INDEX_FILE":"index.html","LOGIN_FILE":"login.html","SECURITY_FILE":"security.html","OPERATION_FILE":"operation.xop","LOCATION_FILE":"location.conf","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20"};})();
+(function spaceifyLocales(){window.spelocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","loading":"Loading...","copyright":"Copyright © 2014 - 2017 Spaceify Oy","btn_login":"Log In","btn_install":"Install","btn_reload":"Reload","btn_cancel":"Cancel","certificate_error":"It seems that your browser does not have the Spaceify edge node certificate installed. The certificate is required for loading web pages over secure connection. Install the certificate by pushing the 'Install' button. A pop-up window should appear requesting to accept 'Spaceify CA' as a trusted Certificate Authority (CA). Depending of your browser, there might be options for selecting the trust level. Select to trust the CA for identifying web pages. After you have installed the certificate, push the 'Reload' button to switch using encrypted connection.","certificate_error_cancel":"Pushing the 'Cancel' button hides this message.","delete_certificate":"Installed certificate can be deleted only from browsers settings. Open the security settings and select 'Manage' or 'View' certificates. From there find 'Authorities' or 'Trusted Authorities' and search for Spaceify Inc. / Spaceify CA. Select the certificate and delete it.","security_warning":"Unsecure connection detected! Without encryption anyone can see and exploit your password, session, and all other data. Push the 'Reload' button to switch using encrypted connection."},"index":{"title":"Welcome to Spaceify","version":"v","splash_welcome":"Welcome to Spaceify powered wireless network.","splash_info":"1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.","splash_accept_action":"Accept","splash_certificate_action":"Install","spacelets":"Spacelets","sandboxed":"Sandboxed","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate","open_admin_tools":"Open Admin Tools","logout":"Log Out"},"login":{"title":"Spaceify - Log In","password":"Password","back_to_launchpage":"Back to Launchpage"},"appstore/index":{"title":"Spaceify - AppStore"}}};})();
 (function spaceifyTiles(){window.spetiles={"apptile":"<iframe class=\"edgeTile\" id=\"{{ ::id }}\" frameborder=\"0\"></iframe>","tile":"<div class=\"edgeTile\"><img id=\"{{ ::id }}\" sp_src=\"{{ ::sp_src }}\" width=\"64\" height=\"64\"><div class=\"edgeText\">{{ ::manifest.name }}</div><div class=\"edgeText edgeSubText\">{{ ::manifest.developer.name }}</div></div>"};})();
 
 (function spaceifyClasses(){

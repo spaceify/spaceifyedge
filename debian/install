@@ -5,12 +5,12 @@ code/www/location.conf var/lib/spaceify/code/www
 code/www/operation.html var/lib/spaceify/code/www
 code/www/remote.html var/lib/spaceify/code/www
 code/www/appstore/* var/lib/spaceify/code/www/appstore
-code/www/css/* var/lib/spaceify/code/www/css
 code/www/errors/* var/lib/spaceify/code/www/errors
-code/www/fonts/* var/lib/spaceify/code/www/fonts
-code/www/images/* var/lib/spaceify/code/www/images
 code/www/libs/* var/lib/spaceify/code/www/libs
 code/www/js var/lib/spaceify/code/www
+code/www/css var/lib/spaceify/code/www
+code/www/fonts var/lib/spaceify/code/www
+code/www/images var/lib/spaceify/code/www
 code/www/locales/* var/lib/spaceify/code/www/locales
 code/www/templates/* var/lib/spaceify/code/www/templates
 code/www/src/*.js* var/lib/spaceify/code/www/src

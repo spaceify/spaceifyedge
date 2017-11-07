@@ -90,14 +90,6 @@
   "APPMAN_MESSAGE_PORT": 2950,
   "APPMAN_MESSAGE_PORT_SECURE": 4950,
 
-  "OPERATION": "operation.html",
-
-  "ADMIN_LOGIN_PATH": {"file": "/var/lib/spaceify/code/www/appstore/login.html", "content_type": "html"},
-
-  "APPSTORE": "appstore/",
-  "APPSTORE_INDEX_FILE": "appstore/index.html",
-  "APPSTORE_INDEX_PATH": {"file": "/var/lib/spaceify/code/www/appstore/index.html", "content_type": "html"},
-
   "REGISTRY_HOSTNAME": "spaceify.org",
   "REGISTRY_URL": "https://spaceify.org",
   "REGISTRY_PUBLISH_URL": "https://spaceify.org/ajax/upload.php?type=package&fileid=package",
@@ -160,7 +152,13 @@
   "MANIFEST_RULES": "manifest.rules",
   "VERSIONS": "versions",
 
+  "APPSTORE": "appstore/",
   "INDEX_FILE": "index.html",
+  "LOGIN_FILE": "login.html",
+  "SECURITY_FILE": "security.html",
+  "OPERATION_FILE": "operation.xop",
+  "LOCATION_FILE": "location.conf",
+
   "SERVER_NAME": "Spaceify Web Server",
 
   "TILEFILE": "tile.html",

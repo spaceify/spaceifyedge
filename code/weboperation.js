@@ -31,10 +31,10 @@ var securityModel = new SecurityModel();
 var secureConnection = null;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
-var       types =	[	"getApplications", "isAdminLoggedIn"];
-var secureTypes =	[	"installApplication", "removeApplication", "purgeApplication", "startApplication", "stopApplication", 
-						"restartApplication", "requestMessageId", "getCoreSettings", "saveCoreSettings", "getEdgeSettings", 
-						"saveEdgeSettings", "getServiceRuntimeStates", "logIn", "logOut"];
+var       types = [	"getApplications", "isAdminLoggedIn" ];
+var secureTypes = [	"installApplication", "removeApplication", "purgeApplication", "startApplication", "stopApplication",
+					"restartApplication", "requestMessageId", "getCoreSettings", "saveCoreSettings", "getEdgeSettings",
+					"saveEdgeSettings", "getServiceRuntimeStates", "logIn", "logOut"];
 
 /**
  * getData()
@@ -241,7 +241,12 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			if(userData.sessionId)
 				{
 				isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
+
 				data = isLoggedIn;
+				}
+			else
+				{
+				data = false;
 				}
 			}
 		}

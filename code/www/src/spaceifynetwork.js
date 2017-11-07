@@ -48,11 +48,10 @@ var dregx = new RegExp(config.EDGE_DOMAIN.replace(".", "\\.") + "$", "i");
 self.getEdgeURL = function(opts)
 	{
 	var options = {};
-	options.forceSecureProtocol = (typeof opts.forceSecureProtocol !== "undefined" ? opts.forceSecureProtocol : null);
-	options.ownProtocol = (typeof opts.ownProtocol !== "undefined" ? opts.ownProtocol : null);
+	options.protocol = (typeof opts.protocol !== "undefined" ? opts.protocol : null);
 	options.withEndSlash = (typeof opts.withEndSlash !== "undefined" ? opts.withEndSlash : false);
 
-	var protocol = self.getProtocol(true, options.ownProtocol, options.forceSecureProtocol);
+	var protocol = self.getProtocol(true, options.protocol);
 
 	// Origin: local/remote edge webpage or webpage running spacelet (URL not ending with EDGE_DOMAIN); defaults to spacelet
 	var hostname = config.EDGE_HOSTNAME;
@@ -79,32 +78,27 @@ self.getPort = function(port, securePort, isSecure)
 // Returns true if current web page is encrypted
 self.isSecure = function()
 	{
-	var protocol = self.getProtocol(false, null, false);
+	var protocol = self.getProtocol(false, null);
 
 	return (protocol == "http:" ? false : true);
 	}
 
 // Return current protocol
-self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
+self.getProtocol = function(withScheme, cProtocol)
 	{
 	var url, proto, protocol;
 
-	if(ownProtocol === null && forceSecureProtocol === null)					// No protocol
+	if(cProtocol === "")														// No protocol
 		{
 		protocol = "";
 		}
-	else if(typeof window === "undefined")										// Node.js!
+	else if(typeof window === "undefined")										// Node.js!!!
 		{
-		if(ownProtocol === null)
-			protocol = "";
-		else
-			{
-			protocol = (forceSecureProtocol ? "https:" : ownProtocol);
-			}
+		protocol = (cProtocol === null ? "" : cProtocol);
 		}
 	else																		// Web page
 		{
-		protocol = (ownProtocol !== null ? ownProtocol : location.protocol);
+		protocol = (cProtocol !== null ? cProtocol : location.protocol);
 
 		if(protocol == "blob:")
 			{
@@ -121,9 +115,6 @@ self.getProtocol = function(withScheme, ownProtocol, forceSecureProtocol)
 			else
 				protocol = "http:";
 			}
-
-		if(forceSecureProtocol)
-			protocol = "https:";
 		}
 
 	if(protocol != "" && !protocol.match(/:$/))
@@ -314,6 +305,7 @@ self.POST_FORM = function(url, post, responseType, callback)
 
 self.doOperation = function(jsonData, callback)
 	{
+	var data;
 	var result;
 	var content;
 	var error = null;
@@ -322,7 +314,7 @@ self.doOperation = function(jsonData, callback)
 	try {
 		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true }) + config.OPERATION;
+		operationUrl = self.getEdgeURL({ withEndSlash: true }) + config.OPERATION_FILE;
 		//true, null, true
 
 		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
@@ -341,12 +333,28 @@ self.doOperation = function(jsonData, callback)
 				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
 				}
 
-			if(result.err)
+			if(!result)
+				{
+				data = null;
+				error = errorc.makeErrorObject("doOperation2", "Response is null.", "SpaceifyNetwork::doOperation");
+				}
+			else if(result.err)
+				{
+				data = result.data;
 				error = result.err;
+				}
 			else if(result.error)
+				{
+				data = result.data;
 				error = result.error;
+				}
+			else
+				{
+				data = result.data;
+				error = null;
+				}
 
-			callback(error, result.data, id, ms);
+			callback(error, data, id, ms);
 			});
 		}
 	catch(err)

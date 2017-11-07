@@ -270,11 +270,6 @@ rm /var/log/spaceify.log > /dev/null 2>&1 || true
 
 chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check log sizes hourly
 
-od=$(pwd)																					# Backward compatibility
-cd /var/lib/spaceify/code/www/
-ln -s libs/ js > /dev/null 2>&1 || true
-cd $od
-
 # ----------
 # ----------
 # ----------

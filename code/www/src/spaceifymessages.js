@@ -32,9 +32,9 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	callerOrigin = callerOrigin_;
 	managerOrigin = managerOrigin_;
 
-	var protocol, host, options = { hostname: network.getEdgeURL({}), port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true };
+	var protocol, host, options = { hostname: network.getEdgeURL({ protocol: "" }), port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true };
 
-	if(connection.isConnected())
+	if (connection.isConnected())
 		return managerOrigin.connected();
 
 	connection.exposeRpcMethod("stdout", self, stdout);
@@ -49,20 +49,27 @@ self.connect = function(managerOrigin_, callerOrigin_)
 
 	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
 		{
-		if(err)
+		if (err)
 			return fail(err);
 
 		messageId = gotId;
 
-		connection.connect(options, function(err, data)
+		if (messageId !== null)
 			{
-			if(err)
-				return fail(err);
+			connection.connect(options, function(err, data)
+				{
+				if (err)
+					return fail(err);
 
-			connection.callRpc("confirm", [messageId]);
+				connection.callRpc("confirm", [messageId]);
 
+				managerOrigin.connected();
+				});
+			}
+		else
+			{
 			managerOrigin.connected();
-			});
+			}
 		});
 	}
 
@@ -84,12 +91,12 @@ self.getWarnings = function()
 	// Exposed RPC methods -- -- -- -- -- -- -- -- -- -- //
 var fail = function(err, connObj, callback)
 	{
-	if(callerOrigin.fail)
+	if (callerOrigin.fail)
 		callerOrigin.fail(err);
 
 	managerOrigin.fail(err);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -97,7 +104,7 @@ var error = function(err, connObj, callback)
 	{
 	errors.push(err);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -105,55 +112,55 @@ var warning = function(message_, code, connObj, callback)
 	{
 	warning.push({message: message_, code: code});
 
-	if(callerOrigin.warning)
+	if (callerOrigin.warning)
 		callerOrigin.warning(message_, code);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var notify = function(message_, code, connObj, callback)
 	{
-	if(callerOrigin.notify)
+	if (callerOrigin.notify)
 		callerOrigin.notify(message_, code, connObj, callback);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var message = function(message_, connObj, callback)
 	{
-	if(callerOrigin.message)
+	if (callerOrigin.message)
 		callerOrigin.message(message_);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var stdout = function(message_, connObj, callback)
 	{
-	if(callerOrigin.stdout)
+	if (callerOrigin.stdout)
 		callerOrigin.stdout(message_);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var question = function(message_, choices, origin, answerCallBackId, connObj, callback)
 	{
-	if(callerOrigin.question)
+	if (callerOrigin.question)
 		callerOrigin.question(message_, choices, origin, answerCallBackId);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
 var questionTimedOut = function(message_, origin, answerCallBackId, connObj, callback)
 	{
-	if(callerOrigin.questionTimedOut)
+	if (callerOrigin.questionTimedOut)
 		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -161,7 +168,7 @@ var end = function(message_, connObj, callback)
 	{
 	managerOrigin.end(1);
 
-	if(typeof callback === "function")
+	if (typeof callback === "function")
 		callback(null, true);
 	}
 
@@ -173,5 +180,5 @@ self.sendAnswer = function(answer, answerCallBackId)
 
 }
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = SpaceifyMessages;

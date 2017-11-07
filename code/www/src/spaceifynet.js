@@ -26,6 +26,7 @@ var config = lib.SpaceifyConfig.getConfig();
 //var logger = new lib.SpaceifyLogger("SpaceifyNet");
 
 var WWW_PORT = 80;
+var WWW_PORT_SECURE = 443;
 
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
@@ -111,7 +112,7 @@ self.setSplashAccepted = function()
 
 self.loadCertificate = function()
 	{
-	var src = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true }) + "spaceify.crt";
+	var src = network.getEdgeURL({ withEndSlash: true }) + "spaceify.crt";
 
 	document.getElementById("certIframe").setAttribute("sp_src", src);
 
@@ -120,7 +121,7 @@ self.loadCertificate = function()
 	return true;
 	}
 
-self.adminLogOut = function()
+self.adminLogOut = function(loadLaunchPage)
 	{
 	var sam = new SpaceifyApplicationManager();
 
@@ -129,25 +130,35 @@ self.adminLogOut = function()
 
 	this.ok = function()
 		{
-		self.loadLaunchPage();
+		if(loadLaunchPage)
+			self.loadLaunchPage();
 		}
 
-	sam.logOut(self, this.ok)
+	sam.logOut(self, this.ok);
 	}
 
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
-self.loadAppstorePage = function()
+self.loadAppstorePage = function(mode)
 	{
-	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
-
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
+	var sp_page;
+	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
+	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
+	
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
 self.loadLaunchPage = function()
 	{
-	var url = network.getEdgeURL({ forceSecureProtocol: true, withEndSlash: true });
+	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
+	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, WWW_PORT/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	}
+
+self.loadSecurePage = function()
+	{
+	var src = network.getEdgeURL({ protocol: "https", withEndSlash: true });
+	window.location.replace(src);
 	}
 
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
@@ -197,7 +208,7 @@ self.renderTile = function(manifest, callback)
 			{
 			sp_port = (!network.isSecure() ? appURL.port : appURL.securePort);
 
-			spe_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
+			spe_host = network.getEdgeURL({ withEndSlash: true });
 
 			if(appURL.implementsWebServer && sp_port)
 				{
@@ -206,7 +217,7 @@ self.renderTile = function(manifest, callback)
 				}
 			else
 				{
-				host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, withEndSlash: true });
+				host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
 				sp_host = host;
 				}
 
@@ -234,12 +245,12 @@ self.renderTile = function(manifest, callback)
 		{
 		if((icon = utility.getApplicationIcon(manifest, false)))
 			{
-			sp_host = network.externalResourceURL(manifest.unique_name, { forceSecureProtocol: false, ownProtocol: null, port: null, withEndSlash: true });
+			sp_host = network.externalResourceURL(manifest.unique_name, { protocol: "", withEndSlash: true });
 			sp_path = icon;
 			}
 		else
 			{
-			sp_host = network.getEdgeURL({ forceSecureProtocol: false, withEndSlash: true });
+			sp_host = network.getEdgeURL({ withEndSlash: true });
 			sp_path = "images/icon.png";
 			}
 

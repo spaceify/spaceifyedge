@@ -1,5 +1,5 @@
 <!doctype html>
-<html sp-IX>
+<html>
 	<head body-directive>
 		<!-- -->
 		<meta charset="utf-8">
@@ -12,13 +12,14 @@
 		<link rel="stylesheet" spe_href="fonts/roboto/roboto.base64.css">
 		<link rel="stylesheet" spe_href="css/skeleton/normalize.css">
 		<link rel="stylesheet" spe_href="css/spaceify.edge.css" type="text/css">
+		<link rel="stylesheet" spe_href="css/styles.css" type="text/css">
 
 		<title ng-bind="$root.getString('index', 'title')">Loading...</title>
 		<!-- -->
 
 		<!-- -->
-		<script src="libs/spaceify.loader.js"></script>
-		<script spe_src="libs/spaceify.edge.js"></script>
+		<script src="libs/spaceify.loader.bundle.js"></script>
+		<script spe_src="libs/spaceify.edge.bundle.js"></script>
 		<!-- -->
 
 		<script>
@@ -159,6 +160,18 @@
 			net.removeTile(manifest);
 			return net.getApplications();
 			}
+
+		function loadAppstorePage()
+			{
+			var url = "https://" + window.location.hostname + "/";
+			spaceifyLoader.loadResource(config.LOCATION_FILE, 443, url, url, function(result)
+				{
+				if (result.crtErr)
+					$("#certificateerror").css("display", "block");
+				else
+					net.loadAppstorePage();
+				});
+			}
 		</script>
 	</head>
 
@@ -167,15 +180,30 @@
 		<div class="topBar">
 			<a class="topBarLogoLink" routerLink="/intro"><img spe_src="images/icon-80p.png" alt="" /></a>
 			<div class="topBarLogoText">Spaceify Edge</div>
-			<a class="topBarPageLink" onclick="net.loadAppstorePage(); return false;"><img spe_src="images/settings.png" alt="" title="{{ getString('index', 'openadmintools') }}" /></a>
-			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" title="{{ getString('index', 'logout') }}" /></a>
+			<a class="topBarPageLink" onclick="loadAppstorePage();"><img spe_src="images/settings.png" alt="" title="{{ getString('index', 'open_admin_tools') }}" /></a>
+			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(true); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" title="{{ getString('index', 'logout') }}" /></a>
 		</div>
 
 		<div class="large_background_footer">&nbsp;</div>
 
-		<div id="contentContainer" class="contentContainer">
+		<div id="contentContainer" class="edgeContentContainer">
 
-			<div class="container">
+			<div class="edgeContainer">
+
+				<!-- CERTIFICATE ERROR -->
+				<div id="certificateerror" class="edgeInfo" style="display: none;">
+					{{ getString("global", "certificate_error") }} {{ getString("global", "certificate_error_cancel") }}
+
+					<p>
+					<button class="edgeButton inrow" onclick="net.loadCertificate();">{{ getString("global", "btn_install") }}</button>
+					<button class="edgeButton inrow" onclick="net.loadSecurePage();">{{ getString("global", "btn_reload") }}</button>
+					<button class="edgeButton" onclick="$('#certificateerror').css('display', 'none');">{{ getString("global", "btn_cancel") }}</button>
+
+					<div class="breaker"></div>
+					<div class="edgeSmallInfo">
+						{{ getString("global", "delete_certificate") }}
+					</div>
+				</div>
 
 				<!-- VIEW -->
 				<the-tiles></the-tiles>
@@ -201,11 +229,12 @@
 				<div class="breaker"></div>
 
 				<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
+				<!--
 				<h5 class="edgeH H3" id="userUtilitiesHeader" style="display: none;">{{ getString('index', 'user_utilities') }}</h5>
 				<div id="userUtilities" style="display: none;">
 
-					<!-- CERTIFICATE TILE -->
-					<div class="edgeTile" onclick="net.loadCertificate();">
+					<!-- CERTIFICATE TILE -- >
+					<div class="edgeTile" onclick="loadCertificate();">
 
 						<img id="installCertificateId" spe_src="images/certificate.png" width="64" height="64">
 
@@ -221,6 +250,7 @@
 
 				</div>
 				<div class="breaker"></div>
+				-->
 
 				<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
 				<!--
@@ -246,12 +276,11 @@
 				<div class="breaker"></div>
 				-->
 
-				<!-- MISC -- -- -- -- -- -- -- -- -- -- -->
-				<iframe id="certIframe" src="" sp_src="-" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
-
 			</div>
 
 		</div>
+
+		<iframe id="certIframe" src="" sp_src="-" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
 
 		<div id="footer" class="footer">
 			<div class="footerContentLeft">

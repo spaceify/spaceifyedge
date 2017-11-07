@@ -92,11 +92,11 @@ var disconnectionListener = function(connectionId)
 	try	{
 		messageIds = Object.keys(confirmedConnections);
 
-		for(var i = 0; i < messageIds.length; i++)
+		for (var i = 0; i < messageIds.length; i++)
 			{
 			messageId = messageIds[i];
 
-			if(confirmedConnections[messageId].connectionId == connectionId)
+			if (confirmedConnections[messageId].connectionId == connectionId)
 				delete confirmedConnections[messageId];
 			}
 		}
@@ -108,17 +108,19 @@ var disconnectionListener = function(connectionId)
 
 var answering = fibrous( function(messageId, answer, answerCallBackId, connObj)
 	{ // The owner of the instance of this class sets listeners
-	if(answerListener && messageId in confirmedConnections && confirmedConnections[messageId].connectionId)
+	if (answerListener && messageId in confirmedConnections && confirmedConnections[messageId].connectionId)
 		answerListener(answer, answerCallBackId);
 	});
 	
 var confirming = fibrous( function(messageId, connObj)
 	{
-	var connectionId = arguments[arguments.length-1].connectionId;
+	var connectionId = arguments[arguments.length - 1].connectionId;
 
 	try {
-		if(messageId in confirmedConnections)									// Accept the confirmation when messageId can be paired with a connection
+		if (messageId in confirmedConnections)									// Accept the confirmation when messageId can be paired with a connection
+			{
 			confirmedConnections[messageId].connectionId = connectionId;
+			}
 		else																	// Close the connection otherwise
 			{
 			connections[connectionId].close();
@@ -143,18 +145,18 @@ self.setAnswerListener = function(listener)
 
 self.sendMessage = function(messages, callback)
 	{
-	if(messages.length == 0)
+	if (messages.length == 0)
 		return callback(null, true);
 
 	var message = messages.shift();
 
-	if(typeof message == "string")
+	if (typeof message == "string")
 		message = {type: self.MESSAGE, data: [message]};
 
 	var connectionIds = [];
-	for(var messageId in confirmedConnections)									// Send messages to the confirmed connections
+	for (var messageId in confirmedConnections)									// Send messages to the confirmed connections
 		{
-		if(confirmedConnections[messageId].connectionId)
+		if (confirmedConnections[messageId].connectionId)
 			connectionIds.push(confirmedConnections[messageId].connectionId);
 		}
 
@@ -163,7 +165,7 @@ self.sendMessage = function(messages, callback)
 
 var sendToConnections = function(connectionIds, message, messages, callback)
 	{
-	if(connectionIds.length == 0)
+	if (connectionIds.length == 0)
 		return self.sendMessage(messages, callback);
 
 	var connectionId = connectionIds.shift();
@@ -190,25 +192,25 @@ var carbageCollection = function()
 
 	// Allow one minute to confirm a messageId
 	messageIds = Object.keys(confirmedConnections);
-	for(i = 0; i < messageIds.length; i++)
+	for (i = 0; i < messageIds.length; i++)
 		{
 		messageId = messageIds[i];
 
 		ts = Date.now() - confirmedConnections[messageId].timestamp;
 
-		if(ts >= GARBAGE_INTERVAL)
+		if (ts >= GARBAGE_INTERVAL)
 			delete confirmedConnections[messageId];
 		}
 
 	// Allow connections unconfirmed with a messageId to be open for one minute before disconnecting
 	connectionIds = Object.keys(connections);
-	for(i = 0; i < connectionIds.length; i++)
+	for (i = 0; i < connectionIds.length; i++)
 		{
 		connectionId = connectionIds[i];
 
 		ts = Date.now() - connections[connectionId].timestamp;
 
-		if(ts >= GARBAGE_INTERVAL)
+		if (ts >= GARBAGE_INTERVAL)
 			{
 			connections[connectionId].close();
 			delete connections[connectionId];

@@ -206,7 +206,7 @@ var callRpc = function(method, params, callback)
 		caCrt = (isNodeJs ? config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW : "");
 
 		if(!isNodeJs)																		// Web page
-			hostname = network.getEdgeURL({});
+			hostname = network.getEdgeURL({ protocol: "" });
 		else if(isRealSpaceify)																// Node.js
 			hostname = config.EDGE_IP;
 		else																				// Develop mode

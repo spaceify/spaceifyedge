@@ -11,6 +11,7 @@ var crypto = require("crypto");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var WebServer = require("./webserver");
+var WebOperation = require("./weboperation");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
@@ -30,6 +31,7 @@ var httpsServer = new WebServer();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
+var webOperation = new WebOperation();
 var securityModel = new SecurityModel();
 var config = SpaceifyConfig.getConfig();
 var coreConnection = new WebSocketRpcConnection();
@@ -50,6 +52,12 @@ var SESSION_INTERVAL = 3600 * 24 * 1000;
 
 var sessions = {};
 
+var LOGIN_INDEX = config.APPSTORE + config.LOGIN_FILE;
+var SECURITY_INDEX = config.APPSTORE + config.SECURITY_FILE;
+var APPSTORE_INDEX = config.APPSTORE + config.INDEX_FILE;
+
+var unsecure_session = { userData: {}, timestamp: 0, token: "-" };
+
 self.start = fibrous( function()
 	{
 	process.title = "spaceifyhttp";													// Shown in ps aux
@@ -64,8 +72,11 @@ self.start = fibrous( function()
 		httpServer.setRequestListener(requestListener);
 		httpsServer.setRequestListener(requestListener);
 
-		httpServer.setSessionManager(manageSessions, config.SESSION_TOKEN_NAME);
-		httpsServer.setSessionManager(manageSessions, config.SESSION_TOKEN_NAME);
+		httpServer.setSessionListener(sessionListener, config.SESSION_TOKEN_NAME);
+		httpsServer.setSessionListener(sessionListener, config.SESSION_TOKEN_NAME);
+
+		httpServer.setSecurityListener(securityListener);
+		httpsServer.setSecurityListener(securityListener);
 
 		// Connect
 		createHttpServer.sync(false);
@@ -95,7 +106,7 @@ self.start = fibrous( function()
 		connectToCore.sync();
 
 		/*var uid = parseInt(process.env.SUDO_UID);									// ToDo: No super user rights
-		if(uid)
+		if (uid)
 			process.setuid(uid);*/
 
 		// -- -- -- -- -- -- -- -- -- -- //
@@ -119,12 +130,13 @@ var createHttpServer = fibrous( function(isSecure)
 						 caCrt: caCrt,
 						 indexFile: config.INDEX_FILE,
 						 wwwPath: config.SPACEIFY_WWW_PATH,
-						 locale: config.DEFAULT_LOCALE,
-						 localesPath: config.LOCALES_PATH,
 						 serverName: config.SERVER_NAME,
 						 isEdge: true,
 						 cookieDomain: config.EDGE_HOSTNAME,
-						 cookiePath: "/"
+						 cookiePath: "/",
+						 cookieSecure: (isSecure ? "Secure" : false),
+						 sendLocale: true,
+						 locale: config.DEFAULT_LOCALE
 						 });
 	});
 
@@ -143,16 +155,16 @@ var connectToCore = fibrous( function()
 
 		applicationData = coreConnection.sync.callRpc("getApplicationData", [], self)
 
-		for(i = 0; i < applicationData["spacelet"].length; i++)
+		for (i = 0; i < applicationData["spacelet"].length; i++)
 			addApp(applicationData["spacelet"][i]);
 
-		for(i = 0; i < applicationData["sandboxed"].length; i++)
+		for (i = 0; i < applicationData["sandboxed"].length; i++)
 			addApp(applicationData["sandboxed"][i]);
 
-		for(i = 0; i < applicationData["sandboxed_debian"].length; i++)
+		for (i = 0; i < applicationData["sandboxed_debian"].length; i++)
 			addApp(applicationData["sandboxed_debian"][i]);
 
-		for(i = 0; i < applicationData["native_debian"].length; i++)
+		for (i = 0; i < applicationData["native_debian"].length; i++)
 			addApp(applicationData["native_debian"][i]);
 
 		coreConnection.callRpc("setEventListeners",	[ 	[
@@ -208,11 +220,11 @@ var serverDownListener = function(server)
 
 var coreDisconnectionListener = function(id)
 	{
-	if(coreDisconnectionTimerId != null)
+	if (coreDisconnectionTimerId != null)
 		return;
 
 	sessions = {};																	// Did core's server go down or did core shut down?
-																					// Either way, the log in sessions are revoked.
+																					// Either way, the sessions and log ins are revoked.
 	coreDisconnectionTimerId = setTimeout(
 		function()
 			{
@@ -252,35 +264,34 @@ var nativeDebianRemoved = fibrous( function(result, connObj) { remApp(result.man
 
 var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = settings; });
 
-//var requestListener = function(request, body, urlObj/*DO NOT MODIFY!!!*/, isSecure, callback)
-var requestListener = function(currentRequest, callback)
+var requestListener = function(_request_, callback)
 	{
 	var service;
 	var openServices;
 	var hasApplication = false;
 	var servicesByServiceName = {};
 	var unique_name, unique_name_last_index;
-	var pathName = currentRequest.urlObj.pathname.replace(/^\/|\/$/, "");
+	var pathName = _request_.urlObj.pathname.replace(/^\/|\/$/, "");
 	var pathParts = pathName.split("/");
 	var firstPart = pathParts[0] || "";
 	var appURL, protocol, location, content, host, sp_port, sp_host, spe_host, sp_path;
 
 	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
-	if(firstPart == "service")
+	if (firstPart == "service")
 		{
-		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathName.replace("service/", "")], self)))
+		if (!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathName.replace("service/", "")], self)))
 			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
 		callback(null, {type: "write", content: JSON.stringify(service), contentType: "json", responseCode: 200, location: ""});
 		}
-	else if(firstPart == "services")
+	else if (firstPart == "services")
 		{
-		if(!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
+		if (!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
 			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
-		for(var i = 0; i < openServices.length; i++)
+		for (var i = 0; i < openServices.length; i++)
 			{
-			if(!(openServices[i].service_name in servicesByServiceName))
+			if (!(openServices[i].service_name in servicesByServiceName))
 				servicesByServiceName[openServices[i].service_name] = {};
 
 			servicesByServiceName[openServices[i].service_name][openServices[i].unique_name] = openServices[i];
@@ -291,12 +302,12 @@ var requestListener = function(currentRequest, callback)
 	// Path points to apps resource or URL is short url -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
-		if(currentRequest.GET.appshorturl)											// Remote request
-			unique_name = currentRequest.GET.appshorturl;
+		if (_request_.GET.appshorturl)												// Remote request
+			unique_name = _request_.GET.appshorturl;
 		else																		// Local request
 			unique_name = pathParts.join("/");
 
-		if(unique_name.charAt(unique_name.length - 1) == "/")
+		if (unique_name.charAt(unique_name.length - 1) == "/")
 			unique_name = unique_name.substr(0, unique_name.length - 1);
 
 		unique_name_last_index = unique_name.length;
@@ -304,7 +315,7 @@ var requestListener = function(currentRequest, callback)
 		do	{																		// Compare the unique names of installed applications to the unique_name
 			unique_name = unique_name.substr(0, unique_name_last_index);
 
-			if(apps[unique_name])
+			if (apps[unique_name])
 				{
 				hasApplication = true;
 				break;
@@ -313,40 +324,40 @@ var requestListener = function(currentRequest, callback)
 			unique_name_last_index = unique_name.lastIndexOf("/");
 			} while(unique_name_last_index != -1);
 
-		if(hasApplication)
+		if (hasApplication)
 			{
-			if(unique_name_last_index == unique_name.length)						// Short URL - make redirection, path contains nothing but the unique_name
+			if (unique_name_last_index == unique_name.length)						// Short URL - make redirection, path contains nothing but the unique_name
 				{
-				location = (currentRequest.request.headers.host ? currentRequest.request.headers.host : config.EDGE_HOSTNAME);
-				location = (!currentRequest.isSecure ? "http" : "https") + "://" + location;
+				location = (_request_.request.headers.host ? _request_.request.headers.host : config.EDGE_HOSTNAME);
+				location = (!_request_.isSecure ? "http" : "https") + "://" + location;
 
-				protocol = (!currentRequest.isSecure ? "http" : "https");
+				protocol = (!_request_.isSecure ? "http" : "https");
 
 				appURL = coreConnection.sync.callRpc("getApplicationURL", [unique_name], self);
 
-				sp_port = (!currentRequest.isSecure ? appURL.port : appURL.securePort);
+				sp_port = (!_request_.isSecure ? appURL.port : appURL.securePort);
 
-				spe_host = network.getEdgeURL({ forceSecureProtocol: false, ownProtocol: protocol, withEndSlash: true });
+				spe_host = network.getEdgeURL({ protocol: protocol, withEndSlash: true });
 
-				if(appURL.implementsWebServer && sp_port)
+				if (appURL.implementsWebServer && sp_port)
 					{
 					host = spe_host;
 					sp_host = spe_host;
 					}
 				else
 					{
-					host = network.externalResourceURL(unique_name, { forceSecureProtocol: false, ownProtocol: protocol, withEndSlash: true });
+					host = network.externalResourceURL(unique_name, { protocol: protocol, withEndSlash: true });
 					sp_host = host;
 					}
 
 				sp_path = "index.html";
 
-				currentRequest.GET.sp_port = sp_port;
-				currentRequest.GET.sp_host = encodeURIComponent(sp_host);
-				currentRequest.GET.sp_path = encodeURIComponent(sp_path);
-				currentRequest.GET.spe_host = encodeURIComponent(spe_host);
+				_request_.GET.sp_port = sp_port;
+				_request_.GET.sp_host = encodeURIComponent(sp_host);
+				_request_.GET.sp_path = encodeURIComponent(sp_path);
+				_request_.GET.spe_host = encodeURIComponent(spe_host);
 
-				location += "/remote.html" + network.remakeQueryString(currentRequest.GET, ["appshorturl"], {}, "", true);
+				location += "/remote.html" + network.remakeQueryString(_request_.GET, ["appshorturl"], {}, "", true);
 
 				content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": sp_port});
 
@@ -354,7 +365,7 @@ var requestListener = function(currentRequest, callback)
 				}
 			else																	// Resource - load
 				{
-				pathName = currentRequest.urlObj.path.replace(unique_name, "");
+				pathName = _request_.urlObj.path.replace(unique_name, "");
 				pathName = pathName.replace(/^\/*/, "");
 				pathName = pathName.split("?");
 
@@ -378,7 +389,7 @@ var addApp = function(manifest)
 
 var remApp = function(unique_name)
 	{
-	if(apps[unique_name])
+	if (apps[unique_name])
 		{
 		delete apps[unique_name];
 		appCount--;
@@ -390,22 +401,33 @@ var remApp = function(unique_name)
 	}*/
 
 	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
-var manageSessions = function(currentRequest)
+var sessionListener = function(_request_)
 	{
-//console.log("- INFO", currentRequest.request.method, currentRequest.request.url);
-	var sessiontoken = currentRequest.request.headers[config.SESSION_TOKEN_NAME] || null;	// First source is header and backup source is cookie
-//console.log("- TRIED SESSION", sessiontoken);
-	if(!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in currentRequest.cookies)
-		sessiontoken = currentRequest.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
-//console.log("- TRIED COOKIE", sessiontoken);
-	var session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
+	var sessiontoken, session;
 
-	if(!session)																			// Create a session if it doesn't exist yet
-		sessiontoken = createSession();
-	else																					// Update an existing session
-		sessions[sessiontoken].timestamp = Date.now();
-//console.log("- SESSIONS", Object.keys(sessions), "\n\n");
-	return sessions[sessiontoken];
+	if (!_request_.isSecure)																// Only secure connections can have session
+		{
+		session = unsecure_session;
+		}
+	else
+		{
+		sessiontoken = _request_.request.headers[config.SESSION_TOKEN_NAME] || null;		// First source is header and backup source is cookie
+
+		if (!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in _request_.cookies)
+			sessiontoken = _request_.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
+
+		session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
+
+		if (!session)																		// Create a session if it doesn't exist yet
+			sessiontoken = createSession();
+		else																				// Update an existing session
+			sessions[sessiontoken].timestamp = Date.now();
+
+		session = sessions[sessiontoken];
+		}
+//console.log(_request_.isSecure, _request_.request.url);
+//console.log(session);
+	return session;
 	}
 
 var createSession = function()
@@ -422,21 +444,55 @@ var createSession = function()
 		if (!sessions.hasOwnProperty(sessiontoken))
 			break;
 		}
-//console.log("- CREATING", sessiontoken);
+
 	sessions[sessiontoken] = {userData: {}, timestamp: Date.now(), token: sessiontoken}
 
 	return sessiontoken;
 	}
+//console.log(_request_.isSecure, origin, _request_.request.headers.origin);
+var securityListener = function(_request_, pathname, session, callback)
+	{
+	var origin = "";
+	var redirectPath;
+	var isLogInPath = pathname.lastIndexOf(LOGIN_INDEX);
+	var isAppstorePath = pathname.lastIndexOf(APPSTORE_INDEX);
+
+	if (typeof _request_.request.headers.origin !== "undefined")							// CORS reveals the unsecure https over http connections
+		origin = _request_.request.headers.origin.split(":")[0];
+
+	var isHttpsOverHttp = (!_request_.isSecure || (_request_.isSecure && (origin == "http" || origin == "https")) ? true : false);
+
+	if (isAppstorePath != -1 || isLogInPath != -1)											// Redirection and session protection
+		{
+		if (isHttpsOverHttp)																// https over http
+			{
+			callback(null, { pathname: SECURITY_INDEX, session: unsecure_session, secureCookie: false });
+			}
+		else																				// https over https
+			{
+			webOperation.getData({ type: "isAdminLoggedIn" }, session.userData, true, function(err, result)
+				{
+				if (isAppstorePath != -1)
+					callback(null, { pathname: (result.isLoggedIn === true ?    pathname : LOGIN_INDEX), session: session, secureCookie: true });
+				else if (isLogInPath != -1)
+					callback(null, { pathname: (result.isLoggedIn === true ? APPSTORE_INDEX : pathname), session: session, secureCookie: true });
+				});
+			}
+		}
+	else
+		{
+		callback(null, { pathname: pathname, session: (isHttpsOverHttp ? unsecure_session : session), secureCookie: false });
+		}
+	}
 
 var cleanUp = function()
 	{
-	var sts = Object.keys(sessions);												// Remove expired sessions
-//console.log("------------- cleanUp");
-	for(var i = 0; i < sts.length; i++)
+	var sts = Object.keys(sessions);														// Remove expired sessions
+
+	for (var i = 0; i < sts.length; i++)
 		{
-		if(Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
+		if (Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
 			{
-//console.log("------------- DELETE", sts[i]);
 			delete sessions[sts[i]];
 			}
 		}
