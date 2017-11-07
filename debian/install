@@ -2,7 +2,7 @@ code/*.js* var/lib/spaceify/code
 code/lib/* var/lib/spaceify/code/lib
 code/www/index.html var/lib/spaceify/code/www
 code/www/location.conf var/lib/spaceify/code/www
-code/www/operation.html var/lib/spaceify/code/www
+code/www/operation.xop var/lib/spaceify/code/www
 code/www/remote.html var/lib/spaceify/code/www
 code/www/appstore/* var/lib/spaceify/code/www/appstore
 code/www/errors/* var/lib/spaceify/code/www/errors
