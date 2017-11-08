@@ -7,9 +7,6 @@ npm run webpack-edge-bundle
 npm run webpack-api-prod
 npm run webpack-api-bundle
 
-npm run webpack-api-prod-jquery
-npm run webpack-api-bundle-jquery
-
 #
 node src/webpack/make.locales.js
 node src/webpack/make.config.js

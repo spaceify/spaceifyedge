@@ -1,5 +1,6 @@
 (function spaceifyClasses(){
 window.Logger = spe.Logger;
+window.SpaceifyDOM = spe.SpaceifyDOM;
 window.Service = spe.Service;
 window.SpaceifyApplication = spe.SpaceifyApplication;
 window.SpaceifyApplicationManager = spe.SpaceifyApplicationManager;

@@ -8,7 +8,7 @@
 		exports["spe"] = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else
 		root["spe"] = factory(root["fs"], root["path"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["request"], root["url"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_34__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_61__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_34__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_62__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -74,7 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 70);
+/******/ 	return __webpack_require__(__webpack_require__.s = 71);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -531,7 +531,7 @@ Config.getConfig = function()
 if(true)
 	module.exports = Config;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(44)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)(module)))
 
 /***/ }),
 /* 6 */
@@ -747,7 +747,7 @@ Logger.createLogger_ = function(class_)
 		catch (e)
 			{
 			var apipath = "/var/lib/spaceify/code/";
-			Config = __webpack_require__(48)(apipath + "config.js");
+			Config = __webpack_require__(49)(apipath + "config.js");
 			}
 		}
 	else if (typeof window !== "undefined")
@@ -1075,7 +1075,7 @@ if (isNodeJs)
 	{
 	var apipath = "/var/lib/spaceify/code/";
 
-	try { Logger = __webpack_require__(6); } catch (e) { Logger = __webpack_require__(50)(apipath + "logger"); }
+	try { Logger = __webpack_require__(6); } catch (e) { Logger = __webpack_require__(51)(apipath + "logger"); }
 	try { SpaceifyError = __webpack_require__(7); } catch (e) { SpaceifyError = __webpack_require__(13)(apipath + "spaceifyerror"); }
 	}
 else if (typeof window !== "undefined")
@@ -1168,13 +1168,13 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Service = __webpack_require__(51)(lib + "service");
+	Service = __webpack_require__(52)(lib + "service");
 	SpaceifyCore = __webpack_require__(30)(lib + "spaceifycore");
 	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyNetwork = __webpack_require__(52)(lib + "spaceifynetwork");
+	SpaceifyNetwork = __webpack_require__(53)(lib + "spaceifynetwork");
 	//SpaceifyLogger = require(lib + "spaceifylogger");
-	WebSocketRpcServer = __webpack_require__(55)(lib + "websocketrpcserver");
+	WebSocketRpcServer = __webpack_require__(56)(lib + "websocketrpcserver");
 	Connection = __webpack_require__(29)(lib + "connection");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -3171,7 +3171,7 @@ self.isPortInUse = function(port, callback)
 	if(!port)
 		return callback(null, true);
 
-	var net = __webpack_require__(66);
+	var net = __webpack_require__(67);
 	var server = net.createServer();
 
 	server.once("error", function(err)
@@ -3440,13 +3440,13 @@ if (isNodeJs)
 	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
-	global.os = __webpack_require__(67);
+	global.os = __webpack_require__(68);
 	global.fs = __webpack_require__(0);
 	global.path = __webpack_require__(34);
-	global.mkdirp = __webpack_require__(65);
-	global.AdmZip = __webpack_require__(61);
-	global.request = __webpack_require__(68);
-	global.spawn = __webpack_require__(62).spawn;
+	global.mkdirp = __webpack_require__(66);
+	global.AdmZip = __webpack_require__(62);
+	global.request = __webpack_require__(69);
+	global.spawn = __webpack_require__(63).spawn;
 	}
 else
 	{
@@ -4195,7 +4195,7 @@ if (isNodeJs)
 	LoaderUtil = null;
 	SpaceifyNetwork = function() {};
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketRpcConnection = __webpack_require__(59)(lib + "websocketrpcconnection");
+	WebSocketRpcConnection = __webpack_require__(60)(lib + "websocketrpcconnection");
 	}
 else
 	{
@@ -4370,7 +4370,7 @@ if (isNodeJs)
 
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(56)(lib + "callbackbuffer");
+	CallbackBuffer = __webpack_require__(57)(lib + "callbackbuffer");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -5422,7 +5422,7 @@ if (isNodeJs)
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
 	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
-	WebSocketServer = __webpack_require__(60)(lib + "websocketserver");
+	WebSocketServer = __webpack_require__(61)(lib + "websocketserver");
 	}
 else
 	{
@@ -5591,9 +5591,9 @@ if (isNodeJs)
 	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
 
 	global.fs = __webpack_require__(0);
-	global.URL = __webpack_require__(69);
-	global.http = __webpack_require__(63);
-	global.https = __webpack_require__(64);
+	global.URL = __webpack_require__(70);
+	global.http = __webpack_require__(64);
+	global.https = __webpack_require__(65);
 	global.WSServer = __webpack_require__(35).server;
 	}
 else
@@ -5987,7 +5987,7 @@ if(isNodeJs)
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyLogger = __webpack_require__(31)(lib + "spaceifylogger");
 	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
-	SpaceifyService = __webpack_require__(53)(lib + "spaceifyservice");
+	SpaceifyService = __webpack_require__(54)(lib + "spaceifyservice");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
 else
@@ -6684,6 +6684,108 @@ if(true)
 
 
 /**
+ * SpaceifyDOM, 8.11.2017 Spaceify Oy
+ *
+ * Some DOM helper functions.
+ *
+ * @class SpaceifyDOM
+ */
+
+function SpaceifyDOM()
+{
+var self = this;
+
+self.show = function(elements, status)
+	{
+	var i, ids, elem;
+
+	ids = elements.split(",");
+
+	for (i = 0; i < ids.length; i++)
+		{
+		elem = document.getElementById(ids[i].trim());
+
+		if (elem)
+			elem.style.display = (!status ? "none" : "block");
+		}
+	}
+
+self.empty = function(ids)
+	{
+	var i, ids = ids.split(","), element;
+
+	for (i = 0; i < ids.length; i++)
+		{
+		element = document.getElementById(ids[i].trim());
+
+		while (element.firstChild)
+    		element.removeChild(element.firstChild);
+		}
+	}
+
+self.remove = function(parentId, id)
+	{
+	var parent = document.getElementById(parentId);
+	var element = document.getElementById(id);
+
+	parent.removeChild(element);
+	}
+
+self.value = function(id, value)
+	{
+	var result = null, element = document.getElementById(id);
+
+	if (element)
+		{
+		if (value)
+			{
+			element.value = value;
+			}
+		else
+			{
+			result = element.value;
+			}
+		}
+
+	return result;
+	}
+
+self.focus = function(id)
+	{
+	var element = document.getElementById(id);
+
+	if (element)
+		element.focus();
+	}
+
+self.append = function(id, content)
+	{
+	var element = document.getElementById(id);
+
+	if (element)
+		{
+		if (typeof content == "string")
+			element.appendChild(document.createTextNode(content));
+		else
+			element.appendChild(content);
+		}
+
+	}
+
+}
+
+if (true)
+	module.exports = SpaceifyDOM;
+
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
  * Spaceify Messages, 21.1.2016 Spaceify Oy
  *
  * For Spaceify's internal use. Use only on web pages.
@@ -6867,7 +6969,7 @@ if (true)
 	module.exports = SpaceifyMessages;
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6887,10 +6989,11 @@ var self = this;
 
 var ordinal = 0;
 var showLoadingInstances = 0;
-var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spaceletCount: 0, sandboxedCount: 0, sandboxedDebianCount: 0, nativeDebianCount: 0 };
+var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spacelet_count: 0, sandboxed_count: 0, sandboxed_debian_count: 0, native_debian_count: 0 };
 
-var lib = (window.WEBPACK_LIBRARYNAME ? window.WEBPACK_LIBRARYNAME : window);
+var lib = (window.spe ? window.spe : window);
 
+var spdom = new lib.SpaceifyDOM();
 var core = new lib.SpaceifyCore();
 var utility = new lib.SpaceifyUtility();
 var network = new lib.SpaceifyNetwork();
@@ -6901,48 +7004,58 @@ var config = lib.SpaceifyConfig.getConfig();
 var WWW_PORT = 80;
 var WWW_PORT_SECURE = 443;
 
+var APPTILE = "apptile";
+var APPTILE_ = APPTILE + "_";
+
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
 	{
-	if(show)
+	if (show)
 		{
-		if(showLoadingInstances == 0)
-			$("#loading").show();
+		if (showLoadingInstances == 0)
+			spdom.show([{ id: "loading", status: "block" }]);
+
 		showLoadingInstances++;
 		}
 	else
 		{
 		showLoadingInstances = Math.max(0, --showLoadingInstances);
-		if(showLoadingInstances == 0)
-			$("#loading").hide();
+
+		if (showLoadingInstances == 0)
+			spdom.show([{ id: "loading", status: "none" }]);
 		}
 	}
 
-self.showError = function(msgstr) { alerts(msgstr, "error"); }
-self.showSuccess = function(msgstr) { alerts(msgstr, "success"); }
-var alerts = function(msgstr, type)
+var alertTimerIds = { error: null, success: null };
+self.showError = function(id, msgstr) { alerts(id, msgstr, "error"); }
+self.showSuccess = function(msgstr) { alerts(id, msgstr, "success"); }
+var alerts = function(id, msgstr, type)
 	{
-	var obj;
+	var txt, element = document.getElementById(id);
 
-	if((obj = $("#alerting")).length > 0)
-		obj.remove();
+	if (element)
+		{
+		if (alertTimerIds[type])
+			clearTimeout(alertTimerIds[type]);
 
-	obj = $('<span class="edgeAlert ' + type + '" id="alerting">' + msgstr + '</span>');
-	$(document.body).append(obj);
+		spdom.empty(id);
 
-	obj.css("left", ($(window).width() - obj.width()) / 2);
-	obj.css("visibility", "visible");
+		txt = document.createTextNode(msgstr);
+		element.appendChild(txt);
 
-	window.setTimeout(function() { obj.remove(); }, 5000);
+		element.style.visibility = "visible";
+
+		alertTimerIds[type] = window.setTimeout(function() { element.style.visibility = "hidden"; alertTimerIds[type] = null; }, 5000);
+		}
 	}
 
 var msgFormat = function(msg)
 	{
 	var rmsg = "", i;
 
-	if(self.isArray(msg))
+	if (self.isArray(msg))
 		{
-		for(i = 0; i < msg.length; i++)
+		for (i = 0; i < msg.length; i++)
 			rmsg += (rmsg != "" ? "<br>" : "") + msg[i];
 		}
 	else
@@ -6973,7 +7086,7 @@ self.setSplashAccepted = function()
 	try {
 		core.setSplashAccepted(function(err, data)
 			{
-			if(data && data == true)
+			if (data && data == true)
 				window.location.reload(true);
 			});
 		}
@@ -7003,7 +7116,7 @@ self.adminLogOut = function(loadLaunchPage)
 
 	this.ok = function()
 		{
-		if(loadLaunchPage)
+		if (loadLaunchPage)
 			self.loadLaunchPage();
 		}
 
@@ -7037,33 +7150,30 @@ self.loadSecurePage = function()
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
 self.showInstalledApplications = function(callback)
 	{
-	$("#spacelet").empty();
-	$("#sandboxed").empty();
-	$("#sandboxedDebian").empty();
-	$("#nativeDebian").empty();
+	spdom.empty("spacelet, sandboxed, sandboxed_debian, native_debian");
 
 	var methods = [], j;
 
 	core.getApplicationData(function(err, apps)
 		{
-		if(!apps)
+		if (!apps)
 			return (typeof callback == "function" ? callback() : false);
 
-		for(j = 0; j < apps.spacelet.length; j++)
+		for (j = 0; j < apps.spacelet.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.spacelet[j], null], type: "async"});
 
-		for(j = 0; j < apps.sandboxed.length; j++)
+		for (j = 0; j < apps.sandboxed.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed[j], null], type: "async"});
 
-		for(j = 0; j < apps.sandboxed_debian.length; j++)
+		for (j = 0; j < apps.sandboxed_debian.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed_debian[j], null], type: "async"});
 
-		for(j = 0; j < apps.native_debian.length; j++)
+		for (j = 0; j < apps.native_debian.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.native_debian[j], null], type: "async"});
 
 		new SpaceifySynchronous().waterFall(methods, function()
 			{
-			if(typeof callback == "function")
+			if (typeof callback == "function")
 				callback();
 			});
 		});
@@ -7075,7 +7185,7 @@ self.renderTile = function(manifest, callback)
 	var element, query;
 	var sp_port, host, sp_host, spe_host, sp_path, icon, id;
 
-	if(manifest.hasTile)																			// Application supplies its own tile
+	if (manifest.hasTile)																			// Application supplies its own tile
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
@@ -7083,7 +7193,7 @@ self.renderTile = function(manifest, callback)
 
 			spe_host = network.getEdgeURL({ withEndSlash: true });
 
-			if(appURL.implementsWebServer && sp_port)
+			if (appURL.implementsWebServer && sp_port)
 				{
 				host = spe_host;
 				sp_host = spe_host;
@@ -7096,8 +7206,8 @@ self.renderTile = function(manifest, callback)
 
 			sp_path = config.TILEFILE;
 
-			id = "apptile_" + manifest.unique_name.replace("/", "_");
-			scope("edgeBody").addTile({type: "apptile", container: manifest.type, manifest: manifest, id: id, callback:
+			id = APPTILE_ + manifest.unique_name.replace("/", "_");
+			scope("edgeBody").addTile({type: APPTILE, container: manifest.type, manifest: manifest, id: id, callback:
 				function()
 					{
 					query = {};
@@ -7116,7 +7226,7 @@ self.renderTile = function(manifest, callback)
 		}
 	else																							// Spaceify renders default tile
 		{
-		if((icon = utility.getApplicationIcon(manifest, false)))
+		if ((icon = utility.getApplicationIcon(manifest, false)))
 			{
 			sp_host = network.externalResourceURL(manifest.unique_name, { protocol: "", withEndSlash: true });
 			sp_path = icon;
@@ -7137,37 +7247,39 @@ self.renderTile = function(manifest, callback)
 	addApplication(manifest);
 	}
 
-self.removeTile = function(manifest)
+self.removeTile = function(type, manifest)
 	{
-	var i, length = 0, id = manifest.unique_name.replace(/\//, "_");
-
-	$("#" + id).remove();
+	var id = manifest.unique_name.replace(/\//, "_");
 
 	removeApplication(manifest);
+
+	spdom.show(type + ", " + type + "_header", (applications[type + "_count"] > 0 ? "block" : "none"));
+
+	spdom.remove(type, APPTILE_ + id);
 	}
 
 var addApplication = function(manifest)
 	{
-	if(manifest.type == config.SPACELET)
-		{ applications.spacelet[manifest.unique_name] = manifest; applications.spaceletCount++; }
-	else if(manifest.type == config.SANDBOXED)
-		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxedCount++; }
-	else if(manifest.type == config.SANDBOXED_DEBIAN)
-		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxedDebianCount++; }
-	else if(manifest.type == config.NATIVE_DEBIAN)
-		{ applications.native_debian[manifest.unique_name] = manifest; applications.nativeDebianCount++; }
+	if (manifest.type == config.SPACELET)
+		{ applications.spacelet[manifest.unique_name] = manifest; applications.spacelet_count++; }
+	else if (manifest.type == config.SANDBOXED)
+		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxed_count++; }
+	else if (manifest.type == config.SANDBOXED_DEBIAN)
+		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxed_debian_count++; }
+	else if (manifest.type == config.NATIVE_DEBIAN)
+		{ applications.native_debian[manifest.unique_name] = manifest; applications.native_debian_count++; }
 	}
 
 var removeApplication = function(manifest)
 	{
-	if(manifest.type == config.SPACELET)
-		{ delete applications.spacelet[manifest.unique_name]; applications.spaceletCount--; }
-	else if(manifest.type == config.SANDBOXED)
-		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxedCount--; }
-	else if(manifest.type == config.SANDBOXED_DEBIAN)
-		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxedDebianCount--; }
-	else if(manifest.type == config.NATIVE_DEBIAN)
-		{ delete applications.native_debian[manifest.unique_name]; applications.nativeDebianCount--; }
+	if (manifest.type == config.SPACELET)
+		{ delete applications.spacelet[manifest.unique_name]; applications.spacelet_count--; }
+	else if (manifest.type == config.SANDBOXED)
+		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxed_count--; }
+	else if (manifest.type == config.SANDBOXED_DEBIAN)
+		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxed_debian_count--; }
+	else if (manifest.type == config.NATIVE_DEBIAN)
+		{ delete applications.native_debian[manifest.unique_name]; applications.native_debian_count--; }
 	}
 
 self.getApplications = function()
@@ -7177,12 +7289,12 @@ self.getApplications = function()
 
 }
 
-if(true)
+if (true)
 	module.exports = SpaceifyNet;
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7272,7 +7384,7 @@ if(true)
 	module.exports = SpaceifySynchronous;
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7355,7 +7467,7 @@ if(true)
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7601,7 +7713,7 @@ if (true)
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -7629,7 +7741,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7677,7 +7789,7 @@ if (true)
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = function()
@@ -7695,14 +7807,14 @@ self.make = function()
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(__dirname) {
 
 var fs = __webpack_require__(0);
-var module_ = __webpack_require__(46);
+var module_ = __webpack_require__(47);
 
 var config = (new module_()).make();
 
@@ -7711,15 +7823,15 @@ fs.writeFileSync(__dirname + "/../../libs/spaceify.config.js", config, "utf8");
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
 	"./config.js": 5,
 	"./spaceifyconfig.js": 3,
 	"./spebaseconfig.js": 10,
-	"./speconfig.js": 45,
-	"./webpack/make.config.js": 47
+	"./speconfig.js": 46,
+	"./webpack/make.config.js": 48
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7735,11 +7847,11 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 48;
+webpackContext.id = 49;
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 function webpackEmptyContext(req) {
@@ -7748,32 +7860,7 @@ function webpackEmptyContext(req) {
 webpackEmptyContext.keys = function() { return []; };
 webpackEmptyContext.resolve = webpackEmptyContext;
 module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 49;
-
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var map = {
-	"./logger": 6,
-	"./spaceifylogger": 8
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 50;
+webpackEmptyContext.id = 50;
 
 
 /***/ }),
@@ -7781,8 +7868,8 @@ webpackContext.id = 50;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./service": 18,
-	"./spaceifyservice": 9
+	"./logger": 6,
+	"./spaceifylogger": 8
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7806,7 +7893,8 @@ webpackContext.id = 51;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifynetwork": 20
+	"./service": 18,
+	"./spaceifyservice": 9
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7830,7 +7918,7 @@ webpackContext.id = 52;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyservice": 9
+	"./spaceifynetwork": 20
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7851,23 +7939,10 @@ webpackContext.id = 53;
 
 /***/ }),
 /* 54 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 54;
-
-
-/***/ }),
-/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./webjsonrpc/websocketrpcserver": 27
+	"./spaceifyservice": 9
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7883,7 +7958,20 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 55;
+webpackContext.id = 54;
+
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 55;
 
 
 /***/ }),
@@ -7891,7 +7979,7 @@ webpackContext.id = 55;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./callbackbuffer": 23
+	"./webjsonrpc/websocketrpcserver": 27
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7912,15 +8000,26 @@ webpackContext.id = 56;
 
 /***/ }),
 /* 57 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 57;
+var map = {
+	"./callbackbuffer": 23
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 57;
 
 
 /***/ }),
@@ -7938,26 +8037,15 @@ webpackEmptyContext.id = 58;
 
 /***/ }),
 /* 59 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./websocketrpcconnection": 12
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 59;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 59;
 
 
 /***/ }),
@@ -7965,7 +8053,7 @@ webpackContext.id = 59;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./websocketserver": 28
+	"./websocketrpcconnection": 12
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -7986,21 +8074,39 @@ webpackContext.id = 60;
 
 /***/ }),
 /* 61 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_61__;
+var map = {
+	"./websocketserver": 28
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 61;
+
 
 /***/ }),
 /* 62 */
 /***/ (function(module, exports) {
 
-module.exports = require("child_process");
+module.exports = __WEBPACK_EXTERNAL_MODULE_62__;
 
 /***/ }),
 /* 63 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_63__;
+module.exports = require("child_process");
 
 /***/ }),
 /* 64 */
@@ -8040,6 +8146,12 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_69__;
 
 /***/ }),
 /* 70 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_70__;
+
+/***/ }),
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports =
@@ -8050,24 +8162,25 @@ Logger: __webpack_require__(6),
 SpaceifyError: __webpack_require__(7),
 SpaceifyLogger: __webpack_require__(8),
 
+SpaceifyDOM: __webpack_require__(39),
 Service: __webpack_require__(18),
 SpaceifyApplication: __webpack_require__(36),
 SpaceifyApplicationManager: __webpack_require__(37),
 SpaceifyCache: __webpack_require__(38),
 SpaceifyConfig: __webpack_require__(3),
 SpaceifyCore: __webpack_require__(19),
-SpaceifyMessages: __webpack_require__(39),
-SpaceifyNet: __webpack_require__(40),
+SpaceifyMessages: __webpack_require__(40),
+SpaceifyNet: __webpack_require__(41),
 SpaceifyNetwork: __webpack_require__(20),
 SpaceifyService: __webpack_require__(9),
-SpaceifySynchronous: __webpack_require__(41),
+SpaceifySynchronous: __webpack_require__(42),
 SpaceifyUnique: __webpack_require__(21),
 SpaceifyUtility: __webpack_require__(22),
-Spacelet: __webpack_require__(42),
+Spacelet: __webpack_require__(43),
 //BinaryRpcCommunicator: require("./webjsonrpc/binaryrpccommunicator.js"),
 CallbackBuffer: __webpack_require__(23),
 RpcCommunicator: __webpack_require__(25),
-WebRtcClient: __webpack_require__(43),
+WebRtcClient: __webpack_require__(44),
 WebRtcConnection: __webpack_require__(26),
 WebSocketConnection: __webpack_require__(11),
 WebSocketRpcConnection: __webpack_require__(12),
@@ -8085,6 +8198,7 @@ Connection: __webpack_require__(24)
 
 (function spaceifyClasses(){
 window.Logger = spe.Logger;
+window.SpaceifyDOM = spe.SpaceifyDOM;
 window.Service = spe.Service;
 window.SpaceifyApplication = spe.SpaceifyApplication;
 window.SpaceifyApplicationManager = spe.SpaceifyApplicationManager;

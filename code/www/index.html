@@ -18,8 +18,8 @@
 		<!-- -->
 
 		<!-- -->
-		<script src="libs/spaceify.loader.bundle.js"></script>
-		<script spe_src="libs/spaceify.edge.bundle.js"></script>
+		<script src="libs/spaceify.loader.js"></script>
+		<script spe_src="libs/spaceify.edge.js"></script>
 		<!-- -->
 
 		<script>
@@ -28,21 +28,24 @@
 		var sam = null;
 		var core = null;
 		var sync = null;
+		var spdom = null;
 		var config = null;
 		var network = null;
+		var spaceifyApp = null;
 
 		window.addEventListener("spaceifyReady", function()
 			{
+			spaceifyApp = new SpaceifyApp();
 			angular.bootstrap(document, ["spaceifyApp"]);
 
-			window.spaceifyCache = new SpaceifyCache();
-
 			net = new SpaceifyNet();
+			spdom = new SpaceifyDOM();
 			core = new SpaceifyCore();
 			config = new SpaceifyConfig();
 			network = new SpaceifyNetwork();
 			sync = new SpaceifySynchronous();
 			sam = new SpaceifyApplicationManager();
+			window.spaceifyCache = new SpaceifyCache();
 
 			config.initialize("");
 
@@ -56,12 +59,13 @@
 				{
 				var apps = net.getApplications();
 
-				$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
-				$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
-				$("#sandboxed_debian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
-				$("#native_debian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
-
-				jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader, #edgeBody").css("display", "block");
+				spdom.show("spacelet, spacelet_header", (apps.spacelet_count > 0 ? true : false));
+				spdom.show("sandboxed, sandboxed_header", (apps.sandboxed_count > 0 ? true : false));
+				spdom.show("sandboxed_debian, sandboxed_debian_header", (apps.sandboxed_debian_count > 0 ? true : false));
+				spdom.show("native_debian, native_debian_header", (apps.native_debian_count > 0 ? true : false));
+				spdom.show("userUtilities, userUtilitiesHeader", true);
+				spdom.show("adminUtilities, adminUtilitiesHeader", true);
+				spdom.show("edgeBody", true);
 
 				core.setEventListeners(	[
 					config.EVENT_SPACELET_INSTALLED,
@@ -88,7 +92,7 @@
 
 			sam.isAdminLoggedIn(this, function(status)
 				{
-				$("#adminlogout").css("display", (status ? "block" : "none"));
+				spdom.show("adminlogout", (status ? true : false));
 				});
 			});
 
@@ -96,56 +100,56 @@
 		function spaceletInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#spacelet, #spaceletHeader").css("display", "block");
+			spdom.show("spacelet, spacelet_header", true);
 			callback(null, true);
 			}
 
 		function spaceletRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+			net.removeTile("spacelet", result.manifest);
+			
 			callback(null, true);
 			}
 
 		function sandboxedInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#sandboxed, #sandboxedHeader").css("display", "block");
+			spdom.show("sandboxed, sandboxed_header", true);
 			callback(null, true);
 			}
 
 		function sandboxedRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+			net.removeTile("sandboxed", result.manifest);
+
 			callback(null, true);
 			}
 
 		function sandboxedDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#sandboxed_debian, #sandboxedDebianHeader").css("display", "block");
+			spdom.show("sandboxed_debian, sandboxed_debian_header", true);
 			callback(null, true);
 			}
 
 		function sandboxedDebianRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#sandboxed_debian, #sandboxedDebianHeader").css("display", (apps.sandboxedDebianCount > 0 ? "block" : "none"));
+			net.removeTile("sandboxed_debian", result.manifest);
+
 			callback(null, true);
 			}
 
 		function nativeDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#native_debian, #nativeDebianHeader").css("display", "block");
+			spdom.show("native_debian, native_debian_header", true);
 			callback(null, true);
 			}
 
 		function nativeDebianRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#native_debian, #nativeDebianHeader").css("display", (apps.nativeDebianCount > 0 ? "block" : "none"));
+			net.removeTile("native_debian", result.manifest);
+
 			callback(null, true);
 			}
 
@@ -155,19 +159,13 @@
 			net.renderTile(manifest, function(){ });
 			}
 
-		function removeTile(manifest)
-			{
-			net.removeTile(manifest);
-			return net.getApplications();
-			}
-
 		function loadAppstorePage()
 			{
 			var url = "https://" + window.location.hostname + "/";
 			spaceifyLoader.loadResource(config.LOCATION_FILE, 443, url, url, function(result)
 				{
 				if (result.crtErr)
-					$("#certificateerror").css("display", "block");
+					spdom.show("certificateerror", true);
 				else
 					net.loadAppstorePage();
 				});
@@ -197,7 +195,7 @@
 					<p>
 					<button class="edgeButton inrow" onclick="net.loadCertificate();">{{ getString("global", "btn_install") }}</button>
 					<button class="edgeButton inrow" onclick="net.loadSecurePage();">{{ getString("global", "btn_reload") }}</button>
-					<button class="edgeButton" onclick="$('#certificateerror').css('display', 'none');">{{ getString("global", "btn_cancel") }}</button>
+					<button class="edgeButton" onclick="spdom.show('certificateerror', false);">{{ getString("global", "btn_cancel") }}</button>
 
 					<div class="breaker"></div>
 					<div class="edgeSmallInfo">
@@ -209,22 +207,22 @@
 				<the-tiles></the-tiles>
 
 				<!-- SPACELETS -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="spaceletHeader" style="display: none;">{{ getString('index', 'spacelets') }}</h5>
+				<h5 class="edgeH H3" id="spacelet_header" style="display: none;">{{ getString('index', 'spacelets') }}</h5>
 				<div id="spacelet" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- SANDBOXED -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="sandboxedHeader" style="display: none;">{{ getString('index', 'sandboxed') }}</h5>
+				<h5 class="edgeH H3" id="sandboxed_header" style="display: none;">{{ getString('index', 'sandboxed') }}</h5>
 				<div id="sandboxed" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="sandboxedDebianHeader" style="display: none;">{{ getString('index', 'sandboxed_debian') }}</h5>
+				<h5 class="edgeH H3" id="sandboxed_debian_header" style="display: none;">{{ getString('index', 'sandboxed_debian') }}</h5>
 				<div id="sandboxed_debian" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- NATIVE DEBIAN -->
-				<h5 class="edgeH H3" id="nativeDebianHeader" style="display: none;">{{ getString('index', 'native_debian') }}</h5>
+				<h5 class="edgeH H3" id="native_debian_header" style="display: none;">{{ getString('index', 'native_debian') }}</h5>
 				<div id="native_debian" style="display: none;"></div>
 				<div class="breaker"></div>
 

@@ -1,6 +1,19 @@
+"use strict";
+
+/**
+ * SpaceifyApp, 8.11.2017 Spaceify Oy
+ *
+ * Angular for Spaceify
+ *
+ * @class SpaceifyApp
+ */
+
 function SpaceifyApp()
 {
 var self = this;
+
+var lib = (window.spe ? window.spe : window);
+var sdom = new lib.SpaceifyDOM();
 
 var spaceifyApp = window.angular.module("spaceifyApp", []);
 
@@ -36,7 +49,7 @@ spaceifyApp.controller("bodyController", ["$scope", "$window", "$compile", "$tim
 			{
 			var content = $compile(window.spetiles[detail.type])($scope);	// compile, bind to scope and append
 
-			$("#" + detail.container).append(content[0]);
+			sdom.append(detail.container, content[0]);
 
 			if(typeof detail.callback == "function")
 				$timeout(detail.callback, 0);
@@ -109,4 +122,5 @@ self.bootstrap = function()
 var spelocale = self.getCookie("locale") || "en_US";
 }
 
-var spaceifyApp = new SpaceifyApp();
+if(typeof exports !== "undefined")
+	module.exports = SpaceifyApp;

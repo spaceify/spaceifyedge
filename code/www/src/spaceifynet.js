@@ -14,10 +14,11 @@ var self = this;
 
 var ordinal = 0;
 var showLoadingInstances = 0;
-var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spaceletCount: 0, sandboxedCount: 0, sandboxedDebianCount: 0, nativeDebianCount: 0 };
+var applications = { spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}, spacelet_count: 0, sandboxed_count: 0, sandboxed_debian_count: 0, native_debian_count: 0 };
 
-var lib = (window.WEBPACK_LIBRARYNAME ? window.WEBPACK_LIBRARYNAME : window);
+var lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
+var spdom = new lib.SpaceifyDOM();
 var core = new lib.SpaceifyCore();
 var utility = new lib.SpaceifyUtility();
 var network = new lib.SpaceifyNetwork();
@@ -28,48 +29,58 @@ var config = lib.SpaceifyConfig.getConfig();
 var WWW_PORT = 80;
 var WWW_PORT_SECURE = 443;
 
+var APPTILE = "apptile";
+var APPTILE_ = APPTILE + "_";
+
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
 	{
-	if(show)
+	if (show)
 		{
-		if(showLoadingInstances == 0)
-			$("#loading").show();
+		if (showLoadingInstances == 0)
+			spdom.show([{ id: "loading", status: "block" }]);
+
 		showLoadingInstances++;
 		}
 	else
 		{
 		showLoadingInstances = Math.max(0, --showLoadingInstances);
-		if(showLoadingInstances == 0)
-			$("#loading").hide();
+
+		if (showLoadingInstances == 0)
+			spdom.show([{ id: "loading", status: "none" }]);
 		}
 	}
 
-self.showError = function(msgstr) { alerts(msgstr, "error"); }
-self.showSuccess = function(msgstr) { alerts(msgstr, "success"); }
-var alerts = function(msgstr, type)
+var alertTimerIds = { error: null, success: null };
+self.showError = function(id, msgstr) { alerts(id, msgstr, "error"); }
+self.showSuccess = function(msgstr) { alerts(id, msgstr, "success"); }
+var alerts = function(id, msgstr, type)
 	{
-	var obj;
+	var txt, element = document.getElementById(id);
 
-	if((obj = $("#alerting")).length > 0)
-		obj.remove();
+	if (element)
+		{
+		if (alertTimerIds[type])
+			clearTimeout(alertTimerIds[type]);
 
-	obj = $('<span class="edgeAlert ' + type + '" id="alerting">' + msgstr + '</span>');
-	$(document.body).append(obj);
+		spdom.empty(id);
 
-	obj.css("left", ($(window).width() - obj.width()) / 2);
-	obj.css("visibility", "visible");
+		txt = document.createTextNode(msgstr);
+		element.appendChild(txt);
 
-	window.setTimeout(function() { obj.remove(); }, 5000);
+		element.style.visibility = "visible";
+
+		alertTimerIds[type] = window.setTimeout(function() { element.style.visibility = "hidden"; alertTimerIds[type] = null; }, 5000);
+		}
 	}
 
 var msgFormat = function(msg)
 	{
 	var rmsg = "", i;
 
-	if(self.isArray(msg))
+	if (self.isArray(msg))
 		{
-		for(i = 0; i < msg.length; i++)
+		for (i = 0; i < msg.length; i++)
 			rmsg += (rmsg != "" ? "<br>" : "") + msg[i];
 		}
 	else
@@ -100,7 +111,7 @@ self.setSplashAccepted = function()
 	try {
 		core.setSplashAccepted(function(err, data)
 			{
-			if(data && data == true)
+			if (data && data == true)
 				window.location.reload(true);
 			});
 		}
@@ -130,7 +141,7 @@ self.adminLogOut = function(loadLaunchPage)
 
 	this.ok = function()
 		{
-		if(loadLaunchPage)
+		if (loadLaunchPage)
 			self.loadLaunchPage();
 		}
 
@@ -164,33 +175,30 @@ self.loadSecurePage = function()
 	// APPLICATIONS -- -- -- -- -- -- -- -- -- -- //
 self.showInstalledApplications = function(callback)
 	{
-	$("#spacelet").empty();
-	$("#sandboxed").empty();
-	$("#sandboxedDebian").empty();
-	$("#nativeDebian").empty();
+	spdom.empty("spacelet, sandboxed, sandboxed_debian, native_debian");
 
 	var methods = [], j;
 
 	core.getApplicationData(function(err, apps)
 		{
-		if(!apps)
+		if (!apps)
 			return (typeof callback == "function" ? callback() : false);
 
-		for(j = 0; j < apps.spacelet.length; j++)
+		for (j = 0; j < apps.spacelet.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.spacelet[j], null], type: "async"});
 
-		for(j = 0; j < apps.sandboxed.length; j++)
+		for (j = 0; j < apps.sandboxed.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed[j], null], type: "async"});
 
-		for(j = 0; j < apps.sandboxed_debian.length; j++)
+		for (j = 0; j < apps.sandboxed_debian.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.sandboxed_debian[j], null], type: "async"});
 
-		for(j = 0; j < apps.native_debian.length; j++)
+		for (j = 0; j < apps.native_debian.length; j++)
 			methods.push({object: self, method: self.renderTile, params: [apps.native_debian[j], null], type: "async"});
 
 		new SpaceifySynchronous().waterFall(methods, function()
 			{
-			if(typeof callback == "function")
+			if (typeof callback == "function")
 				callback();
 			});
 		});
@@ -202,7 +210,7 @@ self.renderTile = function(manifest, callback)
 	var element, query;
 	var sp_port, host, sp_host, spe_host, sp_path, icon, id;
 
-	if(manifest.hasTile)																			// Application supplies its own tile
+	if (manifest.hasTile)																			// Application supplies its own tile
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
@@ -210,7 +218,7 @@ self.renderTile = function(manifest, callback)
 
 			spe_host = network.getEdgeURL({ withEndSlash: true });
 
-			if(appURL.implementsWebServer && sp_port)
+			if (appURL.implementsWebServer && sp_port)
 				{
 				host = spe_host;
 				sp_host = spe_host;
@@ -223,8 +231,8 @@ self.renderTile = function(manifest, callback)
 
 			sp_path = config.TILEFILE;
 
-			id = "apptile_" + manifest.unique_name.replace("/", "_");
-			scope("edgeBody").addTile({type: "apptile", container: manifest.type, manifest: manifest, id: id, callback:
+			id = APPTILE_ + manifest.unique_name.replace("/", "_");
+			scope("edgeBody").addTile({type: APPTILE, container: manifest.type, manifest: manifest, id: id, callback:
 				function()
 					{
 					query = {};
@@ -243,7 +251,7 @@ self.renderTile = function(manifest, callback)
 		}
 	else																							// Spaceify renders default tile
 		{
-		if((icon = utility.getApplicationIcon(manifest, false)))
+		if ((icon = utility.getApplicationIcon(manifest, false)))
 			{
 			sp_host = network.externalResourceURL(manifest.unique_name, { protocol: "", withEndSlash: true });
 			sp_path = icon;
@@ -264,37 +272,39 @@ self.renderTile = function(manifest, callback)
 	addApplication(manifest);
 	}
 
-self.removeTile = function(manifest)
+self.removeTile = function(type, manifest)
 	{
-	var i, length = 0, id = manifest.unique_name.replace(/\//, "_");
-
-	$("#" + id).remove();
+	var id = manifest.unique_name.replace(/\//, "_");
 
 	removeApplication(manifest);
+
+	spdom.show(type + ", " + type + "_header", (applications[type + "_count"] > 0 ? "block" : "none"));
+
+	spdom.remove(type, APPTILE_ + id);
 	}
 
 var addApplication = function(manifest)
 	{
-	if(manifest.type == config.SPACELET)
-		{ applications.spacelet[manifest.unique_name] = manifest; applications.spaceletCount++; }
-	else if(manifest.type == config.SANDBOXED)
-		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxedCount++; }
-	else if(manifest.type == config.SANDBOXED_DEBIAN)
-		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxedDebianCount++; }
-	else if(manifest.type == config.NATIVE_DEBIAN)
-		{ applications.native_debian[manifest.unique_name] = manifest; applications.nativeDebianCount++; }
+	if (manifest.type == config.SPACELET)
+		{ applications.spacelet[manifest.unique_name] = manifest; applications.spacelet_count++; }
+	else if (manifest.type == config.SANDBOXED)
+		{ applications.sandboxed[manifest.unique_name] = manifest; applications.sandboxed_count++; }
+	else if (manifest.type == config.SANDBOXED_DEBIAN)
+		{ applications.sandboxed_debian[manifest.unique_name] = manifest; applications.sandboxed_debian_count++; }
+	else if (manifest.type == config.NATIVE_DEBIAN)
+		{ applications.native_debian[manifest.unique_name] = manifest; applications.native_debian_count++; }
 	}
 
 var removeApplication = function(manifest)
 	{
-	if(manifest.type == config.SPACELET)
-		{ delete applications.spacelet[manifest.unique_name]; applications.spaceletCount--; }
-	else if(manifest.type == config.SANDBOXED)
-		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxedCount--; }
-	else if(manifest.type == config.SANDBOXED_DEBIAN)
-		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxedDebianCount--; }
-	else if(manifest.type == config.NATIVE_DEBIAN)
-		{ delete applications.native_debian[manifest.unique_name]; applications.nativeDebianCount--; }
+	if (manifest.type == config.SPACELET)
+		{ delete applications.spacelet[manifest.unique_name]; applications.spacelet_count--; }
+	else if (manifest.type == config.SANDBOXED)
+		{ delete applications.sandboxed[manifest.unique_name]; applications.sandboxed_count--; }
+	else if (manifest.type == config.SANDBOXED_DEBIAN)
+		{ delete applications.sandboxed_debian[manifest.unique_name]; applications.sandboxed_debian_count--; }
+	else if (manifest.type == config.NATIVE_DEBIAN)
+		{ delete applications.native_debian[manifest.unique_name]; applications.native_debian_count--; }
 	}
 
 self.getApplications = function()
@@ -304,5 +314,5 @@ self.getApplications = function()
 
 }
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = SpaceifyNet;

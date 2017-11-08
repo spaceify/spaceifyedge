@@ -6,6 +6,7 @@ Logger: require("./logger.js"),
 SpaceifyError: require("./spaceifyerror.js"),
 SpaceifyLogger: require('./spaceifylogger.js'),
 
+SpaceifyDOM: require("./spaceifydom.js"),
 Service: require("./service.js"),
 SpaceifyApplication: require("./spaceifyapplication.js"),
 SpaceifyApplicationManager: require("./spaceifyapplicationmanager.js"),

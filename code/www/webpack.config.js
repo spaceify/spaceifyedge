@@ -61,7 +61,7 @@ if (process.env.WEBPACK_MODE === "edge-prod")
 	config.output.filename = "spaceify.edge.js";
 	config.entry = "./src/spaceify.edge.common.js";
 
-	spaceifyPluginOptions.prepend = ["angular-1.5.3.min.js", "jquery.min.js"],
+	spaceifyPluginOptions.prepend = ["angular-1.5.3.min.js"],
 	spaceifyPluginOptions.append = ["config.module.js", "locales.module.js", "tiles.module.js", "classes.js"]
 	}
 else if (process.env.WEBPACK_MODE === "edge-bundle")
@@ -69,7 +69,7 @@ else if (process.env.WEBPACK_MODE === "edge-bundle")
 	config.output.filename = "spaceify.edge.bundle.js";
 	config.entry = "./src/spaceify.edge.common.js";
 
-	spaceifyPluginOptions.prepend = ["angular-1.5.3.min.js", "jquery.min.js"],
+	spaceifyPluginOptions.prepend = ["angular-1.5.3.min.js"],
 	spaceifyPluginOptions.append = ["config.module.js", "locales.module.js", "tiles.module.js", "classes.js"]
 	}
 else if (process.env.WEBPACK_MODE === "api-prod")
@@ -86,22 +86,6 @@ else if (process.env.WEBPACK_MODE === "api-bundle")
 	config.entry = "./src/spaceify.api.common.js";
 
 	spaceifyPluginOptions.prepend = [];
-	spaceifyPluginOptions.append = ["config.module.js", "classes.js"];
-	}
-else if (process.env.WEBPACK_MODE === "api-prod-jquery")
-	{
-	config.output.filename = "spaceify.api.jquery.js";
-	config.entry = "./src/spaceify.api.common.js";
-
-	spaceifyPluginOptions.prepend = ["jquery.min.js"];
-	spaceifyPluginOptions.append = ["config.module.js", "classes.js"];
-	}
-else if (process.env.WEBPACK_MODE === "api-bundle-jquery")
-	{
-	config.output.filename = "spaceify.api.jquery.bundle.js";
-	config.entry = "./src/spaceify.api.common.js";
-
-	spaceifyPluginOptions.prepend = ["jquery.min.js"];
 	spaceifyPluginOptions.append = ["config.module.js", "classes.js"];
 	}
 
