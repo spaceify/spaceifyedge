@@ -275,7 +275,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				// Start applications in reverse order they were installed
 			startOrder.push({unique_name: manifest.getUniqueName(), type: manifest.getType(), isDevelop: develop});
 
-				// The depencies must not be installed in develop mode
+				// The dependencies must not be installed in develop mode
 			develop = false;
 
 				// Check does the package have suggested applications in required_services.
