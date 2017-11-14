@@ -14,7 +14,7 @@
 		<link rel="stylesheet" spe_href="css/spaceify.edge.css" type="text/css">
 		<link rel="stylesheet" spe_href="css/styles.css" type="text/css">
 
-		<title ng-bind="$root.getString('index', 'title')">Loading...</title>
+		<title>Loading...</title>
 		<!-- -->
 
 		<!-- -->
@@ -26,6 +26,7 @@
 		var session;
 		var net = null;
 		var sam = null;
+		var lang = null;
 		var core = null;
 		var sync = null;
 		var spdom = null;
@@ -35,12 +36,10 @@
 
 		window.addEventListener("spaceifyReady", function()
 			{
-			spaceifyApp = new SpaceifyApp();
-			angular.bootstrap(document, ["spaceifyApp"]);
-
 			net = new SpaceifyNet();
 			spdom = new SpaceifyDOM();
 			core = new SpaceifyCore();
+			lang = new SpaceifyLanguage();
 			config = new SpaceifyConfig();
 			network = new SpaceifyNetwork();
 			sync = new SpaceifySynchronous();
@@ -48,6 +47,8 @@
 			window.spaceifyCache = new SpaceifyCache();
 
 			config.initialize("");
+
+			lang.processDocument("edgeBody", "data-language", {title: {section: "index", index: "title"}});
 
 			if((session = network.getCookie(config.SESSION_TOKEN_NAME_COOKIE)))
 				{
@@ -173,13 +174,13 @@
 		</script>
 	</head>
 
-	<body id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
+	<body id="edgeBody" style="display: none;">
 
 		<div class="topBar">
 			<a class="topBarLogoLink" routerLink="/intro"><img spe_src="images/icon-80p.png" alt="" /></a>
 			<div class="topBarLogoText">Spaceify Edge</div>
-			<a class="topBarPageLink" onclick="loadAppstorePage();"><img spe_src="images/settings.png" alt="" title="{{ getString('index', 'open_admin_tools') }}" /></a>
-			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(true); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" title="{{ getString('index', 'logout') }}" /></a>
+			<a class="topBarPageLink" onclick="loadAppstorePage();"><img spe_src="images/settings.png" alt="" data-language="title>global.open_appstore" /></a>
+			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" /></a>
 		</div>
 
 		<div class="large_background_footer">&nbsp;</div>
@@ -190,45 +191,43 @@
 
 				<!-- CERTIFICATE ERROR -->
 				<div id="certificateerror" class="edgeInfo" style="display: none;">
-					{{ getString("global", "certificate_error") }} {{ getString("global", "certificate_error_cancel") }}
+					<span data-language="global.certificate_error: :global.certificate_error_cancel"></span>
 
 					<p>
-					<button class="edgeButton inrow" onclick="net.loadCertificate();">{{ getString("global", "btn_install") }}</button>
-					<button class="edgeButton inrow" onclick="net.loadSecurePage();">{{ getString("global", "btn_reload") }}</button>
-					<button class="edgeButton" onclick="spdom.show('certificateerror', false);">{{ getString("global", "btn_cancel") }}</button>
+					<button class="edgeButton inrow" data-language="global.btn_install" onclick="net.loadCertificate();"></button>
+					<button class="edgeButton inrow" data-language="global.btn_reload" onclick="net.loadSecurePage();"></button>
+					<button class="edgeButton" data-language="global.btn_cancel" onclick="spdom.show('certificateerror', false);"></button>
 
 					<div class="breaker"></div>
-					<div class="edgeSmallInfo">
-						{{ getString("global", "delete_certificate") }}
-					</div>
+					<div class="edgeSmallInfo" data-language="global.delete_certificate"></div>
 				</div>
 
 				<!-- VIEW -->
 				<the-tiles></the-tiles>
 
 				<!-- SPACELETS -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="spacelet_header" style="display: none;">{{ getString('index', 'spacelets') }}</h5>
+				<h5 class="edgeH H3" id="spacelet_header" data-language="index.spacelets" style="display: none;"></h5>
 				<div id="spacelet" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- SANDBOXED -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="sandboxed_header" style="display: none;">{{ getString('index', 'sandboxed') }}</h5>
+				<h5 class="edgeH H3" id="sandboxed_header" data-language="index.sandboxed" style="display: none;"></h5>
 				<div id="sandboxed" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
-				<h5 class="edgeH H3" id="sandboxed_debian_header" style="display: none;">{{ getString('index', 'sandboxed_debian') }}</h5>
+				<h5 class="edgeH H3" id="sandboxed_debian_header" data-language="index.sandboxed_debian" style="display: none;"></h5>
 				<div id="sandboxed_debian" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- NATIVE DEBIAN -->
-				<h5 class="edgeH H3" id="native_debian_header" style="display: none;">{{ getString('index', 'native_debian') }}</h5>
+				<h5 class="edgeH H3" id="native_debian_header" data-language="index.native_debian" style="display: none;"></h5>
 				<div id="native_debian" style="display: none;"></div>
 				<div class="breaker"></div>
 
 				<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
 				<!--
-				<h5 class="edgeH H3" id="userUtilitiesHeader" style="display: none;">{{ getString('index', 'user_utilities') }}</h5>
+				<h5 class="edgeH H3" id="userUtilitiesHeader" data-language="index.user_utilities" style="display: none;"></h5>
 				<div id="userUtilities" style="display: none;">
 
 					<!-- CERTIFICATE TILE -- >
@@ -236,8 +235,7 @@
 
 						<img id="installCertificateId" spe_src="images/certificate.png" width="64" height="64">
 
-						<div class="edgeText">
-							{{ getString('index', 'install_certificate_title') }}
+						<div class="edgeText" data-language="index.install_certificate_title">
 						</div>
 
 						<div class="edgeText edgeSubText">
@@ -252,7 +250,7 @@
 
 				<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
 				<!--
-				<h5 class="edgeH H3" id="adminUtilitiesHeader" style="display: none;">{{ getString('index', 'admin_utilities') }}</h5>
+				<h5 class="edgeH H3" id="adminUtilitiesHeader" data-language="index.admin_utilities" style="display: none;"></h5>
 				<div id="adminUtilities" style="display: none;">
 
 					<! -- LOG IN || ADMIN TILE -- >
@@ -260,8 +258,7 @@
 
 						<img id="adminLogInId" spe_src="images/settings.png" width="64" height="64">
 
-						<div class="edgeText">
-							{{ getString('index', 'admin_tile_title') }}
+						<div class="edgeText" data-language="index.admin_tile_title">
 						</div>
 
 						<div class="edgeText edgeSubText">
@@ -284,9 +281,8 @@
 			<div class="footerContentLeft">
 				<img id="32pxc" sp_src="images/by-nc-nd_eu.png" width="91" height="32">
 			</div>
-			<div class="footerContentLeft">
-				<span>{{  getString('global', 'copyright') }}</span>
-			</div>
+
+			<div class="footerContentLeft" data-language="global.copyright"></div>
 		</div>
 
 	</body>

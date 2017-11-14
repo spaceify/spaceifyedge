@@ -155,7 +155,7 @@ var start = function(application_, options)
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_80"] : null);
-					httpServer.setSessionManager(null, config.SESSION_TOKEN_NAME);
+					httpServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
 					httpServer.listen.sync(opts);
 
 					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
@@ -168,7 +168,7 @@ var start = function(application_, options)
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_443"] : null);
-					httpsServer.setSessionManager(null, config.SESSION_TOKEN_NAME);
+					httpsServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
 					httpsServer.listen.sync(opts);
 
 					HTTPS_PORT = httpsServer.getPort();

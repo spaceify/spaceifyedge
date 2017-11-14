@@ -86,7 +86,7 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 		forward="$forward1\n$forward2\n"
 		appman="" # "$appman1\n$appman2\n"
 
-		sed -i "s/^exit.*/$start_spaceify\n$mangle\n$http\n$https\n$docker\n$appman\n$end_spaceify\nexit 0/" /etc/rc.local
+		sed -i "s/^exit.*/$start_spaceify\n$mangle\n$http\n$https\n$docker\n$forward\n$appman\n$end_spaceify\nexit 0/" /etc/rc.local
 
 	else
 

@@ -108,8 +108,6 @@ var language =
 	"E_AUTHENTICATION_FAILED": new SpaceifyError({"code": 7013, "message": "Authentication failed."}),
 	"E_ONLY_SANDBOXED_OR_SPACELET": new SpaceifyError({"code": 7014, "message": "Only sandboxed applications and spacelets can be installed in develop mode."}),
 
-	"INSTALLED_IN_DEVELOP_MODE": "Develop mode applications and spacelets are not started automatically. Start them manually.",
-
 	// Manager
 	"E_START_INIT_FAILED": new SpaceifyError({"code": 8000, "message": "~type failed to initialize itself. ~err"}),
 	"E_INSTALL_READ_MANIFEST_FAILED": new SpaceifyError({"code": 8003, "message": "Unable to read/parse manifest of ~type ~unique_name."}),

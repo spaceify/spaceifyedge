@@ -1,5 +1,6 @@
 (function spaceifyClasses(){
 window.Logger = spe.Logger;
+window.SpaceifyLanguage = spe.SpaceifyLanguage;
 window.SpaceifyDOM = spe.SpaceifyDOM;
 window.Service = spe.Service;
 window.SpaceifyApplication = spe.SpaceifyApplication;
@@ -24,5 +25,4 @@ window.WebRtcConnection = spe.WebRtcConnection;
 window.WebSocketConnection = spe.WebSocketConnection;
 window.WebSocketRpcConnection = spe.WebSocketRpcConnection;
 window.WebSocketRpcServer = spe.WebSocketRpcServer;
-window.WebSocketServer = spe.WebSocketServer;
-window.SpaceifyApp = spe.SpaceifyApp;})();
+window.WebSocketServer = spe.WebSocketServer})();

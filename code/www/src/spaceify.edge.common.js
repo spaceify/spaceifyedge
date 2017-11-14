@@ -7,6 +7,7 @@ SpaceifyError: require("./spaceifyerror.js"),
 SpaceifyLogger: require('./spaceifylogger.js'),
 
 SpaceifyDOM: require("./spaceifydom.js"),
+SpaceifyLanguage: require("./spaceifylanguage.js"),
 Service: require("./service.js"),
 SpaceifyApplication: require("./spaceifyapplication.js"),
 SpaceifyApplicationManager: require("./spaceifyapplicationmanager.js"),
@@ -30,7 +31,5 @@ WebSocketConnection: require("./webjsonrpc/websocketconnection.js"),
 WebSocketRpcConnection: require("./webjsonrpc/websocketrpcconnection.js"),
 WebSocketRpcServer: require("./webjsonrpc/websocketrpcserver.js"),
 WebSocketServer: require("./webjsonrpc/websocketserver.js"),
-Connection: require("./webjsonrpc/connection.js"),
-SpaceifyApp: require("./spaceify.angular.js")
+Connection: require("./webjsonrpc/connection.js")
 };
-

@@ -29,6 +29,7 @@ var config = lib.SpaceifyConfig.getConfig();
 var WWW_PORT = 80;
 var WWW_PORT_SECURE = 443;
 
+var TILE = "tile";
 var APPTILE = "apptile";
 var APPTILE_ = APPTILE + "_";
 
@@ -100,11 +101,6 @@ self.isArray = function(obj)
 	return Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
-var scope = function(id)
-	{
-	return angular.element(document.getElementById(id)).scope();
-	}
-
 	// SPLASH -- -- -- -- -- -- -- -- -- -- //
 self.setSplashAccepted = function()
 	{
@@ -132,7 +128,7 @@ self.loadCertificate = function()
 	return true;
 	}
 
-self.adminLogOut = function(loadLaunchPage)
+self.adminLogOut = function()
 	{
 	var sam = new SpaceifyApplicationManager();
 
@@ -141,8 +137,7 @@ self.adminLogOut = function(loadLaunchPage)
 
 	this.ok = function()
 		{
-		if (loadLaunchPage)
-			self.loadLaunchPage();
+		self.loadLaunchPage();
 		}
 
 	sam.logOut(self, this.ok);
@@ -208,9 +203,9 @@ self.showInstalledApplications = function(callback)
 self.renderTile = function(manifest, callback)
 	{
 	var element, query;
-	var sp_port, host, sp_host, spe_host, sp_path, icon, id;
+	var sp_port, host, sp_host, spe_host, sp_path, icon, id, tile, element;
 
-	if (manifest.hasTile)																			// Application supplies its own tile
+	if (manifest.hasTile)																			// Application supplies its own tile when its running
 		{
 		core.getApplicationURL(manifest.unique_name, function(err, appURL)
 			{
@@ -225,28 +220,31 @@ self.renderTile = function(manifest, callback)
 				}
 			else
 				{
-				host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
-				sp_host = host;
+				host = spe_host;
+				sp_host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
 				}
 
 			sp_path = config.TILEFILE;
 
 			id = APPTILE_ + manifest.unique_name.replace("/", "_");
-			scope("edgeBody").addTile({type: APPTILE, container: manifest.type, manifest: manifest, id: id, callback:
-				function()
-					{
-					query = {};
-					query.sp_port = sp_port;
-					query.sp_host = encodeURIComponent(sp_host);
-					query.sp_path = encodeURIComponent(sp_path);
-					query.spe_host = encodeURIComponent(spe_host);
 
-					element = document.getElementById(id);
-					element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
+			tile = window.spetiles[APPTILE];
+			tile = tile.replace("::id", id);
 
-					callback();
-					}
-				});
+			element = document.createElement("div");
+			element.innerHTML = tile;
+			spdom.append(manifest.type, element);
+
+			query = {};
+			query.sp_port = sp_port;
+			query.sp_host = encodeURIComponent(sp_host);
+			query.sp_path = encodeURIComponent(sp_path);
+			query.spe_host = encodeURIComponent(spe_host);
+
+			element = document.getElementById(id);
+			element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
+
+			callback();
 			});
 		}
 	else																							// Spaceify renders default tile
@@ -259,14 +257,21 @@ self.renderTile = function(manifest, callback)
 		else
 			{
 			sp_host = network.getEdgeURL({ withEndSlash: true });
-			sp_path = "images/icon.png";
+			sp_path = "images/default_icon-128p.png";
 			}
 
 		id = "iconimage_" + manifest.unique_name.replace("/", "_");
-		scope("edgeBody").addTile({type: "tile", container: manifest.type, manifest: manifest, id: id, sp_src: sp_host + sp_path, callback: function()
-			{
-			spaceifyLoader.loadData(document.getElementById(id), {}, callback);
-			} });
+		
+		tile = window.spetiles[TILE];
+		tile = tile.replace("::id", id);
+		tile = tile.replace("::sp_src", sp_host + sp_path);
+		tile = tile.replace("::manifest.name", manifest.name);
+		tile = tile.replace("::manifest.developer.name", manifest.developer.name);
+
+		element = document.createElement("div");
+		element.innerHTML = tile;
+		spdom.append(manifest.type, element);
+		spaceifyLoader.loadData(document.getElementById(id), {}, callback);
 		}
 
 	addApplication(manifest);

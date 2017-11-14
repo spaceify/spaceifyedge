@@ -270,7 +270,7 @@ var requestListener = function(_request_, callback)
 	var openServices;
 	var hasApplication = false;
 	var servicesByServiceName = {};
-	var unique_name, unique_name_last_index;
+	var unique_name, index, uniqueNameLastIndex;
 	var pathName = _request_.urlObj.pathname.replace(/^\/|\/$/, "");
 	var pathParts = pathName.split("/");
 	var firstPart = pathParts[0] || "";
@@ -310,10 +310,10 @@ var requestListener = function(_request_, callback)
 		if (unique_name.charAt(unique_name.length - 1) == "/")
 			unique_name = unique_name.substr(0, unique_name.length - 1);
 
-		unique_name_last_index = unique_name.length;
+		index = uniqueNameLastIndex = unique_name.length;
 
 		do	{																		// Compare the unique names of installed applications to the unique_name
-			unique_name = unique_name.substr(0, unique_name_last_index);
+			unique_name = unique_name.substr(0, uniqueNameLastIndex);
 
 			if (apps[unique_name])
 				{
@@ -321,12 +321,12 @@ var requestListener = function(_request_, callback)
 				break;
 				}
 
-			unique_name_last_index = unique_name.lastIndexOf("/");
-			} while(unique_name_last_index != -1);
+			uniqueNameLastIndex = unique_name.lastIndexOf("/");
+			} while(uniqueNameLastIndex != -1);
 
 		if (hasApplication)
 			{
-			if (unique_name_last_index == unique_name.length)						// Short URL - make redirection, path contains nothing but the unique_name
+			if (index == uniqueNameLastIndex)										// Short URL - make redirection, path contains nothing but the unique_name
 				{
 				location = (_request_.request.headers.host ? _request_.request.headers.host : config.EDGE_HOSTNAME);
 				location = (!_request_.isSecure ? "http" : "https") + "://" + location;
@@ -425,8 +425,7 @@ var sessionListener = function(_request_)
 
 		session = sessions[sessiontoken];
 		}
-//console.log(_request_.isSecure, _request_.request.url);
-//console.log(session);
+
 	return session;
 	}
 
@@ -449,7 +448,7 @@ var createSession = function()
 
 	return sessiontoken;
 	}
-//console.log(_request_.isSecure, origin, _request_.request.headers.origin);
+
 var securityListener = function(_request_, pathname, session, callback)
 	{
 	var origin = "";

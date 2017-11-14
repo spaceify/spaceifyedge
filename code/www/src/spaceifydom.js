@@ -23,7 +23,13 @@ self.show = function(elements, status)
 		elem = document.getElementById(ids[i].trim());
 
 		if (elem)
-			elem.style.display = (!status ? "none" : "block");
+			{
+			if (typeof elem.style.display !== "undefined" && elem.style.display != "")
+				elem.style.display = (!status ? "none" : "block");
+
+			if (typeof elem.style.visibility !== "undefined" && elem.style.visibility != "")
+				elem.style.visibility = (!status ? "hidden" : "visible");
+			}
 		}
 	}
 

@@ -98,7 +98,7 @@
   "EDGE_APPSTORE_GET_PACKAGES_URL": "https://spaceify.org/appstore/getpackages.php",
   "EDGE_REGISTER_URL": "https://spaceify.net/edge/register.php",
   "EDGE_LOGIN_URL": "https://spaceify.net/edge/login.php",
-  "EDGE_GET_RESOURCE_URL": "spaceify.org/appstore/getresource.php?resource=",
+  "EDGE_GET_RESOURCE_URL": "https://spaceify.org/appstore/getresource.php?resource=",
 
   "ERROR_PATHS": {
                  "302": { "file": "/var/lib/spaceify/code/www/errors/302.html", "content_type": "html"},

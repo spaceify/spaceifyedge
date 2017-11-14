@@ -275,7 +275,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				// Start applications in reverse order they were installed
 			startOrder.push({unique_name: manifest.getUniqueName(), type: manifest.getType(), isDevelop: develop});
 
-				// The debencies must not be installed in develop mode
+				// The depencies must not be installed in develop mode
 			develop = false;
 
 				// Check does the package have suggested applications in required_services.
@@ -359,20 +359,14 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				{
 				start = startOrder.pop();
 
-				if(start.isDevelop)
-					{
-					sendMessage.sync(language.INSTALLED_IN_DEVELOP_MODE);
-					continue;
-					}
-
-				if(	start.type != config.SPACELET && !develop)
+				if(	start.type != config.SPACELET && !start.isDevelop)
 					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
-				else if(develop)
+				else if(start.isDevelop)
 					sendMessage.sync(utility.replace(language.PACKAGE_DEVELOP, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 
 				coreConnection.sync.callRpc("installApplication", [start.unique_name, start.type, sessionId, true], self);
 
-				if(	start.type != config.SPACELET && !develop)
+				if(	start.type != config.SPACELET && !start.isDevelop)
 					{
 					isStarted = coreConnection.sync.callRpc("startApplication", [start.unique_name, sessionId, false], self);
 
