@@ -670,7 +670,7 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 		if(implementsWebServer && httpService)											// Use applications internal server
 			{
 			port = (network.sync.isPortInUse(httpService.port) ? httpService.port : null);
-			securePort = (network.sync.isPortInUse(httpService.securePort) ? httpService.port : null);
+			securePort = (network.sync.isPortInUse(httpService.securePort) ? httpService.securePort : null);
 			url = config.EDGE_HOSTNAME + ":" + port;
 			secureUrl = config.EDGE_HOSTNAME + ":" + securePort;
 			}
