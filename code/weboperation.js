@@ -34,7 +34,7 @@ var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 var       types = [	"getApplications", "isAdminLoggedIn" ];
 var secureTypes = [	"installApplication", "removeApplication", "purgeApplication", "startApplication", "stopApplication",
 					"restartApplication", "requestMessageId", "getCoreSettings", "saveCoreSettings", "getEdgeSettings",
-					"saveEdgeSettings", "getServiceRuntimeStates", "logIn", "logOut"];
+					"saveEdgeSettings", "getRuntimeServiceStates", "logIn", "logOut"];
 
 /**
  * getData()
@@ -177,12 +177,12 @@ self.getData = fibrous( function(operation, userData, isSecure)
 			data = secureConnection.sync.callRpc("saveEdgeSettings", [operation.settings || {}, userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
-		else if(operation.type == "getServiceRuntimeStates" && userData.sessionId)
+		else if(operation.type == "getRuntimeServiceStates" && userData.sessionId)
 			{
 			isLoggedIn = isAdminLoggedIn.sync(userData.sessionId);
 
 			connect.sync();
-			data = secureConnection.sync.callRpc("getServiceRuntimeStates", [userData.sessionId], self);
+			data = secureConnection.sync.callRpc("getRuntimeServiceStates", [userData.sessionId], self);
 			}
 		// -- -- -- -- -- -- -- -- -- -- //
 		else if(operation.type == "logIn")

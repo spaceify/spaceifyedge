@@ -8,7 +8,7 @@
 		exports["spe"] = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else
 		root["spe"] = factory(root["fs"], root["path"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["request"], root["url"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_35__, __WEBPACK_EXTERNAL_MODULE_36__, __WEBPACK_EXTERNAL_MODULE_63__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__, __WEBPACK_EXTERNAL_MODULE_71__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_36__, __WEBPACK_EXTERNAL_MODULE_37__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__, __WEBPACK_EXTERNAL_MODULE_71__, __WEBPACK_EXTERNAL_MODULE_72__, __WEBPACK_EXTERNAL_MODULE_73__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -74,7 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 72);
+/******/ 	return __webpack_require__(__webpack_require__.s = 74);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -279,19 +279,6 @@ if(true)
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 4;
-
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -335,7 +322,7 @@ if (typeof globalObj.speBaseConfig_)
 
 if (typeof window === "undefined") //in node.js
 	{
-	path = __webpack_require__(35);
+	path = __webpack_require__(36);
 
 	if (!baseConfig)
 		{
@@ -347,7 +334,7 @@ if (typeof window === "undefined") //in node.js
 			}
 		catch (e)
 			{
-			baseConfig = __webpack_require__(10);
+			baseConfig = __webpack_require__(8);
 
 			//console.log("Loaded base config from the spaceifyedge package");
 			}
@@ -531,10 +518,10 @@ Config.getConfig = function()
 if(true)
 	module.exports = Config;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(46)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(47)(module)))
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -742,12 +729,12 @@ Logger.createLogger_ = function(class_)
 		{
 		try
 			{
-			Config = __webpack_require__(5);
+			Config = __webpack_require__(4);
 			}
 		catch (e)
 			{
 			var apipath = "/var/lib/spaceify/code/";
-			Config = __webpack_require__(50)(apipath + "config.js");
+			Config = __webpack_require__(51)(apipath + "config.js");
 			}
 		}
 	else if (typeof window !== "undefined")
@@ -823,7 +810,7 @@ if (true)
 
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1050,7 +1037,7 @@ if(true)
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1075,8 +1062,8 @@ if (isNodeJs)
 	{
 	var apipath = "/var/lib/spaceify/code/";
 
-	try { Logger = __webpack_require__(6); } catch (e) { Logger = __webpack_require__(52)(apipath + "logger"); }
-	try { SpaceifyError = __webpack_require__(7); } catch (e) { SpaceifyError = __webpack_require__(13)(apipath + "spaceifyerror"); }
+	try { Logger = __webpack_require__(5); } catch (e) { Logger = __webpack_require__(53)(apipath + "logger"); }
+	try { SpaceifyError = __webpack_require__(6); } catch (e) { SpaceifyError = __webpack_require__(12)(apipath + "spaceifyerror"); }
 	}
 else if (typeof window !== "undefined")
 	{
@@ -1132,322 +1119,7 @@ if (true)
 
 
 /***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Spaceify Service, 29.7.2015 Spaceify Oy
- *
- * A class for connecting required services and opening servers for provided services.
- * This class can be used by Node.js applications and web pages.
- *
- * @class SpaceifyService
- */
-
-function SpaceifyService()
-{
-var self = this;
-
-var isNodeJs = (typeof window === "undefined" ? true : false);
-
-var lib = null;
-var fibrous = null;
-var Service = null;
-var Connection = null;
-var SpaceifyCore = null;
-var SpaceifyError = null;
-var SpaceifyConfig = null;
-var SpaceifyNetwork = null;
-//var SpaceifyLogger = null;
-var WebSocketRpcServer = null;
-
-if (isNodeJs)
-	{
-	lib = "/var/lib/spaceify/code/";
-
-	Service = __webpack_require__(53)(lib + "service");
-	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
-	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
-	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyNetwork = __webpack_require__(54)(lib + "spaceifynetwork");
-	//SpaceifyLogger = require(lib + "spaceifylogger");
-	WebSocketRpcServer = __webpack_require__(57)(lib + "websocketrpcserver");
-	Connection = __webpack_require__(30)(lib + "connection");
-	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	}
-else
-	{
-	lib = (window.spe ? window.spe : window);
-
-	Service = lib.Service;
-	SpaceifyCore = lib.SpaceifyCore;
-	SpaceifyError = lib.SpaceifyError;
-	SpaceifyConfig = lib.SpaceifyConfig;
-	SpaceifyNetwork = lib.SpaceifyNetwork;
-	//SpaceifyLogger = lib.SpaceifyLogger;
-	WebSocketRpcServer = null;
-	Connection = lib.Connection;
-	fibrous = function(fn) { return fn; };
-	}
-
-var core = new SpaceifyCore();
-var errorc = new SpaceifyError();
-var network = new SpaceifyNetwork();
-var config = SpaceifyConfig.getConfig("realpaths");
-//var logger = new SpaceifyLogger("SpaceifyService");
-
-var required = {};									// <= Clients (required services)
-var requiredSecure = {};
-
-var provided = {};									// <= Servers (provided services)
-var providedSecure = {};
-
-var keepServerUp = true;
-var keepConnectionUp = true;
-var keepConnectionUpTimerIds = {};
-
-var caCrt = config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW;
-var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
-var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
-
-var errobj = errorc.makeErrorObject("not_open", "Connection is not ready.", "SpaceifyService::connect");
-
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
-self.connect = function(serviceObj, isSecure, callback)
-	{ // serviceObj = object (service object) or string (service name)
-	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
-
-	if(service_name == config.HTTP)
-		return callback(errobj, null);
-
-	if(typeof isSecure === "function")										// From web page or not defined
-		{
-		callback = isSecure;
-		isSecure = (isNodeJs ? false : network.isSecure());
-		}
-	else																	// Web page always checks the protocol
-		{
-		isSecure = (isNodeJs ? isSecure : network.isSecure());
-		}
-
-	open(serviceObj, (!isSecure ? required : requiredSecure), isSecure, callback);
-	}
-
-function open(serviceObj, service, isSecure, callback)
-	{
-	var port;
-	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
-
-	if(!service[service_name])
-		{
-		service[service_name] = new Service(service_name, false, new Connection());
-		service[service_name].setConnectionListener(connectionListener);
-		service[service_name].setDisconnectionListener(disconnectionListener);
-		}
-
-	if(typeof serviceObj === "object")
-		{
-		port = (!isSecure ? serviceObj.port : serviceObj.securePort);
-
-		connect(service[service_name], port, isSecure, function()
-			{
-			if(typeof callback === "function")
-				callback(null, service[service_name]);
-			});
-		}
-	else
-		{
-		core.getService(service_name, "", function(err, serviceObj)
-			{
-			if(!serviceObj || err)
-				{
-				if(!service[service_name].getIsOpen())											// Let the automaton get the connection up
-					disconnectionListener(-1, service_name, isSecure);
-
-				if(typeof callback === "function")
-					callback(errobj, null);
-				}
-			else
-				{
-				port = (!isSecure ? serviceObj.port : serviceObj.securePort);
-
-				connect(service[service_name], port, isSecure, function()
-					{
-					if(typeof callback === "function")
-						callback(null, service[service_name]);
-					});
-				}
-			});
-		}
-	}
-
-var connect = function(service, port, isSecure, callback)
-	{
-	if(service.getIsOpen())																	// Don't reopen connections!
-		return callback();
-
-	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
-	}
-
-self.disconnect = function(service_names, callback)
-	{ // Disconnect one service, listed services or all services
-	var keys;
-
-	if(!service_names)																		// All the services
-		keys = Object.keys(required);
-	else if(service_name.constructor !== Array)												// One service (string)
-		keys = [service_names];
-
-	for(var i = 0; i<keys.length; i++)
-		{
-		if(keys[i] in required)
-			required[keys[i]].getConnection().close();
-
-		if(keys[i] in requiredSecure)
-			requiredSecure[keys[i]].getConnection().close();
-		}
-	}
-
-var connectionListener = function(id, service_name, isSecure)
-	{
-	}
-
-var disconnectionListener = function(id, service_name, isSecure)
-	{
-	if(!keepConnectionUp)
-		return;
-
-	var timerIdName = service_name + (!isSecure ? "F" : "T");								// Services have their own timers and
-	if(timerIdName in keepConnectionUpTimerIds)												// only one timer can be running at a time
-		return;
-
-	var service = (!isSecure ? required[service_name] : requiredSecure[service_name]);
-
-	keepConnectionUpTimerIds[timerIdName] = setTimeout(waitConnectionAttempt, config.RECONNECT_WAIT, id, service_name, isSecure, timerIdName, service);
-	}
-
-var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, service)
-	{
-	core.getService(service_name, "", function(err, serviceObj)
-		{
-		delete keepConnectionUpTimerIds[timerIdName];										// Timer can now be retriggered
-
-		if(serviceObj)
-			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
-		else
-			disconnectionListener(id, service_name, isSecure);
-		});
-	}
-
-self.getRequiredService = function(service_name)
-	{
-	return (required[service_name] ? required[service_name] : null);
-	}
-
-self.getRequiredServiceSecure = function(service_name)
-	{
-	return (requiredSecure[service_name] ? requiredSecure[service_name] : null);
-	}
-
-self.keepConnectionUp = function(val)
-	{
-	keepConnectionUp = (typeof val == "boolean" ? val : false);
-	}
-
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// -- -- -- -- -- -- -- -- -- -- //
-	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
-self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
-	{
-	if(typeof listenUnsecure == "undefined")
-		listenUnsecure = true;
-
-	if(typeof listenSecure == "undefined")
-		listenSecure = true;
-
-	if(!provided[service_name])																// Create the connection objects
-		provided[service_name] = new Service(service_name, true, new WebSocketRpcServer());
-
-	if(!providedSecure[service_name])
-		providedSecure[service_name] = new Service(service_name, true, new WebSocketRpcServer());
-
-	if(listenUnsecure)
-		listen.sync(provided[service_name], port, false);
-
-	if(listenSecure)
-		listen.sync(providedSecure[service_name], securePort, true);
-
-	if(!port || !securePort)
-		{ // If port was null or 0 the real port number is known only after the server is listening
-		if(listenUnsecure)
-			port = provided[service_name].getServer().getPort();
-
-		if(listenSecure)
-			securePort = providedSecure[service_name].getServer().getPort();
-
-		console.log("    LISTEN -----> " + service_name + " - port: " + port + ", secure port: " + securePort);
-		}
-
-	core.sync.registerService(service_name, {unique_name: unique_name, port: port, securePort: securePort});
-	});
-
-var listen = fibrous( function(service, port, isSecure)
-	{
-	if(service.getIsOpen())
-		return;
-
-	service.getServer().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
-	});
-
-self.close = function(service_name)
-	{ // Close one service, listed services or all services
-	var keys;
-
-	if(typeof service_names == "undefined")																		// All the services
-		keys = Object.keys(provided);
-	else if(typeof service_names != "undefined" && service_name.constructor !== Array)							// One service (string)
-		keys = [service_names];
-
-	for(var i = 0; i < keys.length; i++)
-		{
-		if(keys[i] in provided)
-			provided[keys[i]].getServer().close();
-		if(keys[i] in providedSecure)
-			providedSecure[keys[i]].getServer().close();
-		}
-	}
-
-self.getProvidedService = function(service_name)
-	{
-	return (provided[service_name] ? provided[service_name] : null);
-	}
-
-self.getProvidedServiceSecure = function(service_name)
-	{
-	return (providedSecure[service_name] ? providedSecure[service_name] : null);
-	}
-
-self.keepServerUp = function(val)
-	{
-	keepServerUp = (typeof val == "boolean" ? val : false);
-	}
-
-}
-
-if(true)
-	module.exports = SpaceifyService;
-
-/***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1658,7 +1330,16 @@ logger:
 		warn: true
 		},
 
-	Manager:
+	RuntimeManager:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	ServiceRegistry:
 		{
 		log: true,
 		dir: true,
@@ -1793,7 +1474,16 @@ logger:
 		warn: true
 		},
 
-	SpaceifyService:
+	ServiceInterface:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	ServiceSelector:
 		{
 		log: true,
 		dir: true,
@@ -1930,7 +1620,7 @@ if (true)
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1960,7 +1650,7 @@ if(isNodeJs)
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
 	global.fs = __webpack_require__(0);
-	global.WebSocket = __webpack_require__(36).w3cwebsocket;
+	global.WebSocket = __webpack_require__(37).w3cwebsocket;
 	}
 else
 	{
@@ -2221,7 +1911,7 @@ if (true)
 
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2253,8 +1943,8 @@ if (isNodeJs)
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
-	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
+	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
+	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
 	}
 else
 	{
@@ -2360,11 +2050,48 @@ if (true)
 
 
 /***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 11;
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./spaceifyerror": 6
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 12;
+
+
+/***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyerror": 7
+	"./rpccommunicator": 26
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -2385,26 +2112,15 @@ webpackContext.id = 13;
 
 /***/ }),
 /* 14 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./spaceifyutility": 23
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 14;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 14;
 
 
 /***/ }),
@@ -2412,7 +2128,7 @@ webpackContext.id = 14;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./rpccommunicator": 26
+	"./websocketconnection": 9
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -2433,43 +2149,6 @@ webpackContext.id = 15;
 
 /***/ }),
 /* 16 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 16;
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var map = {
-	"./websocketconnection": 11
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 17;
-
-
-/***/ }),
-/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2486,37 +2165,6 @@ webpackContext.id = 17;
 function Service(service_name, isServer, connection)
 {
 var self = this;
-
-var isNodeJs = (typeof window === "undefined" ? true : false);
-
-var lib = null;
-//var SpaceifyConfig = null;
-//var SpaceifyLogger = null;
-var SpaceifyUtility = null;
-var fibrous = null;
-
-if (isNodeJs)
-	{
-	lib = "/var/lib/spaceify/code/";
-
-	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	//SpaceifyLogger = require(lib + "spaceifylogger");
-	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
-	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	}
-else
-	{
-	lib = (window.spe ? window.spe : window);
-
-	//SpaceifyConfig = lib.SpaceifyConfig;
-	//SpaceifyLogger = lib.SpaceifyLogger;
-	var SpaceifyUtility = lib.SpaceifyUtility;
-	var fibrous = function(fn) { return fn; };
-	}
-
-var utility = new SpaceifyUtility();
-//var config = SpaceifyConfig.getConfig();
-//var logger = new SpaceifyLogger("Service");
 
 var serverUpListener = null;
 var serverDownListener = null;
@@ -2600,14 +2248,9 @@ self.getId = function()
 	return connection.getId();
 	}
 
-self.getServer = function()
-	{
-	return (isServer ? connection : null);
-	}
-
 self.getConnection = function()
 	{
-	return (!isServer ? connection : null);
+	return connection;
 	}
 
 self.getIsSecure = function()
@@ -2615,14 +2258,9 @@ self.getIsSecure = function()
 	return connection.getIsSecure();
 	}
 
-self.exposeRpcMethod = function(name, object, method)
+self.getServiceName = function()
 	{
-	connection.exposeRpcMethod(name, object, method);
-	}
-
-self.exposeRpcMethodSync = function(name, object, method)
-	{
-	connection.exposeRpcMethodSync(name, object, method);
+	return service_name;
 	}
 
 self.callRpc = function()
@@ -2645,6 +2283,425 @@ if(isServer)
 if(true)
 	module.exports = Service;
 
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Service Logic, 29.7.2015 Spaceify Oy
+ *
+ * A class for connecting required services and opening servers for provided services.
+ * This class can be used in Node.js applications and web pages.
+ *
+ * @class ServiceInterface
+ */
+
+function ServiceInterface()
+{
+var self = this;
+
+var isNodeJs = (typeof window === "undefined" ? true : false);
+
+var lib = null;
+var fibrous = null;
+var Service = null;
+var Connection = null;
+var SpaceifyCore = null;
+var SpaceifyError = null;
+var SpaceifyConfig = null;
+var SpaceifyNetwork = null;
+var ServiceSelector = null;
+//var SpaceifyLogger = null;
+var WebSocketRpcServer = null;
+
+if (isNodeJs)
+	{
+	lib = "/var/lib/spaceify/code/";
+
+	Service = __webpack_require__(54)(lib + "service");
+	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
+	SpaceifyError = __webpack_require__(12)(lib + "spaceifyerror");
+	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
+	SpaceifyNetwork = __webpack_require__(57)(lib + "spaceifynetwork");
+	ServiceSelector = __webpack_require__(56)(lib + "serviceselector");
+	//SpaceifyLogger = require(lib + "spaceifylogger");
+	WebSocketRpcServer = __webpack_require__(59)(lib + "websocketrpcserver");
+	Connection = __webpack_require__(30)(lib + "connection");
+	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
+	}
+else
+	{
+	lib = (window.spe ? window.spe : window);
+
+	Service = lib.Service;
+	SpaceifyCore = lib.SpaceifyCore;
+	SpaceifyError = lib.SpaceifyError;
+	SpaceifyConfig = lib.SpaceifyConfig;
+	SpaceifyNetwork = lib.SpaceifyNetwork;
+	ServiceSelector = lib.ServiceSelector;
+	//SpaceifyLogger = lib.SpaceifyLogger;
+	WebSocketRpcServer = null;
+	Connection = lib.Connection;
+	fibrous = function(fn) { return fn; };
+	}
+
+var core = new SpaceifyCore();
+var errorc = new SpaceifyError();
+var network = new SpaceifyNetwork();
+var config = SpaceifyConfig.getConfig("realpaths");
+//var logger = new SpaceifyLogger("ServiceInterface");
+
+var required = {};																				// <= Clients (required services)
+var provided = {};																				// <= Servers (provided services)
+
+var keepServerUp = true;
+var keepConnectionUp = true;
+var keepConnectionUpTimerIds = {};
+
+var caCrt = config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW;
+var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
+var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
+
+var errorObj = errorc.makeErrorObject("not_open", "Connection is not ready.", "ServiceInterface::connect");
+
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// CLIENT SIDE - THE REQUIRED SERVICES - NODE.JS / WEB PAGES -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+self.connect = function(serviceObj, isSecure, callback)
+	{ // serviceObj = object (service object) or string (service name)
+	if (typeof isSecure === "function")															// From web page or not defined
+		{
+		callback = isSecure;
+		isSecure = (isNodeJs ? false : network.isSecure());
+		}
+	else																						// Web page always checks the protocol
+		{
+		isSecure = (isNodeJs ? isSecure : network.isSecure());
+		}
+
+	open(serviceObj, isSecure, callback);
+	}
+
+var open = function(serviceObj, isSecure, callback)
+	{
+	var service;
+	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
+
+	if (service_name == config.HTTP)
+		return callback(errorObj, null);
+
+	if (!required[service_name])																// Every service has a selector
+		required[service_name] = new ServiceSelector();
+
+	service = required[service_name].getService(isSecure);
+
+	if (!service)
+		{
+		service = new Service(service_name, false, new Connection());
+
+		service.setConnectionListener(connectionListener);
+		service.setDisconnectionListener(disconnectionListener);
+
+		required[service_name].add(service, isSecure);
+		}
+
+	getService(serviceObj, function(err, serviceObj)
+		{
+		if (!serviceObj || err)
+			{
+			disconnectionListener(-1, service_name, isSecure);									// Let the automaton get the connection up
+
+			if (typeof callback == "function")
+				callback(errorObj, null);
+			}
+		else
+			{
+			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function()
+				{
+				if (typeof callback === "function")
+					callback(null, service);
+				});
+			}
+		});
+	}
+
+var getService = function(serviceObj,  callback)
+	{
+	if (typeof serviceObj === "object")															// Service is already fetched
+		{
+		callback(null, serviceObj);
+		}
+	else																						// Get service
+		{
+		core.getService(serviceObj, "", function(err, serviceObj)
+			{
+			callback(err, serviceObj);
+			});
+		}
+	}
+
+var connect = function(service, port, isSecure, callback)
+	{
+	if (service.getIsOpen())																	// Don't reopen connections!
+		return callback();
+
+	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
+	}
+
+self.disconnect = function(service_names, callback)
+	{ // service_names = disconnect one service (= string), liste of services (= array) or all services ( = undefined || null)
+	var keys;
+
+	if (!service_names)																			// All the services
+		keys = Object.keys(required);
+	else if (service_name.constructor !== Array)												// One service (string)
+		keys = [service_names];
+
+	for (var i = 0; i < keys.length; i++)
+		{
+		required[keys[i]].closeServiceConnection();
+		}
+	}
+
+var connectionListener = function(id, service_name, isSecure)
+	{
+	}
+
+var disconnectionListener = function(id, service_name, isSecure)
+	{
+	var timerIdName, service;
+
+	if (!keepConnectionUp)
+		return;
+
+	timerIdName = service_name + (!isSecure ? "F" : "T");										// Services have their own timers and
+	if (timerIdName in keepConnectionUpTimerIds)												// only one timer can be running at a time
+		return;
+
+	service = required[service_name].getService(isSecure);										// Make sure the service is not open
+	if (service.getIsOpen())
+		return;
+
+	keepConnectionUpTimerIds[timerIdName] = setTimeout(waitConnectionAttempt, config.RECONNECT_WAIT, id, service_name, isSecure, timerIdName, service);
+	}
+
+var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, service)
+	{
+	getService(service_name, function(err, serviceObj)
+		{
+		delete keepConnectionUpTimerIds[timerIdName];											// Timer can now be retriggered
+
+		if (serviceObj)
+			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
+		else
+			disconnectionListener(id, service_name, isSecure);
+		});
+	}
+
+self.keepConnectionUp = function(val)
+	{
+	keepConnectionUp = (typeof val == "boolean" ? val : false);
+	}
+
+self.getRequiredService = function(service_name, isSecure)
+	{
+	return (required[service_name] ? required[service_name].getService(isSecure) : null);
+	}
+
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// SERVER SIDE - THE PROVIDED SERVICES - NODE.JS -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
+	{
+	var service;
+
+	if (!provided[service_name])
+		{
+		provided[service_name] = new ServiceSelector();
+
+		service = new Service(service_name, true, new WebSocketRpcServer());
+		provided[service_name].add(service, false);
+
+		service = new Service(service_name, true, new WebSocketRpcServer());
+		provided[service_name].add(service, true);
+		}
+
+	listenUnsecure = (typeof listenUnsecure == "undefined" ? true : listenUnsecure);
+	listenSecure = (typeof listenSecure == "undefined" ? true : listenSecure);
+
+	if (listenUnsecure)
+		listen.sync(service_name, port, false);
+
+	if (listenSecure)
+		listen.sync(service_name, securePort, true);
+
+	if (!port || !securePort)
+		{ // If port was null or 0 the real port number is known only after the server is listening
+		if (listenUnsecure)
+			port = provided[service_name].getService(false).getPort();
+
+		if (listenSecure)
+			securePort = provided[service_name].getService(true).getPort();
+
+		console.log("    LISTEN -----> " + service_name + " - port: " + port + ", secure port: " + securePort);
+		}
+
+	core.sync.registerService(service_name, {unique_name: unique_name, port: port, securePort: securePort});
+	});
+
+var listen = fibrous( function(service_name, port, isSecure)
+	{
+	var service = provided[service_name].getService(isSecure);
+
+	if (service.getIsOpen())
+		return;
+
+	service.getConnection().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
+	});
+
+self.close = function(service_name)
+	{  // service_names = disconnect one service (= string), liste of services (= array) or all services ( = undefined || null)
+	var keys;
+
+	if (typeof service_names == "undefined")													// All the services
+		keys = Object.keys(provided);
+	else if (typeof service_names != "undefined" && service_name.constructor !== Array)			// One service (string)
+		keys = [service_names];
+
+	for (var i = 0; i < keys.length; i++)
+		{
+		provided[keys[i]].closeServiceConnection();
+		}
+	}
+
+self.getProvidedService = function(service_name, isSecure)
+	{
+	return (provided[service_name] ? provided[service_name].getService(isSecure) : null);
+	}
+
+self.keepServerUp = function(val)
+	{
+	keepServerUp = (typeof val == "boolean" ? val : false);
+	}
+
+}
+
+if (true)
+	module.exports = ServiceInterface;
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Service Selector, 27.12.2017 Spaceify Oy
+ *
+ * This class implements unsercure / secure service selection logic. Only for Spaceify's internal use.
+ *
+ * @class ServiceSelector
+ */
+
+function ServiceSelector()
+{
+var self = this;
+
+var service = null;
+var secureService = null;
+
+self.add = function(service_, isSecure)
+	{
+	if (!isSecure)
+		{
+		service = service_;
+
+		service.exposeRpcMethod = exposeRpcMethod;
+		service.exposeRpcMethodSync = exposeRpcMethodSync;
+		}
+	else
+		{
+		secureService = service_;
+
+		secureService.exposeRpcMethod = exposeRpcMethod;
+		secureService.exposeRpcMethodSync = exposeRpcMethodSync;
+		}
+	}
+
+self.getService = function(isSecure)
+	{
+	var _service = null;
+
+	if (isSecure === false)
+		{
+		_service = service;
+		}
+	else if (isSecure === true)
+		{
+		_service = secureService;
+		}
+	else
+		{
+		if (secureService)
+			_service = secureService;
+		else if (service)
+			_service = service;
+		}
+
+	return _service;
+	}
+
+self.closeServiceConnection = function(isSecure)
+	{
+	if (isSecure === false || typeof isSecure == "undefined")
+		{
+		if (service)
+			service.getConnection().close();
+		}
+
+	if (isSecure === true || typeof isSecure == "undefined")
+		{
+		if (secureService)
+			secureService.getConnection().close();
+		}
+	}
+
+	// Expsose both unsecure and secure -- -- -- -- -- -- -- -- -- -- //
+var exposeRpcMethod = function(name, object, method)
+	{
+	if (service)
+		service.getConnection().exposeRpcMethod(name, object, method);
+
+	if (secureService)
+		secureService.getConnection().exposeRpcMethod(name, object, method);
+	}
+
+var exposeRpcMethodSync = function(name, object, method)
+	{
+	if (service)
+		service.getConnection().exposeRpcMethodSync(name, object, method);
+
+	if (secureService)
+		secureService.getConnection().exposeRpcMethodSync(name, object, method);
+	}
+
+}
+
+if (true)
+	module.exports = ServiceSelector;
 
 /***/ }),
 /* 19 */
@@ -2775,9 +2832,9 @@ self.isApplicationRunning = function(unique_name, callback)
 	callRpc("isApplicationRunning", [unique_name], callback);
 	}
 
-self.getServiceRuntimeStates = function(sessionId, callback)
+self.getRuntimeServiceStates = function(sessionId, callback)
 	{
-	callRpc("getServiceRuntimeStates", [sessionId], callback);
+	callRpc("getRuntimeServiceStates", [sessionId], callback);
 	}
 
 self.getApplicationData = function(callback)
@@ -3073,9 +3130,9 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	SpaceifyError = __webpack_require__(13)(lib + "spaceifyerror");
+	SpaceifyError = __webpack_require__(12)(lib + "spaceifyerror");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
+	SpaceifyUtility = __webpack_require__(33)(lib + "spaceifyutility");
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	}
 else
@@ -3291,7 +3348,7 @@ self.isPortInUse = function(port, callback)
 	if(!port)
 		return callback(null, true);
 
-	var net = __webpack_require__(68);
+	var net = __webpack_require__(70);
 	var server = net.createServer();
 
 	server.once("error", function(err)
@@ -3555,18 +3612,18 @@ if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
-	Language = __webpack_require__(51)(lib + "language");
+	Language = __webpack_require__(52)(lib + "language");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyLogger = __webpack_require__(32)(lib + "spaceifylogger");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
-	global.os = __webpack_require__(69);
+	global.os = __webpack_require__(71);
 	global.fs = __webpack_require__(0);
-	global.path = __webpack_require__(35);
-	global.mkdirp = __webpack_require__(67);
-	global.AdmZip = __webpack_require__(63);
-	global.request = __webpack_require__(70);
-	global.spawn = __webpack_require__(64).spawn;
+	global.path = __webpack_require__(36);
+	global.mkdirp = __webpack_require__(69);
+	global.AdmZip = __webpack_require__(65);
+	global.request = __webpack_require__(72);
+	global.spawn = __webpack_require__(66).spawn;
 	}
 else
 	{
@@ -4288,7 +4345,7 @@ if (true)
 
 
 /**
- * Spaceify Service, 29.7.2015 Spaceify Oy
+ * Connection, 29.7.2015 Spaceify Oy
  *
  * A class for wrapping the local and remote connection logic.
  *
@@ -4315,7 +4372,7 @@ if (isNodeJs)
 	LoaderUtil = null;
 	SpaceifyNetwork = function() {};
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketRpcConnection = __webpack_require__(61)(lib + "websocketrpcconnection");
+	WebSocketRpcConnection = __webpack_require__(63)(lib + "websocketrpcconnection");
 	}
 else
 	{
@@ -4490,7 +4547,7 @@ if (isNodeJs)
 
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(58)(lib + "callbackbuffer");
+	CallbackBuffer = __webpack_require__(60)(lib + "callbackbuffer");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -4523,9 +4580,11 @@ var latestConnectionId = null;
 
 var EXPOSE_SYNC = 0;
 var EXPOSE_TRADITIONAL = 1;
-var  REQUEST_STR = "  REQUEST      -> ";
-var   NOTIFY_STR = "  NOTIFICATION -> ";
-var RESPONSE_STR = "  RETURN VALUE <- ";
+var STR_CALL_RPC       = "CALL RPC  >> ";
+var STR_REQUEST        = "REQUEST   -> ";
+var STR_NOTIFY         = "NOTIFY    -> ";
+var STR_RESPONSE       = "RESPONSE  <- ";
+var STR_ERROR_RESPONSE = "ERESPONSE <- ";
 
 //** Upwards interface towards business logic
 
@@ -4592,8 +4651,6 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 	var isBatch = false, currentId;
 	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
 
-	logger.log("RpcCommunicator::callRpc() connectionId: " + connectionId);
-
 	if (!self.connectionExists(connectionId))
 		return;
 
@@ -4607,7 +4664,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 		currentId = callSequence;															// Batch requests have only one callback and the id in
 																							// the callbackBuffer is the id of the first request
-		for(var i=0; i<methods.length; i++)
+		for (var i = 0; i < methods.length; i++)
 			{
 			if (typeof callback == "function")												// Call: expects a response object
 				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i], id: callSequence++};
@@ -4616,7 +4673,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 			callObjects.push(callObject);
 
-			//logger.log(NOTIFY_STR + JSON.stringify(callObject));
+			//logger.log(STR_NOTIFY + JSON.stringify(callObject));
 			}
 
 		if (typeof callback == "function")
@@ -4629,6 +4686,8 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 	var request = isBatch ? callObjects : callObjects[0];									// Send as batch only if call was originally batch
 
+	logger.log(STR_CALL_RPC + JSON.stringify(request));
+
 	sendMessage(request, id);
 	};
 
@@ -4638,7 +4697,7 @@ self.notifyAll = function(method, params)
 	try	{
 		for (var key in connections)
 			{
-			logger.log("RpcCommunicator::notifyAll() sending message to " + key);
+			//logger.log("RpcCommunicator::notifyAll() sending message to " + key);
 
 			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
 			}
@@ -4656,7 +4715,7 @@ self.getBufferedAmount = function(connectionId)
 
 self.sendBinary = function(data, connectionId)
 	{
-	logger.log("RPCCommunicator::sendBinary() " + data.byteLength);
+	//logger.log("RPCCommunicator::sendBinary() " + data.byteLength);
 
 	try	{
 		connections[connectionId].sendBinary(data);
@@ -4726,7 +4785,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
-			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+			//logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
 			if (isNodeJs && !isRealSpaceify)
 				{
@@ -4749,6 +4808,8 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
 	{
+	//logger.log("RpcCommunicator::handleRPCCall()");
+
 	var result;
 	var request = requests.shift();
 
@@ -4768,7 +4829,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if (requestId != null)
 			onlyNotifications = false;
 
-		logger.log((requestId ? REQUEST_STR : NOTIFY_STR) + JSON.stringify(request));
+		logger.log((requestId ? STR_REQUEST : STR_NOTIFY) + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{
@@ -4908,7 +4969,7 @@ var addResponse = function(requestId, result, responses)
 		{
 		result = (typeof result === "undefined" ? null : result);
 
-		logger.log("  RESPONSE <- " + JSON.stringify(result));
+		logger.log(STR_RESPONSE + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
@@ -4922,7 +4983,7 @@ var addError = function(requestId, err, responses)
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
-		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
+		logger.log(STR_ERROR_RESPONSE + JSON.stringify(err));
 
 		responses.push({jsonrpc: "2.0", error: err, id: requestId});
 		}
@@ -4933,7 +4994,7 @@ var addError = function(requestId, err, responses)
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
-	logger.log("RpcCommunicator::handleReturnValue()");
+	//logger.log("RpcCommunicator::handleReturnValue()");
 
 	var error = null, result = null;
 
@@ -4945,7 +5006,7 @@ var handleReturnValue = function(responses, isBatch)
 			}
 		else
 			{
-			logger.log(RESPONSE_STR + JSON.stringify(responses[0]));
+			logger.log(STR_RESPONSE + JSON.stringify(responses[0]));
 
 			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
@@ -4976,9 +5037,9 @@ var processBatchResponse = function(responses)
 	var smallestId = -1;
 	var errors = {}, results = {}
 
-	for(var r=0; r<responses.length; r++)
+	for (var r = 0; r < responses.length; r++)
 		{
-		logger.log(RESPONSE_STR + JSON.stringify(responses[r]));
+		logger.log(STR_RESPONSE + JSON.stringify(responses[r]));
 
 		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
@@ -5002,7 +5063,7 @@ var processBatchResponse = function(responses)
 
 self.setupPipe = function(firstId, secondId)
 	{
-	logger.log("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+	//logger.log("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
 
 	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
 		return;
@@ -5065,7 +5126,7 @@ self.addConnection = function(conn)
 		connections[conn.getId()] = conn;
 		conn.setEventListener(self);
 
-		for(var i=0; i<connectionListeners.length; i++)						// Bubble the event to client
+		for (var i = 0; i < connectionListeners.length; i++)				// Bubble the event to client
 			connectionListeners[i](conn.getId());
 
 		latestConnectionId = conn.getId();
@@ -5082,7 +5143,7 @@ self.onDisconnected = function(connectionId)
 	try	{
 		self.closeConnection(connectionId);
 
-		for(var i=0; i<disconnectionListeners.length; i++)			// Bubble the event to clients
+		for (var i = 0; i < disconnectionListeners.length; i++)		// Bubble the event to clients
 			disconnectionListeners[i](connectionId);
 		}
 	catch(err)
@@ -5541,8 +5602,8 @@ if (isNodeJs)
 
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
-	WebSocketServer = __webpack_require__(62)(lib + "websocketserver");
+	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
+	WebSocketServer = __webpack_require__(64)(lib + "websocketserver");
 	}
 else
 	{
@@ -5708,13 +5769,13 @@ if (isNodeJs)
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
+	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
 
 	global.fs = __webpack_require__(0);
-	global.URL = __webpack_require__(71);
-	global.http = __webpack_require__(65);
-	global.https = __webpack_require__(66);
-	global.WSServer = __webpack_require__(36).server;
+	global.URL = __webpack_require__(73);
+	global.http = __webpack_require__(67);
+	global.https = __webpack_require__(68);
+	global.WSServer = __webpack_require__(37).server;
 	}
 else
 	{
@@ -5963,8 +6024,8 @@ if (true)
 var map = {
 	"./webjsonrpc/connection": 25,
 	"./webjsonrpc/webrtcconnection": 27,
-	"./webjsonrpc/websocketconnection": 11,
-	"./webjsonrpc/websocketrpcconnection": 12
+	"./webjsonrpc/websocketconnection": 9,
+	"./webjsonrpc/websocketrpcconnection": 10
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6012,7 +6073,7 @@ webpackContext.id = 31;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifylogger": 8
+	"./spaceifylogger": 7
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6033,15 +6094,26 @@ webpackContext.id = 32;
 
 /***/ }),
 /* 33 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 33;
+var map = {
+	"./spaceifyutility": 23
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 33;
 
 
 /***/ }),
@@ -6061,7 +6133,14 @@ webpackEmptyContext.id = 34;
 /* 35 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_35__;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 35;
+
 
 /***/ }),
 /* 36 */
@@ -6071,6 +6150,12 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_36__;
 
 /***/ }),
 /* 37 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_37__;
+
+/***/ }),
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6078,6 +6163,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_36__;
 
 /**
  * Spaceify application, 25.1.2016 Spaceify Oy
+ * This class can be used in Node.js applications and web pages.
  *
  * @class SpaceifyApplication
  */
@@ -6095,7 +6181,7 @@ var SpaceifyCore = null;
 var SpaceifyConfig = null;
 var SpaceifyLogger = null;
 var SpaceifyUtility = null;
-var SpaceifyService = null;
+var ServiceInterface = null;
 var fibrous = null;
 
 if(isNodeJs)
@@ -6106,8 +6192,8 @@ if(isNodeJs)
 	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyLogger = __webpack_require__(32)(lib + "spaceifylogger");
-	SpaceifyUtility = __webpack_require__(14)(lib + "spaceifyutility");
-	SpaceifyService = __webpack_require__(55)(lib + "spaceifyservice");
+	SpaceifyUtility = __webpack_require__(33)(lib + "spaceifyutility");
+	ServiceInterface = __webpack_require__(55)(lib + "serviceinterface");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
 else
@@ -6119,7 +6205,7 @@ else
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
-	SpaceifyService = lib.SpaceifyService;
+	ServiceInterface = lib.ServiceInterface;
 	fibrous = function(fn) { return fn; };
 	}
 
@@ -6131,7 +6217,7 @@ var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var utility = new SpaceifyUtility();
 var spaceifyCore = new SpaceifyCore();
-var spaceifyService = new SpaceifyService();
+var serviceInterface = new ServiceInterface();
 var config = SpaceifyConfig.getConfig("realpaths");
 var logger = new SpaceifyLogger("SpaceifyApplication");
 
@@ -6201,7 +6287,7 @@ var start = function(application_, options)
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
 					securePort = (isRealSpaceify ? config.FIRST_SERVICE_PORT_SECURE + i : null);
 
-					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
+					serviceInterface.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
 					}
 				}
 
@@ -6267,6 +6353,7 @@ var start = function(application_, options)
 			}
 		catch(err)
 			{
+console.log("+++++++++++++++++++++++++++", err);
 			initFail.sync(err);
 			}
 		}, function(err, data)
@@ -6316,7 +6403,7 @@ var connectServices = function(application_, services)
 		return;
 		}
 
-	spaceifyService.connect(service.service_name, function(err, data)
+	serviceInterface.connect(service.service_name, function(err, data)
 		{
 		connectServices(application, services);
 		});
@@ -6335,8 +6422,8 @@ var stop = fibrous( function(err)
 	httpServer.close();
 	httpsServer.close();
 
-	spaceifyService.disconnect();																// Disconnect clients
-	spaceifyService.close();																	// Close servers
+	serviceInterface.disconnect();																// Disconnect clients
+	serviceInterface.close();																	// Close servers
 
 	spaceifyCore.close();
 
@@ -6347,10 +6434,12 @@ var stop = fibrous( function(err)
 var createRequiredServices = function(services, position, isSecure, callback)
 	{
 	if(position == services.length)
+		{
 		callback();
+		}
 	else
 		{
-		spaceifyService.connect(services[position++].service_name, isSecure, function(err, data)
+		serviceInterface.connect(services[position++].service_name, isSecure, function(err, data)
 			{
 			createRequiredServices(services, position, isSecure, callback);
 			});
@@ -6373,26 +6462,15 @@ self.getManifest = function()
 	return manifest;
 	}
 
-	// REQUIRED (= CLIENT) -- -- -- -- -- -- -- -- -- -- //
+	// REQUIRED (= CLIENT) / PROVIDED (= SERVICE) -- -- -- -- -- -- -- -- -- -- //
 self.getRequiredService = function(service_name)
 	{
-	return spaceifyService.getRequiredService(service_name);
+	return serviceInterface.getRequiredService(service_name);
 	}
 
-self.getRequiredServiceSecure = function(service_name)
-	{
-	return spaceifyService.getRequiredServiceSecure(service_name);
-	}
-
-	// PROVIDED (= SERVICE) -- -- -- -- -- -- -- -- -- -- //
 self.getProvidedService = function(service_name)
 	{
-	return spaceifyService.getProvidedService(service_name);
-	}
-
-self.getProvidedServiceSecure = function(service_name)
-	{
-	return spaceifyService.getProvidedServiceSecure(service_name);
+	return serviceInterface.getProvidedService(service_name);
 	}
 
 }
@@ -6402,7 +6480,7 @@ if(true)
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6518,9 +6596,9 @@ self.saveEdgeSettings = function(settings, origin, handler)
 	setup("saveEdgeSettings", {settings: settings}, origin, handler, true);
 	}
 
-self.getServiceRuntimeStates = function(origin, handler)
+self.getRuntimeServiceStates = function(origin, handler)
 	{
-	setup("getServiceRuntimeStates", {}, origin, handler, true);
+	setup("getRuntimeServiceStates", {}, origin, handler, true);
 	}
 
 /**
@@ -6658,7 +6736,7 @@ if(true)
 	module.exports = SpaceifyApplicationManager;
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6797,7 +6875,7 @@ if(true)
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6905,7 +6983,7 @@ if (true)
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7095,7 +7173,7 @@ if (true)
 	module.exports = SpaceifyMessages;
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7425,7 +7503,7 @@ if (true)
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7515,7 +7593,7 @@ if(true)
 	module.exports = SpaceifySynchronous;
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7537,7 +7615,7 @@ var lib = (window.spe ? window.spe : window);
 
 var core = new lib.SpaceifyCore();
 //var logger = new lib.SpaceifyLogger("Spacelet");
-var spaceifyService = new lib.SpaceifyService();
+var ServiceInterface = new lib.ServiceInterface();
 var spaceifyNetwork = new lib.SpaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
@@ -7556,7 +7634,7 @@ self.start = function(application, unique_name, callback)
 				{
 				for(var i = 0; i < serviceobj.serviceNames.length; i++)
 					{
-					spaceifyService.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
+					serviceInterface.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
 						{
 						if(typeof application == "function")
 							application(null, true);
@@ -7576,14 +7654,9 @@ self.start = function(application, unique_name, callback)
 		}
 	}
 
-self.getRequiredService = function(service_name)
+self.getRequiredService = function(service_name, isSecure)
 	{
-	return spaceifyService.getRequiredService(service_name);
-	}
-
-self.getRequiredServiceSecure = function(service_name)
-	{
-	return spaceifyService.getRequiredServiceSecure(service_name);
+	return serviceInterface.getRequiredService(service_name, isSecure);
 	}
 
 self.isSpaceifyNetwork = function(timeout, callback)
@@ -7598,7 +7671,7 @@ if(true)
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7627,8 +7700,8 @@ if (isNodeJs)
 
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	RpcCommunicator = __webpack_require__(15)(lib + "rpccommunicator");
-	WebSocketConnection = __webpack_require__(17)(lib + "websocketconnection");
+	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
+	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
 	}
 else
 	{
@@ -7844,7 +7917,7 @@ if (true)
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -7872,7 +7945,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7920,7 +7993,7 @@ if (true)
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = function()
@@ -7938,14 +8011,14 @@ self.make = function()
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(__dirname) {
 
 var fs = __webpack_require__(0);
-var module_ = __webpack_require__(48);
+var module_ = __webpack_require__(49);
 
 var config = (new module_()).make();
 
@@ -7954,39 +8027,15 @@ fs.writeFileSync(__dirname + "/../../libs/spaceify.config.js", config, "utf8");
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var map = {
-	"./config.js": 5,
-	"./spaceifyconfig.js": 3,
-	"./spebaseconfig.js": 10,
-	"./speconfig.js": 47,
-	"./webpack/make.config.js": 49
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 50;
-
-
-/***/ }),
 /* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifylanguage": 20
+	"./config.js": 4,
+	"./spaceifyconfig.js": 3,
+	"./spebaseconfig.js": 8,
+	"./speconfig.js": 48,
+	"./webpack/make.config.js": 50
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8010,8 +8059,7 @@ webpackContext.id = 51;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./logger": 6,
-	"./spaceifylogger": 8
+	"./spaceifylanguage": 20
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8035,8 +8083,8 @@ webpackContext.id = 52;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./service": 18,
-	"./spaceifyservice": 9
+	"./logger": 5,
+	"./spaceifylogger": 7
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8060,7 +8108,7 @@ webpackContext.id = 53;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifynetwork": 21
+	"./service": 16
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8084,7 +8132,7 @@ webpackContext.id = 54;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyservice": 9
+	"./serviceinterface": 17
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8105,15 +8153,26 @@ webpackContext.id = 55;
 
 /***/ }),
 /* 56 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 56;
+var map = {
+	"./serviceselector": 18
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 56;
 
 
 /***/ }),
@@ -8121,7 +8180,7 @@ webpackEmptyContext.id = 56;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./webjsonrpc/websocketrpcserver": 28
+	"./spaceifynetwork": 21
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8142,6 +8201,43 @@ webpackContext.id = 57;
 
 /***/ }),
 /* 58 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 58;
+
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var map = {
+	"./webjsonrpc/websocketrpcserver": 28
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 59;
+
+
+/***/ }),
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8161,41 +8257,41 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 58;
-
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 59;
-
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 60;
+webpackContext.id = 60;
 
 
 /***/ }),
 /* 61 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 61;
+
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 62;
+
+
+/***/ }),
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./websocketrpcconnection": 12
+	"./websocketrpcconnection": 10
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8211,11 +8307,11 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 61;
+webpackContext.id = 63;
 
 
 /***/ }),
-/* 62 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -8235,20 +8331,8 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 62;
+webpackContext.id = 64;
 
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_63__;
-
-/***/ }),
-/* 64 */
-/***/ (function(module, exports) {
-
-module.exports = require("child_process");
 
 /***/ }),
 /* 65 */
@@ -8260,7 +8344,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_65__;
 /* 66 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_66__;
+module.exports = require("child_process");
 
 /***/ }),
 /* 67 */
@@ -8294,39 +8378,52 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_71__;
 
 /***/ }),
 /* 72 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_72__;
+
+/***/ }),
+/* 73 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_73__;
+
+/***/ }),
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports =
 {
-Config: __webpack_require__(5),
-SpeBaseConfig: __webpack_require__(10),
-Logger: __webpack_require__(6),
-SpaceifyError: __webpack_require__(7),
-SpaceifyLogger: __webpack_require__(8),
+Config: __webpack_require__(4),
+SpeBaseConfig: __webpack_require__(8),
+Logger: __webpack_require__(5),
+SpaceifyError: __webpack_require__(6),
+SpaceifyLogger: __webpack_require__(7),
 
-SpaceifyDOM: __webpack_require__(40),
+SpaceifyDOM: __webpack_require__(41),
 SpaceifyLanguage: __webpack_require__(20),
-Service: __webpack_require__(18),
-SpaceifyApplication: __webpack_require__(37),
-SpaceifyApplicationManager: __webpack_require__(38),
-SpaceifyCache: __webpack_require__(39),
+Service: __webpack_require__(16),
+SpaceifyApplication: __webpack_require__(38),
+SpaceifyApplicationManager: __webpack_require__(39),
+SpaceifyCache: __webpack_require__(40),
 SpaceifyConfig: __webpack_require__(3),
 SpaceifyCore: __webpack_require__(19),
-SpaceifyMessages: __webpack_require__(41),
-SpaceifyNet: __webpack_require__(42),
+SpaceifyMessages: __webpack_require__(42),
+SpaceifyNet: __webpack_require__(43),
 SpaceifyNetwork: __webpack_require__(21),
-SpaceifyService: __webpack_require__(9),
-SpaceifySynchronous: __webpack_require__(43),
+ServiceInterface: __webpack_require__(17),
+ServiceSelector: __webpack_require__(18),
+SpaceifySynchronous: __webpack_require__(44),
 SpaceifyUnique: __webpack_require__(22),
 SpaceifyUtility: __webpack_require__(23),
-Spacelet: __webpack_require__(44),
+Spacelet: __webpack_require__(45),
 //BinaryRpcCommunicator: require("./webjsonrpc/binaryrpccommunicator.js"),
 CallbackBuffer: __webpack_require__(24),
 RpcCommunicator: __webpack_require__(26),
-WebRtcClient: __webpack_require__(45),
+WebRtcClient: __webpack_require__(46),
 WebRtcConnection: __webpack_require__(27),
-WebSocketConnection: __webpack_require__(11),
-WebSocketRpcConnection: __webpack_require__(12),
+WebSocketConnection: __webpack_require__(9),
+WebSocketRpcConnection: __webpack_require__(10),
 WebSocketRpcServer: __webpack_require__(28),
 WebSocketServer: __webpack_require__(29),
 Connection: __webpack_require__(25)
@@ -8336,7 +8433,7 @@ Connection: __webpack_require__(25)
 /***/ })
 /******/ ]);
 });
-(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"https://spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","APPSTORE":"appstore/","INDEX_FILE":"index.html","LOGIN_FILE":"login.html","SECURITY_FILE":"security.html","OPERATION_FILE":"operation.xop","LOCATION_FILE":"location.conf","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20"};})();
+(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","APLICATION_PORT_HTTP":"80","APLICATION_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"https://spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","APPSTORE":"appstore/","INDEX_FILE":"index.html","LOGIN_FILE":"login.html","SECURITY_FILE":"security.html","OPERATION_FILE":"operation.xop","LOCATION_FILE":"location.conf","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20"};})();
 (function spaceifyLocales(){window.spelocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","loading":"Loading...","copyright":"Copyright © 2014 - 2017 Spaceify Oy","btn_login":"Log In","btn_install":"Install","btn_reload":"Reload","btn_cancel":"Cancel","certificate_error":"It seems that your browser does not have the Spaceify edge node certificate installed. The certificate is required for loading web pages over secure connection. Install the certificate by pushing the 'Install' button. A pop-up window should appear requesting to accept 'Spaceify CA' as a trusted Certificate Authority (CA). Depending of your browser, there might be options for selecting the trust level. Select to trust the CA for identifying web pages. After you have installed the certificate, push the 'Reload' button to switch using encrypted connection.","certificate_error_cancel":"Pushing the 'Cancel' button hides this message.","delete_certificate":"Installed certificate can be deleted only from browsers settings. Open the security settings and select 'Manage' or 'View' certificates. From there find 'Authorities' or 'Trusted Authorities' and search for Spaceify Inc. / Spaceify CA. Select the certificate and delete it.","security_warning":"Unsecure connection detected! Without encryption anyone can see and exploit your password, session, and all other data. Push the 'Reload' button to switch using encrypted connection.","open_appstore":"AppStore","back_to_launchpage":"Back to Launchpage"},"index":{"title":"Welcome to Spaceify","version":"v","splash_welcome":"Welcome to Spaceify powered wireless network.","splash_info":"1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.","splash_accept_action":"Accept","splash_certificate_action":"Install","spacelets":"Spacelets","sandboxed":"Sandboxed","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate","logout":"Log Out"},"login":{"title":"Spaceify - Log In","password":"Password"},"security":{"title":"Spaceify - Security"},"appstore/index":{"title":"Spaceify - AppStore"}}};})();
 (function spaceifyTiles(){window.spetiles={"apptile":"<iframe class=\"edgeTile\" id=\"::id\" frameborder=\"0\"></iframe>","tile":"<div class=\"edgeTile\"><img id=\"::id\" sp_src=\"::sp_src\" width=\"64\" height=\"64\"><div class=\"edgeText\">::manifest.name</div><div class=\"edgeText edgeSubText\">::manifest.developer.name</div></div>"};})();
 
@@ -8354,7 +8451,8 @@ window.SpaceifyError = spe.SpaceifyError;
 window.SpaceifyMessages = spe.SpaceifyMessages;
 window.SpaceifyNet = spe.SpaceifyNet;
 window.SpaceifyNetwork = spe.SpaceifyNetwork;
-window.SpaceifyService = spe.SpaceifyService;
+window.ServiceInterface = spe.ServiceInterface;
+window.ServiceSelector = spe.ServiceSelector;
 window.SpaceifySynchronous = spe.SpaceifySynchronous;
 window.SpaceifyUnique = spe.SpaceifyUnique;
 window.SpaceifyUtility = spe.SpaceifyUtility;

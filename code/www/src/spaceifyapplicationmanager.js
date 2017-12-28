@@ -110,9 +110,9 @@ self.saveEdgeSettings = function(settings, origin, handler)
 	setup("saveEdgeSettings", {settings: settings}, origin, handler, true);
 	}
 
-self.getServiceRuntimeStates = function(origin, handler)
+self.getRuntimeServiceStates = function(origin, handler)
 	{
-	setup("getServiceRuntimeStates", {}, origin, handler, true);
+	setup("getRuntimeServiceStates", {}, origin, handler, true);
 	}
 
 /**

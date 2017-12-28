@@ -12,37 +12,6 @@ function Service(service_name, isServer, connection)
 {
 var self = this;
 
-var isNodeJs = (typeof window === "undefined" ? true : false);
-
-var lib = null;
-//var SpaceifyConfig = null;
-//var SpaceifyLogger = null;
-var SpaceifyUtility = null;
-var fibrous = null;
-
-if (isNodeJs)
-	{
-	lib = "/var/lib/spaceify/code/";
-
-	//SpaceifyConfig = require(lib + "spaceifyconfig");
-	//SpaceifyLogger = require(lib + "spaceifylogger");
-	SpaceifyUtility = require(lib + "spaceifyutility");
-	fibrous = require(lib + "fibrous");
-	}
-else
-	{
-	lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
-
-	//SpaceifyConfig = lib.SpaceifyConfig;
-	//SpaceifyLogger = lib.SpaceifyLogger;
-	var SpaceifyUtility = lib.SpaceifyUtility;
-	var fibrous = function(fn) { return fn; };
-	}
-
-var utility = new SpaceifyUtility();
-//var config = SpaceifyConfig.getConfig();
-//var logger = new SpaceifyLogger("Service");
-
 var serverUpListener = null;
 var serverDownListener = null;
 var connectionListeners = [];
@@ -125,14 +94,9 @@ self.getId = function()
 	return connection.getId();
 	}
 
-self.getServer = function()
-	{
-	return (isServer ? connection : null);
-	}
-
 self.getConnection = function()
 	{
-	return (!isServer ? connection : null);
+	return connection;
 	}
 
 self.getIsSecure = function()
@@ -140,14 +104,9 @@ self.getIsSecure = function()
 	return connection.getIsSecure();
 	}
 
-self.exposeRpcMethod = function(name, object, method)
+self.getServiceName = function()
 	{
-	connection.exposeRpcMethod(name, object, method);
-	}
-
-self.exposeRpcMethodSync = function(name, object, method)
-	{
-	connection.exposeRpcMethodSync(name, object, method);
+	return service_name;
 	}
 
 self.callRpc = function()

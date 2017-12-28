@@ -45,12 +45,15 @@ var docker = new Docker({socketPath: "/var/run/docker.sock"});
 // Start a Docker container in daemon mode. The OS image must have sshd installed.
 self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds)
 	{
+	var p, p2;
 	var opts;
-	var port;
-	var hostPort;
+	var port, securePort;
+	var hostPort, secureHostPort;
+	var http_port = config.APLICATION_PORT_HTTP;
+	var https_port = config.APLICATION_PORT_HTTPS;
 
 	try	{
-		for(var p = 0; p < portCount; p++)
+		for(p = 0; p < portCount; p++)
 			{
 			exposed[new String(config.FIRST_SERVICE_PORT + p) + "/tcp"] = {};
 			exposed[new String(config.FIRST_SERVICE_PORT_SECURE + p) + "/tcp"] = {};
@@ -61,12 +64,12 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 			bindings[new String(config.FIRST_SERVICE_PORT + p) + "/tcp"] = [{}];
 			bindings[new String(config.FIRST_SERVICE_PORT_SECURE + p) + "/tcp"] = [{}];
 			}
-		exposed["80/tcp"] = {};														// Add two additional ports for the applications internal http and https servers
-		exposed["443/tcp"] = {};
-		portOrder.push("80/tcp");
-		portOrder.push("443/tcp");
-		bindings["80/tcp"] = [{}];
-		bindings["443/tcp"] = [{}];
+		exposed[http_port + "/tcp"] = {};											// Add two additional ports for the applications internal http and https servers
+		exposed[https_port + "/tcp"] = {};
+		portOrder.push(http_port + "/tcp");
+		portOrder.push(https_port + "/tcp");
+		bindings[http_port + "/tcp"] = [{}];
+		bindings[https_port + "/tcp"] = [{}];
 
 		opts = {
 			"Hostname": "",
@@ -118,15 +121,24 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 	catch(err) {
 		throw language.E_START_CONTAINER_INSPECT_FAILED.pre("DockerContainer::startContainer", err); }
 
-	for(var i = 0; i < portOrder.length; i++)												// Store the mapped ports in the order they were exposed
+	for(p = 0, p2 = portOrder.length / 2; p < p2; p++)									// Store the mapped ports in the order they were exposed
 		{
-		port = portOrder[i];
+		port = portOrder[p * 2];
+		securePort = portOrder[p * 2 + 1];
 		hostPort = inspectedData.NetworkSettings.Ports[port][0].HostPort;
+		secureHostPort = inspectedData.NetworkSettings.Ports[securePort][0].HostPort;
 
-		containerPorts.push(hostPort);
-		logger.log("HostPort " + port + " = " + hostPort);
+		containerPorts.push({
+			hostPort: hostPort,
+			secureHostPort: secureHostPort,
+			containerPort: (p < p2 - 1 ? config.FIRST_SERVICE_PORT + p : http_port),
+			secureContainerPort: (p < p2 - 1 ? config.FIRST_SERVICE_PORT_SECURE + p : https_port)
+			});
 
 		export_ports += "export PORT_" + port.replace(/[^0-9]/g, "") + "=" + hostPort + "\n";
+		export_ports += "export PORT_" + securePort.replace(/[^0-9]/g, "") + "=" + secureHostPort + "\n";
+
+		logger.log("HostPort " + port + " = " + hostPort + " - SecureHostPort " + securePort + " = " + secureHostPort);
 		}
 	});
 

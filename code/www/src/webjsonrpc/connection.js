@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Spaceify Service, 29.7.2015 Spaceify Oy
+ * Connection, 29.7.2015 Spaceify Oy
  *
  * A class for wrapping the local and remote connection logic.
  *

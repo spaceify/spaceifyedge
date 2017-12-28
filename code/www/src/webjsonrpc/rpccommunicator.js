@@ -63,9 +63,11 @@ var latestConnectionId = null;
 
 var EXPOSE_SYNC = 0;
 var EXPOSE_TRADITIONAL = 1;
-var  REQUEST_STR = "  REQUEST      -> ";
-var   NOTIFY_STR = "  NOTIFICATION -> ";
-var RESPONSE_STR = "  RETURN VALUE <- ";
+var STR_CALL_RPC       = "CALL RPC  >> ";
+var STR_REQUEST        = "REQUEST   -> ";
+var STR_NOTIFY         = "NOTIFY    -> ";
+var STR_RESPONSE       = "RESPONSE  <- ";
+var STR_ERROR_RESPONSE = "ERESPONSE <- ";
 
 //** Upwards interface towards business logic
 
@@ -132,8 +134,6 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 	var isBatch = false, currentId;
 	var id = (typeof connectionId != "undefined" ? connectionId : latestConnectionId);		// Assume there is only one connection
 
-	logger.log("RpcCommunicator::callRpc() connectionId: " + connectionId);
-
 	if (!self.connectionExists(connectionId))
 		return;
 
@@ -147,7 +147,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 		currentId = callSequence;															// Batch requests have only one callback and the id in
 																							// the callbackBuffer is the id of the first request
-		for(var i=0; i<methods.length; i++)
+		for (var i = 0; i < methods.length; i++)
 			{
 			if (typeof callback == "function")												// Call: expects a response object
 				callObject = {jsonrpc: "2.0", method: methods[i], params: params[i], id: callSequence++};
@@ -156,7 +156,7 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 			callObjects.push(callObject);
 
-			//logger.log(NOTIFY_STR + JSON.stringify(callObject));
+			//logger.log(STR_NOTIFY + JSON.stringify(callObject));
 			}
 
 		if (typeof callback == "function")
@@ -169,6 +169,8 @@ self.callRpc = function(methods, params, object, callback, connectionId)
 
 	var request = isBatch ? callObjects : callObjects[0];									// Send as batch only if call was originally batch
 
+	logger.log(STR_CALL_RPC + JSON.stringify(request));
+
 	sendMessage(request, id);
 	};
 
@@ -178,7 +180,7 @@ self.notifyAll = function(method, params)
 	try	{
 		for (var key in connections)
 			{
-			logger.log("RpcCommunicator::notifyAll() sending message to " + key);
+			//logger.log("RpcCommunicator::notifyAll() sending message to " + key);
 
 			sendMessage({"jsonrpc": "2.0", "method": method, "params": params, "id": null}, key);
 			}
@@ -196,7 +198,7 @@ self.getBufferedAmount = function(connectionId)
 
 self.sendBinary = function(data, connectionId)
 	{
-	logger.log("RPCCommunicator::sendBinary() " + data.byteLength);
+	//logger.log("RPCCommunicator::sendBinary() " + data.byteLength);
 
 	try	{
 		connections[connectionId].sendBinary(data);
@@ -266,7 +268,7 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 		if (requestsOrResponses[0].method)												// Received a RPC Call from outside
 			{
-			logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
+			//logger.log("RpcCommunicator::handleRpcCall() connectionId: " + connectionId);
 
 			if (isNodeJs && !isRealSpaceify)
 				{
@@ -289,6 +291,8 @@ var handleMessage = function(requestsOrResponses, connectionId)
 
 var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, connectionId)
 	{
+	//logger.log("RpcCommunicator::handleRPCCall()");
+
 	var result;
 	var request = requests.shift();
 
@@ -308,7 +312,7 @@ var handleRPCCall = function(requests, isBatch, responses, onlyNotifications, co
 		if (requestId != null)
 			onlyNotifications = false;
 
-		logger.log((requestId ? REQUEST_STR : NOTIFY_STR) + JSON.stringify(request));
+		logger.log((requestId ? STR_REQUEST : STR_NOTIFY) + JSON.stringify(request));
 
 		if (!request.jsonrpc || request.jsonrpc != "2.0" || !request.method)				// Invalid JSON-RPC
 			{
@@ -448,7 +452,7 @@ var addResponse = function(requestId, result, responses)
 		{
 		result = (typeof result === "undefined" ? null : result);
 
-		logger.log("  RESPONSE <- " + JSON.stringify(result));
+		logger.log(STR_RESPONSE + JSON.stringify(result));
 
 		responses.push({jsonrpc: "2.0", result: result, id: requestId});
 		}
@@ -462,7 +466,7 @@ var addError = function(requestId, err, responses)
 		{
 		err = errorc.make(err);																	// Make all errors adhere to the SpaceifyError format
 
-		logger.log("  ERROR RESPONSE <- " + JSON.stringify(err));
+		logger.log(STR_ERROR_RESPONSE + JSON.stringify(err));
 
 		responses.push({jsonrpc: "2.0", error: err, id: requestId});
 		}
@@ -473,7 +477,7 @@ var addError = function(requestId, err, responses)
 // Handle incoming return values for a RPC call that we have made previously
 var handleReturnValue = function(responses, isBatch)
 	{
-	logger.log("RpcCommunicator::handleReturnValue()");
+	//logger.log("RpcCommunicator::handleReturnValue()");
 
 	var error = null, result = null;
 
@@ -485,7 +489,7 @@ var handleReturnValue = function(responses, isBatch)
 			}
 		else
 			{
-			logger.log(RESPONSE_STR + JSON.stringify(responses[0]));
+			logger.log(STR_RESPONSE + JSON.stringify(responses[0]));
 
 			if (!responses[0].jsonrpc || responses[0].jsonrpc != "2.0" || !responses[0].id || (responses[0].result && responses[0].error))
 				return;
@@ -516,9 +520,9 @@ var processBatchResponse = function(responses)
 	var smallestId = -1;
 	var errors = {}, results = {}
 
-	for(var r=0; r<responses.length; r++)
+	for (var r = 0; r < responses.length; r++)
 		{
-		logger.log(RESPONSE_STR + JSON.stringify(responses[r]));
+		logger.log(STR_RESPONSE + JSON.stringify(responses[r]));
 
 		if (!responses[r].jsonrpc || responses[r].jsonrpc != "2.0" || !responses[r].id || (responses[r].result && responses[r].error))
 			continue;
@@ -542,7 +546,7 @@ var processBatchResponse = function(responses)
 
 self.setupPipe = function(firstId, secondId)
 	{
-	logger.log("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
+	//logger.log("RpcCommunicator::setupPipe() between: " + firstId + " and " + secondId);
 
 	if (!connections.hasOwnProperty(firstId) || !connections.hasOwnProperty(secondId))
 		return;
@@ -605,7 +609,7 @@ self.addConnection = function(conn)
 		connections[conn.getId()] = conn;
 		conn.setEventListener(self);
 
-		for(var i=0; i<connectionListeners.length; i++)						// Bubble the event to client
+		for (var i = 0; i < connectionListeners.length; i++)				// Bubble the event to client
 			connectionListeners[i](conn.getId());
 
 		latestConnectionId = conn.getId();
@@ -622,7 +626,7 @@ self.onDisconnected = function(connectionId)
 	try	{
 		self.closeConnection(connectionId);
 
-		for(var i=0; i<disconnectionListeners.length; i++)			// Bubble the event to clients
+		for (var i = 0; i < disconnectionListeners.length; i++)		// Bubble the event to clients
 			disconnectionListeners[i](connectionId);
 		}
 	catch(err)

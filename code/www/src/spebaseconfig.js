@@ -205,7 +205,16 @@ logger:
 		warn: true
 		},
 
-	Manager:
+	RuntimeManager:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	ServiceRegistry:
 		{
 		log: true,
 		dir: true,
@@ -340,7 +349,16 @@ logger:
 		warn: true
 		},
 
-	SpaceifyService:
+	ServiceInterface:
+		{
+		log: true,
+		dir: true,
+		info: true,
+		error: true,
+		warn: true
+		},
+
+	ServiceSelector:
 		{
 		log: true,
 		dir: true,

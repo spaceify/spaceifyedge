@@ -78,6 +78,7 @@ var exit = function(err)
 	fibrous.run( function(err)
 		{
 		try {
+
 			core.sync.close();
 
 			process.exit(0);

@@ -89,7 +89,7 @@ self.waitForOutput = function(waitedStrings, callback)
 		if(seq == 16777216)
 			tdata = tdata.substr(tdata.length > 8 ? 8 : 0, data.length - 1);
 
-		logger.log(tdata);
+		logger.log("...\n" + tdata.replace(/^[ ]|[\r\n]+$/, ""));
 
 		buf += tdata;
 		for(var i = 0; i < waitedStrings.length; i++)

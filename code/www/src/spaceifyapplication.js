@@ -2,6 +2,7 @@
 
 /**
  * Spaceify application, 25.1.2016 Spaceify Oy
+ * This class can be used in Node.js applications and web pages.
  *
  * @class SpaceifyApplication
  */
@@ -19,7 +20,7 @@ var SpaceifyCore = null;
 var SpaceifyConfig = null;
 var SpaceifyLogger = null;
 var SpaceifyUtility = null;
-var SpaceifyService = null;
+var ServiceInterface = null;
 var fibrous = null;
 
 if(isNodeJs)
@@ -31,7 +32,7 @@ if(isNodeJs)
 	SpaceifyConfig = require(lib + "spaceifyconfig");
 	SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = require(lib + "spaceifyutility");
-	SpaceifyService = require(lib + "spaceifyservice");
+	ServiceInterface = require(lib + "serviceinterface");
 	fibrous = require(lib + "fibrous");
 	}
 else
@@ -43,7 +44,7 @@ else
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
-	SpaceifyService = lib.SpaceifyService;
+	ServiceInterface = lib.ServiceInterface;
 	fibrous = function(fn) { return fn; };
 	}
 
@@ -55,7 +56,7 @@ var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var utility = new SpaceifyUtility();
 var spaceifyCore = new SpaceifyCore();
-var spaceifyService = new SpaceifyService();
+var serviceInterface = new ServiceInterface();
 var config = SpaceifyConfig.getConfig("realpaths");
 var logger = new SpaceifyLogger("SpaceifyApplication");
 
@@ -125,7 +126,7 @@ var start = function(application_, options)
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
 					securePort = (isRealSpaceify ? config.FIRST_SERVICE_PORT_SECURE + i : null);
 
-					spaceifyService.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
+					serviceInterface.sync.listen(services[i].service_name, manifest.unique_name, port, securePort, listenUnsecure, listenSecure);
 					}
 				}
 
@@ -191,6 +192,7 @@ var start = function(application_, options)
 			}
 		catch(err)
 			{
+console.log("+++++++++++++++++++++++++++", err);
 			initFail.sync(err);
 			}
 		}, function(err, data)
@@ -240,7 +242,7 @@ var connectServices = function(application_, services)
 		return;
 		}
 
-	spaceifyService.connect(service.service_name, function(err, data)
+	serviceInterface.connect(service.service_name, function(err, data)
 		{
 		connectServices(application, services);
 		});
@@ -259,8 +261,8 @@ var stop = fibrous( function(err)
 	httpServer.close();
 	httpsServer.close();
 
-	spaceifyService.disconnect();																// Disconnect clients
-	spaceifyService.close();																	// Close servers
+	serviceInterface.disconnect();																// Disconnect clients
+	serviceInterface.close();																	// Close servers
 
 	spaceifyCore.close();
 
@@ -271,10 +273,12 @@ var stop = fibrous( function(err)
 var createRequiredServices = function(services, position, isSecure, callback)
 	{
 	if(position == services.length)
+		{
 		callback();
+		}
 	else
 		{
-		spaceifyService.connect(services[position++].service_name, isSecure, function(err, data)
+		serviceInterface.connect(services[position++].service_name, isSecure, function(err, data)
 			{
 			createRequiredServices(services, position, isSecure, callback);
 			});
@@ -297,26 +301,15 @@ self.getManifest = function()
 	return manifest;
 	}
 
-	// REQUIRED (= CLIENT) -- -- -- -- -- -- -- -- -- -- //
+	// REQUIRED (= CLIENT) / PROVIDED (= SERVICE) -- -- -- -- -- -- -- -- -- -- //
 self.getRequiredService = function(service_name)
 	{
-	return spaceifyService.getRequiredService(service_name);
+	return serviceInterface.getRequiredService(service_name);
 	}
 
-self.getRequiredServiceSecure = function(service_name)
-	{
-	return spaceifyService.getRequiredServiceSecure(service_name);
-	}
-
-	// PROVIDED (= SERVICE) -- -- -- -- -- -- -- -- -- -- //
 self.getProvidedService = function(service_name)
 	{
-	return spaceifyService.getProvidedService(service_name);
-	}
-
-self.getProvidedServiceSecure = function(service_name)
-	{
-	return spaceifyService.getProvidedServiceSecure(service_name);
+	return serviceInterface.getProvidedService(service_name);
 	}
 
 }

@@ -37,19 +37,19 @@ var language =
 	"E_PARSE_JSON_FAILED": new SpaceifyError({"code": 3003, "message": "Failed to parse JSON."}),
 
 	// Core
-	"E_GET_SERVICE_UNKNOWN_SERVICE": new SpaceifyError({"code": 2000, "message": "Get service failed. Service ~name was not found."}),
+	"E_GET_SERVICE_UNKNOWN_SERVICE": new SpaceifyError({"code": 2000, "message": "Get service failed. Service ~name not found."}),
 	"E_GET_SERVICE_DENIED": new SpaceifyError({"code": 2001, "message": "Get service failed. Access denied from callers remote address."}),
 
-	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2002, "message": "Get manifest failed. Application ~name was not found."}),
+	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2002, "message": "Get manifest failed. Application ~name not found."}),
 	"E_GET_EXTENDED_MANIFEST_FAILED": new SpaceifyError({"code": 2003, "message": "Get manifest failed. Unable to get extended fields."}),
 
 	"E_REGISTER_SERVICE_ACCESS_DENIED": new SpaceifyError({"code": 2004, "message": "Register service failed. Access denied from remote address ~address."}),
 	"E_REGISTER_SERVICE_SERVICE_NAME_UNDEFINED": new SpaceifyError({"code": 2005, "message": "Failed to register service. Service name ~name is undefined (not introduced in manifest)."}),
 	"E_REGISTER_SERVICE_PORTS_ARGUMENT": new SpaceifyError({"code": 2008, "message": "Register service failed. Ports argument is malformed. Expected JSON {unique_name: unique_name, port: <port>, securePort: <port>}."}),
-	"E_REGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2009, "message": "Register service failed. Application or spacelet with the unique name ~unique_name was not found."}),
+	"E_REGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2009, "message": "Register service failed. Application or spacelet with the unique name ~unique_name not found."}),
 	"E_UNREGISTER_SERVICE_ACCESS_DENIED": new SpaceifyError({"code": 2006, "message": "Unregistering service failed. Access denied from remote address ~address."}),
 	"E_UNREGISTER_SERVICE_SERVICE_NAME_UNDEFINED": new SpaceifyError({"code": 2007, "message": "Failed to unregister service. Service name ~name is undefined (not introduced in manifest)."}),
-	"E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2010, "message": "Unregister service failed. Application or spacelet with the unique name ~unique_name was not found."}),
+	"E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2010, "message": "Unregister service failed. Application or spacelet with the unique name ~unique_name not found."}),
 
 	"E_INVALID_SESSION": new SpaceifyError({"code": 2018, "message": "Invalid session identifier or session IP and caller IP do not match."}),
 
@@ -77,7 +77,7 @@ var language =
 
 	"E_GET_SERVICE_RUNTIME_STATES_FAILED": new SpaceifyError({"code": 2035, "message": "Failed to get service runtime states."}),
 
-	"E_SET_APPLICATION_RUNNING_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2036, "message": "Set application running failed. Native Debian, sandboxed Debian or develop mode application with the unique name ~unique_name was not found."}),
+	"E_SET_APPLICATION_RUNNING_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2036, "message": "Set application running failed. Native Debian, sandboxed Debian or develop mode application with the unique name ~unique_name not found."}),
 	"E_SET_APPLICATION_RUNNING_ACCESS_DENIED": new SpaceifyError({"code": 2037, "message": "Set application running failed. Access denied from callers remote address."}),
 	"E_SET_APPLICATION_RUNNING_WRONG_TYPE": new SpaceifyError({"code": 2038, "message": "Set application running failed. Only native Debian, sandboxed Debian and develop mode applications can be set their running state."}),
 
@@ -176,10 +176,9 @@ var language =
 	"E_GET_DATA_UNDEFINED_PARAMETERS": new SpaceifyError({"code": 15003, "message": "Required parameter(s) undefined."}),
 
 	// SecurityModel
-	"E_GET_SERVICE_UNREGISTERED": new SpaceifyError({"code": 16000, "message": "Get service failed. Service ~name is not registered."}),
-	"E_GET_SERVICE_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Get service failed. Service ~name is forbidden to caller."}),
-	"E_GET_SERVICE_APPLICATION_NOT_FOUND": new SpaceifyError({"code": 16002, "message": "Get service failed. Application or spacelet was not found."}),
-	"E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Get service failed. Application or spacelet ~unique_name does not have required services defined."}),
+	"E_CHECK_SERVICE_PERMISSIONS_UNREGISTERED": new SpaceifyError({"code": 16000, "message": "Service permission check failed. Service ~name is not registered."}),
+	"E_CHECK_SERVICE_PERMISSIONS_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Service permission check failed. Service ~name is forbidden to caller."}),
+	"E_CHECK_SERVICE_PERMISSIONS_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Service permission check failed. Application or spacelet ~unique_name does not have required services."}),
 	"E_ADMIN_LOG_IN_FAILED": new SpaceifyError({"code": 16005, "message": "Admin log in failed."}),
 	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge node are forbidden."}),
 	"E_REMOTE_LOG_IN_FAILED": new SpaceifyError({"code": 16007, "message": "Remote log in failed."}),

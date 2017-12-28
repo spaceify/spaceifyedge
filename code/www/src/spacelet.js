@@ -16,7 +16,7 @@ var lib = (window.WEBPACK_MAIN_LIBRARY ? window.WEBPACK_MAIN_LIBRARY : window);
 
 var core = new lib.SpaceifyCore();
 //var logger = new lib.SpaceifyLogger("Spacelet");
-var spaceifyService = new lib.SpaceifyService();
+var ServiceInterface = new lib.ServiceInterface();
 var spaceifyNetwork = new lib.SpaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
@@ -35,7 +35,7 @@ self.start = function(application, unique_name, callback)
 				{
 				for(var i = 0; i < serviceobj.serviceNames.length; i++)
 					{
-					spaceifyService.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
+					serviceInterface.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
 						{
 						if(typeof application == "function")
 							application(null, true);
@@ -55,14 +55,9 @@ self.start = function(application, unique_name, callback)
 		}
 	}
 
-self.getRequiredService = function(service_name)
+self.getRequiredService = function(service_name, isSecure)
 	{
-	return spaceifyService.getRequiredService(service_name);
-	}
-
-self.getRequiredServiceSecure = function(service_name)
-	{
-	return spaceifyService.getRequiredServiceSecure(service_name);
+	return serviceInterface.getRequiredService(service_name, isSecure);
 	}
 
 self.isSpaceifyNetwork = function(timeout, callback)

@@ -106,7 +106,7 @@ iptables -D INPUT -p tcp --dport 4949 -j DROP
 	appManServer.exposeRpcMethodSync("requestMessageId", self, requestMessageId);
 	appManServer.exposeRpcMethodSync("adminLogIn", self, adminLogIn);
 	appManServer.exposeRpcMethodSync("adminLogOut", self, adminLogOut);
-	appManServer.exposeRpcMethodSync("getServiceRuntimeStates", self, getServiceRuntimeStates);
+	appManServer.exposeRpcMethodSync("getRuntimeServiceStates", self, getRuntimeServiceStates);
 	appManServer.exposeRpcMethodSync("getCoreSettings", self, getCoreSettings);
 	appManServer.exposeRpcMethodSync("saveCoreSettings", self, saveCoreSettings);
 	appManServer.exposeRpcMethodSync("getEdgeSettings", self, getEdgeSettings);
@@ -359,7 +359,7 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 				{
 				start = startOrder.pop();
 
-				if(	start.type != config.SPACELET && !start.isDevelop)
+				if(start.type != config.SPACELET && !start.isDevelop)
 					sendMessage.sync(utility.replace(language.PACKAGE_STARTING, {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
 				else if(start.isDevelop)
 					sendMessage.sync(utility.replace(language.PACKAGE_DEVELOP, {"~type": language.APP_DISPLAY_NAMES[start.type], "~name": start.unique_name}));
@@ -675,16 +675,16 @@ var adminLogOut = fibrous( function(sessionId, connObj)
 	return true;
 	});
 
-var getServiceRuntimeStates = fibrous( function(sessionId, connObj)
+var getRuntimeServiceStates = fibrous( function(sessionId, connObj)
 	{
 	var status = {};
 
 	try {
 			// Preconditions for performing this operation
 		if(!checkAuthentication.sync(connObj.remoteAddress, sessionId))
-			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getServiceRuntimeStates");
+			throw language.E_AUTHENTICATION_FAILED.pre("ApplicationManager::getRuntimeServiceStates");
 
-		status = coreConnection.sync.callRpc("getServiceRuntimeStates", [sessionId], self);
+		status = coreConnection.sync.callRpc("getRuntimeServiceStates", [sessionId], self);
 		}
 	catch(err)
 		{
@@ -923,7 +923,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		{
 		if(!isSuggested && try_local && utility.sync.isDirectory(applicationPackage))
 			isPackage = getLocalInstallDirectory.sync(applicationPackage, false);
-	
+
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
 		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_DIRECTORY, "~state": state}));
 		}
@@ -943,7 +943,7 @@ var getPackage = fibrous( function(applicationPackage, isSuggested/*try only reg
 		{
 		if(!isSuggested && try_local && utility.sync.isFile(applicationPackage) && applicationPackage.search(/\.zip$/i) != -1)
 			isPackage = getLocalInstallZip.sync(applicationPackage, false);
-	
+
 		state = (isPackage === true ? language.M_FOUND : language.M_NOT_FOUND);
 		sendMessage.sync(utility.replace(language.CHECKING_FROM, {"~where": language.LOCAL_ARCHIVE, "~state": state}));
 		}
@@ -1073,7 +1073,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 	var dockerImage = new DockerImage();
 
 	try {
-		manifest.setDevelop(develop);
+		//manifest.setDevelop(develop);
 
 		volumePath = unique.getVolPath(manifest.getType(), manifest.getUniqueName(), config);
 		applicationPath = unique.getAppPath(manifest.getType(), manifest.getUniqueName(), config);
@@ -1177,7 +1177,7 @@ var install = fibrous( function(manifest, develop, sessionId)
 
 				sendMessage.sync("");
 				}
-			
+
 				// apt-get install
 			if((apt_packages = manifest.getAptPackages()))
 				{
@@ -1337,7 +1337,7 @@ var removeTemporaryFiles = fibrous( function()
 
 var removeUniqueData = fibrous( function(obj)
 	{ // Removes existing application data and leaves users data untouched
-	var volumePath = unique.getVolPath(obj.type, obj.unique_name, config);	
+	var volumePath = unique.getVolPath(obj.type, obj.unique_name, config);
 
 	utility.sync.deleteDirectory(volumePath + config.APPLICATION_DIRECTORY);
 	utility.sync.deleteDirectory(volumePath + config.TLS_DIRECTORY);
@@ -1389,7 +1389,7 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 		// Remove entries from spaceifyapplication.list
 	removeApplicationRepositoryEntries(manifest, false);
 
-		// Purge debian packages, update package lists 
+		// Purge debian packages, update package lists
 	if((apt_packages = manifest.getAptPackages()))
 		packages = packages.concat(apt_packages);
 	if((deb_packages = manifest.getDebPackages()))
@@ -1474,7 +1474,7 @@ var git = fibrous( function(gitoptions, username, password, throws)
 
 	try {
 		gitoptions[1] = gitoptions[1].replace(/(.git)$/i, "");
-		
+
 		github = new Github({version: "3.0.0"});
 
 		//if(username != "" && password != "")																				// Use authentication when its provided
