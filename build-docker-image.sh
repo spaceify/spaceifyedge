@@ -48,10 +48,10 @@ done
 newVersion=$(($currentVersion + $versionIncrement))
 newImage="spaceify${1}${newVersion}"
 
-echo $selection
-echo $versionIncrement
-echo $newVersion
-echo $newImage
+#echo $selection
+#echo $versionIncrement
+#echo $newVersion
+#echo $newImage
 
 # --------- DO --------- #
 cd "data/docker/$1"
