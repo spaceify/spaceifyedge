@@ -51,12 +51,12 @@ sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d
 sed -i "/${wlan}/,/^$/s/^/${comm_out_spaceify}&/g" /etc/network/interfaces					# comment out existing wlan (range: first line with string $wlan until empty line)
 
 wlan_conf=$(</etc/network/interfaces)
-wlan_conf=$( echo "${wlan_conf}\n\n${start_spaceify}\n" )									# append new configuration
-wlan_conf=$( echo "${wlan_conf}auto ${wlan}\n" )
-wlan_conf=$( echo "${wlan_conf}iface ${wlan} inet static\n" )
-wlan_conf=$( echo "${wlan_conf}address 10.0.0.1\n" )
-wlan_conf=$( echo "${wlan_conf}netmask 255.255.255.0\n" )
-wlan_conf=$( echo "${wlan_conf}${end_spaceify}" )
+wlan_conf="${wlan_conf}\n\n${start_spaceify}\n"												# append new configuration
+wlan_conf="${wlan_conf}auto ${wlan}\n"
+wlan_conf="${wlan_conf}iface ${wlan} inet static\n"
+wlan_conf="${wlan_conf}address 10.0.0.1\n"
+wlan_conf="${wlan_conf}netmask 255.255.255.0\n"
+wlan_conf="${wlan_conf}${end_spaceify}"
 printf "$wlan_conf" > /etc/network/interfaces
 
 	# ----- /etc/default/docker ----- #
@@ -69,9 +69,9 @@ else
 	docker_conf=""
 fi
 
-docker_conf=$( echo "${docker_conf}\n\n${start_spaceify}\n" )
-docker_conf=$( echo "${docker_conf}DOCKER_OPTS=\"--dns 10.0.0.1 --iptables=false\"\n" )
-docker_conf=$( echo "${docker_conf}${end_spaceify}" )
+docker_conf="${docker_conf}\n\n${start_spaceify}\n"
+docker_conf="${docker_conf}DOCKER_OPTS=\"--dns 10.0.0.1 --iptables=false\"\n"
+docker_conf="${docker_conf}${end_spaceify}"
 printf "$docker_conf" > /etc/default/docker
 
 	# ----- /etc/rc.local ----- #
@@ -84,7 +84,7 @@ sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d
 
 sysctl=$(</etc/sysctl.conf)
 sysctl=$( echo "$sysctl" | sed "s/.*net.ipv4.ip_forward.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
-sysctl=$( echo "${sysctl}\n\n${start_spaceify}\nnet.ipv4.ip_forward=1\n${end_spaceify}" > /dev/null 2>&1 || true )	# append new value
+sysctl="${sysctl}\n\n${start_spaceify}\nnet.ipv4.ip_forward=1\n${end_spaceify}"				# append new value
 printf "$sysctl" > /etc/sysctl.conf
 
 	# ----- /etc/hostapd/hostapd_spaceify-ap.conf and /etc/default/hostapd - configure/enable AP ----- #
@@ -92,17 +92,17 @@ printf "$sysctl" > /etc/sysctl.conf
 if [[ "$is_internal" -eq "1" ]]; then														# configure
 	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/default/hostapd > /dev/null 2>&1 || true
 
-	hostap=$( echo "$start_spaceify\n" )
-	hostap=$( echo "${hostap}interface=${wlan}\n" )
-	hostap=$( echo "${hostap}driver=nl80211\n" )
-	hostap=$( echo "${hostap}ssid=spaceify\n" )
-	hostap=$( echo "${hostap}channel=6\n" )
-	hostap=$( echo "${hostap}${end_spaceify}" )
+	hostap="$start_spaceify\n"
+	hostap="${hostap}interface=${wlan}\n"
+	hostap="${hostap}driver=nl80211\n"
+	hostap="${hostap}ssid=spaceify\n"
+	hostap="${hostap}channel=6\n"
+	hostap="${hostap}${end_spaceify}"
 	printf "$hostap" > /etc/hostapd/hostapd_spaceify.conf
 
 	dhostapd=$(</etc/default/hostapd)
 	dhostapd=$( echo "$dhostapd" | sed "s/.*DAEMON_CONF.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
-	dhostapd=$( echo "${dhostapd}\n\n${start_spaceify}\nDAEMON_CONF=/etc/hostapd/hostapd_spaceify.conf\n${end_spaceify}" )	# append new value
+	dhostapd="${dhostapd}\n\n${start_spaceify}\nDAEMON_CONF=/etc/hostapd/hostapd_spaceify.conf\n${end_spaceify}"	# append new value
 	printf "$dhostapd" > /etc/default/hostapd
 else																						# comment configuration if hostpad is installed and it has hostapd_spaceify.conf configuration
 	hpd=$( dpkg-query -W -f='${Status}\n' hostapd )
@@ -118,9 +118,9 @@ fi
 #sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/monit/monitrc							# remove Spaceify's previous entries
 
 #monit=$(</etc/monit/monitrc)
-#monit=$( echo "${monit}\n\n${start_spaceify}\n" )											# append new configuration
-#monit=$( echo "${monit}include /var/lib/spaceify/monit/spaceify.conf\n" )
-#monit=$( echo "${monit}${end_spaceify}\n" )
+#monit="${monit}\n\n${start_spaceify}\n"													# append new configuration
+#monit="${monit}include /var/lib/spaceify/monit/spaceify.conf\n"
+#monit="${monit}${end_spaceify}\n"
 #printf "$monit" > /etc/monit/monitrc
 
 core_port=$(cat /var/lib/spaceify/code/config.json | grep "CORE_PORT" | sed 's/[^0-9]*//g')
@@ -290,7 +290,7 @@ chown -R root:root /var/lib/spaceify/code
 # ----------
 # ---------- Docker image for different distributions ---------- #
 
-printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
+printf "\n\e[4mSearching Docker image for this distribution\e[0m\n"
 
 if [[ -n $(uname -a |& grep -i "ubun") ]]; then
 	distro=$(cat /var/lib/spaceify/code/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
