@@ -745,6 +745,7 @@ var getRuntimeServiceStates = fibrous( function()
 				t[type].push(lastApplication + " " + lastService + mll + language.M_TYPE + services[m].service_type);
 
 				containerPort = (!applications[unique_names[n]].isDevelop ? " > " + services[m].containerPort : "");
+
 				accepts = (network.sync.isPortInUse(services[m].port) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
 				t[type].push(lastApplication + " " + lastService + mll + language.M_PORT + services[m].port + containerPort + accepts);
 

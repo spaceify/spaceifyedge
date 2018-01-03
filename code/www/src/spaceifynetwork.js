@@ -238,7 +238,7 @@ self.parseURL = function(url)
 self.isPortInUse = function(port, callback)
 	{ // Adapted from https://gist.github.com/timoxley/1689041
 	if(!port)
-		return callback(null, true);
+		return callback(null, false);
 
 	var net = require("net");
 	var server = net.createServer();

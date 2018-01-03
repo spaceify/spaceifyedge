@@ -489,9 +489,8 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 	{ // Removes, and when necessary stops, application or spacelet and removes it from cores lists
 	var type;
 	var event;
-	var removed;
 	var application;
-	var isRemoved = true;
+	var isRemoved = false;
 
 	try {
 		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
@@ -506,9 +505,9 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 
 		type = application.manifest.getType();
 
-		removed = getManager(type).sync.remove(unique_name, true);
+		isRemoved = getManager(type).sync.remove(unique_name, true);
 
-		serviceRegistry.applicationRemoved(removed[0]);
+		serviceRegistry.applicationRemoved(unique_name);
 
 		// Events
 		if (type == config.SPACELET)

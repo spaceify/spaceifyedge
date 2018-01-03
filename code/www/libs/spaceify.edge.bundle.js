@@ -3346,7 +3346,7 @@ self.parseURL = function(url)
 self.isPortInUse = function(port, callback)
 	{ // Adapted from https://gist.github.com/timoxley/1689041
 	if(!port)
-		return callback(null, true);
+		return callback(null, false);
 
 	var net = __webpack_require__(70);
 	var server = net.createServer();
@@ -7615,7 +7615,7 @@ var lib = (window.spe ? window.spe : window);
 
 var core = new lib.SpaceifyCore();
 //var logger = new lib.SpaceifyLogger("Spacelet");
-var ServiceInterface = new lib.ServiceInterface();
+var serviceInterface = new lib.ServiceInterface();
 var spaceifyNetwork = new lib.SpaceifyNetwork();
 
 self.start = function(application, unique_name, callback)
