@@ -17,7 +17,7 @@ var language =
 	"E_GENERAL_ERROR": new SpaceifyError({"code": "", "message": "~err"}),
 	"E_WRONG_NUMBER_OF_ARGUMENTS": new SpaceifyError({"code": 1, "message": "Wrong number of arguments: ~number expected."}),
 	"E_ADMIN_NOT_LOGGED_IN": new SpaceifyError({"code": 2, "message": "Administrator must be logged in to perform this operation."}),
-	"E_APPLICATION_NOT_INSTALLED": new SpaceifyError({"code": 3, "message": "Application or spacelet ~name is not installed."}),
+	"E_APPLICATION_IS_NOT_INSTALLED": new SpaceifyError({"code": 3, "message": "Application or spacelet ~name is not installed or installation is broken."}),
 
 	// SpaceifyUtility
 	"E_LOAD_REMOTE_FILE_FAILED_TO_INITIATE_HTTP_GET": new SpaceifyError({"code": 1000, "message": "Failed to initiate HTTP(S) GET."}),
@@ -37,16 +37,19 @@ var language =
 	"E_PARSE_JSON_FAILED": new SpaceifyError({"code": 3003, "message": "Failed to parse JSON."}),
 
 	// Core
-	"E_GET_SERVICE_UNKNOWN_SERVICE": new SpaceifyError({"code": 2000, "message": "Get service failed because service ~name was not found."}),
-	"E_GET_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2001, "message": "Get service failed because callers remote address is unknown."}),
+	"E_GET_SERVICE_UNKNOWN_SERVICE": new SpaceifyError({"code": 2000, "message": "Get service failed. Service ~name not found."}),
+	"E_GET_SERVICE_DENIED": new SpaceifyError({"code": 2001, "message": "Get service failed. Access denied from callers remote address."}),
 
-	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2002, "message": "Get manifest failed because application ~name was not found."}),
-	"E_GET_EXTENDED_MANIFEST_FAILED": new SpaceifyError({"code": 2003, "message": "Get manifest failed because getting extended fields was unsuccessful."}),
+	"E_GET_MANIFEST_FAILED": new SpaceifyError({"code": 2002, "message": "Get manifest failed. Application ~name not found."}),
+	"E_GET_EXTENDED_MANIFEST_FAILED": new SpaceifyError({"code": 2003, "message": "Get manifest failed. Unable to get extended fields."}),
 
-	"E_REGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2004, "message": "Register service failed because callers remote address ~address is unknown."}),
-	"E_REGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2005, "message": "Failed to register service because service name ~name is unknown (not introduced in manifest)."}),
-	"E_UNREGISTER_SERVICE_UNKNOWN_ADDRESS": new SpaceifyError({"code": 2006, "message": "Unregistering service failed because callers remote address ~address is unknown."}),
-	"E_UNREGISTER_SERVICE_UNKNOWN_SERVICE_NAME": new SpaceifyError({"code": 2007, "message": "Failed to unregister service because service name ~name is unknown (not introduced in manifest)."}),
+	"E_REGISTER_SERVICE_ACCESS_DENIED": new SpaceifyError({"code": 2004, "message": "Register service failed. Access denied from remote address ~address."}),
+	"E_REGISTER_SERVICE_SERVICE_NAME_UNDEFINED": new SpaceifyError({"code": 2005, "message": "Failed to register service. Service name ~name is undefined (not introduced in manifest)."}),
+	"E_REGISTER_SERVICE_PORTS_ARGUMENT": new SpaceifyError({"code": 2008, "message": "Register service failed. Ports argument is malformed. Expected JSON {unique_name: unique_name, port: <port>, securePort: <port>}."}),
+	"E_REGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2009, "message": "Register service failed. Application or spacelet with the unique name ~unique_name not found."}),
+	"E_UNREGISTER_SERVICE_ACCESS_DENIED": new SpaceifyError({"code": 2006, "message": "Unregistering service failed. Access denied from remote address ~address."}),
+	"E_UNREGISTER_SERVICE_SERVICE_NAME_UNDEFINED": new SpaceifyError({"code": 2007, "message": "Failed to unregister service. Service name ~name is undefined (not introduced in manifest)."}),
+	"E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2010, "message": "Unregister service failed. Application or spacelet with the unique name ~unique_name not found."}),
 
 	"E_INVALID_SESSION": new SpaceifyError({"code": 2018, "message": "Invalid session identifier or session IP and caller IP do not match."}),
 
@@ -54,13 +57,15 @@ var language =
 
 	"E_SET_SPLASH_ACCEPTED_FAILED": new SpaceifyError({"code": 2021, "message": "Failed to add the MAC address to the accepted addresses list."}),
 
-	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start spacelet."}),
+	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start the spacelet."}),
 
 	"E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS": new SpaceifyError({"code": 2026, "message": "Applications can not start spacelets."}),
+	"E_START_SPACELET_NOT_INSTALLED": new SpaceifyError({"code": 2027, "message": "Spacelet ~unique_name is not installed."}),
+	"E_START_SPACELET_IS_NOT_SPACELET": new SpaceifyError({"code": 2042, "message": "~unique_name is spacelet."}),
 
 	"E_GET_APPLICATION_URL_FAILED": new SpaceifyError({"code": 2028, "message": "Failed to get application URLs."}),
 
-	"E_START_SPACELET_SSOP": new SpaceifyError({"code": 2029, "message": "Same Origin Policy rules prevent starting the spacelet."}),
+	"E_START_SPACELET_FORBIDDEN_ORIGIN": new SpaceifyError({"code": 2029, "message": "Same Origin Policy rules prevent starting the spacelet."}),
 
 	"E_GET_CORE_SETTINGS_FAILED": new SpaceifyError({"code": 2030, "message": "Failed to get core settings."}),
 	"E_SAVE_CORE_SETTINGS_FAILED": new SpaceifyError({"code": 2031, "message": "Failed to save core settings."}),
@@ -71,6 +76,16 @@ var language =
 	"E_REGISTER_EDGE_FAILED": new SpaceifyError({"code": 2034, "message": "Edge registration failed: ~result ~httpStatus."}),
 
 	"E_GET_SERVICE_RUNTIME_STATES_FAILED": new SpaceifyError({"code": 2035, "message": "Failed to get service runtime states."}),
+
+	"E_SET_APPLICATION_RUNNING_UNKNOWN_UNIQUE_NAME": new SpaceifyError({"code": 2036, "message": "Set application running failed. Native Debian, sandboxed Debian or develop mode application with the unique name ~unique_name not found."}),
+	"E_SET_APPLICATION_RUNNING_ACCESS_DENIED": new SpaceifyError({"code": 2037, "message": "Set application running failed. Access denied from callers remote address."}),
+	"E_SET_APPLICATION_RUNNING_WRONG_TYPE": new SpaceifyError({"code": 2038, "message": "Set application running failed. Only native Debian, sandboxed Debian and develop mode applications can be set their running state."}),
+
+	"E_PACKAGE_DEVELOP_MODE": new SpaceifyError({"code": 2039, "message": "~type is installed in develop mode and can not be started or stopped with spm. Start it manually."}),
+
+	"E_PACKAGE_ALREADY_STOPPED": new SpaceifyError({"code": 2040, "message": "~type is already stopped."}),
+
+	"E_PACKAGE_ALREADY_RUNNING": new SpaceifyError({"code": 2041, "message": "~type is already running."}),
 
 	// DockerContainer
 	"E_START_CONTAINER_CREATE_CONTAINER_FAILED": new SpaceifyError({"code": 4000, "message": "Creating the docker container failed."}),
@@ -90,12 +105,12 @@ var language =
 	"E_GET_APPLICATIONS_FAILED_TO_GET_APPLICATIONS": new SpaceifyError({"code": 7009, "message": "Failed to list applications."}),
 	"E_CREATE_CLIENT_CERTIFICATE_FAILED_TO_CREATE": new SpaceifyError({"code": 7010, "message": "Failed to create certificate for the application."}),
 	"E_GIT_FAILED_TO_GET_GITHUB_DATA": new SpaceifyError({"code": 7011, "message": "Failed to get data from GitHub."}),
-	"E_PROCESS_PACKAGE_FAILED": new SpaceifyError({"code": 7012, "message": "Getting package from ~source failed."}),
 	"E_AUTHENTICATION_FAILED": new SpaceifyError({"code": 7013, "message": "Authentication failed."}),
+	"E_ONLY_SANDBOXED_OR_SPACELET": new SpaceifyError({"code": 7014, "message": "Only sandboxed applications and spacelets can be installed in develop mode."}),
 
 	// Manager
 	"E_START_INIT_FAILED": new SpaceifyError({"code": 8000, "message": "~type failed to initialize itself. ~err"}),
-	"E_BUILD_READ_MANIFEST_FAILED": new SpaceifyError({"code": 8003, "message": "Unable to read/parse manifest of ~type ~unique_name."}),
+	"E_INSTALL_READ_MANIFEST_FAILED": new SpaceifyError({"code": 8003, "message": "Unable to read/parse manifest of ~type ~unique_name."}),
 	"E_RUN_FAILED_TO_RUN": new SpaceifyError({"code": 8004, "message": "Failed to run ~type ~unique_name."}),
 
 	// WebServer
@@ -104,8 +119,9 @@ var language =
 
 	"E_LISTEN_FATAL_ERROR": new SpaceifyError({"code": 10000, "message": "Fatal error in WebServer ~hostname:~port - ~err"}),
 
-	"E_RENDER_OPERATION_PAGE_INVALID_DATA_POST": "{\"code\": 10001, \"message\": \"The submitted data is invalid.\", \"path\": \"WebServer::renderOperationPage()\"}",
-	
+	"E_INVALID_POST_DATA": new SpaceifyError({"code": 10001, "message": "The submitted data is invalid."}),
+	"E_NO_SESSION_MANAGER": new SpaceifyError({"code": 10002, "message": "No session manager."}),
+
 	// SPM
 	"E_SPM_UNKNOWN_COMMAND": new SpaceifyError({"code": 12001, "message": "Unknown command ~command."}),
 	"E_SPM_CONNECTION_FAILED": new SpaceifyError({"code": 12002, "message": "Failed to connect to the Application manager."}),
@@ -114,7 +130,7 @@ var language =
 	"E_SPM_ARGUMENTS_TWO": new SpaceifyError({"code": 12005, "message": "The ~command command must have one or two arguments: [authenticate] package."}),
 
 	"E_SPM_REGISTER_FAILED": "Registering this edge node failed: ~message.",
-	"I_SPM_REGISTER_SUCCESSFUL": "The registration information for this edge node is now created. The registration information is in file ~registration.",
+	"I_SPM_REGISTER_SUCCESSFUL": "The registration for this edge node is now created. The registration file is located here: ~registration.",
 
 	// DataBase
 	"E_DATABASE_OPEN": new SpaceifyError({"code": 12000, "message": "Failed to open database connection."}),
@@ -147,20 +163,24 @@ var language =
 	"E_VALIDATE_DIRECTORIES_IMAGE_TYPES": new SpaceifyError({"code": 13004, "message": "Supported image formats are jpg, gif and png."}),
 	"E_VALIDATE_DIRECTORIES_DOCKER_IMAGE": new SpaceifyError({"code": 13005, "message": "Custom Docker image creation is defined but file Dockerfile is not found from applications directory."}),
 
-	"E_VALIDATE_MANIFEST_MANIFEST_TYPE": new SpaceifyError({"code": 13006, "message": "Manifest must have type field defined and type must be spacelet, sandboxed or native."}),
+	"E_VALIDATE_MANIFEST_MANIFEST_TYPE": new SpaceifyError({"code": 13006, "message": "Manifest must have type field and accepted values are spacelet, sandboxed, sandboxed_debian or native_debian."}),
+
+	"E_VALIDATE_DIRECTORIES_DEB_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13008, "message": "Debian package ~deb was not found from packages directory."}),
+	"E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13009, "message": "Public key ~key was not found from packages directory."}),
+	"E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING": new SpaceifyError({"code": 13010, "message": "The service file ~service of this package was not found from the application directory."}),
 
 	// WebOperation
-	"E_GET_DATA_OPERATION_NOT_DEFINED": "{\"code\": 15000, \"message\": \"No operation defined.\", \"path\": \"WebOperation::getData()\"}",
-	"E_GET_DATA_UNKNOWN_OPERATION": "{\"code\": 15001, \"message\": \"Undefined operation requested or the rights to execute the operation are insufficient.\", \"path\": \"WebOperation::getData()\"}",
-	"E_UNDEFINED_PARAMETERS": "{\"code\": 15002, \"message\": \"Required parameter(s) undefined.\", \"path\": \"WebOperation::getData()\"}",
+	"E_GET_DATA_OPERATION_NOT_DEFINED": new SpaceifyError({"code": 15000, "message": "No operation defined."}),
+	"E_GET_DATA_UNKNOWN_OPERATION": new SpaceifyError({"code": 15001, "message": "Unknown operation requested."}),
+	"E_GET_DATA_OPERATION_DENIED": new SpaceifyError({"code": 15002, "message": "Operation over non-secure connection denied."}),
+	"E_GET_DATA_UNDEFINED_PARAMETERS": new SpaceifyError({"code": 15003, "message": "Required parameter(s) undefined."}),
 
 	// SecurityModel
-	"E_GET_SERVICE_UNREGISTERED": new SpaceifyError({"code": 16000, "message": "Get service failed because service ~name is not registered."}),
-	"E_GET_SERVICE_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Get service failed because service ~name is forbidden to caller."}),
-	"E_GET_SERVICE_APPLICATION_NOT_FOUND": new SpaceifyError({"code": 16002, "message": "Get service failed because application or spacelet was not found."}),
-	"E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Get service failed because application or spacelet ~unique_name does not have required services defined."}),
+	"E_CHECK_SERVICE_PERMISSIONS_UNREGISTERED": new SpaceifyError({"code": 16000, "message": "Service permission check failed. Service ~name is not registered."}),
+	"E_CHECK_SERVICE_PERMISSIONS_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Service permission check failed. Service ~name is forbidden to caller."}),
+	"E_CHECK_SERVICE_PERMISSIONS_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Service permission check failed. Application or spacelet ~unique_name does not have required services."}),
 	"E_ADMIN_LOG_IN_FAILED": new SpaceifyError({"code": 16005, "message": "Admin log in failed."}),
-	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge are forbidden."}),
+	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge node are forbidden."}),
 	"E_REMOTE_LOG_IN_FAILED": new SpaceifyError({"code": 16007, "message": "Remote log in failed."}),
 
 	/* ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -200,58 +220,71 @@ var language =
 	"REMOVE_CONTAINER": "Removing temporary container: ~container.",
 
 	// ApplicationManager
-	"RESOLVING_ORIGIN": "Resolving package origin...",
-	"CHECKING_FROM": "Checking ~where",
+	"RESOLVING_ORIGIN": "Resolving package origin.",
+	"CHECKING_FROM": " : ~where - ~state",
 	"PACKAGE_FOUND": "Package ~package found from ~where",
 	"TRYING_TO_PUBLISH": "Trying to publish ~where",
-	"APPLICATION_DIRECTORY": "application directory.",
-	"LOCAL_DIRECTORY": "local directory.",
-	"WORKING_DIRECTORY": "current working directory.",
-	"LOCAL_ARCHIVE": "local Zip archive.",
-	"WORKING_DIRECTORY_ARCHIVE": "Zip archive in the current working directory.",
-	"GIT_REPOSITORY": "the GitHub repository.",
-	"REMOTE_ARCHIVE": "remote Zip archive.",
-	"SPACEIFY_REGISTRY": "the Spaceify registry.",
+	"APPLICATION_DIRECTORY": "application directory",
+	"LOCAL_DIRECTORY": "local directory",
+	"WORKING_DIRECTORY": "current working directory",
+	"LOCAL_ARCHIVE": "local Zip archive",
+	"WORKING_DIRECTORY_ARCHIVE": "Zip archive in the current working directory",
+	"GIT_REPOSITORY": "the GitHub repository",
+	"REMOTE_ARCHIVE": "remote Zip archive",
+	"SPACEIFY_REGISTRY": "the Spaceify registry",
 	"DOWNLOADING_GITUHB": "(~pos/~count) Downloading ~what (~bytes bytes)",
 
 	"PACKAGE_POSTING": "Please wait, posting the package to the Spaceify registry.",
 	"PACKAGE_POST_ERROR": "Failed to publish the package.",
 	"PACKAGE_POST_OK": "Success. The package is now published.",
 	"PACKAGE_REMOVED": "~type removed.",
+	"PACKAGE_PURGED": "Package purged.",
 	"PACKAGE_VALIDATING": "Validating package.",
 	"PACKAGE_STOPPING": "Stopping ~type ~name.",
 	"PACKAGE_STOPPING_EXISTING": "Stopping already installed ~type ~name.",
 	"PACKAGE_STOPPED": "~type stopped.",
-	"PACKAGE_REMOVING": "Removing ~type ~name:",
+	"PACKAGE_REMOVING": "Removing ~type ~name.",
+	"PACKAGE_PURGING": "Purging ~type ~name.",
 	"PACKAGE_STARTING": "Starting ~type ~name.",
 	"PACKAGE_DEVELOP": "The ~name ~type is installed in develop mode and is not started. Start it manually.",
 	"PACKAGE_STARTED": "~type started.",
+	"PACKAGE_START_FAILED": "Failed to start the ~type.",
 	"PACKAGE_RESTARTED": "~type restarted.",
 	"PACKAGE_ALREADY_STOPPED": "~type ~name is already stopped.",
 	"PACKAGE_ALREADY_RUNNING": "~type ~name is already running.",
-	"PACKAGE_INSTALL_ERROR": "Failed to get the requested package.",
-	"PACKAGE_REMOVE_FROM_DATABASE": " - Application entries from the database.",
+	"PACKAGE_REMOVE_FROM_DATABASE": " - Database entries.",
 	"PACKAGE_REMOVING_DOCKER": " - Docker image and container.",
-	"PACKAGE_DELETE_FILES": " - Application files.",
+	"PACKAGE_DELETE_FILES": " - Files.",
+	"PACKAGE_DELETE_REPOSITORY": " - Repository entries.",
+	"PACKAGE_PURGE_DEBIAN_PACKAGES": " - Purging Debian packages.",
 	"PACKAGE_ASK_REQUIRED": "The ~type ~name requires the following service(s):",
 	"PACKAGE_ASK_INSTALL_QUESTION": "Do you want to install the ~type?",
 	"PACKAGE_ASK_INSTALL_Y_N": [{"screen": "Yes", "long": "yes", "short": "y"}, {"screen": "No", "long": "no", "short": "n"}],
 
-	"INSTALL_APPLICATION": "Installing ~type ~name:",
+	"INSTALL_APPLICATION": "Installing ~type ~name.",
 	"INSTALL_APPLICATION_FILES": " - Copying files to volume.",
 	"INSTALL_GENERATE_CERTIFICATE": " - Generating Spaceify CA signed certificate.",
 	"INSTALL_CREATE_DOCKER_IMAGE": " - Creating custom Docker image ~image.",
 	"INSTALL_CREATE_DOCKER": " - Creating Docker image from the default ~image image.",
 	"INSTALL_UPDATE_DATABASE": " - Writing database entries.",
-	"INSTALL_APPLICATION_OK": "~type ~name@~version is now installed.",
+	"INSTALL_APPLICATION_OK": "~type ~name@~version is now installed~mode.",
+	"INSTALL_APPLICATION_DEVELOP": " in develop mode",
 	"INSTALL_APPLICATION_ABORTED": "Installation aborted.",
 	"INSTALL_APPLICATION_TIMED_OUT": "Installation timed out.",
 	"INSTALL_VERSION_LATEST": "latest",
-	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to the edge. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
-	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
-	"INSTALL_SUGGESTED_SAME_PACKAGES": "The installed ~installing_type requires '~suggested_unique_name, version: ~suggested_version' to be installed for the service '~required_service_name'. However, '~existing_unique_name, version: ~existing_version' is already installed and will not be reinstalled or updated.",
 
-	"GET_SOURCES_OK": "Source codes are now loaded and are in the directory ~directory.",
+	"INSTALL_SUGGESTED": "Required service '~required_service_name' is not registered to this edge node. Attempting to install the suggested package '~suggested_unique_name, version: ~suggested_version'.",
+	"INSTALL_SUGGESTED_DIFFERENT_PACKAGES": "Required service '~required_service_name' is already registered by ~existing_type '~existing_unique_name, version: ~existing_version'. The suggested application '~suggested_unique_name, version: ~suggested_version' will not be installed. If the already installed ~existing_type is not suitable, remove it and install the suggested application manually.",
+	"INSTALL_SUGGESTED_SAME_PACKAGES": "Application '~suggested_unique_name, version ~suggested_version' is required for service '~required_service_name'. Version ~existing_version is already installed and application is not reinstalled or updated.",
+
+	"INSTALL_APT_REPOSITORIES": " - Adding Debian package repositories.",
+	"INSTALL_APT_REPOSITORIES_SOURCE": "Source: ~source",
+	"INSTALL_APT_REPOSITORIES_KEY": "GnuPG key: ~key",
+	"APT_REPOSITORIES_UPDATE": " - Updating Debian package lists.",
+	"INSTALL_APT_PACKAGES": " - Installing Debian packages from remote repositories.",
+	"INSTALL_DEB_PACKAGES": " - Installing local Debian packages.",
+
+	"GET_SOURCES_OK": "OK. Packages content is in directory ~directory.",
 
 	"EDGE_ALREADY_REGISTERED": "The registration file was found containing edge id ~edge_id. Previous registration is valid.",
 
@@ -263,50 +296,57 @@ var language =
 	"USERNAME": "Username: ",
 	"PASSWORD": "Password: ",
 
-	"NO_APPLICATIONS": "No applications to list.",
-	"NO_RUNNING_APPLICATIONS": "No running applications.",
-	"INSTALLED_HEADERS": [ "Installed spacelets.", "Installed sandboxed applications.", "Installed native applications." ],
-	"RUNNING_HEADERS": [ "Running spacelets.", "Running sandboxed applications.", "Running native applications." ],
+	"NO_APPLICATIONS": "No installed applications or spacelets.",
+	"NO_RUNNING_APPLICATIONS": "No running applications or spacelets.",
+	"INSTALLED_HEADERS": { "spacelet": "Installed spacelets.", "sandboxed": "Installed sandboxed applications.", "sandboxed_debian": "Installed sandboxed Debian applications.", "native_debian": "Installed native Debian applications." },
+	"RUNNING_HEADERS": { "spacelet": "Running spacelets.", "sandboxed": "Running sandboxed applications.", "sandboxed_debian": "Running sandboxed Debian applications.", "native_debian": "Running native Debian applications." },
 
-	"M_NAME": "Name: ",
-	"M_START_COMMAND": "Start command: ",
-	"M_STOP_COMMAND": "Stop command: ",
-	"M_DOCKER_IMAGE": "Docker image: ",
-	"M_INSTALL_COMMANDS": "Install commands: ",
-	"M_IMPLEMENTS": "Implements: ",
-	"M_SHORT_DESCRIPTION": "Short Description: ",
-	"M_KEY_WORDS": "Key words: ",
-	"M_LICENSE": "License: ",
-	"M_IMAGES": "Images ",
-	"M_REPOSITORY": "Repository: ",
-	"M_WEB_URL": "Web URL: ",
-	"M_BUGS": "Bugs: ",
-	"M_CATEGORY": "Category: ",
-	"M_SHARED": "Shared: ",
+	"M_NAME": " Name: ",
+	"M_START_COMMAND": " Start command: ",
+	"M_STOP_COMMAND": " Stop command: ",
+	"M_DOCKER_IMAGE": " Docker image: ",
+	"M_INSTALL_COMMANDS": " Install commands: ",
+	"M_IMPLEMENTS": " Implements: ",
+	"M_SHORT_DESCRIPTION": " Short Description: ",
+	"M_KEY_WORDS": " Key words: ",
+	"M_LICENSE": " License: ",
+	"M_IMAGES": " Images ",
+	"M_REPOSITORY": " Repository: ",
+	"M_WEB_URL": " Web URL: ",
+	"M_BUGS": " Bugs: ",
+	"M_CATEGORY": " Category: ",
+	"M_SHARED": " Shared: ",
 	"M_YES": "Yes",
 	"M_NO": "No",
-	"M_INJECT": "Inject",
-	"M_INJECT_ENABLED": "Enabled: ",
-	"M_ORIGINS": "Origins ",
-	"M_INJECT_IDENTIFIER": "Identifier: ",
-	"M_INJECT_HOSTNAMES": "Hostnames",
-	"M_INJECT_FILES": "Files",
-	"M_DEVELOPER": "Developer: ",
-	"M_CONTRIBUTORS": "Contributors",
-	"M_CREATION_DATE": "Creation date: ",
-	"M_PUBLISH_DATE": "Publish date: ",
-	"M_INSTALLATION_DATE": "Installation date: ",
-	"M_PROVIDES_SERVICES": "Provides services",
-	"M_REQUIRES_SERVICES": "Requires services",
-	"M_IS_RUNNING": "Is running: ",
-	"M_IS_REGISTERED": "Is registered:",
-	"M_TYPE": "Type:",
-	"M_PORT": "Port:",
-	"M_SECURE_PORT": "Secure port:",
-	"M_IP": "IP:",
+	"M_INJECT": " Inject",
+	"M_INJECT_ENABLED": " Enabled: ",
+	"M_ORIGINS": " Origins ",
+	"M_INJECT_IDENTIFIER": " Identifier: ",
+	"M_INJECT_HOSTNAMES": " Hostnames",
+	"M_INJECT_FILES": " Files",
+	"M_DEVELOPER": " Developer: ",
+	"M_CONTRIBUTORS": " Contributors",
+	"M_CREATION_DATE": " Creation date: ",
+	"M_PUBLISH_DATE": " Publish date: ",
+	"M_INSTALLATION_DATE": " Installation date: ",
+	"M_PROVIDES_SERVICES": " Provides services",
+	"M_REQUIRES_SERVICES": " Requires services",
+	"M_IS_RUNNING": " Is running: ",
+	"M_IS_REGISTERED": " Is registered: ",
+	"M_IS_DEVELOP": " Is in develop mode: ",
+	"M_TYPE": " Type: ",
+	"M_PORT": " Port: ",
+	"M_SECURE_PORT": " Secure port: ",
+	"M_IP": " IP: ",
+	"M_PORT_LISTEN": " [LISTEN]",
+	"M_PORT_REFUSED": " [REFUSED]",
+	"M_BROKEN_INSTALLATION": " - BROKEN INSTALLATION!",
 
-	"APP_DISPLAY_NAMES": {"spacelet": "spacelet", "sandboxed": "application", "native": "native application"},
-	"APP_UPPER_CASE_DISPLAY_NAMES": {"spacelet": "Spacelet", "sandboxed": "Application", "native": "Native application"}
+	"M_FOUND": "FOUND",
+	"M_NOT_FOUND": "NOT FOUND",
+
+	"APP_DISPLAY_NAMES": {"spacelet": "spacelet", "sandboxed": "sandboxed application", "sandboxed_debian": "sandboxed Debian application", "native_debian": "native Debian application"},
+	"APP_UPPER_CASE_DISPLAY_NAMES": {"spacelet": "Spacelet", "sandboxed": "Sandboxed application", "sandboxed_debian": "Sandboxed Debian application", "native_debian": "Native Debian application"}
 	};
 
 if(typeof exports !== "undefined")

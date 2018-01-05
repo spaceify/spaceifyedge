@@ -1,5 +1,5 @@
 "use strict";
- 
+
 /**
  * Database, 17.1.2014 Spaceify Oy
  * 
@@ -14,21 +14,23 @@ var sqlite3 = require("sqlite3");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
-var ValidateApplication = require("./validateapplication");
+var SpaceifyUnique = require("./spaceifyunique");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function Database()
 {
 var self = this;
 
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+var config = SpaceifyConfig.getConfig();
+//var logger = new SpaceifyLogger("Database");
 
 var db = null;
 
 var transactions = 0;	// Global transaction. Sequentially called methods in classes must not start/commit/rollback their own transactions.
 
-var validator = new ValidateApplication();
+var unique = new SpaceifyUnique();
 
 var openDB = function()
 	{
@@ -116,7 +118,7 @@ self.getApplications = fibrous( function(type)
 	{
 	var order;
 	var where;
-		
+
 	try {
 		if(!isOpen())
 			openDB();
@@ -135,7 +137,7 @@ self.getApplications = fibrous( function(type)
 		}
 	});
 
-self.insertApplication = fibrous( function(manifest, develop)
+self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 	{
 	var max;
 	var params;
@@ -146,21 +148,30 @@ self.insertApplication = fibrous( function(manifest, develop)
 		if(!isOpen())
 			openDB();
 
-		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.type]);
+		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.getType()]);
 
-		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		inject_enabled = (manifest.type == config.SPACELET ? "1" : "0");
-		params = [manifest.unique_name, validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.type, manifest.version, utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+		/*
+		DEPRECATED
+		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
+		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
+		*/
+		inject_identifier = "";
+		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
 
-		db.sync.run("INSERT INTO applications (unique_name, unique_directory, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
+		params = [manifest.getUniqueName(), docker_image_id, manifest.getType(), manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
+
+		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
 
 		addProvidedServices.sync(manifest);
 
-		if(manifest.type == config.SPACELET)
+		/*
+		DEPRECATED
+		if(manifest.getType() == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
 			}
+		*/
 		}
 	catch(err)
 		{
@@ -168,29 +179,37 @@ self.insertApplication = fibrous( function(manifest, develop)
 		}
 	});
 
-self.updateApplication = fibrous( function(manifest)
+self.updateApplication = fibrous( function(manifest, docker_image_id)
 	{
 	var params;
 	var inject_identifier;
-		
+
 	try {
 		if(!isOpen())
 			openDB();
 
 		self.sync.begin();
 
-		inject_identifier = (manifest.type == config.SPACELET ? manifest.inject_identifier : "");
-		params = [validator.makeUniqueDirectory(manifest.unique_name), manifest.docker_image_id, manifest.version, utility.getLocalDateTime(), inject_identifier, manifest.unique_name];
+		/*
+		DEPRECATED
+		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
+		*/
+		inject_identifier = "";
 
-		db.sync.run("UPDATE applications SET unique_directory=?, docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
+		params = [docker_image_id, manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, manifest.getUniqueName()];
+
+		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
 
 		addProvidedServices.sync(manifest);
 
-		if(manifest.type == config.SPACELET)
+		/*
+		DEPRECATED
+		if(manifest.getType() == config.SPACELET)
 			{
 			addInjectHostnames.sync(manifest);
 			addInjectFiles.sync(manifest);
 			}
+		*/
 
 		self.sync.commit();
 		}
@@ -212,8 +231,11 @@ self.removeApplication = fibrous( function(unique_name)
 
 		results = db.sync.get("SELECT type, position FROM applications WHERE unique_name=?", [unique_name]);
 
+		/*
+		DEPRECATED
 		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", unique_name);
 		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", unique_name);
+		*/
 		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", unique_name);
 		db.sync.run("DELETE FROM applications WHERE unique_name=?", unique_name);
 		db.sync.run("UPDATE applications SET position=position-1 WHERE position>? AND type=?", [results.position, results.type]);
@@ -227,14 +249,18 @@ self.removeApplication = fibrous( function(unique_name)
 var addProvidedServices = fibrous( function(manifest)
 	{
 	var stmt;
+	var provides_services = manifest.getProvidesServices();
 
 	try {
-		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.unique_name);
+		if(provides_services.length == 0)
+			return;
+
+		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.getUniqueName());
 
 		stmt = db.prepare("INSERT INTO provided_services (unique_name, service_name, service_type) VALUES(?, ?, ?)");
 
-		for(var i = 0; i < manifest.provides_services.length; i++)
-			stmt.sync.run([manifest.unique_name, manifest.provides_services[i].service_name, manifest.provides_services[i].service_type]);
+		for(var i = 0; i < provides_services.length; i++)
+			stmt.sync.run([manifest.getUniqueName(), provides_services[i].service_name, provides_services[i].service_type]);
 		}
 	catch(err)
 		{
@@ -249,18 +275,21 @@ var addProvidedServices = fibrous( function(manifest)
 
 var addInjectHostnames = fibrous( function(manifest)
 	{
+	/*
+	DEPRECATED
 	var stmt;
 	var inject_hostname;
+	var inject_hostnames = manifest.getInjectHostnames();
 
 	try {
-		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", manifest.unique_name);
+		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", manifest.getUniqueName());
 
 		stmt = db.prepare("INSERT INTO inject_hostnames (unique_name, inject_hostname) VALUES(?, ?)");
 
-		for(var i = 0; i < manifest.inject_hostnames.length; i++)
+		for(var i = 0; i < inject_hostnames.length; i++)
 			{
-			inject_hostname = manifest.inject_hostnames[i].replace("*", "%");			// IN MANIFEST: *.google.* -> CHANGED FOR SQLITE: %.google.%
-			stmt.sync.run([manifest.unique_name, inject_hostname]);
+			inject_hostname = inject_hostnames[i].replace("*", "%");				// IN MANIFEST: *.google.* -> CHANGED FOR SQLITE: %.google.%
+			stmt.sync.run([manifest.getUniqueName(), inject_hostname]);
 			}
 		}
 	catch(err)
@@ -272,37 +301,41 @@ var addInjectHostnames = fibrous( function(manifest)
 		if(stmt)
 			stmt.finalize();
 		}
+	*/
 	});
 
 var addInjectFiles = fibrous( function(manifest)
 	{
+	/*
+	DEPRECATED
 	var stmt;
 	var file;
 	var type;
 	var order;
+	var wwwPath;
 	var directory;
-	var url_or_path;
-	var application_path;
+	var urlOrPath;
+	var inject_files = manifest.getInjectFiles();
 
 	try {
-		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.unique_name);
+		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.getUniqueName());
 
-		stmt = db.prepare("INSERT INTO inject_files (unique_name, url_or_path, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
+		stmt = db.prepare("INSERT INTO inject_files (unique_name, urlOrPath, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
 
-		application_path = config.SPACELETS_PATH + validator.makeUniqueDirectory(manifest.unique_name) + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
+		wwwPath = unique.getWwwPath(config.SPACELET, manifest.getUniqueName(), config);
 
 		order = 1;
-		for(var i = 0; i < manifest.inject_files.length; i++)
+		for(var i = 0; i < inject_files.length; i++)
 			{
-			directory = (manifest.inject_files[i].directory ? manifest.inject_files[i].directory.trim() : "");
+			directory = (inject_files[i].directory ? inject_files[i].directory.trim() : "");
 			if(directory != "" && directory.search(/\/$/) == -1)
 				directory += "/";
-			file = manifest.inject_files[i].file.trim();
-			type = manifest.inject_files[i].type.trim();
+			file = inject_files[i].file.trim();
+			type = inject_files[i].type.trim();
 
-			url_or_path = (type == config.FILE ? application_path : config.EDGE_HOSTNAME + "/");				// Inject as URL or file
+			urlOrPath = (type == config.FILE ? wwwPath : config.EDGE_HOSTNAME + "/");							// Inject as URL or file
 
-			stmt.sync.run([manifest.unique_name, url_or_path, directory, file, type, order++]);
+			stmt.sync.run([manifest.getUniqueName(), urlOrPath, directory, file, type, order++]);
 			}
 		}
 	catch(err)
@@ -314,6 +347,7 @@ var addInjectFiles = fibrous( function(manifest)
 		if(stmt)
 			stmt.finalize();
 		}
+	*/
 	});
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -345,10 +379,6 @@ self.getCoreSettings = fibrous( function()
 	catch(err)
 		{
 		throw err;	//language.E_DATABASE_GET_CORE_SETTINGS.pre("Database::getCoreSettings", err);
-		}
-	finally
-		{
-		self.close();
 		}
 	});
 
@@ -425,10 +455,6 @@ self.getInformation = fibrous( function()
 	catch(err)
 		{
 		throw err;	//language.E_DATABASE_GET_INFORMATION.pre("Database::getInformation", err);
-		}
-	finally
-		{
-		self.close();
 		}
 	});
 

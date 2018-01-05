@@ -1,0 +1,2 @@
+function void_fnc()
+{}

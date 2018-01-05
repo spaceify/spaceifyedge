@@ -9,13 +9,15 @@
 var PubSub = require("./pubsub");
 var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
+//var SpaceifyLogger = require("./spaceifylogger");
 
 function DHCPDLog()
 {
 var self = this;
 
 var pubSub = new PubSub();
-var config = new SpaceifyConfig();
+var config = SpaceifyConfig.getConfig();
+//var logger = new SpaceifyLogger("DHCPDLog");
 
 self.saveToFile = function(type, ip, macOrDuid, hostname)
 	{

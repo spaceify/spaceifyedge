@@ -1,104 +1,156 @@
 <!doctype html>
-<html ng-app-spaceify>
-		<head head-directive>
-		<link rel="stylesheet" href="fonts/roboto/roboto.css">
-		<link rel="stylesheet" href="css/skeleton/normalize.css">
-		<link rel="stylesheet" href="css/skeleton/skeleton.css">
-		<script src="app/storage.js"></script>
-		<script src="js/angular-1.5.3.min.js"></script>
-		<script src="app/spaceify.js"></script>
+<html>
+	<head body-directive>
+		<!-- -->
+		<meta charset="utf-8">
+		<meta name="product" content="Spaceify">
+		<meta name="author" content="Spaceify Oy">
+		<meta name="description" content="Spaceify Edge">
+		<meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+		<link rel="stylesheet" spe_href="fonts/roboto/roboto.base64.css">
+		<link rel="stylesheet" spe_href="css/skeleton/normalize.css">
+		<link rel="stylesheet" spe_href="css/spaceify.edge.css" type="text/css">
+		<link rel="stylesheet" spe_href="css/styles.css" type="text/css">
+
+		<title>Loading...</title>
+		<!-- -->
+
+		<!-- -->
+		<script src="libs/spaceify.loader.js"></script>
+		<script spe_src="libs/spaceify.edge.js"></script>
+		<!-- -->
 
 		<script>
+		var session;
 		var net = null;
+		var sam = null;
+		var lang = null;
 		var core = null;
-		var config = null;
 		var sync = null;
+		var spdom = null;
+		var config = null;
+		var network = null;
+		var spaceifyApp = null;
 
-		function pageReady()
+		window.addEventListener("spaceifyReady", function()
 			{
-			window["spaceifyCache"] = new SpaceifyCache();
-
 			net = new SpaceifyNet();
+			spdom = new SpaceifyDOM();
 			core = new SpaceifyCore();
+			lang = new SpaceifyLanguage();
 			config = new SpaceifyConfig();
+			network = new SpaceifyNetwork();
 			sync = new SpaceifySynchronous();
+			sam = new SpaceifyApplicationManager();
+			window.spaceifyCache = new SpaceifyCache();
 
-			sync.waterFall(
-				[
-				{object: core, method: net.showAdminTile, params: [null], type: "async"},
-				{object: core, method: net.showUserUtilities, params: [null], type: "async"},
-				{object: core, method: net.showInstalledApplications, params: [null], type: "async"}
-				],
-				function()												// finally
-					{
-					var apps = net.getApplications();
+			config.initialize("");
 
-					$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
-					$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
-					$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+			lang.processDocument("edgeBody", "data-language", {title: {section: "index", index: "title"}});
 
-					jQuery("#userUtilities, #userUtilitiesHeader, #adminUtilities, #adminUtilitiesHeader").css("display", "block");					
+			if((session = network.getCookie(config.SESSION_TOKEN_NAME_COOKIE)))
+				{
+				var lib = (window.spl ? window.spl : window);
+				lib.LoaderUtil.getLoaderUtil().setSession(config.SESSION_TOKEN_NAME, session);
+				}
 
-					core.setEventListeners(	[
-						config.EVENT_SPACELET_INSTALLED,
-						config.EVENT_SPACELET_REMOVED,
-						config.EVENT_APPLICATION_INSTALLED,
-						config.EVENT_APPLICATION_REMOVED,
-						config.EVENT_NATIVE_APPLICATION_INSTALLED,
-						config.EVENT_NATIVE_APPLICATION_REMOVED
-						],
-						[
-						spaceletInstalled,
-						spaceletRemoved,
-						applicationInstalled,
-						applicationRemoved,
-						nativeApplicationInstalled,
-						nativeApplicationRemoved
-						],
-						this, null, function(err, data, id, ms) { });
-					});
-			}
+			net.showInstalledApplications(function()
+				{
+				var apps = net.getApplications();
+
+				spdom.show("spacelet, spacelet_header", (apps.spacelet_count > 0 ? true : false));
+				spdom.show("sandboxed, sandboxed_header", (apps.sandboxed_count > 0 ? true : false));
+				spdom.show("sandboxed_debian, sandboxed_debian_header", (apps.sandboxed_debian_count > 0 ? true : false));
+				spdom.show("native_debian, native_debian_header", (apps.native_debian_count > 0 ? true : false));
+				spdom.show("userUtilities, userUtilitiesHeader", true);
+				spdom.show("adminUtilities, adminUtilitiesHeader", true);
+				spdom.show("edgeBody", true);
+
+				core.setEventListeners(	[
+					config.EVENT_SPACELET_INSTALLED,
+					config.EVENT_SPACELET_REMOVED,
+					config.EVENT_SANDBOXED_INSTALLED,
+					config.EVENT_SANDBOXED_REMOVED,
+					config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
+					config.EVENT_SANDBOXED_DEBIAN_REMOVED,
+					config.EVENT_NATIVE_DEBIAN_INSTALLED,
+					config.EVENT_NATIVE_DEBIAN_REMOVED
+					],
+					[
+					spaceletInstalled,
+					spaceletRemoved,
+					sandboxedInstalled,
+					sandboxedRemoved,
+					sandboxedDebianInstalled,
+					sandboxedDebianRemoved,
+					nativeDebianInstalled,
+					nativeDebianRemoved
+					],
+					this, null, function(err, data, id, ms) { });
+				});
+
+			sam.isAdminLoggedIn(this, function(status)
+				{
+				spdom.show("adminlogout", (status ? true : false));
+				});
+			});
 
 			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
 		function spaceletInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#spacelet, #spaceletHeader").css("display", "block");
+			spdom.show("spacelet, spacelet_header", true);
 			callback(null, true);
 			}
 
 		function spaceletRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#spacelet, #spaceletHeader").css("display", (apps.spaceletCount > 0 ? "block" : "none"));
+			net.removeTile("spacelet", result.manifest);
+			
 			callback(null, true);
 			}
 
-		function applicationInstalled(result, connObj, callback)
+		function sandboxedInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#sandboxed, #sandboxedHeader").css("display", "block");
+			spdom.show("sandboxed, sandboxed_header", true);
 			callback(null, true);
 			}
 
-		function applicationRemoved(result, connObj, callback)
+		function sandboxedRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#sandboxed, #sandboxedHeader").css("display", (apps.sandboxedCount > 0 ? "block" : "none"));
+			net.removeTile("sandboxed", result.manifest);
+
 			callback(null, true);
 			}
 
-		function nativeApplicationInstalled(result, connObj, callback)
+		function sandboxedDebianInstalled(result, connObj, callback)
 			{
 			renderTile(result.manifest);
-			$("#native, #nativeHeader").css("display", "block");
+			spdom.show("sandboxed_debian, sandboxed_debian_header", true);
 			callback(null, true);
 			}
 
-		function nativeApplicationRemoved(result, connObj, callback)
+		function sandboxedDebianRemoved(result, connObj, callback)
 			{
-			var apps = removeTile(result.manifest);
-			$("#native, #nativeHeader").css("display", (apps.nativeCount > 0 ? "block" : "none"));
+			net.removeTile("sandboxed_debian", result.manifest);
+
+			callback(null, true);
+			}
+
+		function nativeDebianInstalled(result, connObj, callback)
+			{
+			renderTile(result.manifest);
+			spdom.show("native_debian, native_debian_header", true);
+			callback(null, true);
+			}
+
+		function nativeDebianRemoved(result, connObj, callback)
+			{
+			net.removeTile("native_debian", result.manifest);
+
 			callback(null, true);
 			}
 
@@ -108,65 +160,129 @@
 			net.renderTile(manifest, function(){ });
 			}
 
-		function removeTile(manifest)
+		function loadAppstorePage()
 			{
-			net.removeTile(manifest);
-			return net.getApplications();
+			var url = "https://" + window.location.hostname + "/";
+			spaceifyLoader.loadResource(config.LOCATION_FILE, 443, url, url, function(result)
+				{
+				if (result.crtErr)
+					spdom.show("certificateerror", true);
+				else
+					net.loadAppstorePage();
+				});
 			}
-
 		</script>
 	</head>
 
-	<body class="edgeBody" id="edgeBody" ng-controller="bodyController" body-directive style="display: none;">
+	<body id="edgeBody" style="display: none;">
 
-		<div id="top_bar" class="top_bar">
-			<a id="logolink" class="logolink" routerLink="/intro"><img id="appstorelogo" class="appstorelogo" src="images/icon-80p.png" alt="" /></a>
-			<div id="logoname" class="logoname">Spaceify Edge</div>
+		<div class="topBar">
+			<a class="topBarLogoLink" routerLink="/intro"><img spe_src="images/icon-80p.png" alt="" /></a>
+			<div class="topBarLogoText">Spaceify Edge</div>
+			<a class="topBarPageLink" onclick="loadAppstorePage();"><img spe_src="images/settings.png" alt="" data-language="title>global.open_appstore" /></a>
+			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" /></a>
 		</div>
+
 		<div class="large_background_footer">&nbsp;</div>
 
-		<div id="content_container">
-			<div class="container">
-				<div class="row">
-					<div class="twelve columns">
+		<div id="contentContainer" class="edgeContentContainer">
 
-						<!-- VIEW -->
-						<the-tiles></the-tiles>
+			<div class="edgeContainer">
 
-						<h5 class="edgeH5" id="spaceletHeader" style="display: none;">{{ getString("spacelets") }}</h5>
-						<div class="tiles" id="spacelet" style="display: none;"></div>
-						<div class="breaker"></div>
+				<!-- CERTIFICATE ERROR -->
+				<div id="certificateerror" class="edgeInfo" style="display: none;">
+					<span data-language="global.certificate_error: :global.certificate_error_cancel"></span>
 
-						<h5 class="edgeH5" id="sandboxedHeader" style="display: none;">{{ getString("sandboxed") }}</h5>
-						<div class="tiles" id="sandboxed" style="display: none;"></div>
-						<div class="breaker"></div>
+					<p>
+					<button class="edgeButton inrow" data-language="global.btn_install" onclick="net.loadCertificate();"></button>
+					<button class="edgeButton inrow" data-language="global.btn_reload" onclick="net.loadSecurePage();"></button>
+					<button class="edgeButton" data-language="global.btn_cancel" onclick="spdom.show('certificateerror', false);"></button>
 
-						<h5 class="edgeH5" id="nativeHeader" style="display: none;">{{ getString("native") }}</h5>
-						<div class="tiles" id="native" style="display: none;"></div>
-						<div class="breaker"></div>
+					<div class="breaker"></div>
+					<div class="edgeSmallInfo" data-language="global.delete_certificate"></div>
+				</div>
 
-						<h5 class="edgeH5" id="userUtilitiesHeader" style="display: none;">{{ getString("user_utilities") }}</h5>
-						<div class="tiles" id="userUtilities" style="display: none;"></div>
-						<div class="breaker"></div>
+				<!-- VIEW -->
+				<the-tiles></the-tiles>
 
-						<h5 class="edgeH5" id="adminUtilitiesHeader" style="display: none;">{{ getString("admin_utilities") }}</h5>
-						<div class="tiles" id="adminUtilities" style="display: none;"></div>
-						<div class="breaker"></div>
+				<!-- SPACELETS -- -- -- -- -- -- -- -- -- -- -->
+				<h5 class="edgeH H3" id="spacelet_header" data-language="index.spacelets" style="display: none;"></h5>
+				<div id="spacelet" style="display: none;"></div>
+				<div class="breaker"></div>
 
-						<iframe id="certIframe" src="" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+				<!-- SANDBOXED -- -- -- -- -- -- -- -- -- -- -->
+				<h5 class="edgeH H3" id="sandboxed_header" data-language="index.sandboxed" style="display: none;"></h5>
+				<div id="sandboxed" style="display: none;"></div>
+				<div class="breaker"></div>
+
+				<!-- SANDBOXED DEBIAN -- -- -- -- -- -- -- -- -- -- -->
+				<h5 class="edgeH H3" id="sandboxed_debian_header" data-language="index.sandboxed_debian" style="display: none;"></h5>
+				<div id="sandboxed_debian" style="display: none;"></div>
+				<div class="breaker"></div>
+
+				<!-- NATIVE DEBIAN -->
+				<h5 class="edgeH H3" id="native_debian_header" data-language="index.native_debian" style="display: none;"></h5>
+				<div id="native_debian" style="display: none;"></div>
+				<div class="breaker"></div>
+
+				<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
+				<!--
+				<h5 class="edgeH H3" id="userUtilitiesHeader" data-language="index.user_utilities" style="display: none;"></h5>
+				<div id="userUtilities" style="display: none;">
+
+					<!-- CERTIFICATE TILE -- >
+					<div class="edgeTile" onclick="loadCertificate();">
+
+						<img id="installCertificateId" spe_src="images/certificate.png" width="64" height="64">
+
+						<div class="edgeText" data-language="index.install_certificate_title">
+						</div>
+
+						<div class="edgeText edgeSubText">
+							&nbsp;
+						</div>
 
 					</div>
+
 				</div>
+				<div class="breaker"></div>
+				-->
+
+				<!-- ADMIN -- -- -- -- -- -- -- -- -- -- -->
+				<!--
+				<h5 class="edgeH H3" id="adminUtilitiesHeader" data-language="index.admin_utilities" style="display: none;"></h5>
+				<div id="adminUtilities" style="display: none;">
+
+					<! -- LOG IN || ADMIN TILE -- >
+					<div class="edgeTile" onclick="net.loadAppstorePage();">
+
+						<img id="adminLogInId" spe_src="images/settings.png" width="64" height="64">
+
+						<div class="edgeText" data-language="index.admin_tile_title">
+						</div>
+
+						<div class="edgeText edgeSubText">
+							&nbsp;
+						</div>
+
+					</div>
+
+				</div>
+				<div class="breaker"></div>
+				-->
+
 			</div>
+
 		</div>
 
+		<iframe id="certIframe" src="" sp_src="-" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+
 		<div id="footer" class="footer">
-			<div class="section_w70">
-				<div class="footerContentLeft smaller">
-					<img class="floatLeft" id="32pxc" src="./images/by-nc-nd_eu.png" width="91" height="32">
-					<span class="floatLeft">Copyright &copy; 2014-2016 Spaceify.org</span>
-				</div>
+			<div class="footerContentLeft">
+				<img id="32pxc" sp_src="images/by-nc-nd_eu.png" width="91" height="32">
 			</div>
+
+			<div class="footerContentLeft" data-language="global.copyright"></div>
 		</div>
 
 	</body>

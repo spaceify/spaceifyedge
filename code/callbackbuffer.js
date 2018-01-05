@@ -1,1 +1,1 @@
-www/libs/webjsonrpc/callbackbuffer.js
+www/src/webjsonrpc/callbackbuffer.js

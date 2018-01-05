@@ -1,1 +1,1 @@
-www/libs/webjsonrpc/rpccommunicator.js
+www/src/webjsonrpc/rpccommunicator.js

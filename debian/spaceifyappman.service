@@ -6,13 +6,11 @@ After=spaceify.service
 Type=simple
 Environment=HOME=/root
 
-
-ExecStartPre=/bin/bash -c 'echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Starting" > /var/lib/spaceify/data/logs/spaceifyappman.log'
+ExecStartPre=/bin/bash -c 'echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Starting" >> /var/lib/spaceify/data/logs/spaceifyappman.log'
 
 ExecStart=/bin/bash -c '/var/lib/spaceify/data/scripts/start_appman.sh'
 
-ExecStopPost=/bin/bash -c 'echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Stopped" > /var/lib/spaceify/data/logs/spaceifyappman.log'
-
+ExecStopPost=/bin/bash -c 'echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Stopped" >> /var/lib/spaceify/data/logs/spaceifyappman.log'
 
 Restart=always
 

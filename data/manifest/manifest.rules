@@ -4,147 +4,147 @@
     "name":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "regx", "match": "name"},
-      "errors": {"field": "E_NAME_UNDEFINED", "type": "E_NAME_STRING", "error": "E_NAME_FORMAT"}
+      "errors": {"field": "E_NAME_REQUIRED", "type": "E_NAME_TYPE", "error": "E_NAME_FORMAT"}
     },
     "unique_name":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "unique": [{"compare": "unique_name", "compare_type": "equal", "fields": [], "store": true, "error": "E_SERVICE_SUGGESTED_SELF"}],
       "validator": {"type": "regx", "match": "unique_name"},
-      "errors": {"field": "E_UNIQUE_NAME_UNDEFINED", "type": "E_UNIQUE_NAME_STRING", "error": "E_UNIQUE_NAME_FORMAT"}
+      "errors": {"field": "E_UNIQUE_NAME_REQUIRED", "type": "E_UNIQUE_NAME_TYPE", "error": "E_UNIQUE_NAME_FORMAT"}
     },
     "provides_services":
     {
       "type": "objects",
-      "required": "all",
-      "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE"}],
+      "required": ["none"],
+      "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE_P"}],
       "sub_rules":
       {
-        "service_name": {"required": true, "type": "string", "validator": {"type": "function", "name": "serviceName", "params": ""}, "errors": {"field": "E_SERVICE_NAME_UNDEFINED_P", "type": "E_SERVICE_NAME_STRING_P", "error": "E_SERVICE_NAME_FORMAT_P"}},
-        "service_type": {"required": true, "type": "string", "validator": {"type": "list", "match": "service_types"}, "errors": {"field": "E_SERVICE_TYPE_UNDEFINED_P", "type": "E_SERVICE_TYPE_STRING_P", "error": "E_SERVICE_TYPE_P"}}
+        "service_name": {"required": true, "type": "string", "validator": {"type": "function", "name": "serviceName", "params": ""}, "errors": {"field": "E_SERVICE_NAME_REQUIRED_P", "type": "E_SERVICE_NAME_TYPE_P", "error": "E_SERVICE_NAME_FORMAT_P"}},
+        "service_type": {"required": true, "type": "string", "validator": {"type": "list", "match": "service_types"}, "errors": {"field": "E_SERVICE_TYPE_REQUIRED_P", "type": "E_SERVICE_TYPE_TYPE_P", "error": "E_SERVICE_TYPE_VALUES_P"}}
       },
-      "errors": {"field": "E_SERVICE_PROVIDES_REQUIRED", "type": "E_SERVICE_ARRAY_P", "empty": "E_SERVICE_ARRAY_EMPTY_P"}      
+      "errors": {"field": "E_SERVICE_REQUIRED_P", "type": "E_SERVICE_TYPE_P", "empty": "E_SERVICE_EMPTY_P"}
     },
     "requires_services":
     {
       "type": "objects",
-      "required": "none",
-      "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE"},
+      "required": ["none"],
+      "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE_R"},
                  {"compare": "unique_name", "compare_type": "equal", "fields": ["suggested_application"], "store": true, "error": "E_SERVICE_SUGGESTED_SELF"}],
       "sub_rules":
       {
-        "service_name": {"required": true, "type": "string", "validator": {"type": "function", "name": "serviceName", "params": ""}, "errors": {"field": "E_SERVICE_NAME_UNDEFINED_R", "type": "E_SERVICE_NAME_STRING_R", "error": "E_SERVICE_NAME_FORMAT_R"}},
-        "suggested_application": {"required": true, "type": "string", "validator": {"type": "function", "name": "suggestedApplication", "params": ["unique_name", "version"]}, "errors": {"field": "E_SERVICE_SUGGESTED_UNDEFINED", "type": "E_SERVICE_SUGGESTED_STRING", "error": "E_SERVICE_SUGGESTED_FORMAT"}}
+        "service_name": {"required": true, "type": "string", "validator": {"type": "function", "name": "serviceName", "params": ""}, "errors": {"field": "E_SERVICE_NAME_REQUIRED_R", "type": "E_SERVICE_NAME_TYPE_R", "error": "E_SERVICE_NAME_FORMAT_R"}},
+        "suggested_application": {"required": true, "type": "string", "validator": {"type": "function", "name": "suggestedApplication", "params": ["unique_name", "version"]}, "errors": {"field": "E_SERVICE_SUGGESTED_REQUIRED_R", "type": "E_SERVICE_SUGGESTED_TYPE_R", "error": "E_SERVICE_SUGGESTED_FORMAT_R"}}
       },
-      "errors": {"type": "E_SERVICE_ARRAY_R", "empty": "E_SERVICE_ARRAY_EMPTY_R"}
+      "errors": {"type": "E_SERVICE_TYPE_R", "empty": "E_SERVICE_EMPTY_R"}
     },
     "version":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "nregx", "match": "version"},
-      "errors": {"field": "E_VERSION_UNDEFINED", "type": "E_VERSION_TYPE_STRING", "error": "E_VERSION_FORMAT"}
+      "errors": {"field": "E_VERSION_REQUIRED", "type": "E_VERSION_TYPE", "error": "E_VERSION_FORMAT"}
     },
     "type":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "list", "match": "application_types"},
-      "errors": {"field": "E_TYPE_UNDEFINED", "type": "E_TYPE_STRING", "error": "E_TYPE_FORMAT"}
+      "errors": {"field": "E_TYPE_REQUIRED", "type": "E_TYPE_TYPE", "error": "E_TYPE_FORMAT"}
     },
     "category":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "regx", "match": "category"},
-      "errors": {"field": "E_CATEGORY_UNDEFINED", "type": "E_CATEGORY_STRING", "error": "E_CATEGORY_FORMAT"}
+      "errors": {"field": "E_CATEGORY_REQUIRED", "type": "E_CATEGORY_TYPE", "error": "E_CATEGORY_FORMAT"}
     },
     "start_command":
     {
       "type": "string",
-      "required": "all",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty"},
-      "errors": {"field": "E_START_COMMAND_UNDEFINED", "type": "E_START_COMMAND_STRING", "error": "E_START_COMMAND_FORMAT"}    
+      "errors": {"field": "E_START_COMMAND_REQUIRED", "type": "E_START_COMMAND_TYPE", "error": "E_START_COMMAND_FORMAT"}
     },
     "stop_command":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty"},
-      "errors": {"type": "E_STOP_COMMAND_UNDEFINED", "error": "E_STOP_COMMAND_FORMAT"}
+      "errors": {"type": "E_STOP_COMMAND_TYPE", "error": "E_STOP_COMMAND_FORMAT"}
     },
     "origins":
     {
       "type": "array",
-      "required": "spacelet",
+      "required": ["spacelet"],
       "unique": [{"compare": "origins", "compare_type": "regx", "store": true, "error": "E_ORIGINS_DUPLICATE"}],
-      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "wildcard_url"}, "errors": {"type": "E_ORIGIN_STRING", "error": "E_ORIGIN_FORMAT"}},
-      "errors": {"field": "E_ORIGINS_UNDEFINED", "type": "E_ORIGINS_TYPE", "empty": "E_ORIGINS_EMPTY"}
+      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "wildcard_url"}, "errors": {"type": "E_ORIGIN_FIELD_TYPE", "error": "E_ORIGIN_FIELD_FORMAT"}},
+      "errors": {"field": "E_ORIGINS_REQUIRED", "type": "E_ORIGINS_TYPE", "empty": "E_ORIGINS_EMPTY"}
     },
     "shared":
     {
       "type": "boolean",
-      "required": "spacelet",
+      "required": ["spacelet"],
       "validator": {"type": "list", "match": "boolean_values"},
-      "errors": {"field": "E_SHARED_UNDEFINED", "type": "E_SHARED_TYPE", "error": "E_SHARED_FORMAT"}
+      "errors": {"field": "E_SHARED_REQUIRED", "type": "E_SHARED_TYPE", "error": "E_SHARED_FORMAT"}
     },
     "inject_identifier":
     {
       "type": "string",
-      "required": "spacelet",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty"},
-      "errors": {"field": "E_INJECT_IDENTIFIER_UNDEFINED", "type": "E_INJECT_IDENTIFIER_TYPE", "error": "E_INJECT_IDENTIFIER_FORMAT"}
+      "errors": {"field": "E_INJECT_IDENTIFIER_REQUIRED", "type": "E_INJECT_IDENTIFIER_TYPE", "error": "E_INJECT_IDENTIFIER_FORMAT"}
     },
     "inject_hostnames":
     {
       "type": "array",
-      "required": "spacelet",
+      "required": ["none"],
       "unique": [{"compare": "inject_hostnames", "compare_type": "regx", "store": true, "error": "E_INJECT_HOSTNAMES_DUPLICATE"}],
-      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "wildcard_url"}, "errors": {"type": "E_INJECT_HOSTNAME_STRING", "error": "E_INJECT_HOSTNAME_FORMAT"}},
-      "errors": {"field": "E_INJECT_HOSTNAMES_UNDEFINED", "type": "E_INJECT_HOSTNAMES_TYPE", "empty": "E_INJECT_HOSTNAMES_EMPTY"}
+      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "wildcard_url"}, "errors": {"type": "E_INJECT_HOSTNAME_FIELD_TYPE", "error": "E_INJECT_HOSTNAME_FIELD_FORMAT"}},
+      "errors": {"field": "E_INJECT_HOSTNAMES_REQUIRED", "type": "E_INJECT_HOSTNAMES_TYPE", "empty": "E_INJECT_HOSTNAMES_EMPTY"}
     },
     "inject_files":
     {
       "type": "objects",
-      "required": "spacelet",
+      "required": ["none"],
       "unique": [{"compare": "inject_files", "compare_type": "equal", "fields": ["directory", "file"], "store": true, "error": "E_INJECT_FILES_DUPLICATE"}],
       "sub_rules":
       {
         "directory": {"required": false, "type": "string", "validator": {"type": "regx", "match": "directory"}, "errors": {"type": "E_INJECT_FILE_DIRECTORY_TYPE", "error": "E_INJECT_FILE_DIRECTORY_FORMAT"}},
-        "file": {"required": true, "type": "string", "validator": {"type": "regx", "match": "file"}, "errors": {"field": "E_INJECT_FILE_FILE_UNDEFINED", "type": "E_INJECT_FILE_FILE_TYPE", "error": "E_INJECT_FILE_FILE_FORMAT"}},
-        "type": {"required": true, "type": "string", "validator": {"type": "list", "match": "inject_types"}, "errors": {"field": "E_INJECT_FILE_TYPE_UNDEFINED", "type": "E_INJECT_FILE_TYPE_TYPE", "error": "E_INJECT_FILE_TYPE_FORMAT"}}
+        "file": {"required": true, "type": "string", "validator": {"type": "regx", "match": "file"}, "errors": {"field": "E_INJECT_FILE_FILE_REQUIRED", "type": "E_INJECT_FILE_FILE_TYPE", "error": "E_INJECT_FILE_FILE_FORMAT"}},
+        "type": {"required": true, "type": "string", "validator": {"type": "list", "match": "inject_types"}, "errors": {"field": "E_INJECT_FILE_TYPE_REQUIRED", "type": "E_INJECT_FILE_TYPE_TYPE", "error": "E_INJECT_FILE_TYPE_FORMAT"}}
       },
-      "errors": {"field": "E_INJECT_FILES_UNDEFINED", "type": "E_INJECT_FILES_TYPE", "empty": "E_INJECT_FILES_EMPTY"}
+      "errors": {"field": "E_INJECT_FILES_REQUIRED", "type": "E_INJECT_FILES_TYPE", "empty": "E_INJECT_FILES_EMPTY"}
     },
     "install_commands":
     {
       "type": "array",
-      "required": "none",
-      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "not_empty"}, "errors": {"type": "E_INSTALL_COMMAND_TYPE", "error": "E_INSTALL_COMMAND_FORMAT"}},
+      "required": ["none"],
+      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "not_empty"}, "errors": {"type": "E_INSTALL_COMMAND_FIELD_TYPE", "error": "E_INSTALL_COMMAND_FIELD_FORMAT"}},
       "errors": {"type": "E_INSTALL_COMMANDS_TYPE", "empty": "E_INSTALL_COMMANDS_EMPTY"}
     },
     "developer":
     {
       "type": "object",
-      "required": "all",
+      "required": ["all"],
       "sub_rules":
       {
-        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_DEVELOPER_NAME_UNDEFINED", "type": "E_DEVELOPER_NAME_STRING", "error": "E_DEVELOPER_NAME_FORMAT"}},
+        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_DEVELOPER_NAME_REQUIRED", "type": "E_DEVELOPER_NAME_TYPE", "error": "E_DEVELOPER_NAME_FORMAT"}},
         "email": {"required": false, "type": "string", "validator": {"type": "nregx", "match": "email"}, "errors": {"type": "E_DEVELOPER_EMAIL_TYPE", "error": "E_DEVELOPER_EMAIL_FORMAT"}},
         "url": {"required": false, "type": "string", "validator": {"type": "regx", "match": "url"}, "errors": {"type": "E_DEVELOPER_URL_TYPE", "error": "E_DEVELOPER_URL_FORMAT"}}
       },
-      "errors": {"field": "E_DEVELOPER_UNDEFINED", "type": "E_DEVELOPER_TYPE", "error": "E_DEVELOPER_EMPTY"}
+      "errors": {"field": "E_DEVELOPER_REQUIRED", "type": "E_DEVELOPER_TYPE", "error": "E_DEVELOPER_EMPTY"}
     },
     "contributors":
     {
       "type": "objects",
-      "required": "none",
+      "required": ["none"],
       "sub_rules":
       {
-        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_CONTRIBUTORS_NAME_UNDEFINED", "type": "E_CONTRIBUTORS_NAME_TYPE", "error": "E_CONTRIBUTORS_NAME_FORMAT"}},
+        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_CONTRIBUTORS_NAME_REQUIRED", "type": "E_CONTRIBUTORS_NAME_TYPE", "error": "E_CONTRIBUTORS_NAME_FORMAT"}},
         "email": {"required": false, "type": "string", "validator": {"type": "nregx", "match": "email"}, "errors": {"type": "E_CONTRIBUTORS_EMAIL_TYPE", "error": "E_CONTRIBUTORS_EMAIL_FORMAT"}},
         "url": {"required": false, "type": "string", "validator": {"type": "regx", "match": "url"}, "errors": {"type": "E_CONTRIBUTORS_URL_TYPE", "error": "E_CONTRIBUTORS_URL_FORMAT"}}
       },
@@ -153,40 +153,40 @@
     "short_description":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "regx", "match": "not_empty_trimmed"},
-      "errors": {"field": "E_SHORT_DESCRIPTION_UNDEFINED", "type": "E_SHORT_DESCRPTION_TYPE", "error": "E_SHORT_DESCRPTION_FORMAT"}
+      "errors": {"field": "E_SHORT_DESCRIPTION_REQUIRED", "type": "E_SHORT_DESCRPTION_TYPE", "error": "E_SHORT_DESCRPTION_FORMAT"}
     },
     "appstore_description":
     {
       "type": "string",
-      "required": "all",
+      "required": ["all"],
       "validator": {"type": "regx", "match": "not_empty_trimmed"},
-      "errors": {"field": "E_APPSTORE_DESCRIPTION_UNDEFINED", "type": "E_APPSTORE_DESCRPTION_TYPE", "error": "E_APPSTORE_DESCRPTION_FORMAT"}
+      "errors": {"field": "E_APPSTORE_DESCRIPTION_REQUIRED", "type": "E_APPSTORE_DESCRPTION_TYPE", "error": "E_APPSTORE_DESCRPTION_FORMAT"}
     },
     "keywords":
     {
       "type": "array",
-      "required": "none",
-      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "keywords"}, "errors": {"type": "E_KEYWORD_TYPE", "error": "E_KEYWORD_FORMAT"}},
+      "required": ["none"],
+      "sub_rules": {"type": "string", "validator": {"type": "regx", "match": "keywords"}, "errors": {"type": "E_KEYWORD_FIELD_TYPE", "error": "E_KEYWORD_FIELD_FORMAT"}},
       "errors": {"type": "E_KEYWORDS_TYPE", "empty": "E_KEYWORDS_EMPTY"}
     },
     "license":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "not_empty_trimmed"},
       "errors": {"type": "E_LICENSE_TYPE", "error": "E_LICENSE_FORMAT"}
     },
     "images":
     {
       "type": "objects",
-      "required": "none",
+      "required": ["none"],
       "unique": [{"compare": "images", "compare_type": "equal", "fields": ["directory", "file"], "store": true}],
       "sub_rules":
       {
         "directory": {"required": false, "type": "string", "validator": {"type": "regx", "match": "directory"}, "errors": {"type": "E_IMAGES_DIRECTORY_TYPE", "error": "E_IMAGES_DIRECTORY_FORMAT"}},
-        "file": {"required": true, "type": "string", "validator": {"type": "regx", "match": "file"}, "errors": {"field": "E_IMAGES_FILE_UNDEFINED", "type": "E_IMAGES_FILE_TYPE", "error": "E_IMAGES_FILE_FORMAT"}},
+        "file": {"required": true, "type": "string", "validator": {"type": "regx", "match": "file"}, "errors": {"field": "E_IMAGES_FILE_REQUIRED", "type": "E_IMAGES_FILE_TYPE", "error": "E_IMAGES_FILE_FORMAT"}},
         "title": {"required": false, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"type": "E_IMAGES_TITLE_TYPE", "error": "E_IMAGES_TITLE_FORMAT"}}
       },
       "errors": {"type": "E_IMAGES_TYPE", "empty": "E_IMAGES_EMPTY"}
@@ -194,59 +194,97 @@
     "creation_date":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "nregx", "match": "date"},
       "errors": {"type": "E_CREATION_DATE_TYPE", "error": "E_CREATION_DATE_FORMAT"}
     },
     "publish_date":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "nregx", "match": "date"},
       "errors": {"type": "E_PUBLISH_DATE_TYPE", "error": "E_PUBLISH_DATE_FORMAT"}
     },
     "docker_image":
     {
       "type": "boolean",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "list", "match": "boolean_values"},
       "errors": {"type": "E_DOCKER_IMAGE_TYPE", "error": "E_DOCKER_IMAGE_FORMAT"}
     },
     "implements":
     {
       "type": "array",
-      "required": "none",
+      "required": ["none"],
       "unique": [{"compare": "implements", "compare_type": "equal", "store": true, "error": "E_IMPLEMENTS_DUPLICATE"}],
-      "sub_rules": {"type": "string", "validator": {"type": "list", "match": "constants"}, "errors": {"type": "E_IMPLEMENTS_CONSTANT_TYPE", "error": "E_IMPLEMENTS_CONSTANT_ACCEPTED"}},
+      "sub_rules": {"type": "string", "validator": {"type": "list", "match": "constants"}, "errors": {"type": "E_IMPLEMENTS_FIELD_TYPE", "error": "E_IMPLEMENTS_FIELD_VALUE"}},
       "errors": {"type": "E_IMPLEMENTS_TYPE", "empty": "E_IMPLEMENTS_EMPTY"}
     },
     "repository":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "url"},
-      "errors": {"type": "E_REPOSITORY_TYPE", "error": "E_REPOSITORY_FORMAT"}      
+      "errors": {"type": "E_REPOSITORY_TYPE", "error": "E_REPOSITORY_FORMAT"}
     },
     "web_url":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "url"},
       "errors": {"type": "E_WEB_URL_TYPE", "error": "E_WEB_URL_FORMAT"}
     },
     "bugs":
     {
       "type": "string",
-      "required": "none",
+      "required": ["none"],
       "validator": {"type": "regx", "match": "url"},
       "errors": {"type": "E_BUGS_TYPE", "error": "E_BUGS_FORMAT"}
+    },
+    "apt_repositories":
+    {
+      "type": "objects",
+      "required": ["none"],
+      "unique": [{"compare": "source", "compare_type": "equal", "fields": ["source"], "store": false, "error": "E_APT_REPOSITORIES_SOURCE_DUPLICATE"}],
+      "sub_rules":
+      {
+        "architectures": {"required": true, "type": "array", "validator": {"type": "function", "name": "testArray", "params": {"type": "regx", "match": "not_empty_trimmed"}}, "errors": {"field": "E_APT_REPOSITORIES_ARCHITECTURE_REQUIRED", "type": "E_APT_REPOSITORIES_ARCHITECTURE_TYPE", "error": "E_APT_REPOSITORIES_ARCHITECTURE_FORMAT"}},
+        "source": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_APT_REPOSITORIES_SOURCE_REQUIRED", "type": "E_APT_REPOSITORIES_SOURCE_TYPE", "error": "E_APT_REPOSITORIES_SOURCE_FORMAT"}},
+        "public_key": {"required": true, "type": "string", "validator": {"type": "nregx", "match": "public_key"}, "errors": {"field": "E_APT_REPOSITORIES_PUBLIC_KEY_REQUIRED", "type": "E_APT_REPOSITORIES_PUBLIC_KEY_TYPE", "error": "E_APT_REPOSITORIES_PUBLIC_KEY_FORMAT"}},
+        "description": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_APT_REPOSITORIES_DESCRIPTION_REQUIRED", "type": "E_APT_REPOSITORIES_DESCRIPTION_TYPE", "error": "E_APT_REPOSITORIES_DESCRIPTION_FORMAT"}}
+      },
+      "errors": {"field": "E_APT_REPOSITORIES_REQUIRED", "type": "E_APT_REPOSITORIES_TYPE", "empty": "E_APT_REPOSITORIES_EMPTY"}
+    },
+    "apt_packages":
+    {
+      "type": "objects",
+      "required": ["none"],
+      "unique": [{"compare": "name", "compare_type": "equal", "fields": ["name"], "store": false, "error": "E_APT_PACKAGES_NAME_DUPLICATE"}],
+      "sub_rules":
+      {
+        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_APT_PACKAGES_NAME_REQUIRED", "type": "E_APT_PACKAGES_NAME_TYPE", "error": "E_APT_PACKAGES_NAME_FORMAT"}},
+        "description": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_APT_PACKAGES_DESCRIPTION_REQUIRED", "type": "E_APT_PACKAGES_DESCRIPTION_TYPE", "error": "E_APT_PACKAGES_DESCRIPTION_FORMAT"}}
+      },
+      "errors": {"field": "E_APT_PACKAGES_REQUIRED", "type": "E_APT_PACKAGES_TYPE", "empty": "E_APT_PACKAGES_EMPTY"}
+    },
+    "deb_packages":
+    {
+      "type": "objects",
+      "required": ["none"],
+      "unique": [{"compare": "name", "compare_type": "equal", "fields": ["name"], "store": false, "error": "E_DEB_PACKAGES_NAME_DUPLICATE"}],
+      "sub_rules":
+      {
+        "name": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_DEB_PACKAGES_NAME_REQUIRED", "type": "E_DEB_PACKAGES_NAME_TYPE", "error": "E_DEB_PACKAGES_NAME_FORMAT"}},
+        "description": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_DEB_PACKAGES_DESCRIPTION_REQUIRED", "type": "E_DEB_PACKAGES_DESCRIPTION_TYPE", "error": "E_DEB_PACKAGES_DESCRIPTION_FORMAT"}}
+      },
+      "errors": {"field": "E_DEB_PACKAGES_REQUIRED", "type": "E_DEB_PACKAGES_TYPE", "empty": "E_DEB_PACKAGES_EMPTY"}
     }
   },
 
   "regxs":
   {
     "service_name": "/^(spaceify.org\\/services\\/[0-9a-z_\\/]{3,106})$(?<!\\/http|https)/",
-    "unique_name": "/[^a-z0-9\\/]|\\s|^$|^\\/+|\\/+$|\\/{2,}|^.{129,}$/",
+    "unique_name": "/[^a-z0-9\\/_]|\\s|^$|^\\/+|\\/+$|\\/{2,}|^.{129,}$/",
     "name": "/[^0-9a-zA-Z\\x20_-]|^$|^\\s+|\\s+$|^.{129,}$/",
     "category": "/[^a-z-_]|\\s|^$|^.{129,}$/",
     "wildcard_url": "/^$|\\s/",
@@ -258,13 +296,14 @@
     "url": "/^$|\\s/",
     "version": "/^(\\d|[1-9]\\d{0,4})(\\.\\d|\\.[1-9]\\d{0,4})?(\\.\\d|\\.[1-9]\\d{0,4})?$/",
     "date": "/^(((\\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\\d{4})(-)(0[469]|1?1)(-)([0][1-9]|[12][0-9]|30))|((\\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468]?[048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(0?2)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02?)(-)(29)))(\\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))$/",
-    "keywords": "/[^0-9a-zA-Z]|\\s|^$/"
+    "keywords": "/[^0-9a-zA-Z]|\\s|^$/",
+    "public_key": "/^url:(.+)|^file:(.+)|^$/"
   },
 
   "lists":
   {
     "service_types": ["open", "open_local", "standard", "alien"],
-    "application_types": ["spacelet", "sandboxed", "native"],
+    "application_types": ["spacelet", "sandboxed", "sandboxed_debian", "native_debian"],
     "boolean_values": [false, true],
     "inject_types": ["javascript", "css", "file"],
     "constants": ["WEB_SERVER"]
@@ -272,165 +311,205 @@
 
   "errors":
   {
-    "E_NAME_UNDEFINED": "Manifest: name field must be defined.",
-    "E_NAME_STRING": "Manifest: name type must be string.",
-    "E_NAME_FORMAT": "Manifest: name can contain characters 0-9a-zA-Z_- and space. Name can not be empty, have leading or trailing whitespace and maximum length is 128 characters.",
+    "E_NAME_REQUIRED": "spaceify.manifest : name - Field is required.",
+    "E_NAME_TYPE": "spaceify.manifest : type - Field type must be string.",
+    "E_NAME_FORMAT": "spaceify.manifest : name - Field can contain characters 0-9a-zA-Z_- and space. Name can not be empty, have leading or trailing whitespace and maximum length is 128 characters.",
 
-    "E_UNIQUE_NAME_UNDEFINED": "Manifest: unique_name field must be defined.",
-    "E_UNIQUE_NAME_STRING": "Manifest: unique_name type must be string.",
-    "E_UNIQUE_NAME_FORMAT": "Manifest: unique_name can contain characters 0-9a-z/. Unique name can not be empty, have leading or trailing whitespace, start or end with / or have consecutive / and maximum length is 128 characters.",
+    "E_UNIQUE_NAME_REQUIRED": "spaceify.manifest : unique_name - Field is required.",
+    "E_UNIQUE_NAME_TYPE": "spaceify.manifest : unique_name - Field type must be string.",
+    "E_UNIQUE_NAME_FORMAT": "spaceify.manifest : unique_name - Value can contain only characters 0-9a-z/_. Unique name can not be empty, have leading or trailing whitespace, start or end with / or have consecutive / and maximum length is 128 characters.",
 
-    "E_SERVICE_ARRAY_P": "Manifest: provides services type must be an array.",
-    "E_SERVICE_ARRAY_R": "Manifest: requires services type must be an array.",
-    "E_SERVICE_ARRAY_EMPTY_P": "Manifest: provides services array must have service(s) defined.",
-    "E_SERVICE_ARRAY_EMPTY_R": "Manifest: requires services array must have service(s) defined.",
-    "E_SERVICE_NAME_DUPLICATE": "Manifest: service_name can be defined only once in the provides_services and requires_services rows.",
-    "E_SERVICE_NAME_FORMAT_P": "Manifest: provides service_name has two parts <registry><name>. The registry part must always be spaceify.org/services/. Allowed characters for the name part are 0-9a-zA-Z/_ and length is 3 - 106 characters. Name can not be empty, http or https or end with /.",
-    "E_SERVICE_NAME_FORMAT_R": "Manifest: requires service_name has two parts <registry><name>. The registry part must always be spaceify.org/services/. Allowed characters for the name part are 0-9a-zA-Z/_ and length is 3 - 106 characters. Name can not be empty, http or https or end with /.",
-    "E_SERVICE_NAME_UNDEFINED_P": "Manifest: provides services must have service_name field defined.",
-    "E_SERVICE_NAME_UNDEFINED_R": "Manifest: requires services must have service_name field defined.",
-    "E_SERVICE_NAME_STRING_P": "Manifest: provides services service_name type must be string.",
-    "E_SERVICE_NAME_STRING_R": "Manifest: requires services service_name type must be string.",
-    "E_SERVICE_TYPE_P": "Manifest: provides service_type accepts values standard, open, open_local and alien.",
-    "E_SERVICE_TYPE_R": "Manifest: requires service_type accepts values standard, open, open_local and alien.",
-    "E_SERVICE_TYPE_UNDEFINED_P": "Manifest: provides services must have service_type field defined.",
-    "E_SERVICE_TYPE_UNDEFINED_R": "Manifest: requires provides services must have service_type field defined.",
-    "E_SERVICE_TYPE_STRING_P": "Manifest: provides services service_type type must be string.",
-    "E_SERVICE_TYPE_STRING_R": "Manifest: provides services service_type type must be string.",
-    "E_SERVICE_SUGGESTED_UNDEFINED": "Manifest: requires_services must have suggested_application field defined.",
-    "E_SERVICE_SUGGESTED_STRING": "Manifest: requires_services suggested_application type must be string.",
-    "E_SERVICE_SUGGESTED_FORMAT": "Manifest: suggested_application name can contain characters 0-9a-z/. Name can not be empty, have leading or trailing whitespace, start or end with a / or have consecutive /. Name can be optionally followed by @version, where version is one to three dot separated sequences of valid integers between 0 - 99999.",
-    "E_SERVICE_SUGGESTED_SELF": "The suggested_name in requires_services can not be same as the applications unique_name is (suggests self).",
-    "E_SERVICE_PROVIDES_REQUIRED": "Manifest: provides_services field must be defined.",
+    "E_SERVICE_REQUIRED_P": "spaceify.manifest : provides_services - Field is required.",
+    "E_SERVICE_TYPE_P": "spaceify.manifest : provides_services - Field type must be object array.",
+    "E_SERVICE_EMPTY_P": "spaceify.manifest : provides_services - Array can not be empty.",
+    "E_SERVICE_NAME_TYPE_P": "spaceify.manifest : provides_service.service_name - Field type must be string.",
+    "E_SERVICE_NAME_REQUIRED_P": "spaceify.manifest : provides_service.service_name - Field is required.",
+    "E_SERVICE_NAME_FORMAT_P": "spaceify.manifest : provides_service.service_name - Value must have two parts <registry><name>. The registry part must always be spaceify.org/services/. Allowed characters for the name part are 0-9a-zA-Z/_ and length is 3 - 106 characters. Name can not be empty, http or https or end with /.",
+    "E_SERVICE_TYPE_VALUES_P": "spaceify.manifest : provides_service.service_type - Accepted values are standard, open, open_local and alien.",
+    "E_SERVICE_TYPE_REQUIRED_P": "spaceify.manifest : provides_service.service_type - Field is required.",
+    "E_SERVICE_TYPE_TYPE_P": "spaceify.manifest : provides_service.service_type - Field type must be string.",
+    "E_SERVICE_NAME_DUPLICATE_P": "spaceify.manifest : provides_services.service_name - Duplicate entries.",
 
-    "E_VERSION_UNDEFINED": "Manifest: version field must be defined.",
-    "E_VERSION_TYPE_STRING": "Manifest: version type must be string.",    
-    "E_VERSION_FORMAT": "Manifest: version is in unsupported format. Supported format has one to three dot separated sequences of valid integers between 0 - 99999.",    
+    "E_SERVICE_TYPE_R": "spaceify.manifest : requires_services - Field type must be array.",
+    "E_SERVICE_EMPTY_R": "spaceify.manifest : requires_services - Array can not be empty.",
+    "E_SERVICE_NAME_FORMAT_R": "spaceify.manifest : requires_service.service_name - Value has two parts <registry><name>. The registry part must always be spaceify.org/services/. Allowed characters for the name part are 0-9a-zA-Z/_ and length is 3 - 106 characters. Name can not be empty, http or https or end with /.",
+    "E_SERVICE_NAME_REQUIRED_R": "spaceify.manifest : requires_service.service_name - Field is required.",
+    "E_SERVICE_NAME_TYPE_R": "spaceify.manifest : requires_service.service_name - Field type must be string.",
+    "E_SERVICE_NAME_DUPLICATE_R": "spaceify.manifest : requires_services.service_name - Duplicate entries.",
+    "E_SERVICE_SUGGESTED_REQUIRED_R": "spaceify.manifest : requires_services.suggested_application - Field is required.",
+    "E_SERVICE_SUGGESTED_TYPE_R": "spaceify.manifest : requires_services.suggested_application - Field type must be string.",
+    "E_SERVICE_SUGGESTED_FORMAT_R": "spaceify.manifest : requires_services.suggested_application - Value can contain only characters 0-9a-z/. Name can not be empty, have leading or trailing whitespace, start or end with a / or have consecutive /. Name can be optionally followed by @version, where version is one to three dot separated sequences of valid integers between 0 - 99999.",
 
-    "E_TYPE_UNDEFINED": "Manifest: type field must be defined.",
-    "E_TYPE_STRING": "Manifest: type type must be string.",
-    "E_TYPE_FORMAT": "Manifest: type accepts values spacelet, sandboxed and native.",
+    "E_SERVICE_SUGGESTED_SELF": "The suggested_name in provides_service.requires_services can not be same as the applications own unique_name is (suggests self).",
 
-    "E_CATEGORY_UNDEFINED": "Manifest: category field must be defined.",
-    "E_CATEGORY_STRING": "Manifest: category type must be string.",
-    "E_CATEGORY_FORMAT": "Manifest: category can contain characters 0-9a-z-_. Category can not be empty, contain whitespace and maximum length is 128 characters.",
+    "E_VERSION_REQUIRED": "spaceify.manifest : version - Field is required.",
+    "E_VERSION_TYPE": "spaceify.manifest : version - Field type must be string.",
+    "E_VERSION_FORMAT": "spaceify.manifest : version - Version is in unsupported format. Supported format has one to three dot separated sequences of valid integers between 0 - 99999.",
 
-    "E_START_COMMAND_UNDEFINED": "Manifest: start_command field must be defined.",
-    "E_START_COMMAND_STRING": "Manifest: start_command type must be string.",
-    "E_START_COMMAND_FORMAT": "Manifest: start_command can not be empty.",
+    "E_TYPE_REQUIRED": "spaceify.manifest : type - Field is required.",
+    "E_TYPE_TYPE": "spaceify.manifest : type - Field type must be string.",
+    "E_TYPE_FORMAT": "spaceify.manifest : type - Accepted values are spacelet, sandboxed, sandboxed_debian and native_debian.",
 
-    "E_STOP_COMMAND_UNDEFINED": "Manifest: stop_command type must be string.",
-    "E_STOP_COMMAND_FORMAT": "Manifest: stop_command can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
+    "E_CATEGORY_REQUIRED": "spaceify.manifest : category - Field is required.",
+    "E_CATEGORY_TYPE": "spaceify.manifest : category -  Field type must be string.",
+    "E_CATEGORY_FORMAT": "spaceify.manifest : category - Value can contain only characters 0-9a-z-_. Category can not be empty, contain whitespace and maximum length is 128 characters.",
 
-    "E_ORIGINS_UNDEFINED": "Manifest: origins field must be defined for spacelets.",
-    "E_ORIGINS_TYPE": "Manifest: origins type must be array.",
-    "E_ORIGINS_EMPTY": "Manifest: origins must have hostname(s) defined.",
-    "E_ORIGIN_STRING": "Manifest: origins hostname type must be string.",
-    "E_ORIGIN_FORMAT": "Manifest: origins hostname value can not be empty or contain whitespace.",
-    "E_ORIGINS_DUPLICATE": "Manifest: Duplicate host names in origins.",
+    "E_START_COMMAND_REQUIRED": "spaceify.manifest : start_command - Field is required.",
+    "E_START_COMMAND_TYPE": "spaceify.manifest : start_command - Field type must be string.",
+    "E_START_COMMAND_FORMAT": "spaceify.manifest : start_command - Value can not be empty.",
 
-    "E_SHARED_UNDEFINED": "Manifest: shared field must be defined for spacelets.",
-    "E_SHARED_TYPE": "Manifest: shared type must be boolean.",
-    "E_SHARED_FORMAT": "Manifest: shared accepts values true and false.",
+    "E_STOP_COMMAND_TYPE": "spaceify.manifest : stop_command - Field type must be string.",
+    "E_STOP_COMMAND_FORMAT": "spaceify.manifest : stop_command - Value can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
 
-    "E_INJECT_IDENTIFIER_UNDEFINED": "Manifest: inject_identifier field must be defined for spacelets.",
-    "E_INJECT_IDENTIFIER_TYPE": "Manifest: inject_identifier type must be string.",
-    "E_INJECT_IDENTIFIER_FORMAT": "Manifest: inject_identifier can not be empty.",
+    "E_ORIGINS_REQUIRED": "spaceify.manifest : origins - Field is required.",
+    "E_ORIGINS_TYPE": "spaceify.manifest : origins - Field type must be array.",
+    "E_ORIGINS_EMPTY": "spaceify.manifest : origins - Array can not be empty.",
+    "E_ORIGIN_FIELD_TYPE": "spaceify.manifest : origins - Value type is string.",
+    "E_ORIGIN_FIELD_FORMAT": "spaceify.manifest : origins - Value can not be empty or contain whitespace.",
+    "E_ORIGINS_DUPLICATE": "spaceify.manifest : origins - Duplicate entries.",
 
-    "E_INJECT_HOSTNAMES_UNDEFINED": "Manifest: inject_hostnames field must be defined for spacelets.",
-    "E_INJECT_HOSTNAMES_TYPE": "Manifest: inject_hostnames type must be array.",
-    "E_INJECT_HOSTNAMES_EMPTY": "Manifest: inject_hostnames must have hostname(s) defined.",
-    "E_INJECT_HOSTNAME_STRING": "Manifest: inject_hostnames hostname type must be string.",
-    "E_INJECT_HOSTNAME_FORMAT": "Manifest: inject_hostnames hostname value can not be empty or contain whitespace.",
-    "E_INJECT_HOSTNAMES_DUPLICATE": "Manifest: Duplicate host names in inject_hostnames.",
+    "E_SHARED_REQUIRED": "spaceify.manifest : shared - Field is required.",
+    "E_SHARED_TYPE": "spaceify.manifest : shared - Field type must be boolean.",
+    "E_SHARED_FORMAT": "spaceify.manifest : shared - Accepted values are true and false.",
 
-    "E_INJECT_FILES_UNDEFINED": "Manifest: inject_files field must be defined for spacelets.",
-    "E_INJECT_FILES_TYPE": "Manifest: inject_files type must be array.",
-    "E_INJECT_FILES_EMPTY": "Manifest: inject_files must have inject files defined.",
-    "E_INJECT_FILE_DIRECTORY_TYPE": "Manifest: inject_files directory type must be string.",
-    "E_INJECT_FILE_DIRECTORY_FORMAT": "Manifest: inject_files directory can contain characters 0-9a-zA-Z/.-_. Directory can not be empty, have leading or trailing whitespace, start with ., / or - or end with . or / and can not have consecutive /.",
-    "E_INJECT_FILE_FILE_UNDEFINED": "Manifest: inject_files must have a file field defined.",
-    "E_INJECT_FILE_FILE_TYPE": "Manifest: inject_files file type must be string.",
-    "E_INJECT_FILE_FILE_FORMAT": "Manifest: inject_files file can contain characters 0-9a-zA-Z.-_. File can not be empty, have leading or trailing whitespace, start with . or - or end with .",
-    "E_INJECT_FILE_TYPE_UNDEFINED": "Manifest: inject_files must have a type field defined.",
-    "E_INJECT_FILE_TYPE_TYPE": "Manifest: inject_files type type must be string.",
-    "E_INJECT_FILE_TYPE_FORMAT": "Manifest: inject_files type accepts values javascript, css and file.",
-    "E_INJECT_FILES_DUPLICATE": "Manifest: Duplicate directory/name row(s) in inject_files.",
+    "E_INJECT_IDENTIFIER_REQUIRED": "spaceify.manifest : inject_identifier - Field is required.",
+    "E_INJECT_IDENTIFIER_TYPE": "spaceify.manifest : inject_identifier - Field type must be string.",
+    "E_INJECT_IDENTIFIER_FORMAT": "spaceify.manifest : inject_identifier - Value can not be empty.",
 
-    "E_INSTALL_COMMANDS_TYPE": "Manifest: install_commands type must be array.",
-    "E_INSTALL_COMMANDS_EMPTY": "Manifest: install_commands must have command(s) defined.",
-    "E_INSTALL_COMMAND_TYPE": "Manifest: install command type must be string.",
-    "E_INSTALL_COMMAND_FORMAT": "Manifest: install command can not be empty. Leave it out if it is not required.",
+    "E_INJECT_HOSTNAMES_REQUIRED": "spaceify.manifest : inject_hostnames - Field is required.",
+    "E_INJECT_HOSTNAMES_TYPE": "spaceify.manifest : inject_hostnames - Field type must be array.",
+    "E_INJECT_HOSTNAMES_EMPTY": "spaceify.manifest : inject_hostnames - Array can not be empty.",
+    "E_INJECT_HOSTNAME_FIELD_TYPE": "spaceify.manifest : inject_hostnames - Value type is string.",
+    "E_INJECT_HOSTNAME_FIELD_FORMAT": "spaceify.manifest : inject_hostnames - Value can not be empty or contain whitespace.",
+    "E_INJECT_HOSTNAMES_DUPLICATE": "spaceify.manifest : inject_hostnames - Duplicate entries.",
 
-    "E_DEVELOPER_UNDEFINED": "Manifest: developer field must be defined.",
-    "E_DEVELOPER_TYPE": "Manifest: developer type must be object.",
-    "E_DEVELOPER_EMPTY": "Manifest: developer must have developers defined.",
-    "E_DEVELOPER_NAME_UNDEFINED": "Manifest: developer must have name field defined.",
-    "E_DEVELOPER_NAME_STRING": "Manifest: developer name type must be string.",
-    "E_DEVELOPER_NAME_FORMAT": "Manifest: developer name can not be empty or have leading or trailing whitespace.",
-    "E_DEVELOPER_EMAIL_TYPE": "Manifest: developer email type must be string.",
-    "E_DEVELOPER_EMAIL_FORMAT": "Manifest: developer email is in unrecognized format.",
-    "E_DEVELOPER_URL_TYPE": "Manifest: developer url type must be string.",
-    "E_DEVELOPER_URL_FORMAT": "Manifest: developer url can not be empty. Leave it out if it is not required.",
+    "E_INJECT_FILES_REQUIRED": "spaceify.manifest : inject_files - Field is required.",
+    "E_INJECT_FILES_TYPE": "spaceify.manifest : inject_files - Field type must be array.",
+    "E_INJECT_FILES_EMPTY": "spaceify.manifest : inject_files - Array can not be empty.",
+    "E_INJECT_FILE_DIRECTORY_TYPE": "spaceify.manifest : inject_files.directory - Field type must be string.",
+    "E_INJECT_FILE_DIRECTORY_FORMAT": "spaceify.manifest : inject_files.directory - Value can contain only characters 0-9a-zA-Z/.-_. Field can not be empty, have leading or trailing whitespace, start with ., / or - or end with . or / and can not have consecutive /.",
+    "E_INJECT_FILE_FILE_REQUIRED": "spaceify.manifest : inject_files.file - Field is required.",
+    "E_INJECT_FILE_FILE_TYPE": "spaceify.manifest : inject_files.file - Field type must be string.",
+    "E_INJECT_FILE_FILE_FORMAT": "spaceify.manifest : inject_files.file - Value can contain only characters 0-9a-zA-Z.-_. Field can not be empty, have leading or trailing whitespace, start with . or - or end with .",
+    "E_INJECT_FILE_TYPE_REQUIRED": "spaceify.manifest : inject_files.type - Field is required.",
+    "E_INJECT_FILE_TYPE_TYPE": "spaceify.manifest : inject_files.type - Field type must be string.",
+    "E_INJECT_FILE_TYPE_FORMAT": "spaceify.manifest : inject_files.type - Accepted values are javascript, css and file.",
+    "E_INJECT_FILES_DUPLICATE": "spaceify.manifest : inject_files - Duplicate directory/name rows.",
 
-    "E_CONTRIBUTORS_TYPE": "Manifest: contributors type must be array.",
-    "E_CONTRIBUTORS_EMPTY": "Manifest: contributors must have contributors defined.",
-    "E_CONTRIBUTORS_NAME_UNDEFINED": "Manifest: contributors must have name field defined.",
-    "E_CONTRIBUTORS_NAME_TYPE": "Manifest: contributors name type must be string.",
-    "E_CONTRIBUTORS_NAME_FORMAT": "Manifest: contributors name can not be empty or have leading or trailing whitespace.",
-    "E_CONTRIBUTORS_EMAIL_TYPE": "Manifest: contributors email type must be string.",
-    "E_CONTRIBUTORS_EMAIL_FORMAT": "Manifest: contributors email is in unrecognized format.",
-    "E_CONTRIBUTORS_URL_TYPE": "Manifest: contributors url type must be string.",
-    "E_CONTRIBUTORS_URL_FORMAT": "Manifest: contributors url can not be empty. Leave it out if it is not required.",
+    "E_INSTALL_COMMANDS_TYPE": "spaceify.manifest : install_commands - Field type must be array.",
+    "E_INSTALL_COMMANDS_EMPTY": "spaceify.manifest : install_commands - Array can not be empty.",
+    "E_INSTALL_COMMAND_FIELD_TYPE": "spaceify.manifest : install_commands - Field type must be string.",
+    "E_INSTALL_COMMAND_FIELD_FORMAT": "spaceify.manifest : install_commands - Value can not be empty. Leave it out if it is not required.",
 
-    "E_SHORT_DESCRIPTION_UNDEFINED": "Manifest: short_description field must be defined.",
-    "E_SHORT_DESCRPTION_TYPE": "Manifest: short_description type must be string.",
-    "E_SHORT_DESCRPTION_FORMAT": "Manifest: short_description can not be empty or have leading or trailing whitespace.",
+    "E_DEVELOPER_REQUIRED": "spaceify.manifest : developer - Field is required.",
+    "E_DEVELOPER_TYPE": "spaceify.manifest : developer - Field type must be object.",
+    "E_DEVELOPER_EMPTY": "spaceify.manifest : developer - Object can not be empty.",
+    "E_DEVELOPER_NAME_REQUIRED": "spaceify.manifest : developer.name - Field is required.",
+    "E_DEVELOPER_NAME_TYPE": "spaceify.manifest : developer.name - Field type must be string.",
+    "E_DEVELOPER_NAME_FORMAT": "spaceify.manifest : developer.name - Value can not be empty or have leading or trailing whitespace.",
+    "E_DEVELOPER_EMAIL_TYPE": "spaceify.manifest : developer.email - Field type must be string.",
+    "E_DEVELOPER_EMAIL_FORMAT": "spaceify.manifest : developer.email - Value is in unrecognized format.",
+    "E_DEVELOPER_URL_TYPE": "spaceify.manifest : developer.url - Field type must be string.",
+    "E_DEVELOPER_URL_FORMAT": "spaceify.manifest : developer.url - Value can not be empty. Leave it out if it is not required.",
 
-    "E_APPSTORE_DESCRIPTION_UNDEFINED": "Manifest: appstore_description field must be defined.",
-    "E_APPSTORE_DESCRPTION_TYPE": "Manifest: appstore_description type must be string.",
-    "E_APPSTORE_DESCRPTION_FORMAT": "Manifest: appstore_description can not be empty or have leading or trailing whitespace.",
+    "E_CONTRIBUTORS_TYPE": "spaceify.manifest : contributors - Field type must be array.",
+    "E_CONTRIBUTORS_EMPTY": "spaceify.manifest : contributors - Array can not be empty.",
+    "E_CONTRIBUTORS_NAME_REQUIRED": "spaceify.manifest : contributors.name - Field is required.",
+    "E_CONTRIBUTORS_NAME_TYPE": "spaceify.manifest : contributors.name - Field type must be string.",
+    "E_CONTRIBUTORS_NAME_FORMAT": "spaceify.manifest : contributors.name - Value can not be empty or have leading or trailing whitespace.",
+    "E_CONTRIBUTORS_EMAIL_TYPE": "spaceify.manifest : contributors.email - Field type must be string.",
+    "E_CONTRIBUTORS_EMAIL_FORMAT": "spaceify.manifest : contributors.email - Value is in unrecognized format.",
+    "E_CONTRIBUTORS_URL_TYPE": "spaceify.manifest : contributors.url - Field type must be string.",
+    "E_CONTRIBUTORS_URL_FORMAT": "spaceify.manifest : contributors.url - Value can not be empty. Leave it out if it is not required.",
 
-    "E_KEYWORDS_TYPE": "Manifest: keywords type must be array.",
-    "E_KEYWORDS_EMPTY": "Manifest: keywords must have keyword(s) defined.",
-    "E_KEYWORD_TYPE": "Manifest: keyword type must be string.",
-    "E_KEYWORD_FORMAT": "Manifest: keyword value can contain characters 0-9a-zA-Z. Keyword can not be empty.",
+    "E_SHORT_DESCRIPTION_REQUIRED": "spaceify.manifest : short_description - Field is required.",
+    "E_SHORT_DESCRPTION_TYPE": "spaceify.manifest : short_description - Field type must be string.",
+    "E_SHORT_DESCRPTION_FORMAT": "spaceify.manifest : short_description - Value can not be empty or have leading or trailing whitespace.",
 
-    "E_LICENSE_TYPE": "Manifest: license type must be string.",
-    "E_LICENSE_FORMAT": "Manifest: license can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
+    "E_APPSTORE_DESCRIPTION_REQUIRED": "spaceify.manifest : appstore_description - Field is required.",
+    "E_APPSTORE_DESCRPTION_TYPE": "spaceify.manifest : appstore_description - Field type must be string.",
+    "E_APPSTORE_DESCRPTION_FORMAT": "spaceify.manifest : appstore_description - VAlue can not be empty or have leading or trailing whitespace.",
 
-    "E_IMAGES_TYPE": "Manifest: images type must be array.",
-    "E_IMAGES_EMPTY": "Manifest: images must have image files defined.",
-    "E_IMAGES_DIRECTORY_TYPE": "Manifest: images directory type must be string.",
-    "E_IMAGES_DIRECTORY_FORMAT": "Manifest: images directory can contain characters 0-9a-zA-Z/.-_. Directory can not be empty, have leading or trailing whitespace, start with ., / or - or end with . or / and can not have consecutive /.",
-    "E_IMAGES_FILE_UNDEFINED": "Manifest: images must have a file field defined.",
-    "E_IMAGES_FILE_TYPE": "Manifest: images file type must be string.",
-    "E_IMAGES_FILE_FORMAT": "Manifest: images file can contain characters 0-9a-zA-Z.-_. File can not be empty, have leading or trailing whitespace, start with . or - or end with .",
-    "E_IMAGES_TITLE_TYPE": "Manifest: images title type must be string.",
-    "E_IMAGES_TITLE_FORMAT": "Manifest: images title can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
+    "E_KEYWORDS_TYPE": "spaceify.manifest : keywords - Field type must be array.",
+    "E_KEYWORDS_EMPTY": "spaceify.manifest : keywords - Array can not be empty.",
+    "E_KEYWORD_FIELD_TYPE": "spaceify.manifest : keywords - Field value type is string.",
+    "E_KEYWORD_FIELD_FORMAT": "spaceify.manifest : keywords - Value can contain only characters 0-9a-zA-Z. Keyword can not be empty.",
 
-    "E_CREATION_DATE_TYPE": "Manifest: creation_date type must be string.",
-    "E_CREATION_DATE_FORMAT": "Manifest: creation_date is not a valid date. Date format is YYYY-MM-DD HH:MM:SS and the date must be valid.",
+    "E_LICENSE_TYPE": "spaceify.manifest : license - Field type must be string.",
+    "E_LICENSE_FORMAT": "spaceify.manifest : license - Value can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
 
-    "E_PUBLISH_DATE_TYPE": "Manifest: publish_date type must be string.",
-    "E_PUBLISH_DATE_FORMAT": "Manifest: publish_date is not a valid date. Date format is YYYY-MM-DD HH:MM:SS and the date must be valid.",
+    "E_IMAGES_TYPE": "spaceify.manifest : images - Field type must be array.",
+    "E_IMAGES_EMPTY": "spaceify.manifest : images - Array can not be empty.",
+    "E_IMAGES_DIRECTORY_TYPE": "spaceify.manifest : images.directory - Field type must be string.",
+    "E_IMAGES_DIRECTORY_FORMAT": "spaceify.manifest : images.directory - Value can contain only characters 0-9a-zA-Z/.-_. Field can not be empty, have leading or trailing whitespace, start with ., / or - or end with . or / and can not have consecutive /.",
+    "E_IMAGES_FILE_REQUIRED": "spaceify.manifest : images.file - Field is required.",
+    "E_IMAGES_FILE_TYPE": "spaceify.manifest : images.file - Field type must be string.",
+    "E_IMAGES_FILE_FORMAT": "spaceify.manifest : images.file - Value can contain only characters 0-9a-zA-Z.-_. Field can not be empty, have leading or trailing whitespace, start with . or - or end with .",
+    "E_IMAGES_TITLE_TYPE": "spaceify.manifest : images.title - Field type must be string.",
+    "E_IMAGES_TITLE_FORMAT": "spaceify.manifest : images.title - Value can not be empty or have leading or trailing whitespace. Leave it out if it is not required.",
 
-    "E_DOCKER_IMAGE_TYPE": "Manifest: docker_image type must be boolean.",
-    "E_DOCKER_IMAGE_FORMAT": "Manifest: docker_image accepts values true and false.",
+    "E_CREATION_DATE_TYPE": "spaceify.manifest : creation_date - Field type must be string.",
+    "E_CREATION_DATE_FORMAT": "spaceify.manifest : creation_date - Value is not a valid date. Date format is YYYY-MM-DD HH:MM:SS and the date must be valid.",
 
-    "E_IMPLEMENTS_TYPE": "Manifest: implements type must be array.",
-    "E_IMPLEMENTS_EMPTY": "Manifest: implements must have constant(s) defined.",
-	"E_IMPLEMENTS_CONSTANT_TYPE": "Manifest: implements constant type must be string.",
-    "E_IMPLEMENTS_CONSTANT_ACCEPTED": "Manifest: implements constant accepts value WEB_SERVER.",
-    "E_IMPLEMENTS_DUPLICATE": "Manifest: Duplicate constants in implements.",
+    "E_PUBLISH_DATE_TYPE": "spaceify.manifest : publish_date - Field type must be string.",
+    "E_PUBLISH_DATE_FORMAT": "spaceify.manifest : publish_date - Value is not a valid date. Date format is YYYY-MM-DD HH:MM:SS and the date must be valid.",
 
-    "E_REPOSITORY_TYPE": "Manifest: repository type must be string.",
-    "E_REPOSITORY_FORMAT": "Manifest: repository can not be empty. Leave it out if it is not required.",
+    "E_DOCKER_IMAGE_TYPE": "spaceify.manifest : docker_image - Field type must be boolean.",
+    "E_DOCKER_IMAGE_FORMAT": "spaceify.manifest : docker_image - Accepted values are true and false.",
 
-    "E_WEB_URL_TYPE": "Manifest: url type must be string.",
-    "E_WEB_URL_FORMAT": "Manifest: url can not be empty. Leave it out if it is not required.",
+    "E_IMPLEMENTS_TYPE": "spaceify.manifest : implements - Field type must be array.",
+    "E_IMPLEMENTS_EMPTY": "spaceify.manifest : implements - Array can not be empty.",
+	"E_IMPLEMENTS_FIELD_TYPE": "spaceify.manifest : implements - Field value is string.",
+    "E_IMPLEMENTS_FIELD_VALUE": "spaceify.manifest : implements - Accepted value is WEB_SERVER.",
+    "E_IMPLEMENTS_DUPLICATE": "spaceify.manifest : implements - Duplicate entries.",
 
-    "E_BUGS_TYPE": "Manifest: bugs type must be string.",
-    "E_BUGS_FORMAT": "Manifest: bugs can not be empty. Leave it out if it is not required."
+    "E_REPOSITORY_TYPE": "spaceify.manifest : repository - Field type must be string.",
+    "E_REPOSITORY_FORMAT": "spaceify.manifest : repository - Value can not be empty. Leave it out if it is not required.",
+
+    "E_WEB_URL_TYPE": "spaceify.manifest : url - Field type must be string.",
+    "E_WEB_URL_FORMAT": "spaceify.manifest : url - Value can not be empty. Leave it out if it is not required.",
+
+    "E_BUGS_TYPE": "spaceify.manifest : bugs - Field type must be string.",
+    "E_BUGS_FORMAT": "spaceify.manifest : bugs - Value can not be empty. Leave it out if it is not required.",
+
+    "E_APT_REPOSITORIES_REQUIRED": "spaceify.manifest : apt_repositories - Field is required.",
+    "E_APT_REPOSITORIES_TYPE": "spaceify.manifest : apt_repositories - Field type must be object array.",
+    "E_APT_REPOSITORIES_EMPTY": "spaceify.manifest : apt_repositories - Array can not be empty.",
+    "E_APT_REPOSITORIES_ARCHITECTURE_REQUIRED": "spaceify.manifest : apt_repositories.architectures - Field is required.",
+    "E_APT_REPOSITORIES_ARCHITECTURE_TYPE": "spaceify.manifest : apt_repositories.architectures - Field type must be array.",
+    "E_APT_REPOSITORIES_ARCHITECTURE_FORMAT": "spaceify.manifest : apt_repositories.architectures - Array can not be empty.",
+    "E_APT_REPOSITORIES_SOURCE_REQUIRED": "spaceify.manifest : apt_repositories.source - Field is required.",
+    "E_APT_REPOSITORIES_SOURCE_TYPE": "spaceify.manifest : apt_repositories.source - Field type must be string.",
+    "E_APT_REPOSITORIES_SOURCE_FORMAT": "spaceify.manifest : apt_repositories.source - Value can not be empty or have leading or trailing whitespace.",
+    "E_APT_REPOSITORIES_SOURCE_DUPLICATE": "spaceify.manifest : apt_repositories - Duplicate entries",
+    "E_APT_REPOSITORIES_PUBLIC_KEY_REQUIRED": "spaceify.manifest : apt_repositories.public_key - Field is required.",
+    "E_APT_REPOSITORIES_PUBLIC_KEY_TYPE": "spaceify.manifest : apt_repositories.public_key - Field type must be string.",
+    "E_APT_REPOSITORIES_PUBLIC_KEY_FORMAT": "spaceify.manifest : apt_repositories.public_key - Value must start with url: or file: and must be followed by one or more characters (url or filename). The value can also be empty string.",
+    "E_APT_REPOSITORIES_DESCRIPTION_REQUIRED": "spaceify.manifest : apt_repositories.description - Field is required.",
+    "E_APT_REPOSITORIES_DESCRIPTION_TYPE": "spaceify.manifest : apt_repositories.description - Field type must be string.",
+    "E_APT_REPOSITORIES_DESCRIPTION_FORMAT": "spaceify.manifest : apt_repositories.description - Value can not be empty or have leading or trailing whitespace.",
+
+    "E_APT_PACKAGES_REQUIRED": "spaceify.manifest : apt_packages - Field is required.",
+    "E_APT_PACKAGES_TYPE": "spaceify.manifest : apt_packages - Field type must be object array.",
+    "E_APT_PACKAGES_EMPTY": "spaceify.manifest : apt_packages - Array can not be empty.",
+    "E_APT_PACKAGES_NAME_DUPLICATE": "spaceify.manifest : apt_packages - Duplicate entries",
+    "E_APT_PACKAGES_NAME_REQUIRED": "spaceify.manifest : apt_packages.name - Field is required.",
+    "E_APT_PACKAGES_NAME_TYPE": "spaceify.manifest : apt_packages.name - Field type must be string.",
+    "E_APT_PACKAGES_NAME_FORMAT": "spaceify.manifest : apt_packages.name - Value can not be empty or have leading or trailing whitespace.",
+    "E_APT_PACKAGES_DESCRIPTION_REQUIRED": "spaceify.manifest : apt_packages.description - Field is required.",
+    "E_APT_PACKAGES_DESCRIPTION_TYPE": "spaceify.manifest : apt_packages.description - Field type must be string.",
+    "E_APT_PACKAGES_DESCRIPTION_FORMAT": "spaceify.manifest : apt_packages.description - Value can not be empty or have leading or trailing whitespace.",
+
+    "E_DEB_PACKAGES_REQUIRED": "spaceify.manifest : deb_packages - Field is required.",
+    "E_DEB_PACKAGES_TYPE": "spaceify.manifest : deb_packages - Field type must be object array.",
+    "E_DEB_PACKAGES_EMPTY": "spaceify.manifest : deb_packages - Array can not be empty.",
+    "E_DEB_PACKAGES_NAME_DUPLICATE": "spaceify.manifest : deb_packages - Duplicate entries",
+    "E_DEB_PACKAGES_NAME_REQUIRED": "spaceify.manifest : deb_packages.name - Field is required.",
+    "E_DEB_PACKAGES_NAME_TYPE": "spaceify.manifest : deb_packages.name - Field type must be string.",
+    "E_DEB_PACKAGES_NAME_FORMAT": "spaceify.manifest : deb_packages.name - Value can not be empty or have leading or trailing whitespace.",
+    "E_DEB_PACKAGES_DESCRIPTION_REQUIRED": "spaceify.manifest : deb_packages.description - Field is required.",
+    "E_DEB_PACKAGES_DESCRIPTION_TYPE": "spaceify.manifest : deb_packages.description - Field type must be string.",
+    "E_DEB_PACKAGES_DESCRIPTION_FORMAT": "spaceify.manifest : deb_packages.description - Value can not be empty or have leading or trailing whitespace."
+    
   }
 }

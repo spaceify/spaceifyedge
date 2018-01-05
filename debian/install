@@ -1,8 +1,25 @@
-code/* var/lib/spaceify/code
+code/*.js* var/lib/spaceify/code
+code/lib/* var/lib/spaceify/code/lib
+code/www/index.html var/lib/spaceify/code/www
+code/www/location.conf var/lib/spaceify/code/www
+code/www/operation.xop var/lib/spaceify/code/www
+code/www/remote.html var/lib/spaceify/code/www
+code/www/appstore/* var/lib/spaceify/code/www/appstore
+code/www/errors/* var/lib/spaceify/code/www/errors
+code/www/libs/* var/lib/spaceify/code/www/libs
+code/www/js var/lib/spaceify/code/www
+code/www/css var/lib/spaceify/code/www
+code/www/fonts var/lib/spaceify/code/www
+code/www/images var/lib/spaceify/code/www
+code/www/locales/* var/lib/spaceify/code/www/locales
+code/www/templates/* var/lib/spaceify/code/www/templates
+code/www/src/*.js* var/lib/spaceify/code/www/src
+code/www/src/webjsonrpc/* var/lib/spaceify/code/www/src/webjsonrpc
 
 data/spacelets/readme.txt var/lib/spaceify/data/spacelets
 data/sandboxed/readme.txt var/lib/spaceify/data/sandboxed
-data/native/readme.txt var/lib/spaceify/data/native
+data/sandboxed_debian/readme.txt var/lib/spaceify/data/sandboxed_debian
+data/native_debian/readme.txt var/lib/spaceify/data/native_debian
 data/installed/readme.txt var/lib/spaceify/data/installed
 data/scripts/* var/lib/spaceify/data/scripts
 data/scripts/spm usr/bin
@@ -18,6 +35,7 @@ data/docker/raspbian/Dockerfile var/lib/spaceify/data/docker/raspbian
 data/docker/ubuntu/image_versions var/lib/spaceify/data/docker/ubuntu
 data/docker/raspbian/image_versions var/lib/spaceify/data/docker/raspbian
 data/logs/readme.txt var/lib/spaceify/data/logs
+
 debian/spaceify.service lib/systemd/system
 debian/spaceifyappman.service lib/systemd/system
 debian/spaceifyhttp.service lib/systemd/system

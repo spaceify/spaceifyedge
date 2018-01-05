@@ -74,7 +74,8 @@ printf "\nOK\n"
 # ---------- Remove Spaceify's files etc. ---------- #
 
 eth=$(< /var/lib/spaceify/data/interfaces/ethernet)
-appman_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g') > /dev/null 2>&1 || true
+wlan=$(</var/lib/spaceify/data/interfaces/wlan)
+appman_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g') > /dev/null 2>&1 || true
 
 printf "\n\e[4mStopping services.\e[0m\n"
 service spaceifyhttp stop > /dev/null 2>&1 || true

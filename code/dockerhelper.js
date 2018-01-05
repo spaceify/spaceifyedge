@@ -8,18 +8,19 @@
 
 var fs = require("fs");
 var net = require("net");
+var Docker = require("dockerode");
 var language = require("./language");
-var Logger = require("./logger");
 var SpaceifyError = require("./spaceifyerror");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function DockerHelper()
 {
 var self = this;
 
-var logger = new Logger();
 var errorc = new SpaceifyError();
 var utility = new SpaceifyUtility();
+var logger = new SpaceifyLogger("DockerHelper");
 
 var standardInput = null;
 var standardOutput = null;
@@ -58,7 +59,7 @@ self.getStreams = function()
 self.executeCommand = function(command, waitedStrings, disableInfo, callback)
 	{
 	if(!disableInfo)
-		logger.info(utility.replace(language.EXECUTE_COMMAND, {"~command": command}));
+		logger.log(utility.replace(language.EXECUTE_COMMAND, {"~command": command}));
 
 	if(callback)															// only wait for data if callback is given
 		self.waitForOutput(waitedStrings, callback);
@@ -88,20 +89,27 @@ self.waitForOutput = function(waitedStrings, callback)
 		if(seq == 16777216)
 			tdata = tdata.substr(tdata.length > 8 ? 8 : 0, data.length - 1);
 
-		logger.info(tdata);
+		logger.log("...\n" + tdata.replace(/^[ ]|[\r\n]+$/, ""));
 
 		buf += tdata;
 		for(var i = 0; i < waitedStrings.length; i++)
 			{
 			if(buf.lastIndexOf(waitedStrings[i]) != -1 || (buf.length > 0 && waitedStrings[i] == "*"))
 				{
-				logger.info(utility.replace(language.EXECUTE_COMMAND_RECEIVED, {"~code": waitedStrings[i]}), "\n");
+				//logger.log(utility.replace(language.EXECUTE_COMMAND_RECEIVED, {"~code": waitedStrings[i]}), "\n");
 
 				standardOutput.removeAllListeners("data");
 				callback(null, [buf, waitedStrings[i]]);
 				}
 			}
 		});
+	}
+
+self.listContainers = function()
+	{
+	var docker = new Docker({socketPath: "/var/run/docker.sock"});
+
+	return docker.sync.listContainers({"all": 1});
 	}
 
 }

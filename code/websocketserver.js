@@ -1,1 +1,1 @@
-www/libs/webjsonrpc/websocketserver.js
+www/src/webjsonrpc/websocketserver.js

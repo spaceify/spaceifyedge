@@ -1,1 +1,1 @@
-www/libs/webjsonrpc/webrtcclient.js
+www/src/webjsonrpc/webrtcclient.js

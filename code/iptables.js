@@ -10,6 +10,7 @@ var fs = require("fs");
 var PubSub = require("./pubsub");
 var fibrous = require("./fibrous");
 var SpaceifyConfig = require("./spaceifyconfig");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function Iptables()
@@ -17,8 +18,9 @@ function Iptables()
 var self = this;
 
 var pubSub = new PubSub();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+var config = SpaceifyConfig.getConfig();
+//var logger = new SpaceifyLogger("Iptables");
 
 var SPLASH_ADD_MAC = "-t mangle -I Spaceify-mangle 1 -m mac --mac-source :mac -j RETURN";		// NOTICE! Add to the top of the rules.
 var SPLASH_DEL_MAC = "-t mangle -D Spaceify-mangle -m mac --mac-source :mac -j RETURN";

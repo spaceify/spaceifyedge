@@ -25,6 +25,7 @@ comm_out_spaceify="# Commented out by Spaceify: "
 eth=$(</var/lib/spaceify/data/interfaces/ethernet)
 wlan=$(</var/lib/spaceify/data/interfaces/wlan)
 is_internal=$(</var/lib/spaceify/data/interfaces/is_internal)
+# edge_name=$(</var/lib/spaceify/data/db/edge_name)
 
 # ----------
 # ----------
@@ -34,6 +35,8 @@ is_internal=$(</var/lib/spaceify/data/interfaces/is_internal)
 
 . /var/lib/spaceify/data/scripts/database.sh						# database mangement, get previous version information
 dbpath="/var/lib/spaceify/data/db/spaceify.db"
+
+edge_name=$(sqlite3 $dbpath "SELECT edge_name FROM user;" 2>/dev/null)
 
 # ----------
 # ----------
@@ -48,12 +51,12 @@ sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d
 sed -i "/${wlan}/,/^$/s/^/${comm_out_spaceify}&/g" /etc/network/interfaces					# comment out existing wlan (range: first line with string $wlan until empty line)
 
 wlan_conf=$(</etc/network/interfaces)
-wlan_conf=$( echo "${wlan_conf}\n\n${start_spaceify}\n" )					# append new configuration
-wlan_conf=$( echo "${wlan_conf}auto ${wlan}\n" )
-wlan_conf=$( echo "${wlan_conf}iface ${wlan} inet static\n" )
-wlan_conf=$( echo "${wlan_conf}address 10.0.0.1\n" )
-wlan_conf=$( echo "${wlan_conf}netmask 255.255.255.0\n" )
-wlan_conf=$( echo "${wlan_conf}${end_spaceify}" )
+wlan_conf="${wlan_conf}\n\n${start_spaceify}\n"												# append new configuration
+wlan_conf="${wlan_conf}auto ${wlan}\n"
+wlan_conf="${wlan_conf}iface ${wlan} inet static\n"
+wlan_conf="${wlan_conf}address 10.0.0.1\n"
+wlan_conf="${wlan_conf}netmask 255.255.255.0\n"
+wlan_conf="${wlan_conf}${end_spaceify}"
 printf "$wlan_conf" > /etc/network/interfaces
 
 	# ----- /etc/default/docker ----- #
@@ -66,9 +69,9 @@ else
 	docker_conf=""
 fi
 
-docker_conf=$( echo "${docker_conf}\n\n${start_spaceify}\n" )
-docker_conf=$( echo "${docker_conf}DOCKER_OPTS=\"--dns 10.0.0.1 --iptables=false\"\n" )
-docker_conf=$( echo "${docker_conf}${end_spaceify}" )
+docker_conf="${docker_conf}\n\n${start_spaceify}\n"
+docker_conf="${docker_conf}DOCKER_OPTS=\"--dns 10.0.0.1 --iptables=false\"\n"
+docker_conf="${docker_conf}${end_spaceify}"
 printf "$docker_conf" > /etc/default/docker
 
 	# ----- /etc/rc.local ----- #
@@ -81,7 +84,7 @@ sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d
 
 sysctl=$(</etc/sysctl.conf)
 sysctl=$( echo "$sysctl" | sed "s/.*net.ipv4.ip_forward.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
-sysctl=$( echo "${sysctl}\n\n${start_spaceify}\nnet.ipv4.ip_forward=1\n${end_spaceify}" > /dev/null 2>&1 || true )	# append new value
+sysctl="${sysctl}\n\n${start_spaceify}\nnet.ipv4.ip_forward=1\n${end_spaceify}"				# append new value
 printf "$sysctl" > /etc/sysctl.conf
 
 	# ----- /etc/hostapd/hostapd_spaceify-ap.conf and /etc/default/hostapd - configure/enable AP ----- #
@@ -89,17 +92,17 @@ printf "$sysctl" > /etc/sysctl.conf
 if [[ "$is_internal" -eq "1" ]]; then														# configure
 	sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/default/hostapd > /dev/null 2>&1 || true
 
-	hostap=$( echo "$start_spaceify\n" )
-	hostap=$( echo "${hostap}interface=${wlan}\n" )
-	hostap=$( echo "${hostap}driver=nl80211\n" )
-	hostap=$( echo "${hostap}ssid=spaceify\n" )
-	hostap=$( echo "${hostap}channel=6\n" )
-	hostap=$( echo "${hostap}${end_spaceify}" )
+	hostap="$start_spaceify\n"
+	hostap="${hostap}interface=${wlan}\n"
+	hostap="${hostap}driver=nl80211\n"
+	hostap="${hostap}ssid=spaceify\n"
+	hostap="${hostap}channel=6\n"
+	hostap="${hostap}${end_spaceify}"
 	printf "$hostap" > /etc/hostapd/hostapd_spaceify.conf
 
 	dhostapd=$(</etc/default/hostapd)
 	dhostapd=$( echo "$dhostapd" | sed "s/.*DAEMON_CONF.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
-	dhostapd=$( echo "${dhostapd}\n\n${start_spaceify}\nDAEMON_CONF=/etc/hostapd/hostapd_spaceify.conf\n${end_spaceify}" )	# append new value
+	dhostapd="${dhostapd}\n\n${start_spaceify}\nDAEMON_CONF=/etc/hostapd/hostapd_spaceify.conf\n${end_spaceify}"	# append new value
 	printf "$dhostapd" > /etc/default/hostapd
 else																						# comment configuration if hostpad is installed and it has hostapd_spaceify.conf configuration
 	hpd=$( dpkg-query -W -f='${Status}\n' hostapd )
@@ -115,19 +118,29 @@ fi
 #sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/monit/monitrc							# remove Spaceify's previous entries
 
 #monit=$(</etc/monit/monitrc)
-#monit=$( echo "${monit}\n\n${start_spaceify}\n" )											# append new configuration
-#monit=$( echo "${monit}include /var/lib/spaceify/monit/spaceify.conf\n" )
-#monit=$( echo "${monit}${end_spaceify}\n" )
+#monit="${monit}\n\n${start_spaceify}\n"													# append new configuration
+#monit="${monit}include /var/lib/spaceify/monit/spaceify.conf\n"
+#monit="${monit}${end_spaceify}\n"
 #printf "$monit" > /etc/monit/monitrc
 
-core_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "CORE_PORT" | sed 's/[^0-9]*//g')
+core_port=$(cat /var/lib/spaceify/code/config.json | grep "CORE_PORT" | sed 's/[^0-9]*//g')
 core_port=$(echo $core_port | awk -F ' ' '{print $1}')
 #sed -i "s/%1/${core_port}/" /etc/monit/conf.d/spaceify.conf									# change the monitored port to the configuration
 
 
 ################## DNS CONFIGURATION #########################################
 
-dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \naddress=/edge.spaceify.net/10.0.0.1\naddress=/resource.spaceify.net/10.0.0.1\ndhcp-range=10.0.0.2,10.0.0.254,4h\ndhcp-option=3,10.0.0.1\ndhcp-option=6,10.0.0.1\ndhcp-option=15,edge.spaceify.net\ndhcp-authoritative"
+dnsmasqconf="listen-address=127.0.0.1,10.0.0.1 \n"
+dnsmasqconf="${dnsmasqconf}address=/edge.spaceify.net/10.0.0.1\n"
+
+if [ "$edge_name" != "" ]; then
+	dnsmasqconf="${dnsmasqconf}address=/${edge_name}.spaceify.net/10.0.0.1\n"				# edge_name = groupId in remote operation
+fi
+dnsmasqconf="${dnsmasqconf}dhcp-range=10.0.0.2,10.0.0.254,4h\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=3,10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=6,10.0.0.1\n"
+dnsmasqconf="${dnsmasqconf}dhcp-option=15,edge.spaceify.net\n"
+dnsmasqconf="${dnsmasqconf}dhcp-authoritative"
 
 #If NetworkManager is installed, configure the dnsmasq that shipped with it
 
@@ -232,8 +245,8 @@ cp /var/lib/spaceify/data/scripts/spaceifyCA/spaceify.crt /var/lib/spaceify/code
 
 	# ----- File permissions etc. ----- #
 
-#mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true							# dhcp server directories/files
-#chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
+# mkdir -p /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true						# dhcp server directories/files
+# chmod -R 0664 /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 # chown - R root:spaceify /var/lib/spaceify/data/dhcp-data > /dev/null 2>&1 || true
 
 mkdir -p /var/lib/spaceify/data/ipt-data > /dev/null 2>&1 || true							# iptables directories/files
@@ -261,15 +274,15 @@ chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check l
 # ----------
 # ----------
 # ----------
-# ---------- Install the required node.js modules (versions are defined in the package.json) ---------- #
+# ---------- Install the required node.js modules defined in the package.json ---------- #
 
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 
 npm install -g node-gyp
-chown -R _spaceify:_spaceify /var/lib/spaceify/code 
+chown -R _spaceify:_spaceify /var/lib/spaceify/code
 sudo su - _spaceify -c "cd /var/lib/spaceify/code && npm install"
 
-chown -R root:root /var/lib/spaceify/code 
+chown -R root:root /var/lib/spaceify/code
 
 # ----------
 # ----------
@@ -277,80 +290,48 @@ chown -R root:root /var/lib/spaceify/code
 # ----------
 # ---------- Docker image for different distributions ---------- #
 
-printf "\n\e[4mSearching suitable Docker image for this distribution\e[0m\n"
+printf "\n\e[4mSearching Docker image for this distribution\e[0m\n"
 
 if [[ -n $(uname -a |& grep -i "ubun") ]]; then
-	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
-	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+	distro=$(cat /var/lib/spaceify/code/config.json | grep "UBUNTU_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/config.json | grep "UBUNTU_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
 elif [[ -n $(uname -a |& grep -i "rasp") ]]; then
-	distro=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
-	distro_image_name=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
+	distro=$(cat /var/lib/spaceify/code/config.json | grep "RASPBIAN_DISTRO_NAME" | sed 's/[^a-z]*//g')
+	distro_image_name=$(cat /var/lib/spaceify/code/config.json | grep "RASPBIAN_DOCKER_IMAGE" | sed 's/[^a-z]*//g')
 fi
-$(sqlite3 $dbpath "UPDATE information SET distribution='$distro'")
 
 if_path="/var/lib/spaceify/data/docker/$distro"
-if_version="$if_path/image_version"
-if_list="$if_path/image_versions"																# Latest image version list is supplied with the package
 
-release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")					# Get the version this package requires
+$(sqlite3 $dbpath "UPDATE information SET distribution='$distro'")
 
-new_row=$(grep "^${release_version}:.*$" $if_list)												# The filename of the new image file
-new_image=$(echo $new_row | awk -F : '{print $2}')
-new_image_tar=$(echo $new_image | awk -F "." '{print $1}').tar
-new_version=$(echo $new_row | awk -F : '{print $1}')
+release_version=$(sqlite3 $dbpath "SELECT release_version FROM information;")				# Get the version this package requires
 
-if [ -f $if_version ]; then image_version=$(< $if_version); else image_version=0; fi			# Image filename of (possibly) existing image file
-old_row=$(grep "^${image_version}:.*$" $if_list)
-old_image=$(echo $old_row | awk -F : '{print $2}')
-old_image_tar=$(echo $old_image | awk -F "." '{print $1}').tar
+image_row=$(grep "^${release_version}:.*$" "$if_path/image_versions")						# The image filename: <imagename>.tgz, <imagename>.tar
+image_name=$(echo $image_row | awk -F : '{print $2}')
+image_name_tar=$(echo $image_name | awk -F "." '{print $1}').tar
 
-if [ -f "$if_path/$old_image_tar" ]; then old_image_exists=1; else old_image_exists=0; fi		# Check that the file really exists
-
-#if [ $old_image_exists == 0 ] && [ "$new_image" == "" ]; then
-#
-#	# # # Build and export
-#	# # # Existing image file is not available and downloading new file from spaceify.org is not possibile
-#
-#	cd /var/lib/spaceify/data/docker
-#
-#	image_name=$(echo $new_image | awk -F "." '{print $1}')
-#
-#	printf "\n\e[32mExisting image was not found and can not be downloaded. A new image is now being build.\e[0m\n\n"
-#	docker build --no-cache --rm -t $distro_image_name . # > /dev/null 2>&1 || true
-#
-#	printf "\n\n\e[32mExporting the image.\e[0m\n"
-#	ID=$(docker run -d $distro_image_name /bin/bash) > /dev/null 2>&1 || true
-#	sudo docker export $ID > "$if_path/$image_name.tar" > /dev/null 2>&1 || true
-#	sudo docker stop $ID > /dev/null 2>&1 || true
-#	sudo docker rm -f $ID > /dev/null 2>&1 || true
-#
-#	gzip "$if_path/$image_name.tar" > /dev/null 2>&1 || true
-#	mv "$if_path/$image_name.tar.gz" "$if_path/$image_name.tgz" > /dev/null 2>&1 || true
-#
-#elif [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
-
-if [ $old_image_exists == 1 ] && [ "$old_image" == "$new_image" ]; then
+if [ -f "$if_path/$image_name_tar" ]; then
 
 	# # # Import
 	# # # Use existing image
 
 	printf "\n\e[32mExisting, compatible image was found. Importing the image.\e[0m\n"
-	cat "$if_path/$new_image_tar" | sudo docker import - $distro_image_name > /dev/null
+	cat "$if_path/$image_name_tar" | sudo docker import - $distro_image_name > /dev/null
 
 else
 
 	# # # Load and import
 	# # # The image must be loaded from spaceify.org before it can be imported
 
-	rm "$if_path/$distro_image_name"* > /dev/null 2>&1 || true
+	rm "$if_path/$distro_image_name"* > /dev/null 2>&1 || true								# Remove all existing images
 
 	printf "\n\e[32mExisting, compatible image was not found. The image is downloaded from remote server.\e[0m\n"
-	curl -o "$if_path/$new_image" "https://spaceify.org/downloads/$new_image"
-	gunzip "$if_path/$new_image"
+	curl -o "$if_path/$image_name" "https://spaceify.org/downloads/$image_name"
+	gunzip "$if_path/$image_name"
 
-	if [ -f "$if_path/$new_image_tar" ]; then
+	if [ -f "$if_path/$image_name_tar" ]; then
 		printf "\n\e[32mImporting the image.\e[0m\n"
-		cat "$if_path/$new_image_tar" | sudo docker import - $distro_image_name > /dev/null
+		cat "$if_path/$image_name_tar" | sudo docker import - $distro_image_name > /dev/null
 	fi
 
 fi
@@ -359,8 +340,6 @@ hasImage=$( echo $(docker images) | sed -n "/$distro_image_name/{p;q;}" )
 if [ -z "$hasImage" ]; then
 	printf "\n\e[101mThe installation is aborted because the required $distro_image_name Docker image doesn't exist. Run 'apt-get purge spaceify' to remove the incomplete installation. NOTICE: Save files that you want to preserve before removing the installation.\e[0m\n\n"
 	exit 1
-else
-	printf $new_version > $if_version															# Update the version file
 fi
 
 # ----------
@@ -371,7 +350,7 @@ fi
 
 printf "\n\e[4mCreating registration information for this edge node\e[0m\n"
 
-result=$(node /var/lib/spaceify/code/edgespaceifynet.js "createEdgeId")
+result=$(node /var/lib/spaceify/code/registeredge.js "createEdgeId")
 
 printf "\n$result\n"
 

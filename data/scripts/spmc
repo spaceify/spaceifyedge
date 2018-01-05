@@ -22,13 +22,13 @@ _spm ()
 	if [ "$is_command" == true ]; then											# Complete commands
 		case "$cur" in
 			i*) COMPREPLY=( $( compgen -W 'install' $cur ) ) ;;
-			p*) COMPREPLY=( $( compgen -W 'publish' $cur ) ) ;;
-			r*) COMPREPLY=( $( compgen -W 'remove restart register' $cur ) ) ;;
-			s*) COMPREPLY=( $( compgen -W 'source start stop states' $cur ) ) ;;
+			p*) COMPREPLY=( $( compgen -W 'publish purge' $cur ) ) ;;
+			r*) COMPREPLY=( $( compgen -W 'register remove restart' $cur ) ) ;;
+			s*) COMPREPLY=( $( compgen -W 'source start states stop' $cur ) ) ;;
 			l*) COMPREPLY=( $( compgen -W 'list' $cur ) ) ;;
 			h*) COMPREPLY=( $( compgen -W 'help' $cur ) ) ;;
 			v*) COMPREPLY=( $( compgen -W 'version' $cur ) ) ;;
-			 *) _default "install publish remove restart register source start states stop list help version" ;;
+			 *) _default "help install list publish purge register remove restart source start states stop version" ;;
 		esac
 	else																		# Complete options for commands
 		command=${COMP_WORDS[1]}
@@ -51,21 +51,21 @@ _spm ()
 			;;
 			list)
 				case "$cur" in
-					s*) COMPREPLY=( $( compgen -W 'spacelet sandboxed' $cur ) ) ;;
-					n*) COMPREPLY=( $( compgen -W 'native' $cur ) ) ;;
+					s*) COMPREPLY=( $( compgen -W 'spacelet sandboxed sandboxed_debian' $cur ) ) ;;
+					n*) COMPREPLY=( $( compgen -W 'native_debian' $cur ) ) ;;
 					v*) COMPREPLY=( $( compgen -W 'verbose' $cur ) ) ;;
-					 *) _default "spacelet sandboxed native verbose" ;;
+					 *) _default "spacelet sandboxed sandboxed_debian native_debian verbose" ;;
 				esac
 			;;
 			help)
 				case "$cur" in
 					i*) COMPREPLY=( $( compgen -W 'install' $cur ) ) ;;
-					p*) COMPREPLY=( $( compgen -W 'publish' $cur ) ) ;;
+					p*) COMPREPLY=( $( compgen -W 'publish purge' $cur ) ) ;;
 					s*) COMPREPLY=( $( compgen -W 'source start states stop' $cur ) ) ;;
-					r*) COMPREPLY=( $( compgen -W 'remove restart register' $cur ) ) ;;
+					r*) COMPREPLY=( $( compgen -W 'register remove restart' $cur ) ) ;;
 					l*) COMPREPLY=( $( compgen -W 'list' $cur ) ) ;;
 					v*) COMPREPLY=( $( compgen -W 'version' $cur ) ) ;;
-					 *) _default "install publish start stop remove restart source register states list version" ;;
+					 *) _default "install list publish purge register remove restart source start states stop version" ;;
 				esac
 			;;
 		esac

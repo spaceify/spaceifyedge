@@ -40,7 +40,7 @@ subjectAltName          = @alt_names
 IP.1                    = 10.0.0.1
 IP.2                    = 127.0.0.1
 DNS.1                   = localhost
-DNS.2                   = edge.spaceify.net
+DNS.2                   = *.spaceify.net
 
 # Default policy to use when generating server certificates. The following fields must be defined in the server certificate.
 [ local_ca_policy ]

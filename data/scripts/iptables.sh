@@ -14,7 +14,7 @@ end_spaceify="# Added by Spaceify ends"
 comm_out_spaceify="# Commented out by Spaceify: "
 
 eth=$(</var/lib/spaceify/data/interfaces/ethernet)
-#appman_port=$(cat /var/lib/spaceify/code/www/libs/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
+#appman_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
 
 # ----------
 # ----------
@@ -42,7 +42,7 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 
 	http5="\/sbin\/iptables -t nat -N Spaceify-HTTP-Nat-Masq"
 	http6="\/sbin\/iptables -t nat -A POSTROUTING -j Spaceify-HTTP-Nat-Masq"
-	http7="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE" 
+	http7="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE"
 
 		# - create HTTPS filter chain, NAT chain and redirect chain - #
 	#https1="\/sbin\/iptables -t nat -N Spaceify-HTTPS-Nat-Redir"
@@ -64,6 +64,10 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 	docker6="\/sbin\/iptables -t filter -N Spaceify-Filter-Connections"
 	docker7="\/sbin\/iptables -t filter -A FORWARD -j Spaceify-Filter-Connections"
 
+		# - FORWARDING - #
+	forward1="\/sbin\/iptables -A FORWARD -i "${eth}" -o "${wlan}" -m state --state RELATED,ESTABLISHED -j ACCEPT"
+	forward2="\/sbin\/iptables -A FORWARD -i "${wlan}" -o "${eth}" -j ACCEPT"
+
 		# - Appication Manager rules - accept connections only from localhost - #
 	#appman1="\/sbin\/iptables -A INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT"
 	#appman2="\/sbin\/iptables -A INPUT -p tcp --dport $appman_port -j DROP"
@@ -75,13 +79,14 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 		sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/rc.local
 
 			# - append spaceify specific lines in rc.local before "exit 0" - #
-		mangle_chain="" # "$mangle1\n$mangle2\n$mangle3\n$mangle4\n$mangle5\n$mangle6\n$mangle7\n"
-		http_chain="$http5\n$http6\n$http7\n"
-		https_chain="$https5\n$https6\n$https7\n"
-		docker_chain="$docker1\n$docker2\n$docker3\n$docker4\n$docker5\n$docker6\n$docker7\n"
-		appman_chain="" # "$appman1\n$appman2\n"
+		mangle="" # "$mangle1\n$mangle2\n$mangle3\n$mangle4\n$mangle5\n$mangle6\n$mangle7\n"
+		http="$http5\n$http6\n$http7\n"
+		https="$https5\n$https6\n$https7\n"
+		docker="$docker1\n$docker2\n$docker3\n$docker4\n$docker5\n$docker6\n$docker7\n"
+		forward="$forward1\n$forward2\n"
+		appman="" # "$appman1\n$appman2\n"
 
-		sed -i "s/^exit.*/$start_spaceify\n$mangle_chain\n$http_chain\n$https_chain\n$docker_chain\n$appman_chain\n$end_spaceify\nexit 0/" /etc/rc.local
+		sed -i "s/^exit.*/$start_spaceify\n$mangle\n$http\n$https\n$docker\n$forward\n$appman\n$end_spaceify\nexit 0/" /etc/rc.local
 
 	else
 
@@ -116,6 +121,9 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 		$(echo $docker5 | sed 's/\\//g')
 		$(echo $docker6 | sed 's/\\//g')
 		$(echo $docker7 | sed 's/\\//g')
+
+		$(echo $forward1 | sed 's/\\//g')
+		$(echo $forward2 | sed 's/\\//g')
 
 		#$(echo $appman1 | sed 's/\\//g')
 		#$(echo $appman2 | sed 's/\\//g')
@@ -158,6 +166,10 @@ elif [ "$1" == "delete" ]; then
 	/sbin/iptables -t filter -D FORWARD -j Spaceify-Filter-Connections > /dev/null 2>&1 || true
 	/sbin/iptables -t filter -F Spaceify-Filter-Connections > /dev/null 2>&1 || true
 	/sbin/iptables -t filter -X Spaceify-Filter-Connections > /dev/null 2>&1 || true
+
+		# - -- Delete FORWARDING rules -- - #
+	/sbin/iptables -D FORWARD -i $eth -o $wlan -m state --state RELATED,ESTABLISHED -j ACCEPT
+	/sbin/iptables -D FORWARD -i $wlan -o $eth -j ACCEPT
 
 		# - -- Delete Application Manager rules -- - #
 	#/sbin/iptables -D INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT > /dev/null 2>&1 || true
@@ -204,6 +216,10 @@ elif [ "$1" == "delete" ]; then
 
 #	/sbin/iptables -t filter -N Spaceify-Filter-Connections
 #	/sbin/iptables -t filter -A FORWARD -j Spaceify-Filter-Connections
+
+		# - ++ Add FORWARDING rules ++ - #
+#	/sbin/iptables -A FORWARD -i $eth -o $wlan -m state --state RELATED,ESTABLISHED -j ACCEPT
+#	/sbin/iptables -A FORWARD -i $wlan -o $eth -j ACCEPT
 
 #		# - ++ Add Application Manager rules ++ - #
 #	#/sbin/iptables -A INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT

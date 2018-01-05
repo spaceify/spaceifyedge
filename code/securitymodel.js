@@ -14,6 +14,7 @@ var language = require("./language");
 var Database = require("./database");
 var rangeCheck = require("range_check");
 var SpaceifyError = require("./spaceifyerror");
+//var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUtility = require("./spaceifyutility");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
@@ -23,8 +24,9 @@ function SecurityModel()
 var self = this;
 
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
 var utility = new SpaceifyUtility();
+var config = SpaceifyConfig.getConfig();
+//var logger = new SpaceifyLogger("SecurityModel");
 
 var adminSessions = {};
 var remoteSessions = {};
@@ -36,14 +38,14 @@ var adminLastLogin = null;
 	// NETWORK -- -- -- -- -- -- -- -- -- -- //
 self.isLocalIP = function(ip)
 	{
-	/*if(!ip.match(new RegExp(config.IP_REGX)))
+	/*if (!ip.match(new RegExp(config.IP_REGX)))
 		return false;
 
 	var parts = ip.split(".");
-	if(parts[0] == "127" || ip == config.EDGE_IP)
+	if (parts[0] == "127" || ip == config.EDGE_IP)
 		return true;*/
 
-	if(ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::ffff:7f00:1")
+	if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::ffff:7f00:1")
 		return true;
 
 	return false;
@@ -83,7 +85,7 @@ self.adminLogIn = fibrous( function(password, remoteAddress)
 		// CHECK THE PASSWORD - UPDATE DATABASE
 		edgeSettings = database.sync.getEdgeSettings();
 
-		if(typeof edgeSettings == "undefined")
+		if (typeof edgeSettings == "undefined")
 			throw language.E_GET_EDGE_SETTINGS_FAILED.pre("SecurityModel::adminLogIn");
 
 		adminLastLogin = edgeSettings.admin_last_login;
@@ -92,7 +94,7 @@ self.adminLogIn = fibrous( function(password, remoteAddress)
 		shasum.update(password + edgeSettings.admin_salt);
 		passwordHashed = shasum.digest("hex").toString();
 
-		if(passwordHashed != edgeSettings.admin_password)
+		if (passwordHashed != edgeSettings.admin_password)
 			throw language.E_ADMIN_LOG_IN_FAILED.pre("SecurityModel::adminLogIn");
 
 		timestamp = Date.now();
@@ -123,7 +125,7 @@ self.adminLogOut = fibrous( function(sessionId, remoteAddress)
 	{
 	self.sync.isAdminSession(remoteAddress, null, true);
 
-	if(sessionId in adminSessions)
+	if (sessionId in adminSessions)
 		delete adminSessions[sessionId];
 
 	checkSessionsTTL();
@@ -135,9 +137,9 @@ self.getAdminLastLogin = function()
 	var database = new Database();
 
 	try {
-		if(!adminLastLogin)
+		if (!adminLastLogin)
 			{
-			if((edgeSettings = database.sync.getEdgeSettings()))
+			if ((edgeSettings = database.sync.getEdgeSettings()))
 				adminLastLogin = edgeSettings.admin_last_login;
 			}
 		}
@@ -151,26 +153,26 @@ self.getAdminLastLogin = function()
 
 	return adminLastLogin;
 	}
-	
+
 self.findAdminSession = fibrous( function(sessionId)
 	{
 	var session;
 
 	// Check temporary session
-	if(utility.sync.isLocal(config.SPACEIFY_TEMP_SESSIONID, "file"))
+	if (utility.sync.isFile(config.SPACEIFY_TEMP_SESSIONID))
 		{
 		session = fs.sync.readFile(config.SPACEIFY_TEMP_SESSIONID, "utf8");
 
 		session = utility.parseJSON(session, true);
 
-		if(session.sessionId == sessionId)
+		if (session.sessionId == sessionId)
 			return session;
 		}
 
 	// Check log in adminSessions
 	checkSessionsTTL();
 
-	if(sessionId in adminSessions)
+	if (sessionId in adminSessions)
 		return adminSessions[sessionId];
 
 	return null;
@@ -191,7 +193,7 @@ self.createTemporaryAdminSession = fibrous( function(remoteAddress)
 
 self.destroyTemporaryAdminSession = fibrous( function()
 	{
-	if(utility.sync.isLocal(config.SPACEIFY_TEMP_SESSIONID, "file"))
+	if (utility.sync.isFile(config.SPACEIFY_TEMP_SESSIONID))
 		fs.sync.unlink(config.SPACEIFY_TEMP_SESSIONID);
 	});
 
@@ -200,17 +202,17 @@ self.isAdminSession = fibrous( function(remoteAddress, sessionId, throws)
 	var isLocSes = false;
 
 	try {
-		if(!self.isLocalIP(remoteAddress))
-			throw language.E_IS_LOCAL_SESSION_NON_EDGE_CALLER.pre("SecurityModel::isAdminSession");	
+		if (!self.isLocalIP(remoteAddress))
+			throw language.E_IS_LOCAL_SESSION_NON_EDGE_CALLER.pre("SecurityModel::isAdminSession");
 
-		if(sessionId && !self.sync.findAdminSession(sessionId))
+		if (sessionId && !self.sync.findAdminSession(sessionId))
 			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminSession");
 
 		isLocSes = true;
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw err;
 		}
 
@@ -219,36 +221,45 @@ self.isAdminSession = fibrous( function(remoteAddress, sessionId, throws)
 
 self.refreshAdminLogInSession = function(sessionId)
 	{
-	if(sessionId in adminSessions)
+	if (sessionId in adminSessions)
 		adminSessions[sessionId].timestamp = Date.now();
 	}
 
-self.isAdminLoggedIn = fibrous( function(sessionId, throws)
+self.isAdminLoggedIn = function(sessionId, callback)
 	{
 	var coreRPC = null;
-	var isLoggedIn = false;
 
 	try {
 		coreRPC = new WebSocketRpcConnection();
-		coreRPC.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
-		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
-
-		if(!isLoggedIn && throws)
-			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");
+		coreRPC.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt}, function(err, data)
+			{
+			if (err)
+				{
+				callback(err, false);
+				}
+			else
+				{
+				coreRPC.callRpc("isAdminLoggedIn", [sessionId], self, function(err, data)
+					{
+					if (data === true)
+						callback(null, data);
+					else
+						callback(language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn"), false);
+					});
+				}
+			});
 		}
 	catch(err)
 		{
-		throw err;
+		callback(err, false);
 		}
 	finally
 		{
-		if(coreRPC)
+		if (coreRPC)
 			coreRPC.close();
 		}
-
-	return isLoggedIn;
-	});
+	}
 
 	// REMOTE OPERATING -- -- -- -- -- -- -- -- -- -- //
 self.remoteClientLogIn = fibrous( function(password, remoteAddress)
@@ -269,14 +280,14 @@ self.remoteClientLogIn = fibrous( function(password, remoteAddress)
 		// CHECK THE PASSWORD - UPDATE DATABASE
 		edgeSettings = database.sync.getEdgeSettings();
 
-		if(typeof edgeSettings == "undefined")
+		if (typeof edgeSettings == "undefined")
 			throw language.E_GET_EDGE_SETTINGS_FAILED.pre("SecurityModel::remoteLogIn");
 
 		shasum = crypto.createHash("sha512");
 		shasum.update(password + edgeSettings.edge_salt);
 		passwordHashed = shasum.digest("hex").toString();
 
-		if(passwordHashed != edgeSettings.edge_password)
+		if (passwordHashed != edgeSettings.edge_password)
 			throw language.E_REMOTE_LOG_IN_FAILED.pre("SecurityModel::remoteLogIn");
 
 		timestamp = Date.now();
@@ -307,7 +318,7 @@ self.remoteClientLogOut = fibrous( function(sessionId, remoteAddress)
 	{
 	//self.sync.isAdminSession(remoteAddress, null, true);
 
-	if(sessionId in remoteSessions)
+	if (sessionId in remoteSessions)
 		delete remoteSessions[sessionId];
 
 	checkSessionsTTL();
@@ -324,7 +335,7 @@ self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
 
 		isLoggedIn = coreRPC.sync.callRpc("isAdminLoggedIn", [sessionId], self);
 
-		if(!isLoggedIn && throws)
+		if (!isLoggedIn && throws)
 			throw language.E_ADMIN_NOT_LOGGED_IN.pre("SecurityModel::isAdminLoggedIn");*/
 		}
 	catch(err)
@@ -333,7 +344,7 @@ self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
 		}
 	finally
 		{
-		if(coreRPC)
+		if (coreRPC)
 			coreRPC.close();
 		}
 
@@ -341,16 +352,14 @@ self.isRemoteClientLoggedIn = fibrous( function(sessionId, throws)
 	});
 
 	// SAME ORIGIN POLICY -- -- -- -- -- -- -- -- -- -- //
-self.sameOriginPolicyStartSpacelet = function(manifest, URL)
+self.checkSameOriginPolicy = function(origins, URL)
 	{
 	var matches = 0;
-	var origins = manifest.origins;
 	var hostname = url.parse(URL).hostname;
-//console.log("++++++++++++++++++++++++++", manifest.unique_name, origins, URL);
-return true;
-	for(var i = 0; i < origins.length; i++)
+
+	for (var i = 0; i < origins.length; i++)
 		{
-		if(matchOrigin(origins[i], hostname))
+		if (matchOrigin(origins[i], hostname))
 			matches++;
 		}
 
@@ -362,16 +371,16 @@ var matchOrigin = function(origin, hostname)
 	var rex;
 	var matched;
 	var cgs = "";
-		
+
 	// Get origin components, e.g. *.example.* -> [ '*', '.example.', '*', '' ]
 	matched = origin.match(/\*|[^\*]*/g);
 
 	// Make a capture grouped regular expression of the components, e.g. *.example.* -> (.*)(\.example\.)(.*)
-	for(var i = 0; i < matched.length; i++)
+	for (var i = 0; i < matched.length; i++)
 		{
-		if(matched[i] == "*")
+		if (matched[i] == "*")
 			cgs	+= "(.*)";
-		else if(matched[i] != "")
+		else if (matched[i] != "")
 			cgs	+= "(" + matched[i].replace(/\./g, "\\.") + ")";
 		}
 
@@ -383,65 +392,67 @@ var matchOrigin = function(origin, hostname)
 	}
 
 	// REGISTER, UNREGISTER, GET SERVICES -- -- -- -- -- -- -- -- -- -- //
-self.registerService = function(application, service_name, ports)
+/*self.registerService = function(m-anifest, service_name, ports)
 	{
-	return application.registerService(service_name, ports, true);
-	}
+	return manifest.registerService(service_name, ports, true);
+	}*/
 
-self.unregisterService = function(application, service_name)
+/*self.unregisterService = function(m-anifest, service_name)
 	{
-	return application.registerService(service_name, false);
-	}
+	return manifest.registerService(service_name, null, false);
+	}*/
 
-self.getOpenServices = function(services, remoteAddress)
+self.getOpenServices = function(services, getHttp, remoteAddress)
 	{
 	var result = [];
 
-	if(services)
+	if (services)
 		{
-		for(var i = 0; i < services.length; i++)
+		for (var i = 0; i < services.length; i++)
 			{ // Web pages get only OPEN services, applications and spacelets get also OPEN_LOCAL services
-			if(services[i].service_type == config.OPEN)
-				result.push(self.makePublicService(services[i]));
-			else if(self.isApplicationIP(remoteAddress) && services[i].service_type == config.OPEN_LOCAL)
-				result.push(self.makePublicService(services[i]));
+			if (services[i].service_type == config.OPEN)
+				result.push(self.publicServiceFormat(services[i]));
+			else if (self.isApplicationIP(remoteAddress) && services[i].service_type == config.OPEN_LOCAL)
+				result.push(self.publicServiceFormat(services[i]));
+			else if (services[i].service_type == config.HTTP && getHttp)
+				result.push(self.publicServiceFormat(services[i]));
 			}
 		}
 
 	return result;
 	}
 
-self.getService = function(service, application, remoteAddress)
+self.checkServicePermissions = function(service, requiresServices, remoteAddress)
 	{
 	var requiresServices;
 	var serviceReturn = null;
 
-	if(!service.isRegistered)
-		throw language.E_GET_SERVICE_UNREGISTERED.preFmt("SecurityModel::getService", {"~name": service.service_name});
+	if (!service.isRegistered)
+		throw language.E_CHECK_SERVICE_PERMISSIONS_UNREGISTERED.preFmt("SecurityModel::checkServicePermissions", {"~name": service.service_name});
 
-	if(service.service_type == config.OPEN || service.service_type == config.HTTP)					// Service is open for all
-		serviceReturn = self.makePublicService(service);
-	else if(self.isApplicationIP(remoteAddress))													// Caller is an application or a spacelet
+	if (service.service_type == config.OPEN || service.service_type == config.HTTP)					// Service is open for all
 		{
-		if(!application)
-			throw language.E_GET_SERVICE_APPLICATION_NOT_FOUND.pre("SecurityModel::getService");
-
-		if(service.service_type == config.OPEN_LOCAL)												// Service is open for all application and spacelets
-			serviceReturn = self.makePublicService(service);
+		serviceReturn = self.publicServiceFormat(service);
+		}
+	else if (self.isApplicationIP(remoteAddress))													// Caller is an application or a spacelet
+		{
+		if (service.service_type == config.OPEN_LOCAL)												// Service is open for all application and spacelets
+			{
+			serviceReturn = self.publicServiceFormat(service);
+			}
 		else																						// Open only if service is listed in the required list
 			{
-			requiresServices = application.getRequiresServices();
-			if(!requiresServices)
-				throw language.E_GET_SERVICE_APPLICATION_REQUIRES_SERVICES_NOT_DEFINED.preFmt("SecurityModel::getService", {"unique_name": application.getUniqueName()});
+			if (!requiresServices)
+				throw language.E_CHECK_SERVICE_PERMISSIONS_REQUIRES_SERVICES_NOT_DEFINED.preFmt("SecurityModel::checkServicePermissions", {"unique_name": service.unique_name});
 
-			for(var i = 0; i < requiresServices.length; i++)
+			for (var i = 0; i < requiresServices.length; i++)
 				{
-				if(requiresServices[i].service_name == service.service_name)
-					{ serviceReturn = self.makePublicService(service); break; }
+				if (requiresServices[i].service_name == service.service_name)
+					{ serviceReturn = self.publicServiceFormat(service); break; }
 				}
 
-			if(!serviceReturn)
-				throw language.E_GET_SERVICE_FORBIDDEN.preFmt("SecurityModel::getService", {"~name": service.service_name});
+			if (!serviceReturn)
+				throw language.E_CHECK_SERVICE_PERMISSIONS_FORBIDDEN.preFmt("SecurityModel::checkServicePermissions", {"~name": service.service_name});
 			}
 		}
 
@@ -450,7 +461,7 @@ self.getService = function(service, application, remoteAddress)
 	return serviceReturn;
 	}
 
-self.makePublicService = function(service)
+self.publicServiceFormat = function(service)
 	{ // Only some of the service fields are passed to external callers (web page, applications, spacelets)
 	var publicService = {};
 
@@ -470,15 +481,15 @@ var checkSessionsTTL = function()
 	{ // Remove expired sessions (= garbage collection)
 	var now = Date.now();
 
-	for(var i in adminSessions)
+	for (var i in adminSessions)
 		{
-		if((now - adminSessions[i].timestamp) > coreSettings.log_in_session_ttl)
+		if ((now - adminSessions[i].timestamp) > coreSettings.log_in_session_ttl)
 			delete adminSessions[i];
 		}
 
-	for(var i in remoteSessions)
+	for (var i in remoteSessions)
 		{
-		if((now - remoteSessions[i].timestamp) > coreSettings.log_in_session_ttl)
+		if ((now - remoteSessions[i].timestamp) > coreSettings.log_in_session_ttl)
 			delete remoteSessions[i];
 		}
 	}

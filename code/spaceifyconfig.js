@@ -1,1 +1,1 @@
-www/libs/spaceifyconfig.js
+www/src/spaceifyconfig.js

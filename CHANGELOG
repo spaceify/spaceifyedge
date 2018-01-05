@@ -1,3 +1,16 @@
+0.8.0  Alpha Centauri (developer-pre-alpha)
+    * Service registry improved.
+    * Selecting unsecure/secure communication channel for provided/required services automated.
+    * Due to the above changes: getRequiredServiceSecure method removed from the Spacelet and SpaceifyApplication API classes, and the getRequiredService method of the classes modified.
+
+0.7.1  Alpha Centauri (developer-pre-alpha)
+    * Containers migrated to use Ubuntu 16.04 and Node.js 6.2.2
+    * Initial remote operation capabilities.
+    * Support for native applications.
+    * Multiple services can now have the same service name.
+    * Develop mode installation of spacelets and sanboxed applications for easy debugging.
+    * Many bug fixes and improvements to spm, applicationmanager, core, http server and connection and rpc classes.
+
 0.6.0  Alpha Centauri (developer-pre-alpha)
     * Added support for Raspberry Pi 3 / Raspbian Jessie.
     * Running Spaceify on Ubuntu requires version 16.04.

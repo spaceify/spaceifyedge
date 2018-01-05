@@ -8,9 +8,8 @@
 
 var fs = require("fs");
 var mkdirp = require("mkdirp");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
-var Manager = require("./manager");
+var RuntimeManager = require("./runtimemanager");
 var DHCPDLog = require("./dhcpdlog");
 var Iptables = require("./iptables");
 var language = require("./language");
@@ -18,25 +17,33 @@ var Database = require("./database");
 var httpStatus = require("./httpstatus");
 var SecurityModel = require("./securitymodel");
 var SpaceifyError = require("./spaceifyerror");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
+var SpaceifyNetwork = require("./spaceifynetwork");
+var ServiceRegistry = require("./serviceregistry");
 var WebSocketRpcServer = require("./websocketrpcserver");
 
 function Core()
 {
 var self = this;
 
-var logger = new Logger();
 var dhcpdlog = new DHCPDLog();
 var database = new Database();
 var iptables = new Iptables();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
-var spaceletManager = new Manager(config.SPACELET);
-var sandboxedManager = new Manager(config.SANDBOXED);
-var nativeManager = new Manager(config.NATIVE);
+var network = new SpaceifyNetwork();
 var securityModel = new SecurityModel();
+//var logger = new SpaceifyLogger("Core");
+var config = SpaceifyConfig.getConfig();
+var serviceRegistry = new ServiceRegistry();
+var spaceletManager = new RuntimeManager(config.SPACELET, self);
+var sandboxedManager = new RuntimeManager(config.SANDBOXED, self);
+var sandboxedDebianManager = new RuntimeManager(config.SANDBOXED_DEBIAN, self);
+var nativeDebianManager = new RuntimeManager(config.NATIVE_DEBIAN, self);
 
 var coreSettings = null;
 
@@ -49,13 +56,10 @@ var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
 self.connect = fibrous( function()
 	{
-	var native;
-	var spacelets
-	var sandboxed;
 	var webSocketRpcServer;
 	var i, types = [{port: config.CORE_PORT, isSecure: false}, {port: config.CORE_PORT_SECURE, isSecure: true}];
 
-	for(i = 0; i < types.length; i++)															// Setup/open the servers
+	for (i = 0; i < types.length; i++)															// Setup/open the servers
 		{
 		webSocketRpcServer = new WebSocketRpcServer();
 
@@ -69,6 +73,7 @@ self.connect = fibrous( function()
 		webSocketRpcServer.exposeRpcMethodSync("getOpenServices", self, getOpenServices);
 		webSocketRpcServer.exposeRpcMethodSync("registerService", self, registerService);
 		webSocketRpcServer.exposeRpcMethodSync("unregisterService", self, unregisterService);
+		webSocketRpcServer.exposeRpcMethodSync("getApplicationStatus", self, getApplicationStatus);
 		webSocketRpcServer.exposeRpcMethodSync("isApplicationRunning", self, isApplicationRunning);
 		webSocketRpcServer.exposeRpcMethodSync("getApplicationData", self, getApplicationData);
 		webSocketRpcServer.exposeRpcMethodSync("getApplicationURL", self, getApplicationURL);
@@ -77,7 +82,7 @@ self.connect = fibrous( function()
 		webSocketRpcServer.exposeRpcMethodSync("setEventListeners", self, setEventListeners);
 
 		// THESE ARE EXPOSED ONLY OVER A SECURE CONNECTION!!!
-		if(types[i].isSecure)
+		if (types[i].isSecure)
 			{
 			webSocketRpcServer.exposeRpcMethodSync("adminLogIn", self, adminLogIn);
 			webSocketRpcServer.exposeRpcMethodSync("adminLogOut", self, adminLogOut);
@@ -90,39 +95,31 @@ self.connect = fibrous( function()
 			webSocketRpcServer.exposeRpcMethodSync("saveCoreSettings", self, saveCoreSettings);
 			webSocketRpcServer.exposeRpcMethodSync("getEdgeSettings", self, getEdgeSettings);
 			webSocketRpcServer.exposeRpcMethodSync("saveEdgeSettings", self, saveEdgeSettings);
-			webSocketRpcServer.exposeRpcMethodSync("getServiceRuntimeStates", self, getServiceRuntimeStates);
+			webSocketRpcServer.exposeRpcMethodSync("getRuntimeServiceStates", self, getRuntimeServiceStates);
 			//webSocketRpcServer.exposeRpcMethodSync("saveOptions", self, saveOptions);
 			//webSocketRpcServer.exposeRpcMethodSync("loadOptions", self, loadOptions);
 			}
 
-		webSocketRpcServer.sync.listen({	hostname: config.ALL_IPV4_LOCAL, port: types[i].port,
-											isSecure: types[i].isSecure, key: key, crt: crt, caCrt: caCrt,
-											keepUp: true, debug: true });
+		webSocketRpcServer.sync.listen({
+										hostname: config.ALL_IPV4_LOCAL, port: types[i].port,
+										isSecure: types[i].isSecure, key: key, crt: crt, caCrt: caCrt,
+										keepUp: true
+										});
 
 		servers[webSocketRpcServer.getId()] = webSocketRpcServer;
 		}
 
-	// Install (insert) applications to cores lists
 	try
 		{
-		spacelets = database.sync.getApplications([config.SPACELET]);
-		sandboxed = database.sync.getApplications([config.SANDBOXED]);
-		native = database.sync.getApplications([config.NATIVE]);
+		// Get core settings from the database
+		coreSettings = database.sync.getCoreSettings();
+		securityModel.setCoreSettings(coreSettings);
 
-		for(i = 0; i < spacelets.length; i++)
-			spaceletManager.sync.install(spacelets[i].unique_name, false);
-
-		for(i = 0; i < sandboxed.length; i++)
-			{
-			sandboxedManager.sync.install(sandboxed[i].unique_name, false);
-			sandboxedManager.sync.start(sandboxed[i].unique_name);
-			}
-
-		for(i = 0; i < native.length; i++)
-			{
-			nativeManager.sync.install(native[i].unique_name, false);
-			nativeManager.sync.start(native[i].unique_name);
-			}
+		// Install (insert) applications to cores lists
+		preInstallApplications.sync(config.SPACELET, spaceletManager, false);
+		preInstallApplications.sync(config.SANDBOXED, sandboxedManager, true);
+		preInstallApplications.sync(config.SANDBOXED_DEBIAN, sandboxedDebianManager, true);
+		preInstallApplications.sync(config.NATIVE_DEBIAN, nativeDebian, true);
 		}
 	catch(err)
 		{
@@ -131,20 +128,49 @@ self.connect = fibrous( function()
 		{
 		database.close();
 		}
-
-	// Get core settings from the database
-	coreSettings = database.sync.getCoreSettings();
-	securityModel.setCoreSettings(coreSettings);
 	});
 
 self.close = fibrous( function()
 	{
-	spaceletManager.sync.removeAll();
-	sandboxedManager.sync.removeAll();
-	nativeManager.sync.removeAll();
+	postRemoveApplications.sync(spaceletManager);
+	postRemoveApplications.sync(sandboxedManager);
+	postRemoveApplications.sync(sandboxedDebianManager);
+	postRemoveApplications.sync(nativeDebianManager);
 
-	for(var i in servers)
+	for (var i in servers)
 		servers[i].close();
+	});
+
+var preInstallApplications = fibrous( function(type, manager, doStart)
+	{
+	var i;
+	var application;
+	var providesServices;
+	var dbApp = database.sync.getApplications([type]);
+
+	for (i = 0; i < dbApp.length; i++)
+		{
+		application = manager.sync.install(dbApp[i].unique_name, false);
+
+		providesServices = application.manifest.getProvidesServicesWithHttp();
+
+		serviceRegistry.addServices(application.unique_name, application.type, providesServices, application.isDevelop);
+
+		if (doStart)
+			manager.sync.start(application.unique_name, false);
+		}
+	});
+
+var postRemoveApplications = fibrous( function(manager)
+	{
+	var r, removed;
+
+	removed = manager.sync.removeAll(false);
+
+	for (r = 0; r < removed.length; r++)
+		{
+		serviceRegistry.applicationRemoved(removed[r]);
+		}
 	});
 
 var connectionListener = function(connectionId, serverId, isSecure)
@@ -154,87 +180,136 @@ var connectionListener = function(connectionId, serverId, isSecure)
 
 var disconnectionListener = function(connectionId, serverId, isSecure)
 	{
-	if(connectionId in connections)
+	if (connectionId in connections)
 		delete connections[connectionId];
 	}
 
 	// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
 var registerService = fibrous( function(service_name, ports, connObj)
-	{
-	// ALLOW REGISTRATION ONLY FROM APPLICATIONS AND EDGE
-	var applicationIp = get("getApplicationByIp", connObj.remoteAddress);
+	{ // ALLOW REGISTRATION ONLY FOR APPLICATIONS AND EDGE(=LOCAL IP)
+	var isObj;
+	var application;
+	var service = null;
 
-	if(!applicationIp && !securityModel.isLocalIP(connObj.remoteAddress))
-		throw language.E_REGISTER_SERVICE_UNKNOWN_ADDRESS.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
+	// APPLICATION - REGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
+	if (securityModel.isApplicationIP(connObj.remoteAddress))
+		{
+		application = get("getApplicationByIp", connObj.remoteAddress);
 
-	// APPLICATIONS RUNNING IN DOCKER CONTAINERS CAN NOT REGISTER SERVICES WITH PORTS
-	if(applicationIp)
-		ports = null;
+		if (!application)
+			throw language.E_REGISTER_SERVICE_ACCESS_DENIED.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
+
+		ports = null;	// Applications running in docker containers can not register services with custom ports
+		}
+	// EDGE - REGISTRATION ATTEMPT FROM A NATIVE DEBIAN OR DEVELOP MODE APPLICATION
+	else if (securityModel.isLocalIP(connObj.remoteAddress))
+		{
+		isObj = ports instanceof Object;
+
+		if (!isObj || (isObj && (!("unique_name" in ports) || !("port" in ports) || !("securePort" in ports))))
+			throw language.E_REGISTER_SERVICE_PORTS_ARGUMENT.pre("Core::registerService");
+
+		application = get("getApplication", ports.unique_name);
+
+		if (!application)
+			throw language.E_REGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::registerService", {"~unique_name": ports.unique_name});
+
+		serviceRegistry.setRuntimeService(service_name, ports.unique_name, ports, connObj.remoteAddress);
+		}
+	else
+		throw language.E_REGISTER_SERVICE_ACCESS_DENIED.preFmt("Core::registerService", {"~address": connObj.remoteAddress});
 
 	// APPLICATIONS CAN REGISTER ONLY THEIR OWN SERVICES = SERVICE NAME FOUND IN ITS SERVICES
-	var service = securityModel.registerService((applicationIp ? applicationIp : connObj.remoteAddress), service_name, ports);
-	if(!service)
-		throw language.E_REGISTER_SERVICE_UNKNOWN_SERVICE_NAME.preFmt("Core::registerService", {"~name": service_name});
+	service = serviceRegistry.registerService(service_name, application.manifest.getUniqueName(), ports, true);
+
+	if (!service)
+		throw language.E_REGISTER_SERVICE_SERVICE_NAME_UNDEFINED.preFmt("Core::registerService", {"~name": service_name});
 
 	return service;
 	});
 
-var unregisterService = fibrous( function(service_name, connObj)
-	{
-	// ALLOW UNREGISTRATION FROM APPLICATIONS ONLY - STARTED CONTAINERS (APPLICATIONS) HAVE AN IP THAT IDENTIFIES THEM
-	var applicationIp = get("getApplicationByIp", connObj.remoteAddress);
+var unregisterService = fibrous( function(service_name, unique_name, connObj)
+	{ // ALLOW UNREGISTRATION ONLY FOR APPLICATIONS AND EDGE(=LOCAL IP)
+	var application;
+	var service = null;
 
-	if(!applicationIp)
-		throw language.E_UNREGISTER_SERVICE_UNKNOWN_ADDRESS.pre("Core::unregisterService", {address: connObj.remoteAddress});
+	// APPLICATION - UNREGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
+	if (securityModel.isApplicationIP(connObj.remoteAddress))
+		{
+		application = get("getApplicationByIp", connObj.remoteAddress);
+
+		if (!application)
+			throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});
+		}
+	// EDGE - UNREGISTRATION ATTEMPT FROM A NATIVE DEBIAN OR DEVELOP MODE APPLICATION
+	else if (securityModel.isLocalIP(connObj.remoteAddress))
+		{
+		application = get("getApplication", unique_name);
+
+		if (!application)
+			throw language.E_UNREGISTER_SERVICE_UNKNOWN_UNIQUE_NAME.preFmt("Core::unregisterService", {"~unique_name": unique_name});
+		}
+	else
+		throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});
 
 	// APPLICATION CAN UNREGISTER ONLY ITS OWN SERVICES = SERVICE NAME FOUND IN THE SERVICES
-	var service = securityModel.unregisterService(applicationIp, service_name);
-	if(!service)
-		throw language.E_UNREGISTER_SERVICE_UNKNOWN_SERVICE_NAME.pre("Core::unregisterService", {name: service_name});
+	service = serviceRegistry.registerService(service_name, application.manifest.getUniqueName(), null, false);
+
+	if (!service)
+		throw language.E_UNREGISTER_SERVICE_SERVICE_NAME_UNDEFINED.pre("Core::unregisterService", {name: service_name});
 
 	return service;
 	});
 
 var getService = fibrous( function(service_name, unique_name, connObj)
-	{ // Get service either by service name or service name and unique_name
+	{ // Get single service either by service name or service name and unique_name. Returns only registered services!!!
 	var application;
-	var applicationIp;
 	var runtimeService;
+	var requiresServices;
 
-	if(unique_name)
+	if (unique_name)
 		{
 		application = get("getApplication", unique_name);
-		if(!application)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getService", {"~name": unique_name});
+		}
+	else
+		{
+		application = get("getApplicationByIp", connObj.remoteAddress);
 		}
 
-	applicationIp = get("getApplicationByIp", connObj.remoteAddress);
-	runtimeService = get("getRuntimeService", {service_name: service_name, unique_name: unique_name});
+	requiresServices = (!application ? null : application.manifest.getRequiresServices());
 
-	if(!runtimeService)
+	runtimeService = serviceRegistry.getService(service_name, unique_name, true);
+
+	if (!runtimeService)
 		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getService", {"~name": service_name});
 
-	return securityModel.getService(runtimeService, applicationIp, connObj.remoteAddress);
+	return securityModel.checkServicePermissions(runtimeService, requiresServices, connObj.remoteAddress);
 	});
 
 var getServices = fibrous( function(service_name, connObj)
-	{ // Get all services with the requested service name
+	{ // Get all services with the requested service name. Returns only registered services!!!
+	var s;
 	var service;
-	var applicationIp;
+	var application;
 	var runtimeServices;
+	var requiresServices = null;
 	var preparedRuntimeServices = {};
 
-	applicationIp = get("getApplicationByIp", connObj.remoteAddress);
-	runtimeServices = get("getRuntimeServicesByName", service_name);
+	runtimeServices = serviceRegistry.getServices(service_name, true);
 
-	if(Object.keys(runtimeServices).length == 0)
+	if (Object.keys(runtimeServices).length == 0)
 		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getServices", {"~name": service_name});
 
-	for(var unique_name in runtimeServices)
+	application = get("getApplicationByIp", connObj.remoteAddress);
+
+	requiresServices = (!application ? null : application.manifest.getRequiresServices());
+
+	for (s = 0; s < runtimeServices.length; s++)
 		{
 		try {
-			service = securityModel.getService(runtimeServices[unique_name], applicationIp, connObj.remoteAddress);
-			preparedRuntimeServices[unique_name] = service;
+			service = securityModel.checkServicePermissions(runtimeServices[s], requiresServices, connObj.remoteAddress);
+
+			preparedRuntimeServices[runtimeServices[s].unique_name] = service;
 			}
 		catch(err)
 			{}
@@ -243,20 +318,32 @@ var getServices = fibrous( function(service_name, connObj)
 	return preparedRuntimeServices;
 	});
 
-var getOpenServices = fibrous( function(unique_names, connObj)
-	{ // Get all the open and allowed open_local runtime services from all the unique applications in the list
+var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
+	{ // Get all the open and allowed open_local runtime services from all the unique applications in the list. Include only registered services!!!
 	var application;
-	var getRuntimeServices, runtimeServices = [];
+	var providesServices;
+	var runtimeServices = [];
 
-	for(var i = 0; i < unique_names.length; i++)
+	if (unique_names.length == 0)
+		{
+		unique_names = unique_names.concat(spaceletManager.getUniqueNames());
+		unique_names = unique_names.concat(sandboxedManager.getUniqueNames());
+		unique_names = unique_names.concat(sandboxedDebianManager.getUniqueNames());
+		unique_names = unique_names.concat(nativeDebianManager.getUniqueNames());
+		}
+
+	for (var i = 0; i < unique_names.length; i++)
 		{
 		application = get("getApplication", unique_names[i]);
-		if(!application)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
-		getRuntimeServices = get("getRuntimeServices", unique_names[i]);
+		if (!application)
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::getOpenServices", {"~name": unique_name});
 
-		runtimeServices = runtimeServices.concat( securityModel.getOpenServices(getRuntimeServices, connObj.remoteAddress) );
+		providesServices = serviceRegistry.getApplicationServices(unique_names[i], true);
+
+		runtimeServices = runtimeServices.concat(
+			securityModel.getOpenServices(providesServices, getHttp, connObj.remoteAddress)
+			);
 		}
 
 	return runtimeServices;
@@ -288,10 +375,10 @@ var setSplashAccepted = fibrous( function(connObj)
 	try {
 		var lease = dhcpdlog.getDHCPLeaseByIP(connObj.remoteAddress);							// Lease must exist for the device
 
-		if(!lease)
+		if (!lease)
 			throw language.E_UNKNOWN_MAC.pre("Core::setSplashAccepted");
 
-		if(!iptables.sync.splashAddRule(lease.macOrDuid))										// Add MAC to the iptables rules
+		if (!iptables.sync.splashAddRule(lease.macOrDuid))										// Add MAC to the iptables rules
 			throw language.E_SET_SPLASH_ACCEPTED_FAILED.pre("Core::setSplashAccepted");
 
 		/*	The following line removes connection tracking for the PC. This clears any previous (incorrect) route info for the redirection
@@ -316,26 +403,36 @@ var setSplashAccepted = fibrous( function(connObj)
 
 var startSpacelet = fibrous( function(unique_name, connObj)
 	{
+	var application;
 	var spacelet = null;
 	var startObject = {};
+	var providesServices;
 	var openRuntimeServices = [];
 
 	try {
-		if(securityModel.isApplicationIP(connObj.remoteAddress))
+		if (securityModel.isApplicationIP(connObj.remoteAddress))
 			throw language.E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS.pre("Core::startSpacelet");
 
-		if(!securityModel.sameOriginPolicyStartSpacelet(getManifest.sync(unique_name, false, false, connObj), connObj.origin))
-			throw language.E_START_SPACELET_SSOP.pre("Core::startSpacelet");
+		application = get("getApplication", unique_name)
 
-		spaceletManager.sync.install(unique_name, true);
-		startObject = spaceletManager.sync.start(unique_name, true);
+		if (!application)
+			throw language.E_START_SPACELET_NOT_INSTALLED.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
 
-		openRuntimeServices = securityModel.getOpenServices(startObject.providesServices);
+		if (application.type != config.SPACELET)
+			throw language.E_START_SPACELET_IS_NOT_SPACELET.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
+
+		if (!securityModel.checkSameOriginPolicy(application.manifest.getOrigins(), connObj.origin))
+			throw language.E_START_SPACELET_FORBIDDEN_ORIGIN.pre("Core::startSpacelet");
+
+		spaceletManager.sync.start(unique_name, true);
+
+		providesServices = serviceRegistry.getApplicationServices(unique_name, true);
+
+		openRuntimeServices = securityModel.getOpenServices(providesServices, false, null);
 
 		// Events
-		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
+		startObject.manifest = extendManifest(application);
 		startObject.openRuntimeServices = openRuntimeServices;
-		delete startObject.providesServices;
 
 		callEvent(config.EVENT_SPACELET_STARTED, startObject);
 		}
@@ -350,6 +447,8 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 var installApplication = fibrous( function(unique_name, type, sessionId, throws, connObj)
 	{ // Install (insert) application or spacelet to cores list of applications or spacelets
 	var event;
+	var application;
+	var providesServices;
 	var isInstalled = true;
 
 	try {
@@ -357,15 +456,21 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws,
 
 		securityModel.refreshAdminLogInSession(sessionId);
 
-		getManager(type).sync.install(unique_name, true);
+		application = getManager(type).sync.install(unique_name, true);
+
+		providesServices = application.manifest.getProvidesServicesWithHttp();
+
+		serviceRegistry.addServices(application.unique_name, application.type, providesServices, application.isDevelop);
 
 		// Events
-		if(type == config.SPACELET)
+		if (type == config.SPACELET)
 			event = config.EVENT_SPACELET_INSTALLED;
-		else if(type == config.SANDBOXED)
-			event = config.EVENT_APPLICATION_INSTALLED;
-		else if(type == config.NATIVE)
-			event = config.EVENT_NATIVE_APPLICATION_INSTALLED;
+		else if (type == config.SANDBOXED)
+			event = config.EVENT_SANDBOXED_INSTALLED;
+		else if (type == config.SANDBOXED_DEBIAN)
+			event = config.EVENT_SANDBOXED_DEBIAN_INSTALLED;
+		else if (type == config.NATIVE_DEBIAN)
+			event = config.EVENT_NATIVE_DEBIAN_INSTALLED;
 
 		callEvent(event, { manifest: getManifest.sync(unique_name, true, false, connObj) });
 		}
@@ -373,7 +478,7 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws,
 		{
 		isInstalled = false;
 
-		if(throws)
+		if (throws)
 			throw err;
 		}
 
@@ -382,10 +487,10 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws,
 
 var removeApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	{ // Removes, and when necessary stops, application or spacelet and removes it from cores lists
+	var type;
 	var event;
-	var manifest;
 	var application;
-	var isRemoved = true;
+	var isRemoved = false;
 
 	try {
 		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
@@ -393,28 +498,34 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// REMOVE APPLICATION
-		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
+		application = get("getApplication", unique_name)
 
-		manifest = getManifest.sync(unique_name, false, false, connObj);
+		if (!application)
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::removeApplication", {"~name": unique_name});
 
-		getManager(application.getType()).sync.remove(unique_name);
+		type = application.manifest.getType();
+
+		isRemoved = getManager(type).sync.remove(unique_name, true);
+
+		serviceRegistry.applicationRemoved(unique_name);
 
 		// Events
-		if(manifest.type == config.SPACELET)
+		if (type == config.SPACELET)
 			event = config.EVENT_SPACELET_REMOVED;
-		else if(manifest.type == config.SANDBOXED)
-			event = config.EVENT_APPLICATION_REMOVED;
-		else if(manifest.type == config.NATIVE)
-			event = config.EVENT_NATIVE_APPLICATION_REMOVED;
+		else if (type == config.SANDBOXED)
+			event = config.EVENT_SANDBOXED_REMOVED;
+		else if (type == config.SANDBOXED_DEBIAN)
+			event = config.EVENT_SANDBOXED_DEBIAN_REMOVED;
+		else if (type == config.NATIVE_DEBIAN)
+			event = config.EVENT_NATIVE_DEBIAN_REMOVED;
 
-		callEvent(event, { manifest: manifest });
+		callEvent(event, { manifest: extendManifest(application) });
 		}
 	catch(err)
 		{
 		isRemoved = false;
 
-		if(throws)
+		if (throws)
 			throw err;
 		}
 
@@ -423,10 +534,13 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 
 var startApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	{ // Start application or spacelet
+	var type;
 	var event;
 	var application;
 	var startObject = {};
 	var isStarted = true;
+	var providesServices;
+	var applicationStatus;
 
 	try {
 		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
@@ -434,25 +548,33 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// START APPLICATION
-		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::startApplication", {"~name": unique_name});
+		if (!(application = get("getApplication", unique_name)))
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::startApplication", {"~name": unique_name});
 
-		if(isApplicationRunning.sync(unique_name, connObj))
-			throw language.PACKAGE_ALREADY_RUNNING.preFmt("Core::startApplication", {"~type": language.APP_DISPLAY_NAMES[app.type], "~name": unique_name});
+		type = application.manifest.getType();
 
-		startObject = getManager(application.getType()).sync.start(unique_name);
+		if (application.isDevelop)
+			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[type]});
+
+		//if (getManager(type).sync.isRunning(unique_name))
+		//	throw language.E_PACKAGE_ALREADY_RUNNING.preFmt("Core::startApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[type]});
+
+		getManager(type).sync.start(unique_name, true);
+
+		providesServices = serviceRegistry.getApplicationServices(unique_name, true);
 
 		// Events
-		if(application.getType() == config.SPACELET)
+		if (type == config.SPACELET)
 			event = config.EVENT_SPACELET_STARTED;
-		else if(application.getType() == config.SANDBOXED)
-			event = config.EVENT_APPLICATION_STARTED;
-		else if(application.getType() == config.NATIVE)
-			event = config.EVENT_NATIVE_APPLICATION_STARTED;
+		else if (type == config.SANDBOXED)
+			event = config.EVENT_SANDBOXED_STARTED;
+		else if (type == config.SANDBOXED_DEBIAN)
+			event = config.EVENT_SANDBOXED_DEBIAN_STARTED;
+		else if (type == config.NATIVE_DEBIAN)
+			event = config.EVENT_NATIVE_DEBIAN_STARTED;
 
 		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
-		startObject.openRuntimeServices = securityModel.getOpenServices(startObject.providesServices, connObj.remoteAddress);
-		delete startObject.providesServices;
+		startObject.openRuntimeServices = securityModel.getOpenServices(providesServices, false, connObj.remoteAddress);
 
 		callEvent(event, startObject);
 		}
@@ -460,7 +582,7 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 		{
 		isStarted = false;
 
-		if(throws)
+		if (throws)
 			throw err;
 		}
 
@@ -469,10 +591,11 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 
 var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	{ // Stops application or spacelet
+	var type;
 	var event;
-	var manifest;
 	var application;
 	var isStopped = true;
+	var applicationStatus;
 
 	try {
 		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
@@ -480,37 +603,60 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// STOP APPLICATION
-		if(!(application = get("getApplication", unique_name)))
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::stopApplication", {"~name": unique_name});
+		if (!(application = get("getApplication", unique_name)))
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::stopApplication", {"~name": unique_name});
 
-		getManager(application.getType()).sync.stop(unique_name);
+		type = application.manifest.getType();
+
+		if (application.isDevelop)
+			throw language.E_PACKAGE_DEVELOP_MODE.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[type]});
+
+		//if (!getManager(type).sync.isRunning(unique_name))
+		//	throw language.E_PACKAGE_ALREADY_STOPPED.preFmt("Core::stopApplication", {"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[type]});
+
+		getManager(type).sync.stop(unique_name, true);
+
+		serviceRegistry.clearRuntimeServices(unique_name);
 
 		// Events
-		manifest = getManifest.sync(unique_name, true, false, connObj);
-
-		if(manifest.type == config.SPACELET)
+		if (type == config.SPACELET)
 			event = config.EVENT_SPACELET_STOPPED;
-		else if(manifest.type == config.SANDBOXED)
-			event = config.EVENT_APPLICATION_STOPPED;
-		else if(manifest.type == config.NATIVE)
-			event = config.EVENT_NATIVE_APPLICATION_STOPPED;
+		else if (type == config.SANDBOXED)
+			event = config.EVENT_SANDBOXED_STOPPED;
+		else if (type == config.SANDBOXED_DEBIAN)
+			event = config.EVENT_SANDBOXED_DEBIAN_STOPPED;
+		else if (type == config.NATIVE_DEBIAN)
+			event = config.EVENT_NATIVE_DEBIAN_STOPPED;
 
-		callEvent(event, { manifest: manifest });
+		callEvent(event, { manifest: extendManifest(application) });
 		}
 	catch(err)
 		{
 		isStopped = false;
 
-		if(throws)
+		if (throws)
 			throw err;
 		}
 
 	return isStopped;
 	});
 
+var getApplicationStatus = fibrous( function(unique_name, connObj)
+	{
+	var application = get("getApplication", unique_name);
+
+	if (!application)
+		return { isRunning: false, isDevelop: false };
+
+	return { isRunning: getManager(application.type).sync.isRunning(application.unique_name),
+			isDevelop: application.isDevelop };
+	});
+
 var isApplicationRunning = fibrous( function(unique_name, connObj)
-	{ // Is application or spacelet running
-	return get("isRunning", unique_name);
+	{
+	var application = get("getApplication", unique_name);
+
+	return (application ? getManager(application.type).sync.isRunning(application.unique_name) : false);
 	});
 
 var getApplicationData = fibrous( function(connObj)
@@ -518,30 +664,37 @@ var getApplicationData = fibrous( function(connObj)
 	var i;
 	var appDir = "";
 	var manifest = null;
-	var dbSpacelet, dbSandboxed, dbNative;
-	var appData = { spacelet: [], sandboxed: [], native: [] };
+	var dbSpacelet, dbSandboxed, dbSandboxedDebian, dbNativeDebian;
+	var appData = { spacelet: [], sandboxed: [], sandboxed_debian: [], native_debian: [] };
 
 	try { dbSpacelet = database.sync.getApplications([config.SPACELET]); } catch(err) { dbSpacelet = []; }
 	try { dbSandboxed = database.sync.getApplications([config.SANDBOXED]); } catch(err) { dbSandboxed = []; }
-	try { dbNative = database.sync.getApplications([config.NATIVE]); } catch(err) { dbNative = []; }
+	try { dbSandboxedDebian = database.sync.getApplications([config.SANDBOXED_DEBIAN]); } catch(err) { dbSandboxedDebian = []; }
+	try { dbNativeDebian = database.sync.getApplications([config.NATIVE_DEBIAN]); } catch(err) { dbNativeDebian = []; }
 	database.close();
 
-	for(i = 0; i < dbSpacelet.length; i++)
+	for (i = 0; i < dbSpacelet.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSpacelet[i].unique_name, dbSpacelet[i].unique_directory, false, connObj)))
+		if ((manifest = getManifest.sync(dbSpacelet[i].unique_name, true, false, connObj)))
 			appData.spacelet.push(manifest);
 		}
 
-	for(i = 0; i < dbSandboxed.length; i++)
+	for (i = 0; i < dbSandboxed.length; i++)
 		{
-		if((manifest = getManifest.sync(dbSandboxed[i].unique_name, dbSandboxed[i].unique_directory, false, connObj)))
+		if ((manifest = getManifest.sync(dbSandboxed[i].unique_name, true, false, connObj)))
 			appData.sandboxed.push(manifest);
 		}
 
-	for(i = 0; i < dbNative.length; i++)
+	for (i = 0; i < dbSandboxedDebian.length; i++)
 		{
-		if((manifest = getManifest.sync(dbNative[i].unique_name, dbNative[i].unique_directory, false, connObj)))
-			appData.native.push(utility.parseJSON(manifest), true);
+		if ((manifest = getManifest.sync(dbSandboxedDebian[i].unique_name, true, false, connObj)))
+			appData.sandboxed_debian.push(manifest);
+		}
+
+	for (i = 0; i < dbNativeDebian.length; i++)
+		{
+		if ((manifest = getManifest.sync(dbNativeDebian[i].unique_name, true, false, connObj)))
+			appData.native_debian.push(manifest);
 		}
 
 	return appData;
@@ -549,17 +702,21 @@ var getApplicationData = fibrous( function(connObj)
 
 var getApplicationURL = fibrous( function(unique_name, connObj)
 	{ // Get application or spacelet URL
-	try {
-		var type = get("getType", unique_name);
-		var isRunning = get("isRunning", unique_name);
-		var implementsWebServer = get("implementsWebServer", unique_name);
-		var httpService = get("getRuntimeService", {service_name: config.HTTP, unique_name: unique_name});
-		var port, securePort, url, secureUrl;
+	var application;
+	var port, securePort, url, secureUrl;
 
-		if(implementsWebServer && isRunning && httpService)								// Use applications internal server
+	try {
+		if (!(application = get("getApplication", unique_name)))
+			throw "";
+
+		var type = application.manifest.getType();
+		var implementsWebServer = application.manifest.implementsWebServer();
+		var httpService = serviceRegistry.getService(config.HTTP, unique_name, true);
+
+		if (implementsWebServer && httpService)											// Use applications internal server
 			{
-			port = httpService.port;
-			securePort = httpService.securePort;
+			port = (network.sync.isPortInUse(httpService.port) ? httpService.port : null);
+			securePort = (network.sync.isPortInUse(httpService.securePort) ? httpService.securePort : null);
 			url = config.EDGE_HOSTNAME + ":" + port;
 			secureUrl = config.EDGE_HOSTNAME + ":" + securePort;
 			}
@@ -578,47 +735,39 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 
 	return	{
 			url: url, secureUrl: secureUrl, port: port, securePort: securePort,
-			implementsWebServer: implementsWebServer, isRunning: isRunning, unique_name: unique_name, type: type
+			implementsWebServer: implementsWebServer, unique_name: unique_name, type: type
 			};
 	});
 
-var getManifest = fibrous( function(unique_name, unique_directory, throws, connObj)
+var getManifest = fibrous( function(unique_name, extend, throws, connObj)
 	{ // Get application or spacelet manifest, get extended information if it is requested
-	var tileFile, manifest = get("getManifest", unique_name);
+	var application;
+	var manifest = null;
 
-	if(!manifest && throws)
+	application = get("getApplication", unique_name);
+
+	if (!application.manifest && throws)
 		throw language.E_GET_MANIFEST_FAILED.preFmt("Core::getManifest", {"~name": unique_name});
 
-	if( manifest && ( (typeof unique_directory == "boolean" && unique_directory) || typeof unique_directory == "string") )
-		{
-		if(typeof unique_directory == "boolean")
-			{
-			try { unique_directory = (database.sync.getApplication(unique_name)).unique_directory; }
-			catch(err) { unique_directory = ""; }
-			database.close();
-			}
-
-		if(!unique_directory)
-			throw language.E_GET_EXTENDED_MANIFEST_FAILED.pre("Core::getManifest");
-
-		if(manifest.type == config.SPACELET)
-			tileFile = config.SPACELETS_PATH;
-		else if(manifest.type == config.SANDBOXED)
-			tileFile = config.SANDBOXED_PATH;
-		else if(manifest.type == config.NATIVE)
-			tileFile = config.NATIVE_PATH;
-		tileFile += unique_directory + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY + config.TILEFILE;
-
-		manifest.hasTile = utility.sync.isLocal(tileFile, "file");
-		manifest.isRunning = getManager(manifest.type).isRunning(unique_name);	
-		}
+	if (application.manifest && extend)
+		manifest = extendManifest(application);
+	else
+		manifest = application.manifest.getManifest();
 
 	return manifest;
 	});
+var extendManifest = function(application)
+	{
+	var manifest = application.manifest.getManifest();
+	manifest.hasTile = application.manifest.hasTile();
+	manifest.isRunning = getManager(application.type).sync.isRunning(application.unique_name);
 
-var getServiceRuntimeStates = fibrous( function(sessionId, connObj)
+	return manifest;
+	}
+
+var getRuntimeServiceStates = fibrous( function(sessionId, connObj)
 	{ // Get application or spacelet runtime services
-	var status = {spacelet: {}, sandboxed: {}, native: {}};
+	var status = {spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}};
 
 	try {
 		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
@@ -626,15 +775,17 @@ var getServiceRuntimeStates = fibrous( function(sessionId, connObj)
 		securityModel.refreshAdminLogInSession(sessionId);
 
 		// GET SERVICE RUNTIME STATES
-		status.spacelet = spaceletManager.getServiceRuntimeStates();
+		status.spacelet = serviceRegistry.getRuntimeServiceStates(config.SPACELET);
 
-		status.sandboxed = sandboxedManager.getServiceRuntimeStates();
+		status.sandboxed = serviceRegistry.getRuntimeServiceStates(config.SANDBOXED);
 
-		status.native = nativeManager.getServiceRuntimeStates();
+		status.sandboxed_debian = serviceRegistry.getRuntimeServiceStates(config.SANDBOXED_DEBIAN);
+
+		status.native_debian = serviceRegistry.getRuntimeServiceStates(config.NATIVE_DEBIAN);
 		}
 	catch(err)
 		{
-		throw language.E_GET_SERVICE_RUNTIME_STATES_FAILED.pre("Core::getServiceRuntimeStates", err);
+		throw language.E_GET_SERVICE_RUNTIME_STATES_FAILED.pre("Core::getRuntimeServiceStates", err);
 		}
 
 	return status;
@@ -731,10 +882,10 @@ var saveEdgeSettings = fibrous( function(settings, sessionId, connObj)
 		var edge_enable_remote = parseInt(settings.edge_enable_remote);
 		var edge_require_password = parseInt(settings.edge_require_password);
 
-		if(edge_enable_remote != 0 && edge_enable_remote != 1)
+		if (edge_enable_remote != 0 && edge_enable_remote != 1)
 			settings.edge_enable_remote = 0;
 
-		if(edge_require_password != 0 && edge_require_password != 1)
+		if (edge_require_password != 0 && edge_require_password != 1)
 			settings.edge_require_password = 0;
 
 		database.sync.saveEdgeSettings(settings);								// Save to database and update to security model
@@ -761,17 +912,17 @@ self.registerEdge = fibrous( function()
 	var edgeIdFile;
 
 	try {
-		if(utility.sync.isLocal(config.SPACEIFY_REGISTRATION_FILE, "file"))
+		if (utility.sync.isFile(config.SPACEIFY_REGISTRATION_FILE))
 			{
 			edgeIdFile = fs.sync.readFile(config.SPACEIFY_REGISTRATION_FILE, {encoding: "utf8"});
 			parts = edgeIdFile.split(",");
 
 			result = utility.sync.postRegister(parts[0], parts[1]);
 
-			if(typeof result == "number")																// Other than 200 OK was received?
+			if (typeof result == "number")																// Other than 200 OK was received?
 				throw language.E_REGISTER_EDGE_FAILED.preFmt("Core::register", {"~result": result,
 					"~httpStatus": "(" + (httpStatus[result] ? httpStatus[result].message : httpStatus["unknown"].message) + ")"});
-			else if(result != "")
+			else if (result != "")
 				throw language.E_REGISTER_EDGE_FAILED.preFmt("Core::register", {"~result": result});
 			}
 		}
@@ -791,24 +942,28 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 	{
 	var isAdminSession = securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, false/*!throws*/);
 
-	for(var i = 0; i < events.length; i++)										// Set the event listeners for the connection
+	for (var i = 0; i < events.length; i++)										// Set the event listeners for the connection
 		{
-		if(events[i] == config.EVENT_EDGE_SETTINGS_CHANGED && isAdminSession)
+		if (events[i] == config.EVENT_EDGE_SETTINGS_CHANGED && isAdminSession)
 			connections[connObj.connectionId].events.push(events[i]);
-		else if(events[i] == config.EVENT_CORE_SETTINGS_CHANGED && isAdminSession)
+		else if (events[i] == config.EVENT_CORE_SETTINGS_CHANGED && isAdminSession)
 			connections[connObj.connectionId].events.push(events[i]);
-		else if(events[i] == config.EVENT_APPLICATION_INSTALLED ||
-				events[i] == config.EVENT_APPLICATION_REMOVED ||
-				events[i] == config.EVENT_APPLICATION_STARTED ||
-				events[i] == config.EVENT_APPLICATION_STOPPED ||
+		else if (events[i] == config.EVENT_SANDBOXED_INSTALLED ||
+				events[i] == config.EVENT_SANDBOXED_REMOVED ||
+				events[i] == config.EVENT_SANDBOXED_STARTED ||
+				events[i] == config.EVENT_SANDBOXED_STOPPED ||
+				events[i] == config.EVENT_SANDBOXED_DEBIAN_INSTALLED ||
+				events[i] == config.EVENT_SANDBOXED_DEBIAN_REMOVED ||
+				events[i] == config.EVENT_SANDBOXED_DEBIAN_STARTED ||
+				events[i] == config.EVENT_SANDBOXED_DEBIAN_STOPPED ||
 				events[i] == config.EVENT_SPACELET_INSTALLED ||
 				events[i] == config.EVENT_SPACELET_REMOVED ||
 				events[i] == config.EVENT_SPACELET_STARTED ||
 				events[i] == config.EVENT_SPACELET_STOPPED ||
-				events[i] == config.EVENT_NATIVE_APPLICATION_INSTALLED ||
-				events[i] == config.EVENT_NATIVE_APPLICATION_REMOVED ||
-				events[i] == config.EVENT_NATIVE_APPLICATION_STARTED ||
-				events[i] == config.EVENT_NATIVE_APPLICATION_STOPPED)
+				events[i] == config.EVENT_NATIVE_DEBIAN_INSTALLED ||
+				events[i] == config.EVENT_NATIVE_DEBIAN_REMOVED ||
+				events[i] == config.EVENT_NATIVE_DEBIAN_STARTED ||
+				events[i] == config.EVENT_NATIVE_DEBIAN_STOPPED)
 			connections[connObj.connectionId].events.push(events[i]);
 		}
 
@@ -818,33 +973,27 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 /*var saveOptions = fibrous( function(sessionId, unique_name, directory, file, data, connObj)
 	{
 	var dbApp;
-	var volume;
+	var volumePath;
 	var optionsOk = false;
 	var session = securityModel.findAdminSession(sessionId);
 
 	try {
-		if(!session || session.ip != connObj.remoteAddress)								// Accept only from the same ip (= logged in device)
+		if (!session || session.ip != connObj.remoteAddress)							// Accept only from the same ip (= logged in device)
 			throw language.E_INVALID_SESSION.pre("Core::saveOptions");
 
 		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume, create directory and save
-		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
+		if (!dbApp)
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
 
-		volume = "";
-		if(dbApp.type == config.SPACELET)
-			volume = config.SPACELETS_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED)
-			volume = config.SANDBOXED_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.NATIVE)
-			volume = config.NATIVEAPPS_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
 
-		if(directory != "")
+		if (directory != "")
 			{
 			directory += (directory.search(/\/$/) != -1 ? "" : "/");
-			mkdirp.sync(volume + directory, parseInt("0755", 8));
+			mkdirp.sync(volumePath + directory, parseInt("0755", 8));
 			}
 
-		fs.sync.writeFile(volume + directory + file, data);
+		fs.sync.writeFile(volumePath + directory + file, data);
 
 		optionsOk = true;
 		}
@@ -864,30 +1013,24 @@ var loadOptions = fibrous( function(sessionId, unique_name, directory, file, con
 	{
 	var data;
 	var dbApp;
-	var volume;
+	var volumePath;
 	var data = null;
 	var session = securityModel.findAdminSession(sessionId);
 
 	try {
-		if(!session || session.ip != connObj.remoteAddress)								// Accept only from the same ip (= logged in device)
+		if (!session || session.ip != connObj.remoteAddress)							// Accept only from the same ip (= logged in device)
 			throw language.E_INVALID_SESSION.pre("Core::loadOptions");
 
 		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume and load
-		if(!dbApp)
-			throw language.E_APPLICATION_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
+		if (!dbApp)
+			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
 
-		volume = "";
-		if(dbApp.type == config.SPACELET)
-			volume = config.SPACELETS_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.SANDBOXED)
-			volume = config.SANDBOXED_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
-		else if(dbApp.type == config.NATIVE)
-			volume = config.NATIVE_PATH + dbApp.unique_directory + config.VOLUME_DIRECTORY;
+		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
 
-		if(directory != "")
+		if (directory != "")
 			directory += (directory.search(/\/$/) != -1 ? "" : "/");
 
-		data = fs.sync.readFile(volume + directory + file, {encoding: "utf8"});
+		data = fs.sync.readFile(volumePath + directory + file, {encoding: "utf8"});
 		}
 	catch(err)
 		{
@@ -906,27 +1049,32 @@ var get = function(method, search)
 	{
 	var result = spaceletManager[method](search);
 
-	if(result == null)
+	if (result == null)
 		result = sandboxedManager[method](search);
 
-	if(result == null)
-		result = nativeManager[method](search);
+	if (result == null)
+		result = sandboxedDebianManager[method](search);
+
+	if (result == null)
+		result = nativeDebianManager[method](search);
 
 	return result;
 	}
 
 var getManager = function(type)
 	{
-	var manager = null;
+	var runtimemanager = null;
 
-	if(type == config.SPACELET)
-		manager = spaceletManager;
-	else if(type == config.SANDBOXED)
-		manager = sandboxedManager;
-	else if(type == config.NATIVE)
-		manager = nativeManager;
+	if (type == config.SPACELET)
+		runtimemanager = spaceletManager;
+	else if (type == config.SANDBOXED)
+		runtimemanager = sandboxedManager;
+	else if (type == config.SANDBOXED_DEBIAN)
+		runtimemanager = sandboxedDebianManager;
+	else if (type == config.NATIVE_DEBIAN)
+		runtimemanager = nativeDebianManager;
 
-	return manager;
+	return runtimemanager;
 	}
 
 /**
@@ -936,15 +1084,24 @@ var callEvent = function(event)
 	{
 	var data = [];
 
-	for(var i = 1; i < arguments.length; i++)
+	for (var i = 1; i < arguments.length; i++)
 		data.push(arguments[i]);
 
-	for(var id in connections)
+	for (var id in connections)
 		{
-		if(connections[id].events.indexOf(event) != -1)
+		if (connections[id].events.indexOf(event) != -1)
 			servers[connections[id].serverId].callRpc(event, data, null, null, id);
 		}
 	}
+
+/**
+ * Bridge ServiceRegistry and RuntimeManager
+ */
+self.preContainerRun = function(unique_name, provided, IP)
+	{
+	serviceRegistry.setRuntimeServices(unique_name, provided, IP);
+	}
+
 }
 
 module.exports = Core;

@@ -48,10 +48,10 @@ done
 newVersion=$(($currentVersion + $versionIncrement))
 newImage="spaceify${1}${newVersion}"
 
-echo $selection
-echo $versionIncrement
-echo $newVersion
-echo $newImage
+#echo $selection
+#echo $versionIncrement
+#echo $newVersion
+#echo $newImage
 
 # --------- DO --------- #
 cd "data/docker/$1"
@@ -86,4 +86,3 @@ docker stop $ID	> /dev/null 2>&1 || true														# Cleanup
 docker rm -f $ID > /dev/null 2>&1 || true
 docker rmi "spaceify${1}temp" > /dev/null 2>&1 || true
 rm "$newImage.tgz" > /dev/null 2>&1 || true
-

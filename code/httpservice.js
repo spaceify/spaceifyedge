@@ -7,13 +7,17 @@
  */
 
 var url = require("url");
-var Logger = require("./logger");
+var crypto = require("crypto");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var WebServer = require("./webserver");
+var WebOperation = require("./weboperation");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
+var SpaceifyNetwork = require("./spaceifynetwork");
 var ValidateApplication = require("./validateapplication");
 var WebSocketRpcConnection = require("./websocketrpcconnection");
 
@@ -21,13 +25,16 @@ function HttpService()
 {
 var self = this;
 
-var logger = new Logger();
+var logger = new SpaceifyLogger("HttpService"); logger.cloneInstanceToBaseConfiguration();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
-var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
-var coreConnection = new WebSocketRpcConnection();
+var network = new SpaceifyNetwork();
+var webOperation = new WebOperation();
 var securityModel = new SecurityModel();
+var config = SpaceifyConfig.getConfig();
+var coreConnection = new WebSocketRpcConnection();
 
 var edgeSettings = {};
 var coreDisconnectionTimerId = null;
@@ -36,11 +43,24 @@ var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
-var apps = [];																							// Spacelets, applications and native applications
+var apps = {};																		// Spacelets, sandboxed, sandboxed debian and native debian applications
+var appCount = 0;
+
+var cleanUpIntervalId;																// Make clean up interval less than session interval
+var CLEAN_UP_INTERVAL = 600 * 1000;
+var SESSION_INTERVAL = 3600 * 24 * 1000;
+
+var sessions = {};
+
+var LOGIN_INDEX = config.APPSTORE + config.LOGIN_FILE;
+var SECURITY_INDEX = config.APPSTORE + config.SECURITY_FILE;
+var APPSTORE_INDEX = config.APPSTORE + config.INDEX_FILE;
+
+var unsecure_session = { userData: {}, timestamp: 0, token: "-" };
 
 self.start = fibrous( function()
 	{
-	process.title = "spaceifyhttp";																		// Shown in ps aux
+	process.title = "spaceifyhttp";													// Shown in ps aux
 
 	try	{
 		// Set listeners
@@ -52,6 +72,12 @@ self.start = fibrous( function()
 		httpServer.setRequestListener(requestListener);
 		httpsServer.setRequestListener(requestListener);
 
+		httpServer.setSessionListener(sessionListener, config.SESSION_TOKEN_NAME);
+		httpsServer.setSessionListener(sessionListener, config.SESSION_TOKEN_NAME);
+
+		httpServer.setSecurityListener(securityListener);
+		httpsServer.setSecurityListener(securityListener);
+
 		// Connect
 		createHttpServer.sync(false);
 		createHttpServer.sync(true);
@@ -61,23 +87,30 @@ self.start = fibrous( function()
 
 		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_INSTALLED, self, spaceletInstalled);
 		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_REMOVED, self, spaceletRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_INSTALLED, self, applicationInstalled);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_REMOVED, self, applicationRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STARTED, self, applicationStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_APPLICATION_STOPPED, self, applicationStopped);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_INSTALLED, self, nativeApplicationInstalled);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_REMOVED, self, nativeApplicationRemoved);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STARTED, self, nativeApplicationStarted);
-		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_APPLICATION_STOPPED, self, nativeApplicationStopped);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STARTED, self, spaceletStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SPACELET_STOPPED, self, spaceletStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_INSTALLED, self, sandboxedInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_REMOVED, self, sandboxedRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_STARTED, self, sandboxedStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_STOPPED, self, sandboxedStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_INSTALLED, self, sandboxedDebianInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_REMOVED, self, sandboxedDebianRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_STARTED, self, sandboxedDebianStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_SANDBOXED_DEBIAN_STOPPED, self, sandboxedDebianStopped);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_INSTALLED, self, nativeDebianInstalled);
+		coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_REMOVED, self, nativeDebianRemoved);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_STARTED, self, nativeDebianStarted);
+		//coreConnection.exposeRpcMethodSync(config.EVENT_NATIVE_DEBIAN_STOPPED, self, nativeDebianStopped);
 		coreConnection.exposeRpcMethodSync(config.EVENT_EDGE_SETTINGS_CHANGED, self, edgeSettingsChanged);
 
 		connectToCore.sync();
 
-		/*var uid = parseInt(process.env.SUDO_UID);														// ToDo: No super user rights
-		if(uid)
+		/*var uid = parseInt(process.env.SUDO_UID);									// ToDo: No super user rights
+		if (uid)
 			process.setuid(uid);*/
+
+		// -- -- -- -- -- -- -- -- -- -- //
+		cleanUpIntervalId = setInterval(cleanUp, CLEAN_UP_INTERVAL);
 		}
 	catch(err)
 		{
@@ -95,12 +128,15 @@ var createHttpServer = fibrous( function(isSecure)
 						 key: key,
 						 crt: crt,
 						 caCrt: caCrt,
-						 indexFile: config.INDEX_HTML,
+						 indexFile: config.INDEX_FILE,
 						 wwwPath: config.SPACEIFY_WWW_PATH,
-						 locale: config.DEFAULT_LOCALE,
-						 localesPath: config.LOCALES_PATH,
 						 serverName: config.SERVER_NAME,
-						 debug: true
+						 isEdge: true,
+						 cookieDomain: config.EDGE_HOSTNAME,
+						 cookiePath: "/",
+						 cookieSecure: (isSecure ? "Secure" : false),
+						 sendLocale: true,
+						 locale: config.DEFAULT_LOCALE
 						 });
 	});
 
@@ -111,7 +147,7 @@ var connectToCore = fibrous( function()
 	var applicationData;
 
 	try {
-		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: true});
+		coreConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.CORE_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");
 
@@ -119,28 +155,35 @@ var connectToCore = fibrous( function()
 
 		applicationData = coreConnection.sync.callRpc("getApplicationData", [], self)
 
-		for(i = 0; i < applicationData["spacelet"].length; i++)
+		for (i = 0; i < applicationData["spacelet"].length; i++)
 			addApp(applicationData["spacelet"][i]);
 
-		for(i = 0; i < applicationData["sandboxed"].length; i++)
+		for (i = 0; i < applicationData["sandboxed"].length; i++)
 			addApp(applicationData["sandboxed"][i]);
 
-		for(i = 0; i < applicationData["native"].length; i++)
-			addApp(applicationData["native"][i]);
+		for (i = 0; i < applicationData["sandboxed_debian"].length; i++)
+			addApp(applicationData["sandboxed_debian"][i]);
+
+		for (i = 0; i < applicationData["native_debian"].length; i++)
+			addApp(applicationData["native_debian"][i]);
 
 		coreConnection.callRpc("setEventListeners",	[ 	[
-														config.EVENT_APPLICATION_INSTALLED,
-														config.EVENT_APPLICATION_REMOVED,
-														config.EVENT_APPLICATION_STARTED,
-														config.EVENT_APPLICATION_STOPPED,
 														config.EVENT_SPACELET_INSTALLED,
 														config.EVENT_SPACELET_REMOVED,
-														config.EVENT_SPACELET_STARTED,
-														config.EVENT_SPACELET_STOPPED,
-														config.EVENT_NATIVE_APPLICATION_INSTALLED,
-														config.EVENT_NATIVE_APPLICATION_REMOVED,
-														config.EVENT_NATIVE_APPLICATION_STARTED,
-														config.EVENT_NATIVE_APPLICATION_STOPPED,
+														//config.EVENT_SPACELET_STARTED,
+														//config.EVENT_SPACELET_STOPPED,
+														config.EVENT_SANDBOXED_INSTALLED,
+														config.EVENT_SANDBOXED_REMOVED,
+														//config.EVENT_SANDBOXED_STARTED,
+														//config.EVENT_SANDBOXED_STOPPED,
+														config.EVENT_SANDBOXED_DEBIAN_INSTALLED,
+														config.EVENT_SANDBOXED_DEBIAN_REMOVED,
+														//config.EVENT_SANDBOXED_DEBIAN_STARTED,
+														//config.EVENT_SANDBOXED_DEBIAN_STOPPED,
+														config.EVENT_NATIVE_DEBIAN_INSTALLED,
+														config.EVENT_NATIVE_DEBIAN_REMOVED,
+														//config.EVENT_NATIVE_DEBIAN_STARTED,
+														//config.EVENT_NATIVE_DEBIAN_STOPPED,
 														config.EVENT_EDGE_SETTINGS_CHANGED
 														],
 														sessionId
@@ -177,14 +220,11 @@ var serverDownListener = function(server)
 
 var coreDisconnectionListener = function(id)
 	{
-	if(coreDisconnectionTimerId != null)
+	if (coreDisconnectionTimerId != null)
 		return;
 
-	if(httpServer)													// Did core's server go down or did core shut down? Either way, the log in sessions are revoked.
-		httpServer.destroySessions();
-	if(httpsServer)
-		httpsServer.destroySessions();
-
+	sessions = {};																	// Did core's server go down or did core shut down?
+																					// Either way, the sessions and log ins are revoked.
 	coreDisconnectionTimerId = setTimeout(
 		function()
 			{
@@ -204,83 +244,135 @@ var coreDisconnectionListener = function(id)
 	// EXPOSED METHODS / EVENT LISTENERS -- -- -- -- -- -- -- -- -- -- //
 var spaceletInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
 var spaceletRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var spaceletStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var spaceletStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+//var spaceletStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var spaceletStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var applicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
-var applicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var applicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var applicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+var sandboxedInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var sandboxedRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var sandboxedStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var sandboxedStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
-var nativeApplicationInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
-var nativeApplicationRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
-var nativeApplicationStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
-var nativeApplicationStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+var sandboxedDebianInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var sandboxedDebianRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var sandboxedDebianStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var sandboxedDebianStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
+
+var nativeDebianInstalled = fibrous( function(result, connObj) { addApp(result.manifest); });
+var nativeDebianRemoved = fibrous( function(result, connObj) { remApp(result.manifest.unique_name); });
+//var nativeDebianStarted = fibrous( function(startObject, connObj) { setAppRunningState(startObject.manifest.unique_name, true); });
+//var nativeDebianStopped = fibrous( function(result, connObj) { setAppRunningState(result.manifest.unique_name, false); });
 
 var edgeSettingsChanged = fibrous( function(settings, connObj) { edgeSettings = settings; });
 
-var requestListener = function(request, body, urlObj, isSecure, callback)
+var requestListener = function(_request_, callback)
 	{
 	var service;
-	var pathPos, appPos;
-	var pathname = urlObj.pathname.replace(/^\/|\/$/, "");
-	var pathnameLength = pathname.length;
-	var pathparts = pathname.split("/");
-	var part = pathparts.shift() || "";
-	var responseCode, contentType, port, location, content;
+	var openServices;
+	var hasApplication = false;
+	var servicesByServiceName = {};
+	var unique_name, index, uniqueNameLastIndex;
+	var pathName = _request_.urlObj.pathname.replace(/^\/|\/$/, "");
+	var pathParts = pathName.split("/");
+	var firstPart = pathParts[0] || "";
+	var appURL, protocol, location, content, host, sp_port, sp_host, spe_host, sp_path;
 
-	// Redirection request to apps internal web server "service/" or get apps service object "service/object/" -- -- -- -- -- -- -- -- -- -- //
-	if(part == "service")
+	// Get apps service object -- -- -- -- -- -- -- -- -- -- //
+	if (firstPart == "service")
 		{
-		part = "service/" + (pathparts.length > 0 && pathparts[0] == "object" ? "object/" : "");
+		if (!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathName.replace("service/", "")], self)))
+			return callback(null, {type: "load", wwwPath: "", pathname: ""});
 
-		if(!(service = coreConnection.sync.callRpc("getService", [config.HTTP, pathname.replace(part, "")], self)))
-			return callback(null, {type: "load", wwwPath: "", pathname: "", responseCode: 404});
-
-		if(part == "service/")
-			{
-			responseCode = 302;
-			contentType = "html";
-			port = (!isSecure ? service.port : service.securePort);
-			location = (!isSecure ? "http" : "https") + "://" + config.EDGE_HOSTNAME + ":" + port + utility.remakeQueryString(urlObj.query, [], {}, "/");
-			content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": port});
-			}
-		else
-			{
-			responseCode = 200;
-			contentType = "json";
-			content = JSON.stringify(service);
-			}
-
-		callback(null, {type: "write", content: content, contentType: contentType, responseCode: responseCode, location: location});
+		callback(null, {type: "write", content: JSON.stringify(service), contentType: "json", responseCode: 200, location: ""});
 		}
-	// Path points to apps resource -- -- -- -- -- -- -- -- -- -- //
+	else if (firstPart == "services")
+		{
+		if (!(openServices = coreConnection.sync.callRpc("getOpenServices", [[], true], self)))
+			return callback(null, {type: "load", wwwPath: "", pathname: ""});
+
+		for (var i = 0; i < openServices.length; i++)
+			{
+			if (!(openServices[i].service_name in servicesByServiceName))
+				servicesByServiceName[openServices[i].service_name] = {};
+
+			servicesByServiceName[openServices[i].service_name][openServices[i].unique_name] = openServices[i];
+			}
+
+		callback(null, {type: "write", content: JSON.stringify(servicesByServiceName), contentType: "json", responseCode: 200, location: ""});
+		}
+	// Path points to apps resource or URL is short url -- -- -- -- -- -- -- -- -- -- //
 	else
 		{
-		for(appPos = 0; appPos < apps.length; appPos++)								// Loop through installed apps
-			{
-			for(pathPos = 0; pathPos < pathnameLength; pathPos++)					// Compare unique_name with pathname from the beginning
+		if (_request_.GET.appshorturl)												// Remote request
+			unique_name = _request_.GET.appshorturl;
+		else																		// Local request
+			unique_name = pathParts.join("/");
+
+		if (unique_name.charAt(unique_name.length - 1) == "/")
+			unique_name = unique_name.substr(0, unique_name.length - 1);
+
+		index = uniqueNameLastIndex = unique_name.length;
+
+		do	{																		// Compare the unique names of installed applications to the unique_name
+			unique_name = unique_name.substr(0, uniqueNameLastIndex);
+
+			if (apps[unique_name])
 				{
-				if(pathPos > apps[appPos].lengthM1 || pathname[pathPos] != apps[appPos].unique_name[pathPos])
-					break;
+				hasApplication = true;
+				break;
 				}
 
-			if(pathPos == apps[appPos].length)										// The beginning of the pathname was same
-				{																	// but it must end with "/" or "" to be
-				part = pathname[pathPos] || "";										// completely identical with the unique_name
-																					// E.g. path = s/a/image.jpg, unique_name = s/a -> ok
-				if(part == "/" || part == "")										//      path = s/a1/image.jpg, unique_name = s/a -> not ok
-					{																
-					part = urlObj.path.replace(apps[appPos].unique_name + part, "");
+			uniqueNameLastIndex = unique_name.lastIndexOf("/");
+			} while(uniqueNameLastIndex != -1);
 
-					callback(null, {type: "load", wwwPath: apps[appPos].wwwPath, pathname: part, responseCode: null});
+		if (hasApplication)
+			{
+			if (index == uniqueNameLastIndex)										// Short URL - make redirection, path contains nothing but the unique_name
+				{
+				location = (_request_.request.headers.host ? _request_.request.headers.host : config.EDGE_HOSTNAME);
+				location = (!_request_.isSecure ? "http" : "https") + "://" + location;
 
-					return;
+				protocol = (!_request_.isSecure ? "http" : "https");
+
+				appURL = coreConnection.sync.callRpc("getApplicationURL", [unique_name], self);
+
+				sp_port = (!_request_.isSecure ? appURL.port : appURL.securePort);
+
+				spe_host = network.getEdgeURL({ protocol: protocol, withEndSlash: true });
+
+				if (appURL.implementsWebServer && sp_port)
+					{
+					host = spe_host;
+					sp_host = spe_host;
 					}
+				else
+					{
+					host = network.externalResourceURL(unique_name, { protocol: protocol, withEndSlash: true });
+					sp_host = host;
+					}
+
+				sp_path = "index.html";
+
+				_request_.GET.sp_port = sp_port;
+				_request_.GET.sp_host = encodeURIComponent(sp_host);
+				_request_.GET.sp_path = encodeURIComponent(sp_path);
+				_request_.GET.spe_host = encodeURIComponent(spe_host);
+
+				location += "/remote.html" + network.remakeQueryString(_request_.GET, ["appshorturl"], {}, "", true);
+
+				content = utility.replace(language.E_MOVED_FOUND.message, {"~location": location, "~serverName": config.SERVER_NAME, "~hostname": "", "~port": sp_port});
+
+				callback(null, {type: "write", content: content, contentType: "html", responseCode: 302, location: location});
+				}
+			else																	// Resource - load
+				{
+				pathName = _request_.urlObj.path.replace(unique_name, "");
+				pathName = pathName.replace(/^\/*/, "");
+				pathName = pathName.split("?");
+
+				callback(null, {type: "load", wwwPath: apps[unique_name].wwwPath, pathname: pathName[0]});
 				}
 			}
-
-		if(appPos == apps.length)
+		else
 			callback(null, {type: ""});
 		}
 	}
@@ -288,52 +380,122 @@ var requestListener = function(request, body, urlObj, isSecure, callback)
 	// UTILITY -- -- -- -- -- -- -- -- -- -- //
 var addApp = function(manifest)
 	{
-	var length;
-	var wwwPath;
-	var isRunning = ("isRunning" in manifest ? manifest.isRunning : false);
+	var wwwPath = unique.getWwwPath(manifest.type, manifest.unique_name, config);
 
-	// wwwPath is the path on the file system to spacelets, applications or native applications www directory.
-	// e.g. /var/lib/spaceify/data/sandboxed/spaceify/bigscreen/volume/application/www/
-	wwwPath = manifest.unique_name + "/" + config.VOLUME_DIRECTORY + config.APPLICATION_DIRECTORY + config.WWW_DIRECTORY;
+	apps[manifest.unique_name] = { wwwPath: wwwPath };
 
-	if(manifest.type == config.SPACELET)
-		wwwPath = config.SPACELETS_PATH + wwwPath;
-	else if(manifest.type == config.SANDBOXED)
-		wwwPath = config.SANDBOXED_PATH + wwwPath;
-	else if(manifest.type == config.NATIVE)
-		wwwPath = config.NATIVE_PATH + wwwPath;
-
-	length = manifest.unique_name.length;
-	apps.push({unique_name: manifest.unique_name, length: length, lengthM1: length - 1, isRunning: isRunning, wwwPath: wwwPath});
+	appCount++;
 	}
 
 var remApp = function(unique_name)
 	{
-	var index;
-
-	if((index = getAppIndex(unique_name)) != -1)
-		apps.splice(index, 1);
-	}
-
-var setAppRunningState = function(unique_name, state)
-	{
-	var index;
-
-	if((index = getAppIndex(unique_name)) != -1)
-		apps[index].isRunning = state;
-	}
-
-var getAppIndex = function(unique_name)
-	{
-	for(var i = 0; i < apps.length; i++)
+	if (apps[unique_name])
 		{
-		if(apps[i].unique_name == unique_name)
-			return i;
+		delete apps[unique_name];
+		appCount--;
+		}
+	}
+
+/*var setAppRunningState = function(unique_name, state)
+	{
+	}*/
+
+	// SERVER SIDE SESSIONS - IMPLEMENTED USING CUSTOM HTTP HEADER ON WEB SERVER -- -- -- -- -- -- -- -- -- -- //
+var sessionListener = function(_request_)
+	{
+	var sessiontoken, session;
+
+	if (!_request_.isSecure)																// Only secure connections can have session
+		{
+		session = unsecure_session;
+		}
+	else
+		{
+		sessiontoken = _request_.request.headers[config.SESSION_TOKEN_NAME] || null;		// First source is header and backup source is cookie
+
+		if (!sessiontoken && config.SESSION_TOKEN_NAME_COOKIE in _request_.cookies)
+			sessiontoken = _request_.cookies[config.SESSION_TOKEN_NAME_COOKIE].value;
+
+		session = sessions.hasOwnProperty(sessiontoken) ? sessions[sessiontoken] : null;
+
+		if (!session)																		// Create a session if it doesn't exist yet
+			sessiontoken = createSession();
+		else																				// Update an existing session
+			sessions[sessiontoken].timestamp = Date.now();
+
+		session = sessions[sessiontoken];
 		}
 
-	return -1;
+	return session;
 	}
 
+var createSession = function()
+	{
+	var shasum;
+	var sessiontoken;
+
+	while(true)
+		{
+		shasum = crypto.createHash("sha512");
+		shasum.update( utility.bytesToHexString(crypto.randomBytes(16)) );
+		sessiontoken = shasum.digest("hex").toString();
+
+		if (!sessions.hasOwnProperty(sessiontoken))
+			break;
+		}
+
+	sessions[sessiontoken] = {userData: {}, timestamp: Date.now(), token: sessiontoken}
+
+	return sessiontoken;
+	}
+
+var securityListener = function(_request_, pathname, session, callback)
+	{
+	var origin = "";
+	var redirectPath;
+	var isLogInPath = pathname.lastIndexOf(LOGIN_INDEX);
+	var isAppstorePath = pathname.lastIndexOf(APPSTORE_INDEX);
+
+	if (typeof _request_.request.headers.origin !== "undefined")							// CORS reveals the unsecure https over http connections
+		origin = _request_.request.headers.origin.split(":")[0];
+
+	var isHttpsOverHttp = (!_request_.isSecure || (_request_.isSecure && (origin == "http" || origin == "https")) ? true : false);
+
+	if (isAppstorePath != -1 || isLogInPath != -1)											// Redirection and session protection
+		{
+		if (isHttpsOverHttp)																// https over http
+			{
+			callback(null, { pathname: SECURITY_INDEX, session: unsecure_session, secureCookie: false });
+			}
+		else																				// https over https
+			{
+			webOperation.getData({ type: "isAdminLoggedIn" }, session.userData, true, function(err, result)
+				{
+				if (isAppstorePath != -1)
+					callback(null, { pathname: (result.isLoggedIn === true ?    pathname : LOGIN_INDEX), session: session, secureCookie: true });
+				else if (isLogInPath != -1)
+					callback(null, { pathname: (result.isLoggedIn === true ? APPSTORE_INDEX : pathname), session: session, secureCookie: true });
+				});
+			}
+		}
+	else
+		{
+		callback(null, { pathname: pathname, session: (isHttpsOverHttp ? unsecure_session : session), secureCookie: false });
+		}
+	}
+
+var cleanUp = function()
+	{
+	var sts = Object.keys(sessions);														// Remove expired sessions
+
+	for (var i = 0; i < sts.length; i++)
+		{
+		if (Date.now() - sessions[sts[i]].timestamp >= SESSION_INTERVAL)
+			{
+			delete sessions[sts[i]];
+			}
+		}
+	}
 }
 
 fibrous.run( function()

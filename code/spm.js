@@ -13,29 +13,37 @@ var read = require("read");
 var http = require("http");
 var crypto = require("crypto");
 var qs = require("querystring");
-var Logger = require("./logger");
 var fibrous = require("./fibrous");
+var Database = require("./database");
 var language = require("./language");
 var Messaging = require("./messaging");
 var SpaceifyError = require("./spaceifyerror");
 var SecurityModel = require("./securitymodel");
 var SpaceifyConfig = require("./spaceifyconfig");
+var SpaceifyUnique = require("./spaceifyunique");
+var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUtility = require("./spaceifyutility");
-var EdgeSpaceifyNet = require("./edgespaceifynet");
+var SpaceifyNetwork = require("./spaceifynetwork");
+var RegisterEdge = require("./registeredge");
 var ApplicationManager = require("./applicationmanager");
-var WebSocketConnection = require("./websocketconnection.js");
-var WebSocketRpcConnection = require("./websocketrpcconnection");
+var WebSocketRpcConnection = require("./websocketrpcconnection.js");
 
 function SPM()
 {
 var self = this;
 
+var logger = new SpaceifyLogger("SPM");
+	logger.cloneInstanceToBaseConfiguration();
+	logger.setOptions({ enabled: { log: false, dir: false, info: false, error: false, warn: false }, showLabels: false });				// Disable all logging
+var database = new Database();
 var messaging = new Messaging();
 var errorc = new SpaceifyError();
-var config = new SpaceifyConfig();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
+var network = new SpaceifyNetwork();
+var config = SpaceifyConfig.getConfig();
 var securityModel = new SecurityModel();
-var edgeSpaceifyNet = new EdgeSpaceifyNet();
+var registerEdge = new RegisterEdge();
 
 var exitCode = 0;
 var appManConnection = null;
@@ -44,62 +52,71 @@ var appManMessageConnection = null;
 var applicationManager = new ApplicationManager();
 
 // Update commands and options also to command completion script data/spmc!!!
-var INSTALL = "install";
-var PUBLISH = "publish";
-var SOURCE = "source";
-var REMOVE = "remove";
-var START = "start";
-var STOP = "stop";
-var RESTART = "restart";
-var LIST = "list";
-var STATES = "states";
-var REGISTER = "register";
 var HELP = "help";
-var VERSION = "version";
+var INSTALL = "install";
+var LIST = "list";
+var PUBLISH = "publish";
+var PURGE = "purge";
+var REGISTER = "register";
+var REMOVE = "remove";
+var RESTART = "restart";
+var SOURCE = "source";
+var START = "start";
+var STATES = "states";
 var STATUS = "status";
+var STOP = "stop";
+var VERSION = "version";
 
-var AUTH  = "authenticate";
-var AUTH_ = "-a";
-var DEVE  = "develop";
+var AUTH   = "authenticate";
+var AUTH_  = "-a";
+var DEVE   = "develop";
 var DEVE_  = "-d";
-var SPAC  = "spacelet";
-var SPAC_ = "-s";
-var SAND  = "sandboxed";
-var SAND_ = "-S";
-var NATI  = "native";
-var NATI_ = "-n";
-var VERB  = "verbose";
-var VERB_ = "-v";
-var FORC  = "force";
-var FORC_ = "-f";
+var FORC   = "force";
+var FORC_  = "-f";
+var NATI   = "native_debian";
+var NATI_  = "-n";
+var SAND   = "sandboxed";
+var SAND_  = "-S";
+var SANDD  = "sandboxed_debian";
+var SANDD_ = "-SD";
+var SPAC   = "spacelet";
+var SPAC_  = "-s";
+var VERB   = "verbose";
+var VERB_  = "-v";
 
 var EMPTY = "empty";
 
-var commands = INSTALL + "|" + PUBLISH + "|" + SOURCE + "|" + REMOVE + "|" + START + "|" + STOP + "|" + RESTART + "|" + LIST + "|" + STATES + "|" + REGISTER + "|" + HELP + "|" + VERSION + "|" + STATUS;
+var commands = HELP + "|" + INSTALL + "|" + LIST + "|" + PUBLISH + "|" + PURGE + "|" + REGISTER + "|" + REMOVE + "|" + RESTART + "|" + STATES + "|" + STATUS + "|" + SOURCE + "|" + START + "|" + STOP + "|" + VERSION;
 var operRegex = new RegExp("^(" + commands + ")$");
-var options = AUTH + "|" + DEVE + "|" + SPAC + "|" + SAND + "|" + NATI + "|" + VERB + "|" + FORC;
+var options = AUTH + "|" + DEVE + "|" + SPAC + "|" + SAND + "|" + SANDD + "|" + NATI + "|" + VERB + "|" + FORC;
 var optsRegex = new RegExp("^(" + options + ")$");
 
-var p = "│";                    // pipe
-var ps = "│ ";                  // pipe space
-var all = "└──";                // angle left left
-var sall = " └──";              // space angle left left
-var smlt = " ├─┬";              // space middle left tee
-var mlt = "├─┬";                // middle left tee
-var smlt = " ├─┬";              // space middle left tee
-
-var alt = "└─┬";                // angle left tee
-var salt = " └─┬";              // space angle left tee
-
-var mll = "├──";                // middle left left
-var smll = " ├──";              // space middle left left
-
-var al = "└─";                  // angle left
-var ml = "├─";                  // middle left
-var tee = "┬";                  // tee
-var left = "─";                 // left
-var angle = "└";                // angle
-var middle = "├";               // middle
+// (a)ngle, (p)ipe, (s)pace, (l)eft, (m)iddle, (t)ee
+var       p = "│";
+var      ps = "│ ";
+var      ss = "  ";
+var     all = "└──";
+var    sall = " └──";
+var     mlt = "├─┬";
+var    smlt = " ├─┬";
+var     alt = "└─┬";
+var    salt = " └─┬";
+var     mll = "├──";
+var    smll = " ├──";
+var pspsall = "│ │ └──";
+var pspsmlt = "│ │ ├─┬";
+var sspsmll = "  │ ├──";
+var pspsmll = "│ │ ├──";
+var   ssmll = "  ├──";
+var   psmll = "│ ├──";
+var   ssmlt = "  ├─┬";
+var   psmlt = "│ ├─┬";
+var sspsmlt = "  │ ├─┬";
+var sspsalt = "  │ └─┬";
+var      al = "└─";
+var      ml = "├─";
+var     tee = "┬";
+var    left = "─";
 
 var key = config.SPACEIFY_TLS_PATH + config.SERVER_KEY;
 var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
@@ -135,29 +152,29 @@ self.start = fibrous( function()
 
 	try {
 		// CHECK INPUT (node path/spm.js command ...)
-		if(length < 4)
+		if (length < 4)
 			process.argv.push(EMPTY);
 
-		if(process.argv[3].search(operRegex) == -1 && process.argv[3] != EMPTY)
+		if (process.argv[3].search(operRegex) == -1 && process.argv[3] != EMPTY)
 			throw language.E_SPM_UNKNOWN_COMMAND.preFmt("spm::start", {"~command": process.argv[3]});
 
-		for(var i = 4; i < length; i++)															// options are always after the command
+		for (var i = 4; i < length; i++)														// options are always after the command
 			{
 			arg = process.argv[i];
 
-			if(arg == AUTH || arg == AUTH_)
+			if (arg == AUTH || arg == AUTH_)
 				authenticate = true;
-			else if(arg == DEVE || arg == DEVE_)
+			else if (arg == DEVE || arg == DEVE_)
 				develop = true;
-			else if(arg == VERB || arg == VERB_)
-				verbose = true;
-			else if(arg == FORC || arg == FORC_)
+			else if (arg == FORC || arg == FORC_)
 				force = true;
-			else if(arg == SPAC || arg == SPAC_ || arg == SAND || arg == SAND_ || arg == NATI ||  arg == NATI_)
+			else if (arg == NATI ||  arg == NATI_ || arg == SAND || arg == SAND_ || arg == SANDD || arg == SANDD_ || arg == SPAC || arg == SPAC_ )
 				{
-				if(type.indexOf(arg) == -1)
+				if (type.indexOf(arg) == -1)
 					type.push(arg);
 				}
+			else if (arg == VERB || arg == VERB_)
+				verbose = true;
 			}
 
 		cwd = process.argv[2];
@@ -165,20 +182,20 @@ self.start = fibrous( function()
 		last = process.argv[length - 1];
 		applicationPackage = (command != HELP && command != LIST && command != STATES && command != STATUS && command != VERSION ? last : "");	// application package is the last argument
 																				// Check argument count for commands
-		if( (/*command == INSTALL || */command == PUBLISH || command == PUBLISH) && (length < (5 + (authenticate ? 1 : 0))) )
+		if ( (/*command == INSTALL || */command == PUBLISH || command == PUBLISH) && (length < (5 + (authenticate ? 1 : 0))) )
 			throw language.E_SPM_ARGUMENTS_TWO.preFmt("ApplicationManager::start", {"~command": command});
 
-		if(command == INSTALL && length == 4)													// CWD/application
+		if (command == INSTALL && length == 4)													// CWD/application
 			applicationPackage = "";
 
-		if( (command == REMOVE || command == START || command == STOP || command == RESTART) && length < 5 )
+		if ( (command == PURGE || command == REMOVE || command == RESTART || command == START || command == STOP) && length < 5 )
 			throw language.E_SPM_ARGUMENTS_ONE.preFmt("ApplicationManager::start", {"~command": command});
 
 		// PRINT TITLE
 		logger.force("Spaceify Package Manager v" + versions[3] + " - " + (command != EMPTY ? command : HELP) + "\n");
 
 		// OPTIONS
-		if((authenticate && (command == INSTALL || command == SOURCE)) || command == PUBLISH)	// Authenticate to Spaceify registry
+		if ((authenticate && (command == INSTALL || command == SOURCE)) || command == PUBLISH)	// Authenticate to Spaceify registry
 			{
 			auth = (command == PUBLISH ? config.REGISTRY_HOSTNAME : applicationPackage);
 
@@ -187,7 +204,7 @@ self.start = fibrous( function()
 			password = read.sync({ prompt: language.PASSWORD, silent: true, replace: "" });
 			}
 
-		if(command == PUBLISH && applicationPackage.match("github.com"))						// Authenticate also to GitHub repository
+		if (command == PUBLISH && applicationPackage.match("github.com"))						// Authenticate also to GitHub repository
 			{
 			logger.force(utility.replace(language.AUTHENTICATION, {"~auth": config.GITHUB_HOSTNAME}));
 			githubUsername = read.sync({ prompt: language.USERNAME });
@@ -195,7 +212,7 @@ self.start = fibrous( function()
 			}
 
 		// CONNECTIONS
-		if(command != PUBLISH && command != HELP && command != VERSION)
+		if (command != PUBLISH && command != HELP && command != VERSION)
 			{
 			openMessaging = (command != STATUS ? true : false);
 
@@ -203,37 +220,39 @@ self.start = fibrous( function()
 			}
 
 		// DO THE REQUESTED COMMAND
-		if(command == INSTALL)
+		if (command == HELP || command == EMPTY)
+			help.sync(command == HELP ? true : false, (length > 4 ? last : ""));
+		else if (command == INSTALL)
 			install.sync(applicationPackage, username, password, cwd, force, develop);
-		else if(command == REMOVE)
-			remove.sync(applicationPackage);
-		else if(command == START)
-			start.sync(applicationPackage);
-		else if(command == STOP)
-			stop.sync(applicationPackage);
-		else if(command == RESTART)
-			restart.sync(applicationPackage);
-		else if(command == SOURCE)
-			source.sync(applicationPackage, username, password, cwd);
-		else if(command == LIST)
+		else if (command == LIST)
 			{
 			manualDisconnection = true;
 			list.sync(type, verbose);
 			}
-		else if(command == STATES)
+		else if (command == PUBLISH)
+			publish.sync(applicationPackage, username, password, githubUsername, githubPassword, cwd);
+		else if (command == PURGE)
+			purge.sync(applicationPackage);
+		else if (command == REGISTER)
+			register.sync(type, verbose);
+		else if (command == REMOVE)
+			remove.sync(applicationPackage);
+		else if (command == RESTART)
+			restart.sync(applicationPackage);
+		else if (command == SOURCE)
+			source.sync(applicationPackage, username, password, cwd);
+		else if (command == START)
+			start.sync(applicationPackage);
+		else if (command == STATES)
 			{
 			manualDisconnection = true;
-			getServiceRuntimeStates.sync();
+			getRuntimeServiceStates.sync();
 			}
-		else if(command == REGISTER)
-			register.sync(type, verbose);
-		else if(command == STATUS)
+		else if (command == STATUS)
 			systemStatus.sync();
-		else if(command == PUBLISH)
-			publish.sync(applicationPackage, username, password, githubUsername, githubPassword, cwd);
-		else if(command == HELP || command == EMPTY)
-			help.sync(command == HELP ? true : false, (length > 4 ? last : ""));
-		else if(command == VERSION)
+		else if (command == STOP)
+			stop.sync(applicationPackage);
+		else if (command == VERSION)
 			version.sync();
 		}
 	catch(err)
@@ -254,17 +273,27 @@ var connect = fibrous( function(openMessaging)
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
-		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
+		appManConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_PORT_SECURE, isSecure: true, caCrt: caCrt});
 
 		// Messaging (Setup by ApplicationManager)
-		if(openMessaging)
+		if (openMessaging)
 			{
-			appManMessageConnection = new WebSocketConnection();
-			appManMessageConnection.setEventListener(self);
-			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt, debug: false});
+			appManMessageConnection = new WebSocketRpcConnection();
 
-			messageId = appManConnection.sync.callRpc("requestMessages", [sessionId], self);								// Request a messageId
-			appManMessageConnection.send(JSON.stringify({type: messaging.MESSAGE_CONFIRM, messageId: messageId}));			// Confirm that we are listening
+			appManMessageConnection.exposeRpcMethodSync("fail", self, fail);
+			appManMessageConnection.exposeRpcMethodSync("error", self, error);
+			appManMessageConnection.exposeRpcMethodSync("notify", self, notify);
+			appManMessageConnection.exposeRpcMethodSync("stdout", self, stdout);
+			appManMessageConnection.exposeRpcMethodSync("warning", self, warning);
+			appManMessageConnection.exposeRpcMethodSync("message", self, message);
+			appManMessageConnection.exposeRpcMethodSync("question", self, question);
+			appManMessageConnection.exposeRpcMethodSync("questionTimedOut", self, questionTimedOut);
+			appManMessageConnection.exposeRpcMethodSync("end", self, end);
+
+			appManMessageConnection.sync.connect({hostname: config.CONNECTION_HOSTNAME, port: config.APPMAN_MESSAGE_PORT_SECURE, isSecure: true, caCrt: caCrt});
+
+			messageId = appManConnection.sync.callRpc("requestMessageId", [sessionId], self);								// Request a messageId
+			appManMessageConnection.callRpc("confirm", [messageId]);
 			}
 		}
 	catch(err)
@@ -275,10 +304,10 @@ var connect = fibrous( function(openMessaging)
 
 var disconnect = function()
 	{
-	if(appManConnection)
+	if (appManConnection)
 		appManConnection.close();
 
-	if(appManMessageConnection)
+	if (appManMessageConnection)
 		appManMessageConnection.close();
 
 	securityModel.sync.destroyTemporaryAdminSession();
@@ -291,66 +320,87 @@ var disconnect = function()
 	process.exit(exitCode);
 	}
 
-	// appManMessageConnection -- -- -- -- -- -- -- -- -- -- //
-	// +++
-	// EventListener interface implementation (onMessage and onDisconnected events originate from connection)
-self.onMessage = function(message, self)
+	// appManMessageConnection RPC methods -- -- -- -- -- -- -- -- -- -- //
+	// Exposed RPC methods -- -- -- -- -- -- -- -- -- -- //
+var fail = fibrous( function(err, connObj)
 	{
-	try {
-		message = utility.parseJSON(message);
+	logger.force(err.message);
 
-		if(message.type == messaging.MESSAGE)
-			logger.force(message.message);
-		else if(message.type == messaging.MESSAGE_ERROR)
-			logger.force(message.data.message);
-		else if(message.type == messaging.MESSAGE_WARNING)
-			logger.force(message.data.message);
-		else if(message.type == messaging.MESSAGE_NOTIFY)
-			logger.force("\n", message.data.message, "\n");
-		else if(message.type == messaging.MESSAGE_QUESTION)
-			question(message);
-		else if(message.type == messaging.MESSAGE_TIMED_OUT)
-			questionTimedOut(message);
-		else if(message.type == messaging.MESSAGE_END && !manualDisconnection)
-			disconnect();
-		}
-	catch(err)
-		{}
-	}
+	if (!manualDisconnection)
+		disconnect();
+	});
 
-self.onDisconnected = function(id)
-	{};
+var error = fibrous( function(err, connObj)
+	{
+	logger.force(err.message);
+	});
 
-var question = function(message)
+var warning = fibrous( function(message_, code, connObj)
+	{
+	logger.force(code, message_);
+	});
+
+var notify = fibrous( function(message_, code, connObj)
+	{
+	logger.force(message_);
+	});
+
+var message = fibrous( function(message_, connObj)
+	{
+	logger.force(message_);
+	});
+
+var stdout = fibrous( function(message_, connObj)
+	{
+	logger.stdout(message_);
+	});
+
+var question = fibrous( function(message_, choices, origin, answerCallBackId, connObj)
+	{
+	question_(message_, choices, origin, answerCallBackId);
+	});
+
+var questionTimedOut = fibrous( function(message_, origin, answerCallBackId, connObj)
+	{
+	if (callerOrigin.questionTimedOut)
+		callerOrigin.questionTimedOut(message_, origin, answerCallBackId);
+
+	if (origin == applicationManager.INSTALL_APPLICATION)
+		logger.force(message_);
+	});
+
+var end = fibrous( function(message_, connObj)
+	{
+	if (!manualDisconnection)
+		disconnect();
+	});
+
+var question_ = function(message_, choices, origin, answerCallBackId)
 	{
 	var prompt = "";															// The question and valid answers
 	var answers = [];
-	
-	for(var i = 0; i < message.choices.length; i++)
+
+	for (var i = 0; i < choices.length; i++)
 		{
-		prompt += (prompt != "" ? " / " : "") + message.choices[i].screen;
-		answers.push(message.choices[i].long, message.choices[i].short);
+		prompt += (prompt != "" ? " / " : "") + choices[i].screen;
+		answers.push(choices[i].long, choices[i].short);
 		}
 
-	if(message.origin == applicationManager.INSTALL_APPLICATION)
-		installApplicationQuestion(message, answers, prompt);
+	if (origin == applicationManager.INSTALL_APPLICATION)
+		installApplicationQuestion(message_, answers, prompt, answerCallBackId);
 	}
 
-var installApplicationQuestion = function(message, answers, prompt)
+var installApplicationQuestion = function(message_, answers, prompt, answerCallBackId)
 	{
-	read({ prompt: message.message + " (" + prompt + ")" }, function(error, result, isDefault)
+	read({ prompt: message_ + " (" + prompt + ")" }, function(error, result, isDefault)
 		{
-		if(answers.indexOf(result) == -1)										// Answer must be one of the choices
-			installApplication(message, answers, prompt);
-		else
-			appManMessageConnection.send(JSON.stringify({type: messaging.MESSAGE_ANSWER, messageId: messageId, answer: result, answerCallBackId: message.answerCallBackId}));
-		});
-	}
+		result = result.toLowerCase();
 
-var questionTimedOut = function(message)
-	{
-	if(message.origin == applicationManager.INSTALL_APPLICATION)
-		logger.force("\n", message.message);
+		if (answers.indexOf(result) == -1)							// Answer must be one of the choices
+			installApplicationQuestion(message_, answers, prompt);
+		else
+			appManMessageConnection.callRpc(messaging.MESSAGE_ANSWER, [messageId, result, answerCallBackId]);
+		});
 	}
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -360,34 +410,49 @@ var help = fibrous( function(bVerbose, command)
 	{
 	var spmCommand;
 	var spmCommands;
-	var spmHelpFile = fs.sync.readFile(config.DOCS_PATH + config.SPM_HELP, {encoding: "utf8"}), spmParts, help = "";
+	var spmHelpFile = fs.sync.readFile(config.DOCS_PATH + config.SPM_HELP, {encoding: "utf8"}), spmParts, str = "", doc;
 
-	if(command == "")
+	if (command == "")
 		{
 		spmParts = spmHelpFile.split(/@verbose/);
 
-		help = spmParts[0];
+		str = spmParts[0];
+		str = str.replace(/\n$/, "");
 
-		if(bVerbose)
+		if (bVerbose)
 			{
 			spmCommands = spmParts[1].split(/%%.*/);
 
-			for(var i = 0; i < spmCommands.length; i++)
-				help += spmCommands[i].replace(/%.+?%/, "");
+			for (var i = 0; i < spmCommands.length; i++)
+				{
+				doc = spmCommands[i].replace(/%.+?%/, "");							// Remove command separator %%...%%
+				doc = doc.replace(/\n{2}/m, "");									// Remove first two newlines
+
+				command = (doc.match(/^(.*)$/m))[0];								// Get the command as it is in the document
+
+				doc = doc.replace(command, "");										// Remove the command from the document
+
+				command = command.trim();
+				for (var j = 0, strLen = command.length, ul = ""; j < strLen; j++)	// Format; add underlining (ToDo: use instead a color to highlight the command)
+					ul += "-";
+
+				str += "\n\n" + command + "\n" + ul + doc.replace(/\n$/, "");
+				}
+
+			str = str.replace(/\n{3}$/, "");
 			}
 		}
 	else
 		{
 		spmCommand = spmHelpFile.match(new RegExp("%" + command + "%(.|\n|\r)+?%%"));
-		if(spmCommand)
-			help = spmCommand[0].replace(new RegExp("%" + command + "%"), "");
-		help = help.replace(/%/g, "");
+		if (spmCommand)
+			str = spmCommand[0].replace(new RegExp("%" + command + "%"), "");
+
+		str = str.replace(/%/g, "");
+		str = str.replace(/\n$/, "");
 		}
 
-	help = help.substring(3);
-	logger.force(help);
-
-	disconnect();
+	logger.force(str);
 	});
 
 var version = fibrous( function()
@@ -405,6 +470,11 @@ var install = fibrous( function(applicationPackage, username, password, cwd, for
 	{
 	var result = appManConnection.sync.callRpc("installApplication", [applicationPackage, username, password, cwd, force, develop, sessionId], self);
 	exitCode = (result == applicationManager.SUCCESS ? 0 : 1);
+	});
+
+var purge = fibrous( function(unique_name)
+	{
+	appManConnection.sync.callRpc("purgeApplication", [unique_name, sessionId], self);
 	});
 
 var remove = fibrous( function(unique_name)
@@ -434,218 +504,283 @@ var source = fibrous( function(applicationPackage, username, password, cwd)
 
 var list = fibrous( function(type, bVerbose)
 	{
-	var i, j;
+	var tmp;
+	var keys;
 	var bLast;
-	var injfil;
 	var manifest;
-	var path = "";
 	var continues;
-	var spaceletHeader = false;
-	var sandboxedHeader = false;
-	var nativeHeader = false;
+	var i, j, type;
+	var brokenInstallation;
+
+	var t = {
+			spacelet: [language.INSTALLED_HEADERS[config.SPACELET]],
+			sandboxed: [language.INSTALLED_HEADERS[config.SANDBOXED]],
+			sandboxed_debian: [language.INSTALLED_HEADERS[config.SANDBOXED_DEBIAN]],
+			native_debian: [language.INSTALLED_HEADERS[config.NATIVE_DEBIAN]]
+			};
 
 	var dbApps = appManConnection.sync.callRpc("getApplications", [type], self);
 
-	if(dbApps.length == 0)
+	if (dbApps.length == 0)
 		logger.force(language.NO_APPLICATIONS);
 	else
 		{
-		for(i = 0; i < dbApps.length; i++)
+		for (i = 0; i < dbApps.length; i++)
 			{
-			if(dbApps[i].type == config.SPACELET && !spaceletHeader)
-				{ logger.force(language.INSTALLED_HEADERS[0]); spaceletHeader = true; }
-			else if(dbApps[i].type == config.SANDBOXED && !sandboxedHeader)
-				{ logger.force(language.INSTALLED_HEADERS[1]); sandboxedHeader = true; }
-			else if(dbApps[i].type == config.NATIVE && !nativeHeader)
-				{ logger.force(language.INSTALLED_HEADERS[2]); nativeHeader = true; }
+			type = dbApps[i].type;
+
+			try {
+				manifest = utility.sync.loadJSON(unique.getAppPath(type, dbApps[i].unique_name, config) + config.MANIFEST, true, true);
+
+				brokenInstallation = false;
+				}
+			catch(err)
+				{
+				brokenInstallation = true;
+				}
 
 			bLast = (i == dbApps.length - 1 || (i < dbApps.length - 1 && dbApps[i].type != dbApps[i + 1].type));
 
-			logger.force(p);
+			t[type].push(p);
 
-			logger.force((bLast ? al : ml) + (bVerbose ? tee : left), dbApps[i].unique_name + config.PACKAGE_DELIMITER + dbApps[i].version);
+			tmp = (bLast ? al : ml) + (bVerbose ? tee : left) + s(dbApps[i].unique_name) + ", v" + dbApps[i].version;
+			if (brokenInstallation)
+				tmp += language.M_BROKEN_INSTALLATION;
+			t[type].push(tmp);
 
-			if(bVerbose)
+			if (bVerbose && !brokenInstallation)
 				{
-				if(dbApps[i].type == config.SPACELET)
-					path = config.SPACELETS_PATH;
-				else if(dbApps[i].type == config.SANDBOXED)
-					path = config.SANDBOXED_PATH;
-				else if(dbApps[i].type == config.NATIVE)
-					path = config.NATIVE_PATH;
+				continues = (bLast ? ssmll : psmll);
 
-				manifest = utility.sync.loadJSON(path + dbApps[i].unique_directory + config.APPLICATION_PATH + config.MANIFEST, true);
+				t[type].push(continues + language.M_NAME + manifest.name);
 
-				continues = (bLast ? "  " + mll : p + smll);
+				t[type].push(continues + language.M_CATEGORY + utility.ucfirst(manifest.category));
 
-				logger.force(continues, language.M_NAME + manifest.name);
-
-				logger.force(continues, language.M_CATEGORY + utility.ucfirst(manifest.category));
-
-				if(manifest.type == config.SPACELET)
+				if (manifest.type == config.SPACELET)
 					{
-					logger.force(continues, language.M_SHARED + (manifest.shared ? language.M_YES : language.M_NO));
+					t[type].push(continues + language.M_SHARED + (manifest.shared ? language.M_YES : language.M_NO));
 
-					logger.force((bLast ? "  " + mlt : p + smlt), language.M_INJECT);
+					//t[type].push((bLast ? sspsmlt : pspsmlt) + language.M_ORIGINS);
+					t[type].push((bLast ? ssmlt : psmlt) + language.M_ORIGINS);
+					for (j = 0; j < manifest.origins.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.origins.length - 1 ? alt : all) + s(manifest.origins[j]));
 
-					logger.force((bLast ? "  " + p + smll : ps + p + smll), language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
+					/*
+					DEPRECATED
+					t[type].push((bLast ? ssmlt : psmlt) + language.M_INJECT);
 
-					logger.force((bLast ? "  " + p + smlt : ps + p + smlt), language.M_ORIGINS);
-					for(j = 0; j < manifest.inject_hostnames.length; j++)
-						logger.force((bLast ? "  " : ps) + (j < manifest.origins.length - 1 ? ps + p + smll : ps + p + sall), manifest.origins[j]);
+					t[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
 
-					logger.force((bLast ? "  " + p + smll : ps + p + smll), language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
+					t[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
 
-					logger.force((bLast ? "  " + p + smlt : ps + p + smlt), language.M_INJECT_HOSTNAMES);
-					for(j = 0; j < manifest.inject_hostnames.length; j++)
-						logger.force((bLast ? "  " : ps) + (j < manifest.inject_hostnames.length - 1 ? ps + p  + smll : ps + p + sall), manifest.inject_hostnames[j]);
+					t[type].push((bLast ? sspsmlt : pspsmlt) + language.M_INJECT_HOSTNAMES);
+					for (j = 0; j < manifest.inject_hostnames.length; j++)
+						t[type].push((bLast ? ss : ps) + (j < manifest.inject_hostnames.length - 1 ? pspsmll : pspsall) + s(manifest.inject_hostnames[j]));
 
-					logger.force((bLast ? "  " + p + salt :  ps + p + salt), language.M_INJECT_FILES);
-					for(j = 0; j < manifest.inject_files.length; j++)
+					t[type].push((bLast ? sspsalt : pspsalt) + language.M_INJECT_FILES);
+					for (j = 0; j < manifest.inject_files.length; j++)
 						{
-						injfil = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
-						logger.force((bLast ? "  " :  ps) + (j < manifest.inject_files.length - 1 ? p + "   " + mll : p + "   " + all), injfil);
+						tmp = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
+						t[type].push((bLast ? ss :  ps) + (j < manifest.inject_files.length - 1 ? psssmll : psssall) + s(tmp));
 						}
+					*/
 					}
 
-				if(manifest.start_command)
-					logger.force(continues, language.M_START_COMMAND + manifest.start_command);
+				if (manifest.start_command)
+					t[type].push(continues + language.M_START_COMMAND + manifest.start_command);
 
-				if(manifest.stop_command)
-					logger.force(continues, language.M_STOP_COMMAND + manifest.stop_command);
+				if (manifest.stop_command)
+					t[type].push(continues + language.M_STOP_COMMAND + manifest.stop_command);
 
-				if(manifest.docker_image)
-					logger.force(continues, language.M_DOCKER_IMAGE + (manifest.docker_image ? language.M_YES : language.M_NO));
+				if (manifest.docker_image)
+					t[type].push(continues + language.M_DOCKER_IMAGE + (manifest.docker_image ? language.M_YES : language.M_NO));
 
-				if(manifest.install_commands)
+				if (manifest.install_commands)
 					{
-					logger.force((bLast ? "  " : ps) + mlt, language.M_INSTALL_COMMANDS);
-					for(j = 0; j < manifest.install_commands.length; j++)
-						logger.force((bLast ? "  " : ps) + ps + (j < manifest.install_commands.length - 1 ? mll : all), manifest.install_commands[j].file);
+					t[type].push((bLast ? ss : ps) + mlt + language.M_INSTALL_COMMANDS);
+					for (j = 0; j < manifest.install_commands.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.install_commands.length - 1 ? mll : all) + s(manifest.install_commands[j].file));
 					}
 
-				if(manifest.implements)
-					logger.force(continues, language.M_IMPLEMENTS + manifest.implements);
+				if (manifest.implements)
+					t[type].push(continues + language.M_IMPLEMENTS + manifest.implements);
 
-				if(manifest.short_description)
-					logger.force(continues, language.M_SHORT_DESCRIPTION + manifest.short_description);
+				if (manifest.short_description)
+					t[type].push(continues + language.M_SHORT_DESCRIPTION + manifest.short_description);
 
-				if(manifest.key_words)
+				if (manifest.key_words)
 					{
-					logger.force((bLast ? "  " : ps) + mlt, language.M_KEY_WORDS);
-					for(j = 0; j < manifest.key_words.length; j++)
-						logger.force((bLast ? "  " : ps) + ps + (j < manifest.key_words.length - 1 ? mll : all), manifest.key_words[j].file);
+					t[type].push((bLast ? ss : ps) + mlt + language.M_KEY_WORDS);
+					for (j = 0; j < manifest.key_words.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.key_words.length - 1 ? mll : all) + s(manifest.key_words[j].file));
 					}
 
-				if(manifest.license)
-					logger.force(continues, language.M_LICENSE + manifest.license);
+				if (manifest.license)
+					t[type].push(continues + language.M_LICENSE + manifest.license);
 
-				if(manifest.repository)
-					logger.force(continues, language.M_REPOSITORY + manifest.repository);
+				if (manifest.repository)
+					t[type].push(continues + language.M_REPOSITORY + manifest.repository);
 
-				if(manifest.web_url)
-					logger.force(continues, language.M_WEB_URL + manifest.web_url);
+				if (manifest.web_url)
+					t[type].push(continues + language.M_WEB_URL + manifest.web_url);
 
-				if(manifest.bugs)
-					logger.force(continues, language.M_BUGS + manifest.bugs);
+				if (manifest.bugs)
+					t[type].push(continues + language.M_BUGS + manifest.bugs);
 
-				if(manifest.developer)
-					logger.force(continues, language.M_DEVELOPER + manifest.developer.name + (manifest.developer.email ? " <" + manifest.developer.email + ">" : "") + (manifest.developer.url ? ", " + manifest.developer.url : ""));
+				if (manifest.developer)
+					t[type].push(continues + language.M_DEVELOPER + manifest.developer.name + (manifest.developer.email ? " <" + manifest.developer.email + ">" : "") + (manifest.developer.url ? ", " + manifest.developer.url : ""));
 
-				if(manifest.contributors)
+				if (manifest.contributors)
 					{
-					logger.force((bLast ? "  " : ps) + (bRS ? mlt : alt), language.M_CONTRIBUTORS);
-					for(j = 0; j < manifest.contributors.length; j++)
-						logger.force((bLast ? "  " : ps) + (bRS ? ps : "  ") + (j < manifest.contributors.length - 1 ? mll : all), manifest.contributors[j].name + (manifest.contributors[j].email ? " <" + manifest.contributors[j].email + ">" : "") + (manifest.contributors[j].url ? ", " + manifest.contributors[j].url : ""));
+					t[type].push((bLast ? ss : ps) + (bRS ? mlt : alt) + language.M_CONTRIBUTORS);
+					for (j = 0; j < manifest.contributors.length; j++)
+						t[type].push((bLast ? ss : ps) + (bRS ? ps : ss) + (j < manifest.contributors.length - 1 ? mll : all) + manifest.contributors[j].name + (manifest.contributors[j].email ? " <" + manifest.contributors[j].email + ">" : "") + (manifest.contributors[j].url ? ", " + s(manifest.contributors[j].url) : ""));
 					}
 
-				if(manifest.creation_date)
-					logger.force(continues, language.M_CREATION_DATE + manifest.creation_date);
+				if (manifest.creation_date)
+					t[type].push(continues + language.M_CREATION_DATE + manifest.creation_date);
 
-				if(manifest.publish_date)
-					logger.force(continues, language.M_PUBLISH_DATE + manifest.publish_date);
+				if (manifest.publish_date)
+					t[type].push(continues + language.M_PUBLISH_DATE + manifest.publish_date);
 
-				if(manifest.install_datetime)
-					logger.force(continues, language.M_INSTALLATION_DATE + dbApps[i].install_datetime);
+				if (manifest.install_datetime)
+					t[type].push(continues + language.M_INSTALLATION_DATE + dbApps[i].install_datetime);
 
-				if(manifest.images)
+				if (manifest.images)
 					{
-					logger.force((bLast ? "  " : ps) + mlt, language.M_IMAGES);
-					for(j = 0; j < manifest.images.length; j++)
-						logger.force((bLast ? "  " : ps) + ps + (j < manifest.images.length - 1 ? mll : all), (manifest.images[j].directory ? manifest.images[j].directory + "/" : "") + manifest.images[j].file + (manifest.images[j].title ? ", " + manifest.images[j].title : ""));
+					t[type].push((bLast ? ss : ps) + mlt + language.M_IMAGES);
+					for (j = 0; j < manifest.images.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.images.length - 1 ? mll : all) + s("") + (manifest.images[j].directory ? manifest.images[j].directory + "/" : "") + manifest.images[j].file + (manifest.images[j].title ? ", " + manifest.images[j].title : ""));
 					}
 
-				if(manifest.provides_services)
+				if (manifest.provides_services)
 					{
-					logger.force((bLast ? "  " : ps) + mlt, language.M_PROVIDES_SERVICES);
-					for(j = 0; j < manifest.provides_services.length; j++)
-						logger.force((bLast ? "  " : ps) + ps + (j < manifest.provides_services.length - 1 ? mll : all), manifest.provides_services[j].service_name + ", " + manifest.provides_services[j].service_type);
+					t[type].push((bLast ? ss : ps) + mlt + language.M_PROVIDES_SERVICES);
+					for (j = 0; j < manifest.provides_services.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.provides_services.length - 1 ? mll : all) + s(manifest.provides_services[j].service_name) + ", " + manifest.provides_services[j].service_type);
 					}
 
-				if(manifest.requires_services)
+				if (manifest.requires_services)
 					{
-					logger.force((bLast ? "  " : ps) + mlt, language.M_REQUIRES_SERVICES);
-					for(j = 0; j < manifest.requires_services.length; j++)
-						logger.force((bLast ? "  " : ps) + ps + (j < manifest.requires_services.length - 1 ? mll : all), manifest.requires_services[j].service_name);
+					t[type].push((bLast ? ss : ps) + mlt + language.M_REQUIRES_SERVICES);
+					for (j = 0; j < manifest.requires_services.length; j++)
+						t[type].push((bLast ? ss : ps) + ps + (j < manifest.requires_services.length - 1 ? mll : all) + s(manifest.requires_services[j].service_name));
 					}
 
 				// Is running
-				logger.force((bLast ? "  " : ps) + all + language.M_IS_RUNNING + (dbApps[i].isRunning ? language.M_YES : language.M_NO));
+				t[type].push(continues + language.M_IS_RUNNING + (dbApps[i].isRunning ? language.M_YES : language.M_NO));
+
+				// Is develop mode
+				t[type].push((bLast ? ss : ps) + all + language.M_IS_DEVELOP + (dbApps[i].isDevelop ? language.M_YES : language.M_NO));
 				}
+			}
+		}
+
+	keys = Object.keys(t);
+	for (var k = 0; k < keys.length; k++)
+		{
+		if (t[keys[k]].length == 1)
+			continue;
+
+		if (k > 0)
+			logger.force("");
+
+		for (i = 0; i < t[keys[k]].length; i++)
+			{
+			logger.force(t[keys[k]][i]);
 			}
 		}
 
 	disconnect();
 	});
 
-var getServiceRuntimeStates = fibrous( function()
+var getRuntimeServiceStates = fibrous( function()
 	{
+	var keys;
+	var type;
+	var accepts;
 	var services;
-	var unique_names;
 	var applications;
+	var containerPort;
 	var lastService;
 	var isLastService;
 	var lastApplication;
 	var isLastApplication;
+	var unique_names = [];
 	var applicationCount = 0;
-	var states = appManConnection.sync.callRpc("getServiceRuntimeStates", [sessionId], self);
+	var states = appManConnection.sync.callRpc("getRuntimeServiceStates", [sessionId], self);
 
-	for(var type in states)
+	var t = {
+			spacelet: [language.RUNNING_HEADERS[config.SPACELET]],
+			sandboxed: [language.RUNNING_HEADERS[config.SANDBOXED]],
+			sandboxed_debian: [language.RUNNING_HEADERS[config.SANDBOXED_DEBIAN]],
+			native_debian: [language.RUNNING_HEADERS[config.NATIVE_DEBIAN]]
+			};
+
+	keys = Object.keys(states);
+	for (var k = 0; k < keys.length; k++)
 		{
+		type = keys[k];
 		unique_names = Object.keys(states[type]);
-
-		if(unique_names.length > 0)
-			logger.force(language.RUNNING_HEADERS[config.APP_TYPE_NUMBER[type]]);
 
 		applications = states[type];
 		applicationCount += unique_names.length;
-		for(var n = 0; n < unique_names.length; n++)
+		for (var n = 0; n < unique_names.length; n++)
 			{
 			isLastApplication = (n + 1 == unique_names.length ? true : false);
 			lastApplication = (!isLastApplication ? p : " ");
 
-			logger.force(p);
-			logger.force((isLastApplication ? alt : mlt), unique_names[n]);
+			t[type].push(p);
 
-			services = applications[unique_names[n]];
-			for(var s = 0; s < services.length; s++)
+			t[type].push((isLastApplication ? alt : mlt) + s(unique_names[n]));
+
+			services = applications[unique_names[n]].services;
+			for (var m = 0; m < services.length; m++)
 				{
-				isLastService = (s + 1 == services.length ? true : false);
-				lastService = (!isLastService ? p : " ");
+				isLastService = (m + 1 == services.length ? true : false);
+				lastService = (!isLastService ? ps : "  ");
 
-				logger.force(lastApplication, (!isLastService ? mlt : alt), services[s].service_name);
+				t[type].push(lastApplication + (!isLastService ? smlt : salt) + s(services[m].service_name));
 
-				logger.force(lastApplication, lastService, mll, language.M_TYPE, services[s].service_type);
-				logger.force(lastApplication, lastService, mll, language.M_PORT, services[s].port, "->", services[s].containerPort);
-				logger.force(lastApplication, lastService, mll, language.M_SECURE_PORT, services[s].securePort, "->", services[s].secureContainerPort);
-				logger.force(lastApplication, lastService, mll, language.M_IP, services[s].ip);
-				logger.force(lastApplication, lastService, all, language.M_IS_REGISTERED, (services[s].isRegistered ? language.M_YES : language.M_NO));
+				t[type].push(lastApplication + " " + lastService + mll + language.M_TYPE + services[m].service_type);
+
+				containerPort = (!applications[unique_names[n]].isDevelop ? " > " + services[m].containerPort : "");
+
+				accepts = (network.sync.isPortInUse(services[m].port) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
+				t[type].push(lastApplication + " " + lastService + mll + language.M_PORT + services[m].port + containerPort + accepts);
+
+				containerPort = (!applications[unique_names[n]].isDevelop ? " > " + services[m].secureContainerPort : "");
+				accepts = (network.sync.isPortInUse(services[m].securePort) ? language.M_PORT_LISTEN : language.M_PORT_REFUSED);
+				t[type].push(lastApplication + " " + lastService + mll + language.M_SECURE_PORT + services[m].securePort + containerPort + accepts);
+
+				t[type].push(lastApplication + " " + lastService + mll + language.M_IP + services[m].ip);
+
+				t[type].push(lastApplication + " " + lastService + all + language.M_IS_REGISTERED + (services[m].isRegistered ? language.M_YES : language.M_NO));
 				}
 			}
 		}
 
-	if(applicationCount == 0)
+	if (applicationCount == 0)
+		{
 		logger.force(language.NO_RUNNING_APPLICATIONS);
+		}
+	else
+		{
+		keys = Object.keys(t);
+		for (var k = 0; k < keys.length; k++)
+			{
+			if (t[keys[k]].length == 1)
+				continue;
+
+			if (k > 0)
+				logger.force("");
+
+			for (var i = 0; i < t[keys[k]].length; i++)
+				{
+				logger.force(t[keys[k]][i]);
+				}
+			}
+		}
 
 	disconnect();
 	});
@@ -659,17 +794,33 @@ var publish = fibrous( function(applicationPackage, username, password, githubUs
 
 var register = fibrous( function()
 	{
-	try {
-		edgeSpaceifyNet.sync.createEdgeId(true);
+	var settings;
+	var result = false;
 
-		logger.force(errorc.replace(language.I_SPM_REGISTER_SUCCESSFUL, {"~registration": config.SPACEIFY_REGISTRATION_FILE}));
+	try {
+		registerEdge.sync.createEdgeId(true);
+
+		/* ToDo: Enable this?
+		var settings = database.sync.getEdgeSettings();
+
+		var result = utility.sync.postRegister(settings.edge_id, settings.edge_name, settings.edge_password);
+		*/
+
+		if (result)
+			throw(result);
+		else
+			logger.force(errorc.replace(language.I_SPM_REGISTER_SUCCESSFUL, {"~registration": config.SPACEIFY_REGISTRATION_FILE}));
 		}
 	catch(err)
-		{		
-		logger.force(errorc.replace(language.E_SPM_REGISTER_FAILED, {"~message": err.message}));
+		{
+		var message = (err.message ? err.message : err).replace(/\.$/, "")
+		logger.force(errorc.replace(language.E_SPM_REGISTER_FAILED, {"~message": message}));
 		}
-
-	disconnect();
+	finally
+		{
+		database.close();
+		disconnect();
+		}
 	});
 
 var systemStatus = fibrous( function()
@@ -677,20 +828,21 @@ var systemStatus = fibrous( function()
 	var lines = "";
 	var result = appManConnection.sync.callRpc("systemStatus", [], self);
 
-	for(var i in result)
-		lines += i + "=" + result[i] + "\n";
+	for (var i in result)
+		lines += (lines != "" ? "\n" : "") + i + "=" + result[i];
 
 	console.log(lines);											// Clients expect to get the results through their stdin!!!
 	});
 
-}
+var s = function(str)
+	{
+	return " " + str;
+	}
 
-var logger = new Logger();
+}
 
 fibrous.run( function()
 	{
-	//logger.setOptions({labels: logger.ERROR, levels: logger.ERROR});
-
 	var spm = new SPM();
 	spm.sync.start();
 	}, function(err, data) { } );
