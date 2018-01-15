@@ -1,3 +1,6 @@
+0.8.1  Alpha Centauri (developer-pre-alpha)
+    * User interface improved
+
 0.8.0  Alpha Centauri (developer-pre-alpha)
     * Service registry improved.
     * Selecting unsecure/secure communication channel for provided/required services automated.
