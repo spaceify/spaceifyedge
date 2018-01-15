@@ -6914,6 +6914,26 @@ self.show = function(elements, status)
 		}
 	}
 
+self.isVisible = function(id)
+	{
+	var status = false;
+	var elem = document.getElementById(id);
+
+	if (!elem)
+		return false;
+
+	if (typeof elem.style.display !== "undefined")
+		{ // initial value: inline, completely removed: none, inherit: ?
+		status = (elem.style.display != "" && elem.style.display != "none" ? true : false);
+		}
+	else if (typeof elem.style.visibility !== "undefined")
+		{ // initial value: visible, is invisible: hidden, inherit: ?, collapse: applies only to tables = hidden for other elements
+		status = (elem.style.visibility != "" && elem.style.visibility != "hidden" ? true : false);
+		}
+
+	return status;
+	}
+
 self.empty = function(ids)
 	{
 	var i, ids = ids.split(","), element;
@@ -6974,6 +6994,47 @@ self.append = function(id, content)
 			element.appendChild(content);
 		}
 
+	}
+
+self.getPosition = function(el)
+	{
+	// Adapted from:
+	//	Get an Element's Position Using JavaScript, by kirupa | 16 March 2016
+	//	https://www.kirupa.com/html5/get_element_position_using_javascript.htm
+	var xScroll, yScroll;
+	var element, position = { x: 0, y: 0, set: false };
+
+	if (typeof el == "string")
+		element = document.getElementById(el);
+	else
+		element = el;
+
+	while (element)
+		{
+		if (element.tagName == "BODY")
+			{
+			// deal with browser quirks with body/window/document and page scroll
+			xScroll = element.scrollLeft || document.documentElement.scrollLeft;
+			yScroll = element.scrollTop || document.documentElement.scrollTop;
+
+			position.x += (element.offsetLeft - xScroll + element.clientLeft);
+			position.y += (element.offsetTop - yScroll + element.clientTop);
+
+			position.set = true;
+			}
+		else
+			{
+			// for all other non-BODY elements
+			position.x += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+			position.y += (element.offsetTop - element.scrollTop + element.clientTop);
+
+			position.set = true;
+			}
+
+		element = element.offsetParent;
+		}
+
+	return position;
 	}
 
 }
@@ -7328,7 +7389,7 @@ self.loadAppstorePage = function(mode)
 	var sp_page;
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
-	
+
 	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
@@ -7440,7 +7501,7 @@ self.renderTile = function(manifest, callback)
 			}
 
 		id = "iconimage_" + manifest.unique_name.replace("/", "_");
-		
+
 		tile = window.spetiles[TILE];
 		tile = tile.replace("::id", id);
 		tile = tile.replace("::sp_src", sp_host + sp_path);
@@ -7494,6 +7555,52 @@ var removeApplication = function(manifest)
 self.getApplications = function()
 	{
 	return applications;
+	}
+
+	// POPUPS -- -- -- -- -- -- -- -- -- -- //
+self.showPopup = function(id, status)
+	{
+	var n, nodes, popup, isVisible;
+
+	if (!(popup = document.getElementById(id)))
+		return false;
+
+	isVisible = spdom.isVisible(id);
+
+	if (isVisible)																					// If already open, close all child elements
+		{
+		nodes = popup.childNodes;
+
+		for (n = 0; n < nodes.length; n++)
+			{
+			if (typeof nodes[n].id != "undefined")
+				spdom.show(nodes[n].id, false);
+			}
+		}
+
+	spdom.show(id, status);
+
+	return true;
+	}
+
+self.showMenu = function()
+	{
+	var btn_menu, popup_menu, position;
+
+	btn_menu = document.getElementById("btn_menu");
+	position = spdom.getPosition(btn_menu);
+
+	var isOpen = self.showPopup("popups", true);
+
+	if (isOpen)
+		{
+		popup_menu = document.getElementById("popup_menu");
+
+		popup_menu.style.top = (position.y /*+ btn_menu.offsetHeight*/) + "px";
+		popup_menu.style.left = (position.x + btn_menu.offsetWidth - 200) + "px";
+
+		spdom.show("popup_menu", true);
+		}
 	}
 
 }

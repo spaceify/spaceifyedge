@@ -68,6 +68,8 @@
 				spdom.show("adminUtilities, adminUtilitiesHeader", true);
 				spdom.show("edgeBody", true);
 
+				showGreeting();
+
 				core.setEventListeners(	[
 					config.EVENT_SPACELET_INSTALLED,
 					config.EVENT_SPACELET_REMOVED,
@@ -93,34 +95,46 @@
 
 			sam.isAdminLoggedIn(this, function(status)
 				{
-				spdom.show("adminlogout", (status ? true : false));
+				spdom.show("adminlogout, adminlogoutsep", (status ? true : false));
 				});
 			});
 
 			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
 		function spaceletInstalled(result, connObj, callback)
 			{
+			showGreeting();
+
 			renderTile(result.manifest);
+
 			spdom.show("spacelet, spacelet_header", true);
+
 			callback(null, true);
 			}
 
 		function spaceletRemoved(result, connObj, callback)
 			{
+			showGreeting();
+
 			net.removeTile("spacelet", result.manifest);
-			
+
 			callback(null, true);
 			}
 
 		function sandboxedInstalled(result, connObj, callback)
 			{
+			showGreeting();
+
 			renderTile(result.manifest);
+
 			spdom.show("sandboxed, sandboxed_header", true);
+
 			callback(null, true);
 			}
 
 		function sandboxedRemoved(result, connObj, callback)
 			{
+			showGreeting();
+
 			net.removeTile("sandboxed", result.manifest);
 
 			callback(null, true);
@@ -128,13 +142,19 @@
 
 		function sandboxedDebianInstalled(result, connObj, callback)
 			{
+			showGreeting();
+
 			renderTile(result.manifest);
+
 			spdom.show("sandboxed_debian, sandboxed_debian_header", true);
+
 			callback(null, true);
 			}
 
 		function sandboxedDebianRemoved(result, connObj, callback)
 			{
+			showGreeting();
+
 			net.removeTile("sandboxed_debian", result.manifest);
 
 			callback(null, true);
@@ -142,13 +162,19 @@
 
 		function nativeDebianInstalled(result, connObj, callback)
 			{
+			showGreeting();
+
 			renderTile(result.manifest);
+
 			spdom.show("native_debian, native_debian_header", true);
+
 			callback(null, true);
 			}
 
 		function nativeDebianRemoved(result, connObj, callback)
 			{
+			showGreeting();
+
 			net.removeTile("native_debian", result.manifest);
 
 			callback(null, true);
@@ -171,16 +197,41 @@
 					net.loadAppstorePage();
 				});
 			}
+
+		function showGreeting()
+			{
+			var apps = net.getApplications();
+
+			if (apps.spacelet_count == 0 && apps.sandboxed_count == 0 && apps.sandboxed_debian_count == 0 && apps.native_debian_count == 0)
+				spdom.show("greeting", true);
+			else
+				spdom.show("greeting", false);
+			}
+
+		window.addEventListener("resize", function(e)
+			{
+			net.showPopup("popups", false);
+			});
+
+		window.addEventListener('scroll', function(e)
+			{
+			net.showPopup("popups", false);
+			});
 		</script>
 	</head>
 
 	<body id="edgeBody" style="display: none;">
 
 		<div class="topBar">
-			<a class="topBarLogoLink" routerLink="/intro"><img spe_src="images/icon-80p.png" alt="" /></a>
-			<div class="topBarLogoText">Spaceify Edge</div>
-			<a class="topBarPageLink" onclick="loadAppstorePage();"><img spe_src="images/settings.png" alt="" data-language="title>global.open_appstore" /></a>
-			<a class="topBarPageLink" id="adminlogout" onclick="net.adminLogOut(); return false;" style="display: none;"><img spe_src="images/logout.png" alt="" /></a>
+
+			<a class="topBarLogoLink" routerLink="/intro">
+				<img spe_src="images/icon-80p.png" alt="" />
+			</a>
+
+			<div class="topBarLogoText" data-language="global.edge"></div>
+
+			<img spe_src="images/menu.png" onclick="net.showMenu();" class="topBarPopMenu" id="btn_menu" alt="" data-language="title>global.show_menu" />
+
 		</div>
 
 		<div class="large_background_footer">&nbsp;</div>
@@ -225,7 +276,6 @@
 				<div id="native_debian" style="display: none;"></div>
 				<div class="breaker"></div>
 
-				<!-- UTILITIES -- -- -- -- -- -- -- -- -- -- -->
 				<!--
 				<h5 class="edgeH H3" id="userUtilitiesHeader" data-language="index.user_utilities" style="display: none;"></h5>
 				<div id="userUtilities" style="display: none;">
@@ -271,11 +321,45 @@
 				<div class="breaker"></div>
 				-->
 
+			<div id="greeting" style="width: 100%; margin: 0; text-align: center; display: none">
+				<span data-language="index.greeting"></span>
+
+				<img spe_src="images/box.png" width="250" height="133" alt="" style="display: block; margin: auto;">
+			</div>
+
 			</div>
 
 		</div>
 
 		<iframe id="certIframe" src="" sp_src="-" class="edgeCertIframe" scrolling="no" frameborder="0"></iframe>
+
+		<!-- POPUPS -- -- -- -- -- -- -- -- -- -- -- -->
+		<div id="popups" class="popups" onclick="net.showPopup('popups', false);" style="display: none;">
+
+			<!-- MENU -- -- -- -- -- -- -- -- -- -- -- -->
+			<div id="popup_menu" class="popup_menu" style="display: none;">
+
+				<span class="popup_menu_row">
+					<a onclick="loadAppstorePage();">
+						<img spe_src="images/settings.png" alt="" />
+						<span data-language="global.open_appstore"></span>
+					</a>
+				</span>
+				<div class="breaker"></div>
+
+				<div id="adminlogoutsep" class="popup_menu_separator" style="display: none;"></div>
+
+				<span id="adminlogout" class="popup_menu_row separator" style="display: none;">
+					<a onclick="net.adminLogOut();">
+						<img spe_src="images/logout.png" alt="" />
+						<span data-language="index.logout"></span>
+					</a>
+				</span>
+				<div class="breaker"></div>
+
+			</div>
+
+		</div>
 
 		<div id="footer" class="footer">
 			<div class="footerContentLeft">

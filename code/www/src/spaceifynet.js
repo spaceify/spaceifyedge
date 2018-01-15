@@ -149,7 +149,7 @@ self.loadAppstorePage = function(mode)
 	var sp_page;
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
-	
+
 	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
@@ -261,7 +261,7 @@ self.renderTile = function(manifest, callback)
 			}
 
 		id = "iconimage_" + manifest.unique_name.replace("/", "_");
-		
+
 		tile = window.spetiles[TILE];
 		tile = tile.replace("::id", id);
 		tile = tile.replace("::sp_src", sp_host + sp_path);
@@ -315,6 +315,52 @@ var removeApplication = function(manifest)
 self.getApplications = function()
 	{
 	return applications;
+	}
+
+	// POPUPS -- -- -- -- -- -- -- -- -- -- //
+self.showPopup = function(id, status)
+	{
+	var n, nodes, popup, isVisible;
+
+	if (!(popup = document.getElementById(id)))
+		return false;
+
+	isVisible = spdom.isVisible(id);
+
+	if (isVisible)																					// If already open, close all child elements
+		{
+		nodes = popup.childNodes;
+
+		for (n = 0; n < nodes.length; n++)
+			{
+			if (typeof nodes[n].id != "undefined")
+				spdom.show(nodes[n].id, false);
+			}
+		}
+
+	spdom.show(id, status);
+
+	return true;
+	}
+
+self.showMenu = function()
+	{
+	var btn_menu, popup_menu, position;
+
+	btn_menu = document.getElementById("btn_menu");
+	position = spdom.getPosition(btn_menu);
+
+	var isOpen = self.showPopup("popups", true);
+
+	if (isOpen)
+		{
+		popup_menu = document.getElementById("popup_menu");
+
+		popup_menu.style.top = (position.y /*+ btn_menu.offsetHeight*/) + "px";
+		popup_menu.style.left = (position.x + btn_menu.offsetWidth - 200) + "px";
+
+		spdom.show("popup_menu", true);
+		}
 	}
 
 }
