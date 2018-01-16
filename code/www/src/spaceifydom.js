@@ -68,8 +68,13 @@ self.empty = function(ids)
 
 self.remove = function(parentId, id)
 	{
-	var parent = document.getElementById(parentId);
-	var element = document.getElementById(id);
+	var parent, element;
+
+	if (!(parent = document.getElementById(parentId)))
+		return;
+
+	if (!(element = document.getElementById(id)))
+		return;
 
 	parent.removeChild(element);
 	}

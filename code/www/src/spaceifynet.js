@@ -31,7 +31,6 @@ var WWW_PORT_SECURE = 443;
 
 var TILE = "tile";
 var APPTILE = "apptile";
-var APPTILE_ = APPTILE + "_";
 
 	// USER INTERFACE -- -- -- -- -- -- -- -- -- -- //
 self.showLoading = function(show)
@@ -39,7 +38,7 @@ self.showLoading = function(show)
 	if (show)
 		{
 		if (showLoadingInstances == 0)
-			spdom.show([{ id: "loading", status: "block" }]);
+			spdom.show("loading", true);
 
 		showLoadingInstances++;
 		}
@@ -48,7 +47,7 @@ self.showLoading = function(show)
 		showLoadingInstances = Math.max(0, --showLoadingInstances);
 
 		if (showLoadingInstances == 0)
-			spdom.show([{ id: "loading", status: "none" }]);
+			spdom.show("loading", false);
 		}
 	}
 
@@ -203,7 +202,7 @@ self.showInstalledApplications = function(callback)
 self.renderTile = function(manifest, callback)
 	{
 	var element, query;
-	var sp_port, host, sp_host, spe_host, sp_path, icon, id, tile, element;
+	var sp_port, host, sp_host, spe_host, sp_path, icon, apptile_id, icon_id, tile, element;
 
 	if (manifest.hasTile)																			// Application supplies its own tile when its running
 		{
@@ -226,13 +225,12 @@ self.renderTile = function(manifest, callback)
 
 			sp_path = config.TILEFILE;
 
-			id = APPTILE_ + manifest.unique_name.replace("/", "_");
+			apptile_id = makeAppTileId(manifest.unique_name);
 
-			tile = window.spetiles[APPTILE];
-			tile = tile.replace("::id", id);
-
-			element = document.createElement("div");
-			element.innerHTML = tile;
+			element = document.createElement("iframe");
+			element.id = apptile_id;
+			element.frameborder = "0";
+			element.className = "edgeTile";
 			spdom.append(manifest.type, element);
 
 			query = {};
@@ -241,7 +239,7 @@ self.renderTile = function(manifest, callback)
 			query.sp_path = encodeURIComponent(sp_path);
 			query.spe_host = encodeURIComponent(spe_host);
 
-			element = document.getElementById(id);
+			element = document.getElementById(apptile_id);
 			element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
 
 			callback();
@@ -260,18 +258,21 @@ self.renderTile = function(manifest, callback)
 			sp_path = "images/default_icon-128p.png";
 			}
 
-		id = "iconimage_" + manifest.unique_name.replace("/", "_");
+		apptile_id = makeAppTileId(manifest.unique_name);
+		icon_id = "icon_" + apptile_id;
 
 		tile = window.spetiles[TILE];
-		tile = tile.replace("::id", id);
+		tile = tile.replace("::icon_id", icon_id);
 		tile = tile.replace("::sp_src", sp_host + sp_path);
 		tile = tile.replace("::manifest.name", manifest.name);
 		tile = tile.replace("::manifest.developer.name", manifest.developer.name);
 
 		element = document.createElement("div");
+		element.id = apptile_id;
+		element.className = "edgeTile";
 		element.innerHTML = tile;
 		spdom.append(manifest.type, element);
-		spaceifyLoader.loadData(document.getElementById(id), {}, callback);
+		spaceifyLoader.loadData(document.getElementById(icon_id), {}, callback);
 		}
 
 	addApplication(manifest);
@@ -279,13 +280,11 @@ self.renderTile = function(manifest, callback)
 
 self.removeTile = function(type, manifest)
 	{
-	var id = manifest.unique_name.replace(/\//, "_");
-
 	removeApplication(manifest);
 
-	spdom.show(type + ", " + type + "_header", (applications[type + "_count"] > 0 ? "block" : "none"));
+	spdom.show(type + ", " + type + "_header", (applications[type + "_count"] > 0 ? true : false));
 
-	spdom.remove(type, APPTILE_ + id);
+	spdom.remove(type, makeAppTileId(manifest.unique_name));
 	}
 
 var addApplication = function(manifest)
@@ -315,6 +314,11 @@ var removeApplication = function(manifest)
 self.getApplications = function()
 	{
 	return applications;
+	}
+
+var makeAppTileId = function(unique_name)
+	{
+	 return APPTILE + "_" + unique_name.replace(/\//, "_");
 	}
 
 	// POPUPS -- -- -- -- -- -- -- -- -- -- //

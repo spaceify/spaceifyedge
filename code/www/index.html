@@ -102,90 +102,85 @@
 			// EXPOSED RPC METHODS -- -- -- -- -- -- -- -- -- -- //
 		function spaceletInstalled(result, connObj, callback)
 			{
-			showGreeting();
-
-			renderTile(result.manifest);
+			net.renderTile(result.manifest, function(){ });
 
 			spdom.show("spacelet, spacelet_header", true);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function spaceletRemoved(result, connObj, callback)
 			{
-			showGreeting();
-
 			net.removeTile("spacelet", result.manifest);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function sandboxedInstalled(result, connObj, callback)
 			{
-			showGreeting();
-
-			renderTile(result.manifest);
+			net.renderTile(result.manifest, function(){ });
 
 			spdom.show("sandboxed, sandboxed_header", true);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function sandboxedRemoved(result, connObj, callback)
 			{
-			showGreeting();
-
 			net.removeTile("sandboxed", result.manifest);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function sandboxedDebianInstalled(result, connObj, callback)
 			{
-			showGreeting();
-
-			renderTile(result.manifest);
+			net.renderTile(result.manifest, function(){ });
 
 			spdom.show("sandboxed_debian, sandboxed_debian_header", true);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function sandboxedDebianRemoved(result, connObj, callback)
 			{
-			showGreeting();
-
 			net.removeTile("sandboxed_debian", result.manifest);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function nativeDebianInstalled(result, connObj, callback)
 			{
-			showGreeting();
-
-			renderTile(result.manifest);
+			net.renderTile(result.manifest, function(){ });
 
 			spdom.show("native_debian, native_debian_header", true);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 		function nativeDebianRemoved(result, connObj, callback)
 			{
-			showGreeting();
-
 			net.removeTile("native_debian", result.manifest);
+
+			showGreeting();
 
 			callback(null, true);
 			}
 
 			// -- -- -- -- -- -- -- -- -- -- //
-		function renderTile(manifest)
-			{
-			net.renderTile(manifest, function(){ });
-			}
-
 		function loadAppstorePage()
 			{
 			var url = "https://" + window.location.hostname + "/";
