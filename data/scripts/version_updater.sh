@@ -23,9 +23,9 @@ databaseVersion=$(echo $versions | awk -F : '{print $6}')
 previousEdgeVersion=$( grep -m 1 "(\(.*\))" debian/changelog | sed 's/.*(//g' | sed 's/).*//g')
 
 if [ "$edgeVersion" = "$previousEdgeVersion" ]; then
-	printf " > Version $previousEdgeVersion remains the same"
+	printf " > using current $previousEdgeVersion version"
 else
-	printf " > Version $previousEdgeVersion updated to $edgeVersion"
+	printf " > updating version $previousEdgeVersion to $edgeVersion"
 
 	versionInfo=$( LANG=EN_US date +"%a, %d %b %Y %H:%M:%S %z" )
 

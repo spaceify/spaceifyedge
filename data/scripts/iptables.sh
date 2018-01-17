@@ -13,7 +13,8 @@ start_spaceify="# Added by Spaceify"
 end_spaceify="# Added by Spaceify ends"
 comm_out_spaceify="# Commented out by Spaceify: "
 
-eth=$(</var/lib/spaceify/data/interfaces/ethernet)
+eth=$(< /var/lib/spaceify/data/interfaces/ethernet)
+wlan=$(< /var/lib/spaceify/data/interfaces/wlan)
 #appman_port=$(cat /var/lib/spaceify/code/config.json | grep "APPMAN_PORT_SECURE" | sed 's/[^0-9]*//g')
 
 # ----------
@@ -42,7 +43,7 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 
 	http5="\/sbin\/iptables -t nat -N Spaceify-HTTP-Nat-Masq"
 	http6="\/sbin\/iptables -t nat -A POSTROUTING -j Spaceify-HTTP-Nat-Masq"
-	http7="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE"
+	http7="\/sbin\/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o ${eth} -j MASQUERADE"
 
 		# - create HTTPS filter chain, NAT chain and redirect chain - #
 	#https1="\/sbin\/iptables -t nat -N Spaceify-HTTPS-Nat-Redir"
@@ -52,7 +53,7 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 
 	https5="\/sbin\/iptables -t nat -N Spaceify-HTTPS-Nat-Masq"
 	https6="\/sbin\/iptables -t nat -A POSTROUTING -j Spaceify-HTTPS-Nat-Masq"
-	https7="\/sbin\/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o "${eth}" -j MASQUERADE"
+	https7="\/sbin\/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o ${eth} -j MASQUERADE"
 
 		# - Docker container connection chains - #
 	docker1="\/sbin\/iptables -t nat -N Spaceify-Nat-Connections"
@@ -65,8 +66,8 @@ if [ "$1" == "rclocal" ] || [ "$1" == "add" ]; then
 	docker7="\/sbin\/iptables -t filter -A FORWARD -j Spaceify-Filter-Connections"
 
 		# - FORWARDING - #
-	forward1="\/sbin\/iptables -A FORWARD -i "${eth}" -o "${wlan}" -m state --state RELATED,ESTABLISHED -j ACCEPT"
-	forward2="\/sbin\/iptables -A FORWARD -i "${wlan}" -o "${eth}" -j ACCEPT"
+	forward1="\/sbin\/iptables -A FORWARD -i ${eth} -o ${wlan} -m state --state RELATED,ESTABLISHED -j ACCEPT"
+	forward2="\/sbin\/iptables -A FORWARD -i ${wlan} -o ${eth} -j ACCEPT"
 
 		# - Appication Manager rules - accept connections only from localhost - #
 	#appman1="\/sbin\/iptables -A INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT"
@@ -168,8 +169,8 @@ elif [ "$1" == "delete" ]; then
 	/sbin/iptables -t filter -X Spaceify-Filter-Connections > /dev/null 2>&1 || true
 
 		# - -- Delete FORWARDING rules -- - #
-	/sbin/iptables -D FORWARD -i $eth -o $wlan -m state --state RELATED,ESTABLISHED -j ACCEPT
-	/sbin/iptables -D FORWARD -i $wlan -o $eth -j ACCEPT
+	/sbin/iptables -D FORWARD -i $eth -o $wlan -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+	/sbin/iptables -D FORWARD -i $wlan -o $eth -j ACCEPT > /dev/null 2>&1 || true
 
 		# - -- Delete Application Manager rules -- - #
 	#/sbin/iptables -D INPUT -p tcp -s localhost --dport $appman_port -j ACCEPT > /dev/null 2>&1 || true
@@ -195,7 +196,7 @@ elif [ "$1" == "delete" ]; then
 
 #	/sbin/iptables -t nat -N Spaceify-HTTP-Nat-Masq
 #	/sbin/iptables -t nat -A POSTROUTING -j Spaceify-HTTP-Nat-Masq
-#	/sbin/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o "${eth}" -j MASQUERADE
+#	/sbin/iptables -t nat -A Spaceify-HTTP-Nat-Masq -o ${eth} -j MASQUERADE
 
 #		# - ++ Add HTTPS filter chain, NAT chain and redirect chain ++ - #
 #	#/sbin/iptables -t nat -N Spaceify-HTTPS-Nat-Redir
@@ -205,7 +206,7 @@ elif [ "$1" == "delete" ]; then
 
 #	/sbin/iptables -t nat -N Spaceify-HTTPS-Nat-Masq
 #	/sbin/iptables -t nat -A POSTROUTING -j Spaceify-HTTPS-Nat-Masq
-#	/sbin/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o "${eth}" -j MASQUERADE
+#	/sbin/iptables -t nat -A Spaceify-HTTPS-Nat-Masq -o ${eth} -j MASQUERADE
 
 #		# - ++ Add Docker container connection chains ++ - #
 #	/sbin/iptables -t nat -N Spaceify-Nat-Connections

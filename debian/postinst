@@ -22,10 +22,10 @@ comm_out_spaceify="# Commented out by Spaceify: "
 
 . /var/lib/spaceify/data/scripts/input.sh
 
-eth=$(</var/lib/spaceify/data/interfaces/ethernet)
-wlan=$(</var/lib/spaceify/data/interfaces/wlan)
-is_internal=$(</var/lib/spaceify/data/interfaces/is_internal)
-# edge_name=$(</var/lib/spaceify/data/db/edge_name)
+eth=$(< /var/lib/spaceify/data/interfaces/ethernet)
+wlan=$(< /var/lib/spaceify/data/interfaces/wlan)
+is_internal=$(< /var/lib/spaceify/data/interfaces/is_internal)
+# edge_name=$(< /var/lib/spaceify/data/db/edge_name)
 
 # ----------
 # ----------
@@ -50,7 +50,7 @@ sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d
 
 sed -i "/${wlan}/,/^$/s/^/${comm_out_spaceify}&/g" /etc/network/interfaces					# comment out existing wlan (range: first line with string $wlan until empty line)
 
-wlan_conf=$(</etc/network/interfaces)
+wlan_conf=$(< /etc/network/interfaces)
 wlan_conf="${wlan_conf}\n\n${start_spaceify}\n"												# append new configuration
 wlan_conf="${wlan_conf}auto ${wlan}\n"
 wlan_conf="${wlan_conf}iface ${wlan} inet static\n"
@@ -64,7 +64,7 @@ printf "$wlan_conf" > /etc/network/interfaces
 sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/default/docker > /dev/null 2>&1 || true	# remove Spaceify's previous entries
 
 if [ -s /etc/default/docker ]; then
-	docker_conf=$(</etc/default/docker)
+	docker_conf=$(< /etc/default/docker)
 else
 	docker_conf=""
 fi
@@ -82,7 +82,7 @@ printf "$docker_conf" > /etc/default/docker
 
 sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/sysctl.conf > /dev/null 2>&1 || true
 
-sysctl=$(</etc/sysctl.conf)
+sysctl=$(< /etc/sysctl.conf)
 sysctl=$( echo "$sysctl" | sed "s/.*net.ipv4.ip_forward.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
 sysctl="${sysctl}\n\n${start_spaceify}\nnet.ipv4.ip_forward=1\n${end_spaceify}"				# append new value
 printf "$sysctl" > /etc/sysctl.conf
@@ -100,7 +100,7 @@ if [[ "$is_internal" -eq "1" ]]; then														# configure
 	hostap="${hostap}${end_spaceify}"
 	printf "$hostap" > /etc/hostapd/hostapd_spaceify.conf
 
-	dhostapd=$(</etc/default/hostapd)
+	dhostapd=$(< /etc/default/hostapd)
 	dhostapd=$( echo "$dhostapd" | sed "s/.*DAEMON_CONF.*=.*/${comm_out_spaceify}&/" )		# comment out original entry
 	dhostapd="${dhostapd}\n\n${start_spaceify}\nDAEMON_CONF=/etc/hostapd/hostapd_spaceify.conf\n${end_spaceify}"	# append new value
 	printf "$dhostapd" > /etc/default/hostapd
@@ -117,7 +117,7 @@ fi
 
 #sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/monit/monitrc							# remove Spaceify's previous entries
 
-#monit=$(</etc/monit/monitrc)
+#monit=$(< /etc/monit/monitrc)
 #monit="${monit}\n\n${start_spaceify}\n"													# append new configuration
 #monit="${monit}include /var/lib/spaceify/monit/spaceify.conf\n"
 #monit="${monit}${end_spaceify}\n"
@@ -203,10 +203,10 @@ npm install npm -g
 npm cache clear -f
 npm install -g n
 n 6.2.2
-npm uninstall node-gyp
-npm install -g node-gyp
-npm uninstall bufferutil
-npm install -g bufferutil
+sudo npm uninstall node-gyp
+sudo npm install --unsafe-perm -g node-gyp
+sudo npm uninstall bufferutil
+sudo npm install --unsafe-perm -g bufferutil
 
 	# ----- Add custom iptables chains for Spaceify ----- #
 
@@ -278,7 +278,6 @@ chmod 0755 /etc/cron.hourly/spaceifylog > /dev/null 2>&1 || true							# Check l
 
 printf "\n\e[4mInstalling Node.js packages\e[0m\n\n"
 
-npm install -g node-gyp
 chown -R _spaceify:_spaceify /var/lib/spaceify/code
 sudo su - _spaceify -c "cd /var/lib/spaceify/code && npm install"
 
@@ -315,7 +314,7 @@ if [ -f "$if_path/$image_name_tar" ]; then
 	# # # Import
 	# # # Use existing image
 
-	printf "\n\e[32mExisting, compatible image was found. Importing the image.\e[0m\n"
+	printf "\n\e[32mCompatible image found. Importing it.\e[0m\n"
 	cat "$if_path/$image_name_tar" | sudo docker import - $distro_image_name > /dev/null
 
 else
