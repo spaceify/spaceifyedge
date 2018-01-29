@@ -56,6 +56,18 @@ self.getService = function(isSecure)
 	return _service;
 	}
 
+self.getServiceById = function(connectionId)
+	{
+	var _service_ = null;
+
+	if (service && service.connectionExists(connectionId))
+		_service_ = service;
+	else if (secureService && secureService.connectionExists(connectionId))
+		_service_ = secureService;
+
+	return _service_;
+	}
+
 self.closeServiceConnection = function(isSecure)
 	{
 	if (isSecure === false || typeof isSecure == "undefined")

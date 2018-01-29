@@ -1,6 +1,6 @@
 # Spaceify
 
-**Version 0.8.1 Alpha Centauri (developer-pre-alpha)**
+**Version 0.8.2 Alpha Centauri (developer-pre-alpha)**
 
 [Spaceify](https://spaceify.org/) is a client-edge-server ecosystem that seamlessly integrates your physical space with the web. With Spaceify you can give web apps controlled access to resources such as big screens, sensors and lighting in your space.
 
@@ -92,7 +92,7 @@ sudo ./build_package.sh
 
 3.1. Package should reside now in */tmp/build*. Let’s install it:
 ```
-sudo dpkg -i /tmp/build/spaceify_0.8.1_all.deb
+sudo dpkg -i /tmp/build/spaceify_0.8.2_all.deb
 sudo apt-get install -f
 ```
 

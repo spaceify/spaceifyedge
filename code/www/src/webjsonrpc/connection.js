@@ -149,6 +149,11 @@ self.getIsSecure = function()
 	return _connection.getIsSecure ? _connection.getIsSecure() : null;
 	}
 
+self.connectionExists = function(connectionId)
+	{
+	return _connection.connectionExists ? _connection.connectionExists(connectionId) : false;
+	}
+
 self.setConnectionListener = function(listener)
 	{
 	if(_connection.setConnectionListener)

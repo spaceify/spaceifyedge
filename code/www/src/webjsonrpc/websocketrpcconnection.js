@@ -80,21 +80,6 @@ self.getConnection = function()
 	};
 
 // Inherited methods
-self.exposeRpcMethod = function(name, object, method)
-	{
-	communicator.exposeRpcMethod(name, object, method);
-	}
-
-self.exposeRpcMethodSync = function(name, object, method)
-	{
-	communicator.exposeRpcMethodSync(name, object, method);
-	}
-
-self.callRpc = function(method, params, object, listener)
-	{
-	return communicator.callRpc(method, params, object, listener, connection.getId());
-	}
-
 self.getIsOpen = function()
 	{
 	return connection.getIsOpen();
@@ -113,6 +98,26 @@ self.getPort = function()
 self.getId = function()
 	{
 	return connection.getId();
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return communicator.connectionExists(connectionId);
+	}
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
+	}
+
+self.callRpc = function(method, params, object, listener)
+	{
+	return communicator.callRpc(method, params, object, listener, connection.getId());
 	}
 
 // External event listeners

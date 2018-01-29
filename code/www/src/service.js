@@ -22,28 +22,28 @@ self.REQUIRED = 0;
 self.PROVIDED = 1;
 
 	// PRIVATE METHODS -- -- -- -- -- -- -- -- -- -- //
-var listenConnection = function(id)
+var listenConnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < connectionListeners.length; i++)
-		connectionListeners[i](id, service_name, self.getIsSecure());
+		connectionListeners[i](connectionId, service_name, self.getIsSecure());
 	}
 
-var listenDisconnection = function(id)
+var listenDisconnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < disconnectionListeners.length; i++)
-		disconnectionListeners[i](id, service_name, self.getIsSecure());
+		disconnectionListeners[i](connectionId, service_name, self.getIsSecure());
 	}
 
-var listenServerUp = function(id)
+var listenServerUp = function(serverId)
 	{
 	if(serverUpListener)
-		serverUpListener(id, service_name, self.getIsSecure());
+		serverUpListener(serverId, service_name, self.getIsSecure());
 	}
 
-var listenServerDown = function(id)
+var listenServerDown = function(serverId)
 	{
 	if(serverDownListener)
-		listenServerDown(id, service_name, self.getIsSecure());
+		listenServerDown(serverId, service_name, self.getIsSecure());
 	}
 
 	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
@@ -107,6 +107,11 @@ self.getIsSecure = function()
 self.getServiceName = function()
 	{
 	return service_name;
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return connection.connectionExists(connectionId);
 	}
 
 self.callRpc = function()

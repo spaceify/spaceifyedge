@@ -75,11 +75,6 @@ self.getServer = function()
 	}
 
 // Inherited methods
-self.getPort = function()
-	{
-	return webSocketServer.getPort();
-	}
-
 self.getIsOpen = function()
 	{
 	return webSocketServer.getIsOpen();
@@ -90,9 +85,19 @@ self.getIsSecure = function()
 	return webSocketServer.getIsSecure();
 	}
 
+self.getPort = function()
+	{
+	return webSocketServer.getPort();
+	}
+
 self.getId = function()
 	{
 	return webSocketServer.getId();
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return communicator.connectionExists(connectionId);
 	}
 
 self.exposeRpcMethod = function(name, object, method)
@@ -105,14 +110,14 @@ self.exposeRpcMethodSync = function(name, object, method)
 	communicator.exposeRpcMethodSync(name, object, method);
 	}
 
-self.nofifyAll = function(method, params)
-	{
-	communicator.nofifyAll(method, params);
-	}
-
 self.callRpc = function()
 	{ // arguments contains a connection id!
 	communicator.callRpc.apply(this, arguments);
+	}
+
+self.nofifyAll = function(method, params)
+	{
+	communicator.nofifyAll(method, params);
 	}
 
 self.closeConnection = function(connectionId)

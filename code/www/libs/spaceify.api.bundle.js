@@ -1997,21 +1997,6 @@ self.getConnection = function()
 	};
 
 // Inherited methods
-self.exposeRpcMethod = function(name, object, method)
-	{
-	communicator.exposeRpcMethod(name, object, method);
-	}
-
-self.exposeRpcMethodSync = function(name, object, method)
-	{
-	communicator.exposeRpcMethodSync(name, object, method);
-	}
-
-self.callRpc = function(method, params, object, listener)
-	{
-	return communicator.callRpc(method, params, object, listener, connection.getId());
-	}
-
 self.getIsOpen = function()
 	{
 	return connection.getIsOpen();
@@ -2030,6 +2015,26 @@ self.getPort = function()
 self.getId = function()
 	{
 	return connection.getId();
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return communicator.connectionExists(connectionId);
+	}
+
+self.exposeRpcMethod = function(name, object, method)
+	{
+	communicator.exposeRpcMethod(name, object, method);
+	}
+
+self.exposeRpcMethodSync = function(name, object, method)
+	{
+	communicator.exposeRpcMethodSync(name, object, method);
+	}
+
+self.callRpc = function(method, params, object, listener)
+	{
+	return communicator.callRpc(method, params, object, listener, connection.getId());
 	}
 
 // External event listeners
@@ -2176,28 +2181,28 @@ self.REQUIRED = 0;
 self.PROVIDED = 1;
 
 	// PRIVATE METHODS -- -- -- -- -- -- -- -- -- -- //
-var listenConnection = function(id)
+var listenConnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < connectionListeners.length; i++)
-		connectionListeners[i](id, service_name, self.getIsSecure());
+		connectionListeners[i](connectionId, service_name, self.getIsSecure());
 	}
 
-var listenDisconnection = function(id)
+var listenDisconnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < disconnectionListeners.length; i++)
-		disconnectionListeners[i](id, service_name, self.getIsSecure());
+		disconnectionListeners[i](connectionId, service_name, self.getIsSecure());
 	}
 
-var listenServerUp = function(id)
+var listenServerUp = function(serverId)
 	{
 	if(serverUpListener)
-		serverUpListener(id, service_name, self.getIsSecure());
+		serverUpListener(serverId, service_name, self.getIsSecure());
 	}
 
-var listenServerDown = function(id)
+var listenServerDown = function(serverId)
 	{
 	if(serverDownListener)
-		listenServerDown(id, service_name, self.getIsSecure());
+		listenServerDown(serverId, service_name, self.getIsSecure());
 	}
 
 	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
@@ -2261,6 +2266,11 @@ self.getIsSecure = function()
 self.getServiceName = function()
 	{
 	return service_name;
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return connection.connectionExists(connectionId);
 	}
 
 self.callRpc = function()
@@ -2596,6 +2606,34 @@ self.keepServerUp = function(val)
 	keepServerUp = (typeof val == "boolean" ? val : false);
 	}
 
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// BOTH SIDES -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+self.getServiceById = function(connectionId)
+	{
+	var i, names, service;
+
+	names = Object.keys(provided);
+	for (i = 0; i < names.length; i++)
+		{
+		if ((service = provided[names[i]].getServiceById(connectionId)))
+			return service;
+		}
+
+	names = Object.keys(required);
+	for (i = 0; i < names.length; i++)
+		{
+		if ((service = required[names[i]].getServiceById(connectionId)))
+			return service;
+		}
+
+	return null;
+	}
+
 }
 
 if (true)
@@ -2662,6 +2700,18 @@ self.getService = function(isSecure)
 		}
 
 	return _service;
+	}
+
+self.getServiceById = function(connectionId)
+	{
+	var _service_ = null;
+
+	if (service && service.connectionExists(connectionId))
+		_service_ = service;
+	else if (secureService && secureService.connectionExists(connectionId))
+		_service_ = secureService;
+
+	return _service_;
 	}
 
 self.closeServiceConnection = function(isSecure)
@@ -4493,6 +4543,11 @@ self.getIsSecure = function()
 	return _connection.getIsSecure ? _connection.getIsSecure() : null;
 	}
 
+self.connectionExists = function(connectionId)
+	{
+	return _connection.connectionExists ? _connection.connectionExists(connectionId) : false;
+	}
+
 self.setConnectionListener = function(listener)
 	{
 	if(_connection.setConnectionListener)
@@ -5653,11 +5708,6 @@ self.getServer = function()
 	}
 
 // Inherited methods
-self.getPort = function()
-	{
-	return webSocketServer.getPort();
-	}
-
 self.getIsOpen = function()
 	{
 	return webSocketServer.getIsOpen();
@@ -5668,9 +5718,19 @@ self.getIsSecure = function()
 	return webSocketServer.getIsSecure();
 	}
 
+self.getPort = function()
+	{
+	return webSocketServer.getPort();
+	}
+
 self.getId = function()
 	{
 	return webSocketServer.getId();
+	}
+
+self.connectionExists = function(connectionId)
+	{
+	return communicator.connectionExists(connectionId);
 	}
 
 self.exposeRpcMethod = function(name, object, method)
@@ -5683,14 +5743,14 @@ self.exposeRpcMethodSync = function(name, object, method)
 	communicator.exposeRpcMethodSync(name, object, method);
 	}
 
-self.nofifyAll = function(method, params)
-	{
-	communicator.nofifyAll(method, params);
-	}
-
 self.callRpc = function()
 	{ // arguments contains a connection id!
 	communicator.callRpc.apply(this, arguments);
+	}
+
+self.nofifyAll = function(method, params)
+	{
+	communicator.nofifyAll(method, params);
 	}
 
 self.closeConnection = function(connectionId)
@@ -6353,7 +6413,6 @@ var start = function(application_, options)
 			}
 		catch(err)
 			{
-console.log("+++++++++++++++++++++++++++", err);
 			initFail.sync(err);
 			}
 		}, function(err, data)
@@ -6471,6 +6530,34 @@ self.getRequiredService = function(service_name)
 self.getProvidedService = function(service_name)
 	{
 	return serviceInterface.getProvidedService(service_name);
+	}
+
+self.setDisconnectionListeners = function(service_name, listener)
+	{ // Get service, check its type before setting
+	var service;
+
+	if (typeof listener != "function")
+		return;
+
+	if ((service = serviceInterface.getProvidedService(service_name, false)))
+		{
+		if (!service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
+
+	if ((service = serviceInterface.getProvidedService(service_name, true)))
+		{
+		if (service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
+	}
+
+self.callRpcByConnectionId = function(connectionId, method, params, object, callback)
+	{
+	var service = serviceInterface.getServiceById(connectionId);
+
+	if (service)
+		service.callRpc(method, params, object, callback);
 	}
 
 }

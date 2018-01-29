@@ -305,6 +305,34 @@ self.keepServerUp = function(val)
 	keepServerUp = (typeof val == "boolean" ? val : false);
 	}
 
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// BOTH SIDES -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+	// -- -- -- -- -- -- -- -- -- -- //
+self.getServiceById = function(connectionId)
+	{
+	var i, names, service;
+
+	names = Object.keys(provided);
+	for (i = 0; i < names.length; i++)
+		{
+		if ((service = provided[names[i]].getServiceById(connectionId)))
+			return service;
+		}
+
+	names = Object.keys(required);
+	for (i = 0; i < names.length; i++)
+		{
+		if ((service = required[names[i]].getServiceById(connectionId)))
+			return service;
+		}
+
+	return null;
+	}
+
 }
 
 if (typeof exports !== "undefined")

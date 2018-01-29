@@ -192,7 +192,6 @@ var start = function(application_, options)
 			}
 		catch(err)
 			{
-console.log("+++++++++++++++++++++++++++", err);
 			initFail.sync(err);
 			}
 		}, function(err, data)
@@ -310,6 +309,34 @@ self.getRequiredService = function(service_name)
 self.getProvidedService = function(service_name)
 	{
 	return serviceInterface.getProvidedService(service_name);
+	}
+
+self.setDisconnectionListeners = function(service_name, listener)
+	{ // Get service, check its type before setting
+	var service;
+
+	if (typeof listener != "function")
+		return;
+
+	if ((service = serviceInterface.getProvidedService(service_name, false)))
+		{
+		if (!service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
+
+	if ((service = serviceInterface.getProvidedService(service_name, true)))
+		{
+		if (service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
+	}
+
+self.callRpcByConnectionId = function(connectionId, method, params, object, callback)
+	{
+	var service = serviceInterface.getServiceById(connectionId);
+
+	if (service)
+		service.callRpc(method, params, object, callback);
 	}
 
 }

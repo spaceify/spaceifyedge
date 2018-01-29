@@ -40,7 +40,7 @@
     "splash_certificate_action": "Install",
 
     "spacelets": "Spacelets",
-    "sandboxed": "Sandboxed",
+    "sandboxed": "Applications",
     "sandboxed debian": "Native Sandboxed",
     "native_debian": "Native",
     "user_utilities": "Utilities",
