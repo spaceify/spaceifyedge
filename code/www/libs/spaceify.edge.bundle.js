@@ -6589,7 +6589,7 @@ self.callRpcByConnectionId = function(connectionId, method, params, object, call
 	var service = serviceInterface.getServiceById(connectionId);
 
 	if (service)
-		service.callRpc(method, params, object, callback);
+		service.callRpc(method, params, object, callback, connectionId);
 	}
 
 }

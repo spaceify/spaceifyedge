@@ -1,5 +1,5 @@
 0.8.2  Alpha Centauri (developer-pre-alpha)
-    * New API methods: SpaceifyApplciation callRpcByConnectionId, setConnectionListeners, and setDisconnectionListeners.
+    * New API methods: SpaceifyApplication callRpcByConnectionId, setConnectionListeners, and setDisconnectionListeners.
 
 0.8.1  Alpha Centauri (developer-pre-alpha)
     * User interface improved
