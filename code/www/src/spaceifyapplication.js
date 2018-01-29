@@ -329,6 +329,18 @@ self.setDisconnectionListeners = function(service_name, listener)
 		if (service.getIsSecure())
 			service.setDisconnectionListener(listener);
 		}
+
+	if ((service = serviceInterface.getRequiredService(service_name, false)))
+		{
+		if (!service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
+
+	if ((service = serviceInterface.getRequiredService(service_name, true)))
+		{
+		if (service.getIsSecure())
+			service.setDisconnectionListener(listener);
+		}
 	}
 
 self.setConnectionListeners = function(service_name, listener)
