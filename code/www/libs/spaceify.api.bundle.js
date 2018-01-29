@@ -6552,6 +6552,26 @@ self.setDisconnectionListeners = function(service_name, listener)
 		}
 	}
 
+self.setConnectionListeners = function(service_name, listener)
+	{ // Get service, check its type before setting
+	var service;
+
+	if (typeof listener != "function")
+		return;
+
+	if ((service = serviceInterface.getProvidedService(service_name, false)))
+		{
+		if (!service.getIsSecure())
+			service.setConnectionListener(listener);
+		}
+
+	if ((service = serviceInterface.getProvidedService(service_name, true)))
+		{
+		if (service.getIsSecure())
+			service.setConnectionListener(listener);
+		}
+	}
+
 self.callRpcByConnectionId = function(connectionId, method, params, object, callback)
 	{
 	var service = serviceInterface.getServiceById(connectionId);
