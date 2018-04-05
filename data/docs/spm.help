@@ -1,5 +1,5 @@
   Usage: spm command [options] [package]
-  
+
   commands: help
             install
             list
@@ -13,7 +13,7 @@
             states
             stop
             version
-  
+
   options: authenticate | -a
            develop | -d
            force | -f
@@ -22,224 +22,224 @@
            sandboxed_debian | -SD
            native_debian | -n
            verbose | -v
-  
+
   package: URL, directory, zip archive, Spaceify registry, GitHub repository or unique_name
            (unique name of an application or a spacelet) depending of the command.
-  
+
   TAB key can be used for command line completion. Completion can be used for both commands
   and options. Double-tapping shows available commands or options for a command.
 @verbose
 %help%
   help [command]
-  
+
     Displays help text of the command. If command is not defined the whole
     help text is displayed.
-  
+
       spm help
 
       spm help install
 %%
 %version%
   version
-  
+
     Displays Spaceify edge version information.
 
       spm install
 %%
 %install%
   install [authenticate | -a, develop | -d, force | -f] package
-  
+
     Installs a package to the edge node.
-  
+
     The authenticate option can be used for authenticating to GitHub repository. The username
     and password will be prompted if this option is set.
-  
+
     With the develop option applications are installed to edge as develop mode applications.
     See the technical documentation in https://spaceify.org for more information about the
     develop mode.
-  
+
     The force option can be used to skip the security questions. Packages are installed
     without asking are the services they require allowed for them. Notice that the questions
     are not asked for the packages the packages require either.
     USE THIS OPTION ONLY IF YOU ARE SURE THE PACKAGES ARE SAFE.
-  
+
     The package can be a local directory, local or remote zip archive, GitHub repository or a
     unique name in the Spaceify registry. Path to a local package can be an absolute path to
     the file systen or a relative path to the current working directory. The spm install
     command can be used without a package defined. In this case the current working directory
-    is searched for the application directory. When loading remote zip archives any url can be
+    is searched for the application directory. When loading remote zip archives any URL can be
     given as long as the response is a valid zip archive. Packages from GitHub can be loaded
-    using html, git or clone url.
-  
+    using html, git or clone URL.
+
     Local directory or zip archive:
       spm install
       spm install <directory>
       spm install <zip archive>
-  
+
       Examples:
       spm install /home/galaxy/spacelets/star
       spm install /home/galaxy/spacelets/star.zip
-  
+
       spm install spacelets/star
       spm install spacelets/star.zip
-  
+
       spm install
-  
+
     Remote zip archive:
-      spm install <zip archive url>
-  
+      spm install <zip archive URL>
+
       Examples:
       spm install https://www.example.com/spacelets/star.zip
       spm install http://www.example.com/spacelets/star/?generate=zip
-  
+
     GitHub repository:
       spm install [https|git]://github.com/<user>/<repo>(.git)
       spm install authenticate [https|git]://github.com/<user>/<repo>(.git)
-  
+
       Examples:
       spm install https://github.com/spaceify/star
       spm install git://github.com/spaceify/star.git
       spm install https://github.com/spaceify/star.git
-  
+
     Spaceify registry
       spm install unique_name[@version]
-  
+
       Examples:
       spm install spaceify/star
       spm install spaceify/star@1.0.0
 %%
 %publish%
   publish [authenticate | -a] package
-  
+
     Publishes a package to the Spaceify registry (spaceify.org).
-  
+
     The authenticate option can be used for authenticating to GitHub repository. The username
     and password will be prompted if this option is set.
-  
+
     Only registered users can publish packages in the registry and username and password are
     prompted when publishing. Browse to spaceify.org/register.php to register as a user.
-  
+
     The package can be a local directory or zip archive or GitHub repository. Path to a local
     package can be an absolute path to the file systen or a relative path to the current
-    working directory. Packages from GitHub can be loaded using html, git or clone url.
-  
+    working directory. Packages from GitHub can be loaded using html, git or clone URL.
+
     Local directory or zip archive:
       spm publish <directory>
       spm publish <zip archive>
-  
+
       Examples:
       spm publish /home/galaxy/spacelets/star
       spm publish /home/galaxy/spacelets/star.zip
-  
+
       spm publish spacelets/star
       spm publish spacelets/star.zip
-  
+
     GitHub repository:
       spm publish [https|git]://github.com/<user>/<repo>(.git)
       spm authenticate publish [https|git]://github.com/<user>/<repo>(.git)
-  
+
       Examples:
       spm publish https://github.com/star/voyager.git
       spm publish authenticate https://github.com/star/voyager.git
 %%
 %source%
   source [authenticate | -a] package
-  
+
     Gets the source code and other content of a package.
-  
+
     The authenticate option can be used for authenticating to GitHub repository. The username
     and password will be prompted if this option is set.
-  
+
     The package can be a remote zip archive, GitHub repository or a unique name in the
-    Spaceify registry. When loading remote zip archives any url can be given as long as the 
-    response is a valid zip archive. Packages from GitHub can be loaded using html, git or 
-    clone url.
-  
-    After the operation source code is in directory sources/<package> of the current working 
+    Spaceify registry. When loading remote zip archives any URL can be given as long as the
+    response is a valid zip archive. Packages from GitHub can be loaded using html, git or
+    clone URL.
+
+    After the operation source code is in directory sources/<package> of the current working
     directory. The <package> is the name given to spm formatted as a valid directory name.
-  
+
     Remote zip archive:
-      spm source <zip archive url>
-  
+      spm source <zip archive URL>
+
       Examples:
       spm source https://www.example.com/spacelets/star.zip
       spm source http://www.example.com/spacelets/star/?generate=zip
-  
+
     GitHub repository:
       spm source [https|git]://github.com/<user>/<repo>(.git)
       spm source authenticate [https|git]://github.com/<user>/<repo>(.git)
-  
+
       Examples:
       spm source https://github.com/spaceify/star
       spm source git://github.com/spaceify/star.git
       spm source https://github.com/spaceify/star.git
-  
+
     Spaceify registry
       spm source unique_name[@version]
-  
+
       Examples:
       spm source spaceify/star
       spm source spaceify/star@1.0.0
-  
+
     Result
       For example if the sources are from:
-  
+
       zip: https://www.example.com/spacelets/star_zip
       sources/https_www_example_com_spacelets_star_zip
-  
+
       GitHub: https://github.com/spaceify/star.git
       sources/https_github_com_spaceify_star_git
-  
+
       Spaceify registry: spaceify/star@1.0.0
       sources/spaceify_star_1_0_0
 %%
 %remove%
   remove unique_name
-  
+
     Removes installed packages from the edge node. The packages installation
     directory is not deleted and application written data is left undeleted.
     Use the purge command to completely remove the installation.
-  
+
       spm remove unique_name
 %%
 %purge%
   purge unique_name
-  
+
     Purge command removes installed packages completely from the edge.
-  
+
       spm purge unique_name
 %%
 %start%
   start unique_name
-  
+
     Starts an application or a spacelet.
-  
+
       spm start spaceify/bigscreen
 %%
 %stop%
   stop unique_name
-  
+
     Stops a running application or spacelet.
-  
+
       spm stop spaceify/bigscreen
 %%
 %restart%
   restart unique_name
-  
+
     Restarts a running application or spacelet.
-  
+
       spm restart sapceify/bigscreen
 %%
 %list%
   list [spacelet | -s, sandboxed | -S, sandboxed_debian | -SD, native_debian | -n, verbose | -v]
-  
+
     Lists information about the installed packages.
-  
+
     The package type options spacelet, sandboxed, sandboxed debian and native debian can be
     used to limit the resulting list to specific types of packages. The order of the options
     is the order in which the packages are listed. Use the verbose option to output a more
     detailed list of the packages.
-  
+
       spm list
       spm list spacelet
       spm list sandboxed native_debian
@@ -249,20 +249,20 @@
 %%
 %state%
   state
-  
+
     Lists runtime status information of spacelets and applications, f.ex.
     port mappings.
-  
+
     spm states
 %%
 %register%
   register
-  
+
     Spaceify core requires edge node to be registered so that some of its
     functionalities would work. The registration process is done automatically when
     Spaceify is installed. However, sometimes the registration fails and this command
     is provided to finish the registration. It is highly recommended to finish the
     registration if it failed during installation.
-  
+
     spm register
 %%

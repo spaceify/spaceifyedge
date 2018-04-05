@@ -2,7 +2,7 @@
 
 /**
  * Database, 17.1.2014 Spaceify Oy
- * 
+ *
  * The connection to the database is opened automatically and opening the connection is not necessary.
  * However, callers must close the database .
  *
@@ -98,8 +98,7 @@ self.rollback = fibrous( function(str)
 		}
 	});
 
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-// APPLICATIONS - spaceify.db // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+	// APPLICATIONS -- -- -- -- -- -- -- - - -- -- //
 self.getApplication = fibrous( function(unique_name)
 	{
 	try {
@@ -141,8 +140,6 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 	{
 	var max;
 	var params;
-	var inject_enabled;
-	var inject_identifier;
 
 	try {
 		if(!isOpen())
@@ -150,28 +147,9 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 
 		max = db.sync.get("SELECT MAX(position) AS pos FROM applications WHERE type=?", [manifest.getType()]);
 
-		/*
-		DEPRECATED
-		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
-		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
-		*/
-		inject_identifier = "";
-		inject_enabled = (manifest.getType() == config.SPACELET ? "1" : "0");
+		params = [manifest.getUniqueName(), docker_image_id, manifest.getType(), manifest.getVersion(), utility.getLocalDateTime(), max.pos + 1, develop];
 
-		params = [manifest.getUniqueName(), docker_image_id, manifest.getType(), manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, inject_enabled, max.pos + 1, develop];
-
-		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, inject_identifier, inject_enabled, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", params);
-
-		addProvidedServices.sync(manifest);
-
-		/*
-		DEPRECATED
-		if(manifest.getType() == config.SPACELET)
-			{
-			addInjectHostnames.sync(manifest);
-			addInjectFiles.sync(manifest);
-			}
-		*/
+		db.sync.run("INSERT INTO applications (unique_name, docker_image_id, type, version, install_datetime, position, develop) VALUES (?, ?, ?, ?, ?, ?, ?)", params);
 		}
 	catch(err)
 		{
@@ -182,7 +160,6 @@ self.insertApplication = fibrous( function(manifest, docker_image_id, develop)
 self.updateApplication = fibrous( function(manifest, docker_image_id)
 	{
 	var params;
-	var inject_identifier;
 
 	try {
 		if(!isOpen())
@@ -190,26 +167,9 @@ self.updateApplication = fibrous( function(manifest, docker_image_id)
 
 		self.sync.begin();
 
-		/*
-		DEPRECATED
-		inject_identifier = (manifest.getType() == config.SPACELET ? manifest.getInjectIdentifier() : "");
-		*/
-		inject_identifier = "";
+		params = [docker_image_id, manifest.getVersion(), utility.getLocalDateTime(), manifest.getUniqueName()];
 
-		params = [docker_image_id, manifest.getVersion(), utility.getLocalDateTime(), inject_identifier, manifest.getUniqueName()];
-
-		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=?, inject_identifier=? WHERE unique_name=?", params);
-
-		addProvidedServices.sync(manifest);
-
-		/*
-		DEPRECATED
-		if(manifest.getType() == config.SPACELET)
-			{
-			addInjectHostnames.sync(manifest);
-			addInjectFiles.sync(manifest);
-			}
-		*/
+		db.sync.run("UPDATE applications SET docker_image_id=?, version=?, install_datetime=? WHERE unique_name=?", params);
 
 		self.sync.commit();
 		}
@@ -231,12 +191,6 @@ self.removeApplication = fibrous( function(unique_name)
 
 		results = db.sync.get("SELECT type, position FROM applications WHERE unique_name=?", [unique_name]);
 
-		/*
-		DEPRECATED
-		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", unique_name);
-		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", unique_name);
-		*/
-		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", unique_name);
 		db.sync.run("DELETE FROM applications WHERE unique_name=?", unique_name);
 		db.sync.run("UPDATE applications SET position=position-1 WHERE position>? AND type=?", [results.position, results.type]);
 		}
@@ -246,128 +200,7 @@ self.removeApplication = fibrous( function(unique_name)
 		}
 	});
 
-var addProvidedServices = fibrous( function(manifest)
-	{
-	var stmt;
-	var provides_services = manifest.getProvidesServices();
-
-	try {
-		if(provides_services.length == 0)
-			return;
-
-		db.sync.run("DELETE FROM provided_services WHERE unique_name=?", manifest.getUniqueName());
-
-		stmt = db.prepare("INSERT INTO provided_services (unique_name, service_name, service_type) VALUES(?, ?, ?)");
-
-		for(var i = 0; i < provides_services.length; i++)
-			stmt.sync.run([manifest.getUniqueName(), provides_services[i].service_name, provides_services[i].service_type]);
-		}
-	catch(err)
-		{
-		throw err;	//language.E_DATABASE_ADD_PROVIDED_SERVICES.pre("Database::addProvidedServices", err);
-		}
-	finally
-		{
-		if(stmt)
-			stmt.finalize();
-		}
-	});
-
-var addInjectHostnames = fibrous( function(manifest)
-	{
-	/*
-	DEPRECATED
-	var stmt;
-	var inject_hostname;
-	var inject_hostnames = manifest.getInjectHostnames();
-
-	try {
-		db.sync.run("DELETE FROM inject_hostnames WHERE unique_name=?", manifest.getUniqueName());
-
-		stmt = db.prepare("INSERT INTO inject_hostnames (unique_name, inject_hostname) VALUES(?, ?)");
-
-		for(var i = 0; i < inject_hostnames.length; i++)
-			{
-			inject_hostname = inject_hostnames[i].replace("*", "%");				// IN MANIFEST: *.google.* -> CHANGED FOR SQLITE: %.google.%
-			stmt.sync.run([manifest.getUniqueName(), inject_hostname]);
-			}
-		}
-	catch(err)
-		{
-		throw err;	//language.E_DATABASE_ADD_INJECT_HOSTNAMES.pre("Database::addInjectHostnames", err);
-		}
-	finally
-		{
-		if(stmt)
-			stmt.finalize();
-		}
-	*/
-	});
-
-var addInjectFiles = fibrous( function(manifest)
-	{
-	/*
-	DEPRECATED
-	var stmt;
-	var file;
-	var type;
-	var order;
-	var wwwPath;
-	var directory;
-	var urlOrPath;
-	var inject_files = manifest.getInjectFiles();
-
-	try {
-		db.sync.run("DELETE FROM inject_files WHERE unique_name=?", manifest.getUniqueName());
-
-		stmt = db.prepare("INSERT INTO inject_files (unique_name, urlOrPath, directory, file, inject_type, inject_order) VALUES(?, ?, ?, ?, ?, ?)");
-
-		wwwPath = unique.getWwwPath(config.SPACELET, manifest.getUniqueName(), config);
-
-		order = 1;
-		for(var i = 0; i < inject_files.length; i++)
-			{
-			directory = (inject_files[i].directory ? inject_files[i].directory.trim() : "");
-			if(directory != "" && directory.search(/\/$/) == -1)
-				directory += "/";
-			file = inject_files[i].file.trim();
-			type = inject_files[i].type.trim();
-
-			urlOrPath = (type == config.FILE ? wwwPath : config.EDGE_HOSTNAME + "/");							// Inject as URL or file
-
-			stmt.sync.run([manifest.getUniqueName(), urlOrPath, directory, file, type, order++]);
-			}
-		}
-	catch(err)
-		{
-		throw err;	//language.E_DATABASE_ADD_INJECT_FILENAMES.pre("Database::addInjectFiles", err);
-		}
-	finally
-		{
-		if(stmt)
-			stmt.finalize();
-		}
-	*/
-	});
-
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-// SERVICES  - spaceify.db // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-self.getService = fibrous( function(service_name)
-	{
-	try {
-		if(!isOpen())
-			openDB();
-
-		return db.sync.get("SELECT * FROM provided_services LEFT JOIN applications ON applications.unique_name = provided_services.unique_name WHERE service_name=?", [service_name]);
-		}
-	catch(err)
-		{
-		throw err;	//language.E_DATABASE_GET_SERVICE.pre("Database::getService", err);
-		}
-	});
-
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-// SPACEIFY CORE AND EDGE SETTINGS, INFROMATION - spaceify.db  // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+	// SPACEIFY CORE AND EDGE SETTINGS, INFROMATION -- -- -- -- -- -- -- - - -- -- //
 self.getCoreSettings = fibrous( function()
 	{
 	try {

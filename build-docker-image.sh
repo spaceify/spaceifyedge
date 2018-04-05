@@ -66,7 +66,7 @@ gzip "$newImage.tar"																			# Compress the image
 mv "$newImage.tar.gz" "$newImage.tgz"
 
 if [ $selection == 1 ] || [ $selection == 3 ]; then
-	printf "\nEnter ssh username, to upload the $newImage.tgz to spaceify.org:"
+	printf "\nEnter ssh username for uploading the $newImage.tgz to spaceify.org: "
 	read username
 
 	echo "Uploading the file $newImage.tgz to spaceify.org:/home/$username"							# Upload the new image file to spaceify.org:/home/<user>

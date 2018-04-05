@@ -8,7 +8,6 @@
 
 var Core = require("./core");
 var fibrous = require("./fibrous");
-var Iptables = require("./iptables");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyLogger = require("./spaceifylogger");
 
@@ -22,19 +21,13 @@ var config = SpaceifyConfig.getConfig();
 
 self.start = fibrous( function()
 	{
-	var iptables;
-
 	process.title = "spaceify";																		// Shown in ps aux
 
 	events();																						// Exit gracefully
 
 	try	{
-		// START CORE RUNNING - CORE LISTENS ALL THE SUPPORTED SERVER TYPES
-		core.sync.connect();
-
-		// RESTORE IPTABLES RULES
-		iptables = new Iptables();
-		iptables.sync.splashRestoreRules();
+		// START CORE
+		core.sync.start();
 		}
 	catch(err)
 		{

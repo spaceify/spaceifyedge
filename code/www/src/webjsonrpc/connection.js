@@ -43,15 +43,17 @@ else
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
 
-var _connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
-
 var tunnelId = null;
 var isConnected = false;
 var isConnecting = false;
+var _connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
 
 self.connect = function(options, callback)
 	{
 	isConnecting = true;
+
+	if (!_connection)
+		_connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
 
 	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
@@ -85,9 +87,10 @@ self.connect = function(options, callback)
 			});
 		}
 	}
+
 self.close = function()
 	{
-	if(_connection.close)
+	if(_connection && _connection.close)
 		_connection.close();
 
 	_connection = null;

@@ -62,7 +62,7 @@ self.loadRemoteFile = fibrous( function(fileUrl)
 		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_INITIATE_HTTP_GET.pre("SpaceifyUtility::loadRemoteFile", err);
 		}
 
-	if(result.statusCode != 200)
+	if (result.statusCode != 200)
 		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_LOAD_REMOTE_FILE.preFmt("SpaceifyUtility::loadRemoteFile", {"~file": fileUrl, "~code": result.statusCode});
 
 	return result;
@@ -73,14 +73,14 @@ self.loadRemoteFileToLocalFile = fibrous( function(fileUrl, targetDir, targetFil
 	try {
 		var result = self.sync.loadRemoteFile(fileUrl);
 
-		if(result.statusCode == 200)
+		if (result.statusCode == 200)
 			self.sync.writeFile(targetDir, targetFile, result.body);
 
 		return true;
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_LOAD_REMOTE_FILE_TO_LOCAL_FILE_FAILED.pre("SpaceifyUtility::loadRemoteFileToLocalFile", err);
 		}
 
@@ -102,9 +102,9 @@ self.isLocal = function(path, type, callback)
 	try {
 		var stats = fs.sync.stat(path);
 
-		if(stats && type == "file" && stats.isFile())
+		if (stats && type == "file" && stats.isFile())
 			callback(null, true);
-		else if(stats && type == "directory" && stats.isDirectory())
+		else if (stats && type == "directory" && stats.isDirectory())
 			callback(null, true);
 		else
 			callback(null, false);
@@ -120,9 +120,9 @@ self.getPathType = function(path, callback)
 	try {
 		var stats = fs.stat(path, function(err, data)
 			{
-			if(stats && stats.isFile())
+			if (stats && stats.isFile())
 				callback(null, "file");
-			else if(stats && stats.isDirectory())
+			else if (stats && stats.isDirectory())
 				callback(null, "directory");
 			else
 				callback(null, "undefined");
@@ -138,12 +138,12 @@ self.deleteDirectory = fibrous( function(source, throws)						// Recursively del
 	{
 	try {
 		var stats = fs.sync.stat(source);
-		if(typeof stats != "undefined" && stats.isDirectory())
+		if (typeof stats != "undefined" && stats.isDirectory())
 			{
 			fs.sync.readdir(source).forEach(function(file, index)
 				{
 				var curPath = source + "/" + file;
-				if(fs.sync.stat(curPath).isDirectory())
+				if (fs.sync.stat(curPath).isDirectory())
 					self.sync.deleteDirectory(curPath, throws);
 				else
 					fs.sync.unlink(curPath);
@@ -154,7 +154,7 @@ self.deleteDirectory = fibrous( function(source, throws)						// Recursively del
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_DELETE_DIRECTORY_FAILED.pre("SpaceifyUtility::deleteDirectory", err);
 		}
 	});
@@ -166,7 +166,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 		target += (target.search(/\/$/) != -1 ? "" : "/");
 
 		var stats = fs.sync.stat(source);
-		if(typeof stats == "undefined" || !stats.isDirectory() || excludeDirectory.indexOf(source) != -1)
+		if (typeof stats == "undefined" || !stats.isDirectory() || excludeDirectory.indexOf(source) != -1)
 			return;
 
 		var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
@@ -179,7 +179,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 			var targetPath = target + file;
 
 			stats = fs.sync.stat(sourcePath);
-			if(stats.isDirectory())
+			if (stats.isDirectory())
 				{
 				self.sync.copyDirectory(sourcePath + "/", targetPath + "/", throws, excludeDirectory);
 				}
@@ -194,7 +194,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_COPY_DIRECTORY_FAILED.pre("SpaceifyUtility::copyDirectory", err);
 		}
 	});
@@ -207,7 +207,7 @@ self.moveDirectory = fibrous( function(source, target, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_MOVE_DIRECTORY_FAILED.pre("SpaceifyUtility::moveDirectory", err);
 		}
 	});
@@ -216,12 +216,12 @@ self.deleteFile = fibrous( function(source, throws)
 	{
 	try {
 		var stats = fs.sync.stat(source);
-		if(typeof stats != "undefined" && !stats.isDirectory())
+		if (typeof stats != "undefined" && !stats.isDirectory())
 			fs.sync.unlink(source);
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_DELETE_FILE_FAILED.pre("SpaceifyUtility::deleteFile", err);
 		}
 	});
@@ -230,33 +230,33 @@ self.copyFile = fibrous( function(sourceFile, targetFile, throws)
 	{
 	try {
 		var stats = fs.sync.stat(sourceFile);
-		if(typeof stats != "undefined" && !stats.isDirectory())
+		if (typeof stats != "undefined" && !stats.isDirectory())
 			{
-			var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
-			var readStream = fs.createReadStream(sourceFile, {"autoClose": true});
-			var writeStream = fs.createWriteStream(targetFile, {"mode": mode});
+			mode = parseInt("0" + (stats.mode & 511/*=0777*/).toString(8), 8);
+			var readStream = fs.createReadStream(sourceFile, { "autoClose": true });
+			var writeStream = fs.createWriteStream(targetFile, { "mode": mode });
 			readStream.pipe(writeStream);
 			}
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_COPY_FILE_FAILED.pre("SpaceifyUtility::copyFile", err);
 		}
 	});
 
 self.moveFile = fibrous( function(sourceFile, targetFile, throws)
-{
+	{
 	try {
 		self.sync.copyFile(sourceFile, targetFile, true);
 		self.sync.deleteFile(sourceFile, true);
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_MOVE_FILE_FAILED.pre("SpaceifyUtility::moveFile", err);
 		}
-});
+	});
 
 self.zipDirectory = fibrous( function(source, zipfile)				// Craete a zip file from the contents of the source directory
 	{
@@ -285,18 +285,18 @@ self.getFileFromZip = function(zipFilename, filename, extractPath, deleteAfter)
 	var regex = new RegExp(filename + "$", "i");
 	var zip = new AdmZip(zipFilename);
 	var zipEntries = zip.getEntries();
-	for(var ze in zipEntries)
+	for (var ze in zipEntries)
 		{
-		if(zipEntries[ze].entryName.search(regex) != -1)
+		if (zipEntries[ze].entryName.search(regex) != -1)
 			{
-			if(extractPath)
+			if (extractPath)
 				zip.extractAllTo(extractPath, true);
 
 			return zip.readAsText(zipEntries[ze].entryName);
 			}
 		}
 
-	if(deleteAfter)
+	if (deleteAfter)
 		self.sync.deleteFile(zipFilename);
 
 	return null;
@@ -307,7 +307,7 @@ self.unZip = function(zipFilename, extractPath, deleteAfter)
 	var zip = new AdmZip(zipFilename);
 	zip.extractAllTo(extractPath, true);
 
-	if(deleteAfter)
+	if (deleteAfter)
 		self.sync.deleteFile(zipFilename);
 
 	return true;
@@ -373,89 +373,6 @@ self.postRegister = function(edge_id, edge_name, edge_password, callback)
 			});
 	}
 
-var isMAC = function(MAC)
-	{
-	return MAC.match(new RegExp(config.MAC_REGX, "i"));
-	}
-
-self.parseURLFromURLObject = function(urlObj, host, protocol, port)
-	{ // //[edge.spaceify.net:32827]/service/spaceify/bigscreen
-	urlObj.hostname = host + (port ? ":" + port : "");
-	urlObj.protocol = protocol;
-
-	return urlObj.format(urlObj);
-	}
-
-self.parseMultiPartData = function(contentType, body, throws)
-	{ // Parse "multipart MIME data streams". Return attributes of the data stream and the body as it is (no decoding done)
-	var boundary, partBoundary, endBoundary, dataLine, phase, contentTypeData = {}, bodyData, bodyParts = {};
-
-	try {
-		// content-type
-		self.parseMultipartLine(contentType, contentTypeData);
-
-		if(!(boundary = contentTypeData["boundary"]))
-			throw "";
-
-		partBoundary = "--" + boundary;
-		endBoundary =  "--" + boundary + "--";
-
-		// body
-		body = body.split("\r\n");
-
-		body.shift();
-		while(body.length > 0)
-			{
-			phase = 0;
-			bodyData = {body: ""};
-			dataLine = body.shift();
-			while(body.length > 0 && dataLine != partBoundary && dataLine != endBoundary)
-				{
-				if(dataLine == "")
-					phase++;
-				else if(phase == 0)
-					self.parseMultipartLine(dataLine, bodyData);
-				else
-					bodyData.body += dataLine;
-
-				dataLine = body.shift();
-				}
-
-			if(bodyData.name)
-				bodyParts[bodyData.name] = bodyData;
-			}
-		}
-	catch(err)
-		{
-		if(throws)
-			throw err;
-		}
-
-	return bodyParts;
-	}
-
-self.parseMultipartLine = function(line, keyvalues)
-	{ // parse multipart lines such as 'multipart/form-data; boundary=abcd' or 'Content-Disposition: form-data; name="data";' as key-value pairs
-	var parts = line.split(";");
-
-	for(var i = 0; i < parts.length; i++)
-		{
-		if(!parts[i])
-			continue;
-
-		var matched = parts[i].match(/[:=]/);
-
-		if(!matched)
-			keyvalues[parts[i].trim()] = "";
-		else
-			{
-			var key = parts[i].substr(0, matched.index);
-			var value = parts[i].substr(matched.index + 1);
-			keyvalues[key.trim().toLowerCase()] = value.trim();
-			}
-		}
-	}
-
 	// PARSE / FORMAT -- -- -- -- -- -- -- -- -- -- //
 self.loadJSON = fibrous( function(file, bParse, throws)
 	{
@@ -464,14 +381,14 @@ self.loadJSON = fibrous( function(file, bParse, throws)
 	try {
 		manifest = fs.sync.readFile(file, {encoding: "utf8"});
 
-		if(bParse)
+		if (bParse)
 			manifest = self.parseJSON(manifest, throws);
 		}
 	catch(err)
 		{
 		manifest = null;
 
-		if(throws)
+		if (throws)
 			throw language.E_LOAD_JSON_FAILED.pre("SpaceifyUtility::loadJSON", err);
 		}
 
@@ -491,7 +408,7 @@ self.saveJSON = fibrous( function(file, json, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_SAVE_JSON_FAILED.pre("SpaceifyUtility::saveJSON", err);
 		}
 
@@ -507,7 +424,7 @@ self.parseJSON = function(str, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw (isNodeJs ?	language.E_PARSE_JSON_FAILED.pre("SpaceifyUtility::parseJSON", err) :
 								self.makeErrorObject("JSON", "Failed to parse JSON.", "SpaceifyUtility::parseJSON"));
 		}
@@ -517,7 +434,7 @@ self.parseJSON = function(str, throws)
 
 self.replaces = function(str, strs)
 	{ // Replace all occurances of %0, %1, ..., %strs.length - 1 with strings in the strs array. Reverse order so that e.g. %11 gets replaced before %1.
-	for(var s = strs.length - 1; s >= 0; s--)
+	for (var s = strs.length - 1; s >= 0; s--)
 		{
 		var regx = new RegExp("%" + s, "g");
 		str = str.replace(regx, (typeof strs[s] == "undefined" ? "?" : strs[s]));
@@ -528,14 +445,21 @@ self.replaces = function(str, strs)
 
 self.replace = function(str, strs, replaceWith)
 	{ // Replace all occurances of named tilde (~) prefixed, alphanumerical parameters (e.g. ~name, ~Name1) supplied in the strs object in the str.
-	var r = (replaceWith ? replaceWith : ""), i;
+	var r = (replaceWith ? replaceWith : ""), i, value;
 
-	for(i in strs)
+	for (i in strs)
 		{
-		if(typeof strs[i] == "undefined")							// Don't replace parameters with undefined values
+		if (str.indexOf(i) == -1)									// Nothing to replace
 			continue;
 
-		str = str.replace(i, strs[i]);
+		if (strs[i] == "")
+			value = "";
+		else if (!strs[i])
+			value = "<" + strs[i] + ">";
+		else
+			value = strs[i];
+
+		str = str.replace(i, value);
 		}
 																	// Remove unused parameters to tidy up the string
 	str = str.replace(/\s~[a-zA-Z0-9]*\s/g, " " + r + " ");			// ' ~x ' -> ' ? '
@@ -557,7 +481,7 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.stdout.on("data", function(data)
 		{
-		if(messageCallback)
+		if (messageCallback)
 			messageCallback(false, data);
 
 		stdout += data;
@@ -565,7 +489,7 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.stderr.on("data", function(data)
 		{
-		if(messageCallback)
+		if (messageCallback)
 			messageCallback(true, data);
 
 		stderr += data;
@@ -573,19 +497,19 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.on("error", function(err)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(err, null); bExited = true; }
 		});
 
 	spawned.on("close", function(code)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(null, {code: code, signal: null, stdout: stdout, stderr: stderr}); bExited = true; }
 		});
 
 	spawned.on("exit", function(code, signal)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(null, {code: code, signal: signal, stdout: stdout, stderr: stderr}); bExited = true; }
 		});
 	}
@@ -601,13 +525,13 @@ self.randomString = function(length, useAlpha)
 	{ // http://stackoverflow.com/questions/10726909/random-alpha-numeric-string-in-javascript
 	var chars = "", i;
 
-	if(useAlpha)
+	if (useAlpha)
 		chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	else
 		chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!£$#%&/(){}[]<>|§½=+?*,.;:-_";
 
 	var result = "";
-	for(i = length; i > 0; --i)
+	for (i = length; i > 0; --i)
 		result += chars[Math.round(Math.random() * (chars.length - 1))];
 
 	return result;
@@ -617,7 +541,7 @@ self.generateRandomConnectionId = function(connections)
 	{
 	var ret;
 
-	while(true)
+	while (true)
 		{
 		ret = Math.floor(Math.random() * 4294967296);	//2 to power 32
 		if (!connections.hasOwnProperty(ret))
@@ -629,7 +553,7 @@ self.generateRandomConnectionId = function(connections)
 
 self.bytesToHexString = function(bytes)
 	{
-	for(var hex = [], i = 0; i < bytes.length; i++)
+	for (var hex = [], i = 0; i < bytes.length; i++)
 		{
 		hex.push((bytes[i] >>> 4).toString(16));
 		hex.push((bytes[i] & 0xF).toString(16));
@@ -668,11 +592,11 @@ self.assoc = function(_array, _key, _value)
 
 self.toBuffer = function(data)
 	{ // Make sure data is an instance of Buffer
-	if(data instanceof Buffer)
+	if (data instanceof Buffer)
 		return data;
-	else if(data instanceof Array || data instanceof Object)
+	else if (data instanceof Array || data instanceof Object)
 		return new Buffer(JSON.stringify(data), "utf8");
-	else if(typeof data == "string")
+	else if (typeof data == "string")
 		return new Buffer(data, "utf8");
 	else
 		return new Buffer(data.toString(), "utf8");
@@ -683,11 +607,11 @@ self.getApplicationIcon = function(manifest, startWithSlash)
 	{
 	var icon = null;
 
-	if(manifest && manifest.images)
+	if (manifest && manifest.images)
 		{
-		for(var i = 0; i < manifest.images.length; i++)
+		for (var i = 0; i < manifest.images.length; i++)
 			{
-			if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
+			if (manifest.images[i].file.search("/^(icon\.)/i" != -1))
 				{
 				icon =	(startWithSlash ? "/" : "") + "images/" +
 						("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
@@ -701,5 +625,5 @@ self.getApplicationIcon = function(manifest, startWithSlash)
 
 }
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = SpaceifyUtility;

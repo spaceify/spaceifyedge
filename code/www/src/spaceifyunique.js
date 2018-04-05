@@ -23,11 +23,6 @@ self.getUniqueDirectory = function(unique_name, noEndSlash)
 	return unique_name;
 	}
 
-self.getSystemctlServiceName = function(unique_name)
-	{
-	return unique_name.replace(/_\//g, "") + ".service";
-	}
-
 self.getBasePath = function(type, unique_name, config)
 	{
 	return config.APP_TYPE_PATHS[type];

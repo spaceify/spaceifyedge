@@ -1,3 +1,14 @@
+0.9.0  Alpha Centauri (developer-pre-alpha)
+    * Core and containers migrated to use Node.js 8.10.0.
+    * HTTP service improved.
+    * REST Core API added.
+    * Native debian manifest file requires now systemd_unit_file field.
+    * ssh connections to containers removed due to security reasons.
+    * New seappexec bash command added for executing commands inside containers: seappexec <unique_name> <arguments>. This mitigates the absence of the ssh connections. Use Docker's commands if this is not sufficient for the task at hand.
+    * The applog bash command renamed to seapplog.
+    * Service connection and disconnection listener (Service, SpaceifyApplication classes) callbacks are called with unique_name in the arguments. Old: (connectionId, service_name, isSecure), new: (connectionId, service_name, isSecure, unique_name) -> new function declaration is backward compatible.
+    * Iptables security rules implemented.
+
 0.8.2  Alpha Centauri (developer-pre-alpha)
     * New API methods: SpaceifyApplication callRpcByConnectionId, setConnectionListeners, and setDisconnectionListeners.
 

@@ -2,9 +2,9 @@
 
 /**
  * ServiceRegistry, 9.12.2017 Spaceify Oy
- * 
+ *
  * Registry for application service information
- * 
+ *
  * @class ServiceRegistry
  */
 
@@ -160,46 +160,44 @@ self.registerService = function(service_name, unique_name, ports, state)
 	}
 
 	// DISCOVERY // // // // // // // // // //
-self.getService = function(service_name, unique_name, isRegistered)
+self.getService = function(service_name, unique_name, isRegistered, isSuggested)
 	{
+	var match = null;
 	var _services, serviceIndex;
 
-	_services = (typeof services[service_name] != "undefined" ? services[service_name] : []);
+	_services = self.getServices(service_name, isRegistered);										// Get services matching the registration status
 
-	for (serviceIndex = 0; serviceIndex < _services.length; serviceIndex++)
+	for (serviceIndex = 0; serviceIndex < _services.length; serviceIndex++)							// Start matching them against the parameters
 		{
-		// 1:	Multiple applications can have the same service name. Return the first matching service
-		//		Notice! If unique_name is not checked, the HTTP service of the first application is returned
-		// 2:	The service belongs to the requested unique application
-		// 3:	Must be running OR ignore state
 		if	(
-				(
-				/*1*/ (!unique_name && service_name != config.HTTP) ||
-				/*2*/ (unique_name && unique_name == _services[serviceIndex].unique_name)
-				) &&
-				(
-				/*3*/ (isRegistered && _services[serviceIndex].isRegistered) || !isRegistered
-				)
+			// Multiple applications can have the same service name. Return the first matching service.
+			// Notice! If unique_name is not checked, the HTTP service of the first application would be returned.
+				(!unique_name && service_name != config.HTTP) ||
+			// The service belongs to the requested application.
+				(unique_name && unique_name == _services[serviceIndex].unique_name)
 			)
-			return _services[serviceIndex];
+			{ match = _services[serviceIndex]; break; }
 		}
 
-	return null;
+	if (!match && isSuggested)																		// Default to first available, if suggested was not found
+		match = (_services.length > 0 ? _services[0] : null);
+
+	return match;
 	}
 
 self.getServices = function(service_name, isRegistered)
 	{
-	var _services, __services = [], serviceIndex;
+	var _services, _services_ = [], serviceIndex;
 
 	_services = (typeof services[service_name] != "undefined" ? services[service_name] : []);
 
 	for (serviceIndex = 0; serviceIndex < _services.length; serviceIndex++)
 		{
-		if ((isRegistered && _services[serviceIndex].isRegistered) || !isRegistered)					// Must be running OR ignore state
-			__services.push(_services[serviceIndex]);
+		if ((isRegistered && _services[serviceIndex].isRegistered) || !isRegistered)				// Must be registered if explicitly requested OR ignore registration status
+			_services_.push(_services[serviceIndex]);
 		}
 
-	return __services;
+	return _services_;
 	}
 
 self.getApplicationServices = function(unique_name, isRegistered)

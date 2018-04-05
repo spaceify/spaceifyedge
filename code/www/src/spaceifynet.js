@@ -100,29 +100,13 @@ self.isArray = function(obj)
 	return Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
-	// SPLASH -- -- -- -- -- -- -- -- -- -- //
-self.setSplashAccepted = function()
-	{
-	try {
-		core.setSplashAccepted(function(err, data)
-			{
-			if (data && data == true)
-				window.location.reload(true);
-			});
-		}
-	catch(err)
-		{
-		//logger.error(err, true, true, 0, logger.ERROR);
-		}
-	}
-
 self.loadCertificate = function()
 	{
 	var src = network.getEdgeURL({ withEndSlash: true }) + "spaceify.crt";
 
 	document.getElementById("certIframe").setAttribute("sp_src", src);
 
-	spaceifyLoader.loadData(document.getElementById("certIframe"), {}, null);
+	spaceifyLoader.loadData(document.getElementById("certIframe"), null);
 
 	return true;
 	}
@@ -136,7 +120,7 @@ self.adminLogOut = function()
 
 	this.ok = function()
 		{
-		self.loadLaunchPage();
+		self.loadHomepage();
 		}
 
 	sam.logOut(self, this.ok);
@@ -145,19 +129,22 @@ self.adminLogOut = function()
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
 self.loadAppstorePage = function(mode)
 	{
-	var sp_page;
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
+	window.history.pushState("", "", url);
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_path*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
-self.loadLaunchPage = function()
+self.loadHomepage = function()
 	{
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	window.history.pushState("", "", url);
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_path*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
 	}
 
 self.loadSecurePage = function()
@@ -204,46 +191,22 @@ self.renderTile = function(manifest, callback)
 	var element, query;
 	var sp_port, host, sp_host, spe_host, sp_path, icon, apptile_id, icon_id, tile, element;
 
+	addApplication(manifest);
+
 	if (manifest.hasTile)																			// Application supplies its own tile when its running
 		{
-		core.getApplicationURL(manifest.unique_name, function(err, appURL)
-			{
-			sp_port = (!network.isSecure() ? appURL.port : appURL.securePort);
+		apptile_id = makeAppTileId(manifest.unique_name);
 
-			spe_host = network.getEdgeURL({ withEndSlash: true });
+		element = document.createElement("iframe");
+		element.id = apptile_id;
+		element.frameborder = "0";
+		element.className = "edgeTile";
+		spdom.append(manifest.type, element);
 
-			if (appURL.implementsWebServer && sp_port)
-				{
-				host = spe_host;
-				sp_host = spe_host;
-				}
-			else
-				{
-				host = spe_host;
-				sp_host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
-				}
+		element = document.getElementById(apptile_id);
+		element.src = network.getEdgeURL({ withEndSlash: true }) + config.REST_TILE_DIR + manifest.unique_name;
 
-			sp_path = config.TILEFILE;
-
-			apptile_id = makeAppTileId(manifest.unique_name);
-
-			element = document.createElement("iframe");
-			element.id = apptile_id;
-			element.frameborder = "0";
-			element.className = "edgeTile";
-			spdom.append(manifest.type, element);
-
-			query = {};
-			query.sp_port = sp_port;
-			query.sp_host = encodeURIComponent(sp_host);
-			query.sp_path = encodeURIComponent(sp_path);
-			query.spe_host = encodeURIComponent(spe_host);
-
-			element = document.getElementById(apptile_id);
-			element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
-
-			callback();
-			});
+		callback();
 		}
 	else																							// Spaceify renders default tile
 		{
@@ -272,10 +235,8 @@ self.renderTile = function(manifest, callback)
 		element.className = "edgeTile";
 		element.innerHTML = tile;
 		spdom.append(manifest.type, element);
-		spaceifyLoader.loadData(document.getElementById(icon_id), {}, callback);
+		spaceifyLoader.loadData(document.getElementById(icon_id), callback);
 		}
-
-	addApplication(manifest);
 	}
 
 self.removeTile = function(type, manifest)

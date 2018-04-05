@@ -2,7 +2,7 @@
 
 /**
  * Manifest, 2015 Spaceify Oy
- * 
+ *
  * @class Manifest
  */
 
@@ -51,7 +51,7 @@ self.getType = function()
 
 self.getCategory = function()
 	{
-	return (manifest && manifest.category ? manifest.category : "");	
+	return (manifest && manifest.category ? manifest.category : "");
 	}
 
 self.getProvidesServices = function()
@@ -71,22 +71,7 @@ self.isShared = function()
 
 self.getOrigins = function()
 	{
-	return (manifest && manifest.origins ? manifest.origins : null);	
-	}
-
-self.getInjectIdentifier = function()
-	{
-	return (manifest && manifest.inject_identifier ? manifest.inject_identifier : "");	
-	}
-
-self.getInjectHostnames = function()
-	{
-	return (manifest && manifest.inject_hostnames ? manifest.inject_hostnames : null);
-	}
-
-self.getInjectFiles = function()
-	{
-	return (manifest && manifest.inject_files ? manifest.inject_files : null);	
+	return (manifest && manifest.origins ? manifest.origins : null);
 	}
 
 self.getStartCommand = function()
@@ -106,77 +91,77 @@ self.getInstallCommands = function()
 
 self.getShortDescription = function()
 	{
-	return (manifest && manifest.short_description ? manifest.short_description : "");	
+	return (manifest && manifest.short_description ? manifest.short_description : "");
 	}
 
 self.getAppstoreDescription = function()
 	{
-	return (manifest && manifest.appstore_description ? manifest.appstore_description : "");	
+	return (manifest && manifest.appstore_description ? manifest.appstore_description : "");
 	}
 
 self.getDeveloper = function()
 	{
-	return (manifest && manifest.developer ? manifest.developer : null);	
+	return (manifest && manifest.developer ? manifest.developer : null);
 	}
 
 self.getContributors = function()
 	{
-	return (manifest && manifest.contributors ? manifest.contributors : null);	
+	return (manifest && manifest.contributors ? manifest.contributors : null);
 	}
 
 self.getKeywords = function()
 	{
-	return (manifest && manifest.keywords ? manifest.keywords : null);	
+	return (manifest && manifest.keywords ? manifest.keywords : null);
 	}
 
 self.getLicense = function()
 	{
-	return (manifest && manifest.license ? manifest.license : "");	
+	return (manifest && manifest.license ? manifest.license : "");
 	}
 
 self.getCreationDate = function()
 	{
-	return (manifest && manifest.creation_date ? manifest.creation_date : "");	
+	return (manifest && manifest.creation_date ? manifest.creation_date : "");
 	}
 
 self.getRepository = function()
 	{
-	return (manifest && manifest.repository ? manifest.repository : "");	
+	return (manifest && manifest.repository ? manifest.repository : "");
 	}
 
 self.getWebUrl = function()
 	{
-	return (manifest && manifest.web_url ? manifest.web_url : "");	
+	return (manifest && manifest.web_url ? manifest.web_url : "");
 	}
 
 self.getBugs = function()
 	{
-	return (manifest && manifest.bugs ? manifest.bugs : "");	
+	return (manifest && manifest.bugs ? manifest.bugs : "");
 	}
 
 self.getDockerImage = function()
 	{
-	return (manifest && manifest.docker_image ? manifest.docker_image : false);	
+	return (manifest && manifest.docker_image ? manifest.docker_image : false);
 	}
 
 self.getImages = function()
 	{
-	return (manifest && manifest.images ? manifest.images : null);	
+	return (manifest && manifest.images ? manifest.images : null);
 	}
 
 self.getAptRepositories = function()
 	{
-	return (manifest && manifest.apt_repositories ? manifest.apt_repositories : null);	
+	return (manifest && manifest.apt_repositories ? manifest.apt_repositories : null);
 	}
 
 self.getAptPackages = function()
 	{
-	return (manifest && manifest.apt_packages ? manifest.apt_packages : null);	
+	return (manifest && manifest.apt_packages ? manifest.apt_packages : null);
 	}
 
 self.getDebPackages = function()
 	{
-	return (manifest && manifest.deb_packages ? manifest.deb_packages : null);	
+	return (manifest && manifest.deb_packages ? manifest.deb_packages : null);
 	}
 
 	//  -- -- -- -- -- -- -- -- -- -- -- -- -- //
@@ -203,9 +188,9 @@ self.getProvidesServicesWithHttp = function()
 	return _services;
 	}
 
-self.getUniqueNameAsSystemctlServiceName = function()
+self.getSystemdUnitFile = function()
 	{
-	return (manifest && manifest.unique_name ? unique.getSystemctlServiceName(manifest.unique_name) : "");
+	return (manifest && manifest.systemd_unit_file ? manifest.systemd_unit_file : "");
 	}
 
 self.getUniqueDirectory = function()
@@ -225,7 +210,7 @@ self.implementsWebServer = function()
 
 self.hasTile = function()
 	{
-	var tileFile = unique.getWwwPath(self.getType(), self.getUniqueName(), config) + config.TILEFILE;
+	var tileFile = unique.getWwwPath(self.getType(), self.getUniqueName(), config) + config.TILE_FILE;
 
 	return utility.sync.isFile(tileFile);
 	}

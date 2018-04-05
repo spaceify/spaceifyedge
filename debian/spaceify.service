@@ -1,6 +1,6 @@
 [Unit]
 Description=Spaceify Core
-After=spaceifyipt.service
+After=network-online.target
 
 [Service]
 Type=simple

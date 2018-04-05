@@ -14,7 +14,7 @@ limit_size ()
 		fi
 
 	fi
-} 
+}
 
 logPath="/var/lib/spaceify/data/logs/"
 

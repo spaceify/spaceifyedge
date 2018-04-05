@@ -55,8 +55,6 @@ var language =
 
 	"E_UNKNOWN_MAC": new SpaceifyError({"code": 2020, "message": "Callers MAC address is unknown."}),
 
-	"E_SET_SPLASH_ACCEPTED_FAILED": new SpaceifyError({"code": 2021, "message": "Failed to add the MAC address to the accepted addresses list."}),
-
 	"E_START_SPACELET_FAILED": new SpaceifyError({"code": 2023, "message": "Failed to start the spacelet."}),
 
 	"E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS": new SpaceifyError({"code": 2026, "message": "Applications can not start spacelets."}),
@@ -148,17 +146,12 @@ var language =
 	"E_DATABASE_SAVE_EDGE_SETTINGS": new SpaceifyError({"code": 12012, "message": "Failed to update edge settings."}),
 	"E_DATABASE_GET_INFORMATION": new SpaceifyError({"code": 12013, "message": "Failed to get information."}),
 	"E_DATABASE_ADMIN_LOGGED_IN": new SpaceifyError({"code": 12014, "message": "Failed to set admin log in."}),
-	"E_DATABASE_ADD_PROVIDED_SERVICES": new SpaceifyError({"code": 12015, "message": "Failed to add provided services."}),
-	"E_DATABASE_ADD_INJECT_HOSTNAMES": new SpaceifyError({"code": 12016, "message": "Failed to add inject hostnames."}),
-	"E_DATABASE_ADD_INJECT_FILENAMES": new SpaceifyError({"code": 12017, "message": "Failed to add inject filenames."}),
-	"E_DATABASE_GET_SERVICE": new SpaceifyError({"code": 12019, "message": "Failed to get service."}),
 	"E_DATABASE_TEST": new SpaceifyError({"code": 12020, "message": "Failed to execute database test."}),
 
 	// ValidatePackage
 	"E_VALIDATE_PACKAGE_NO_APPLICATION_DIRECTORY": new SpaceifyError({"code": 13000, "message": "Package does not have application directory."}),
 	"E_VALIDATE_PACKAGE_NO_MANIFEST_FILE": new SpaceifyError({"code": 13001, "message": "Package does not have manifest file."}),
 
-	"E_VALIDATE_DIRECTORIES_INJECT_FILE": new SpaceifyError({"code": 13002, "message": "Inject file ~file is defined in the manifest but is not found in the applications www directory ~directory."}),
 	"E_VALIDATE_DIRECTORIES_IMAGE_FILE": new SpaceifyError({"code": 13003, "message": "Image file ~file is defined in the manifest but is not found in the applications image directory ~directory."}),
 	"E_VALIDATE_DIRECTORIES_IMAGE_TYPES": new SpaceifyError({"code": 13004, "message": "Supported image formats are jpg, gif and png."}),
 	"E_VALIDATE_DIRECTORIES_DOCKER_IMAGE": new SpaceifyError({"code": 13005, "message": "Custom Docker image creation is defined but file Dockerfile is not found from applications directory."}),
@@ -169,19 +162,21 @@ var language =
 	"E_VALIDATE_DIRECTORIES_PUBLIC_KEY_NOT_IN_DIRECTORY": new SpaceifyError({"code": 13009, "message": "Public key ~key was not found from packages directory."}),
 	"E_VALIDATE_DIRECTORIES_SERVICE_FILE_MISSING": new SpaceifyError({"code": 13010, "message": "The service file ~service of this package was not found from the application directory."}),
 
-	// WebOperation
-	"E_GET_DATA_OPERATION_NOT_DEFINED": new SpaceifyError({"code": 15000, "message": "No operation defined."}),
-	"E_GET_DATA_UNKNOWN_OPERATION": new SpaceifyError({"code": 15001, "message": "Unknown operation requested."}),
-	"E_GET_DATA_OPERATION_DENIED": new SpaceifyError({"code": 15002, "message": "Operation over non-secure connection denied."}),
-	"E_GET_DATA_UNDEFINED_PARAMETERS": new SpaceifyError({"code": 15003, "message": "Required parameter(s) undefined."}),
+	// REST
+	"E_REST_UNKNOWN_OPERATION": new SpaceifyError({"code": 15001, "message": "Unknown operation requested."}),
+	"E_REST_OPERATION_DENIED": new SpaceifyError({"code": 15002, "message": "Operation over non-secure connection denied."}),
+	"E_REST_UNDEFINED_PARAMETERS": new SpaceifyError({"code": 15003, "message": "Required parameter(s) undefined."}),
 
-	// SecurityModel
+	// SecurityManager
 	"E_CHECK_SERVICE_PERMISSIONS_UNREGISTERED": new SpaceifyError({"code": 16000, "message": "Service permission check failed. Service ~name is not registered."}),
 	"E_CHECK_SERVICE_PERMISSIONS_FORBIDDEN": new SpaceifyError({"code": 16001, "message": "Service permission check failed. Service ~name is forbidden to caller."}),
 	"E_CHECK_SERVICE_PERMISSIONS_REQUIRES_SERVICES_NOT_DEFINED": new SpaceifyError({"code": 16003, "message": "Service permission check failed. Application or spacelet ~unique_name does not have required services."}),
 	"E_ADMIN_LOG_IN_FAILED": new SpaceifyError({"code": 16005, "message": "Admin log in failed."}),
 	"E_IS_LOCAL_SESSION_NON_EDGE_CALLER": new SpaceifyError({"code": 16006, "message": "Calls outside of the Spaceify edge node are forbidden."}),
 	"E_REMOTE_LOG_IN_FAILED": new SpaceifyError({"code": 16007, "message": "Remote log in failed."}),
+
+	// Iptables
+	"E_IPTABLES_SET_FAILED": new SpaceifyError({"code": 17000, "message": "Failed to set iptables rules to ~type ~unique_name."}),
 
 	/* ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 	** TEXTS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -318,12 +313,7 @@ var language =
 	"M_SHARED": " Shared: ",
 	"M_YES": "Yes",
 	"M_NO": "No",
-	"M_INJECT": " Inject",
-	"M_INJECT_ENABLED": " Enabled: ",
 	"M_ORIGINS": " Origins ",
-	"M_INJECT_IDENTIFIER": " Identifier: ",
-	"M_INJECT_HOSTNAMES": " Hostnames",
-	"M_INJECT_FILES": " Files",
 	"M_DEVELOPER": " Developer: ",
 	"M_CONTRIBUTORS": " Contributors",
 	"M_CREATION_DATE": " Creation date: ",

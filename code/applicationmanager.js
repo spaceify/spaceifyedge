@@ -10,7 +10,7 @@ var url = require("url");
 var http = require("http");
 var crypto = require("crypto");
 var mkdirp = require("mkdirp");
-var Github = require("github");
+var Github = require("@octokit/rest");
 var AdmZip = require("adm-zip");
 var fibrous = require("./fibrous");
 var language = require("./language");
@@ -20,7 +20,6 @@ var Messaging = require("./messaging");
 var httpStatus = require("./httpstatus");
 var DockerImage = require("./dockerimage.js");
 var SpaceifyError = require("./spaceifyerror");
-var SecurityModel = require("./securitymodel");
 var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyConfig = require("./spaceifyconfig");
@@ -40,7 +39,6 @@ var errorc = new SpaceifyError();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
-var securityModel = new SecurityModel();
 var appManServer = new WebSocketRpcServer();
 var coreConnection = new WebSocketRpcConnection();
 var logger = new SpaceifyLogger("ApplicationManager");
@@ -191,8 +189,8 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 	var information;
 	var registry_url;
 	var startOrder = [];
-	var existing_service;
 	var required_service;
+	var service_available;
 	var suggested_version;
 	var applicationStatus;
 	var isSuggested = false;
@@ -292,10 +290,10 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 					suggested_unique_name = suggested[0];
 					suggested_version = (suggested[1] ? suggested[1] : language.INSTALL_VERSION_LATEST);
 
-					existing_service = database.sync.getService(required_service.service_name);
+					service_available = coreConnection.sync.callRpc("isServiceAvailable", [required_service.service_name, "", false, sessionId], self);
 
 						// Service not registered -> try to install the suggested application
-					if (!existing_service)
+					if (!service_available)
 						{
 						sendNotify.sync(utility.replace(language.INSTALL_SUGGESTED,
 								{
@@ -306,10 +304,10 @@ var installApplication = fibrous( function(applicationPackage, username, passwor
 
 						suggestedApplications.push(required_service.suggested_application);
 						}
-						// Service is already registered -> don't reinstall even if version would change, because it might make other packages inoperative
+						// Service is already registered -> don't reinstall even if version would change because it might make other packages inoperative
 					else
 						{
-						existing = database.sync.getApplication(existing_service.unique_name);
+						existing = database.sync.getApplication(service_available.unique_name);
 
 							// ----- Suggested and installed applications are different -> use the installed application
 						if (existing.unique_name != suggested_unique_name)
@@ -1067,10 +1065,10 @@ var install = fibrous( function(manifest, develop, sessionId)
 	var image;
 	var dbApp;
 	var source;
+	var unitFile;
 	var list = "";
 	var public_key;
 	var volumePath;
-	var serviceFile;
 	var information;
 	var apt_packages;
 	var deb_packages;
@@ -1221,18 +1219,25 @@ var install = fibrous( function(manifest, develop, sessionId)
 				sendMessage.sync("");
 				}
 
+				// Copy the Unit File if it is in the application directory
+			unitFile = manifest.getSystemdUnitFile();
+
+			if (utility.sync.isFile(applicationPath + unitFile))
+				{
+				utility.sync.copyFile(applicationPath + unitFile, config.SYSTEMD_PATH + unitFile, true);
+				fs.chmodSync(config.SYSTEMD_PATH + unitFile, 0o644);
+				}
+
 				/* ToDo: MAYBE SANDBOXED_DEBIAN
 				*
 				*
 				*
 				*
 				// Copy service file to /lib/systemd/system and ~path replacement
-			serviceFile = unique.getSystemctlServiceName(manifest.getUniqueName());
-
-			list = fs.readFileSync(applicationPath + serviceFile, "utf8");
+			list = fs.readFileSync(applicationPath + unitFile, "utf8");
 			list = list.replace(/~path/g, volumePath + config.APPLICATION_ROOT);						// ~path replacement
 
-			fs.writeFileSync(config.SYSTEMD_PATH + serviceFile, list, "utf8");
+			fs.writeFileSync(config.SYSTEMD_PATH + unitFile, list, "utf8");
 
 				// The ~path replacement in applications start.sh file if it is present in the application directory
 			if (utility.sync.isFile(volumePath + config.START_SH_FILE))
@@ -1390,7 +1395,7 @@ var removeApplicationRepositoryEntries = function(manifest, quiet)
 var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 	{
 	var pkgName;
-	var serviceFile;
+	var unitFile;
 	var apt_packages;
 	var deb_packages;
 	var packages = [];
@@ -1437,15 +1442,20 @@ var removeAptAndDpkgInstalled = fibrous( function(unique_name)
 			});
 		}
 
+		// Remove Unit File if it still exists
+	unitFile = config.SYSTEMD_PATH + manifest.getSystemdUnitFile();
+
+	if (utility.sync.isFile(unitFile))
+		{
+		utility.sync.deleteFile(unitFile, false);
+		}
+
 		/* ToDo: MAYBE FOR SANDBOXED_DEBIAN
 		*
 		*
 		*
 		*
-		// Remove service file
-	serviceFile = config.SYSTEMD_PATH + unique.getSystemctlServiceName(manifest.getUniqueName());
-	if (utility.sync.isFile(serviceFile))
-		fs.unlinkSync(serviceFile);
+
 		*
 		*
 		*
@@ -1506,7 +1516,7 @@ var git = fibrous( function(gitoptions, username, password, throws)
 			sha = ref.data.object.sha;
 
 		tree = github.gitdata.sync.getTree({owner: gitoptions[0], repo: gitoptions[1], sha: sha, recursive: 1});	// get the whole repository content
-		
+
 		if (typeof tree.tree != "undefined")
 			tree = tree.tree;
 		else if (typeof tree.data != "undefined")

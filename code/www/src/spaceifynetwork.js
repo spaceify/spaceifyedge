@@ -55,7 +55,7 @@ self.getEdgeURL = function(opts)
 
 	// Origin: local/remote edge webpage or webpage running spacelet (URL not ending with EDGE_DOMAIN); defaults to spacelet
 	var hostname = config.EDGE_HOSTNAME;
-	if(typeof window !== "undefined" && window.location.hostname.match(dregx) !== null)
+	if (typeof window !== "undefined" && window.location.hostname.match(dregx) !== null)
 		{
 		hostname = window.location.hostname;
 		}
@@ -88,11 +88,11 @@ self.getProtocol = function(withScheme, cProtocol)
 	{
 	var url, proto, protocol;
 
-	if(cProtocol === "")														// No protocol
+	if (cProtocol === "")														// No protocol
 		{
 		protocol = "";
 		}
-	else if(typeof window === "undefined")										// Node.js!!!
+	else if (typeof window === "undefined")										// Node.js!!!
 		{
 		protocol = (cProtocol === null ? "" : cProtocol);
 		}
@@ -100,14 +100,14 @@ self.getProtocol = function(withScheme, cProtocol)
 		{
 		protocol = (cProtocol !== null ? cProtocol : location.protocol);
 
-		if(protocol == "blob:")
+		if (protocol == "blob:")
 			{
-			if(window.parent)
+			if (window.parent)
 				{
 				url = "" + window.parent.location;
 				url = url.replace(/^blob:/, "");
 
-				if((proto = url.match(/^http.?:/)) !== null)
+				if ((proto = url.match(/^http.?:/)) !== null)
 					protocol = proto[0];
 				else
 					protocol = "http:";
@@ -117,7 +117,7 @@ self.getProtocol = function(withScheme, cProtocol)
 			}
 		}
 
-	if(protocol != "" && !protocol.match(/:$/))
+	if (protocol != "" && !protocol.match(/:$/))
 		protocol += ":";
 
 	return protocol + (protocol != "" && withScheme ? "//" : "")
@@ -134,7 +134,7 @@ self.parseQuery = function(url)
 
 	part = url.split("?");
 
-	if(part.length == 1 && url.charAt(0) != "?")
+	if (part.length == 1 && url.charAt(0) != "?")
 		return parameters;
 
 	part = (part.length < 2 ? part[0] : part[1]);
@@ -157,18 +157,18 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	{ // Tip: exclude and include can be used in combination to replace values = first exclude old then include new.
 	var i, hash, str, search = "";
 
-	for(i = 0; i < exclude.length; i++)
+	for (i = 0; i < exclude.length; i++)
 		{
-		if(exclude[i] in query)
+		if (exclude[i] in query)
 			delete query[exclude[i]];
 		}
 
-	for(i in include)
+	for (i in include)
 		query[i] = include[i];
 
-	for(i in query)
+	for (i in query)
 		{
-		if(encode)
+		if (encode)
 			{
 			str = decodeURIComponent(query[i])
 			str = encodeURIComponent(str);
@@ -179,11 +179,11 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 		search += (search != "" ? "&" : "") + i + "=" + str;
 		}
 
-	if(path)
+	if (path)
 		{
 		path = decodeURIComponent(path);
 
-		if((hash = path.match(/(?:#.*)/, "")))									// hash part of the path
+		if ((hash = path.match(/(?:#.*)/, "")))									// hash part of the path
 			hash = hash[0];
 
 		path = path.replace(/\?.*$/, "");										// path without search and hash
@@ -237,7 +237,7 @@ self.parseURL = function(url)
 
 self.isPortInUse = function(port, callback)
 	{ // Adapted from https://gist.github.com/timoxley/1689041
-	if(!port)
+	if (!port)
 		return callback(null, false);
 
 	var net = require("net");
@@ -276,7 +276,7 @@ self.GET = function(url, callback, responseType)
 
 self.POST_FORM = function(url, post, responseType, callback)
 	{
-	if(typeof spaceifyLoader !== "undefined")
+	if (typeof spaceifyLoader !== "undefined")
 		{
 		spaceifyLoader.postData(url, post, responseType, callback);
 		}
@@ -285,7 +285,7 @@ self.POST_FORM = function(url, post, responseType, callback)
 		var boundary = "---------------------------" + Date.now().toString(16);
 
 		var body = "";
-		for(var i = 0; i < post.length; i++)
+		for (var i = 0; i < post.length; i++)
 			{
 			body += "\r\n--" + boundary + "\r\n";
 
@@ -303,24 +303,22 @@ self.POST_FORM = function(url, post, responseType, callback)
 		}
 	}
 
-self.doOperation = function(jsonData, callback)
+self.REST_POST = function(url, jsonData, callback)
 	{
 	var data;
 	var result;
 	var content;
 	var error = null;
-	var operationUrl;
 
 	try {
-		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
+		content = "Content-Disposition: form-data; name=parameters;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL({ withEndSlash: true }) + config.OPERATION_FILE;
-		//true, null, true
+		url = self.getEdgeURL({ withEndSlash: true }) + url;
 
-		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
+		self.POST_FORM(url, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
 			try {
-				if(typeof response !== "string")
+				if (typeof response !== "string")
 					response = JSON.stringify(response);
 
 				response = response.replace(/&quot;/g, '"');
@@ -330,20 +328,20 @@ self.doOperation = function(jsonData, callback)
 				}
 			catch(err)
 				{
-				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
+				result = { err: errorc.makeErrorObject("REST_POST_1", "Invalid JSON received.", "SpaceifyNetwork::REST_POST") };
 				}
 
-			if(!result)
+			if (!result)
 				{
 				data = null;
-				error = errorc.makeErrorObject("doOperation2", "Response is null.", "SpaceifyNetwork::doOperation");
+				error = errorc.makeErrorObject("REST_POST_2", "Response is null.", "SpaceifyNetwork::REST_POST");
 				}
-			else if(result.err)
+			else if (result.err)
 				{
 				data = result.data;
 				error = result.err;
 				}
-			else if(result.error)
+			else if (result.error)
 				{
 				data = result.data;
 				error = result.error;
@@ -370,8 +368,79 @@ var createXMLHttpRequest = function()
 
 var onReadyState = function(xhr, id, ms, callback)
 	{
-	if(xhr.readyState == 4)
+	if (xhr.readyState == 4)
 		callback( (xhr.status != 200 ? xhr.status : null), (xhr.status == 200 ? xhr.response : null), id, Date.now() - ms );
+	}
+
+	// HEADER -- -- -- -- -- -- -- -- -- -- //
+self.parseMultiPartData = function(contentType, body, throws)
+	{ // Parse "multipart MIME data streams". Return attributes of the data stream and the body as it is (no decoding done)
+	var boundary, partBoundary, endBoundary, dataLine, phase, contentTypeData = {}, bodyData, bodyParts = {};
+
+	try {
+		// content-type
+		self.parseMultipartLine(contentType, contentTypeData);
+
+		if (!(boundary = contentTypeData["boundary"]))
+			throw "";
+
+		partBoundary = "--" + boundary;
+		endBoundary =  "--" + boundary + "--";
+
+		// body
+		body = body.split("\r\n");
+
+		body.shift();
+		while (body.length > 0)
+			{
+			phase = 0;
+			bodyData = {body: ""};
+			dataLine = body.shift();
+			while (body.length > 0 && dataLine != partBoundary && dataLine != endBoundary)
+				{
+				if (dataLine == "")
+					phase++;
+				else if (phase == 0)
+					self.parseMultipartLine(dataLine, bodyData);
+				else
+					bodyData.body += dataLine;
+
+				dataLine = body.shift();
+				}
+
+			if (bodyData.name)
+				bodyParts[bodyData.name] = bodyData;
+			}
+		}
+	catch(err)
+		{
+		if (throws)
+			throw err;
+		}
+
+	return bodyParts;
+	}
+
+self.parseMultipartLine = function(line, keyvalues)
+	{ // parse multipart lines such as 'multipart/form-data; boundary=abcd' or 'Content-Disposition: form-data; name="data";' as key-value pairs
+	var parts = line.split(";");
+
+	for (var i = 0; i < parts.length; i++)
+		{
+		if (!parts[i])
+			continue;
+
+		var matched = parts[i].match(/[:=]/);
+
+		if (!matched)
+			keyvalues[parts[i].trim()] = "";
+		else
+			{
+			var key = parts[i].substr(0, matched.index);
+			var value = parts[i].substr(matched.index + 1);
+			keyvalues[key.trim().toLowerCase()] = value.trim();
+			}
+		}
 	}
 
 	// COOKIES -- -- -- -- -- -- -- -- -- -- //
@@ -379,7 +448,7 @@ self.setCookie = function(cname, cvalue, expiration_sec)
 	{
 	var expires = "";
 
-	if(expiration_sec)
+	if (expiration_sec)
 		{
 		var dn = Date.now() + (expiration_sec * 1000);
 		var dc = new Date(dn);
@@ -393,13 +462,13 @@ self.getCookie = function(cname)
 	{
 	var name = cname + "=";
 	var ca = document.cookie.split(";");
-	for(var i = 0; i < ca.length; i++)
+	for (var i = 0; i < ca.length; i++)
 		{
 		var c = ca[i];
-		while(c.charAt(0) == " ")
+		while (c.charAt(0) == " ")
 			c = c.substring(1);
 
-		if(c.indexOf(name) != -1)
+		if (c.indexOf(name) != -1)
 			return c.substring(name.length, c.length);
 		}
 
@@ -411,7 +480,21 @@ self.deleteCookie = function(cname)
 	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	}
 
+	// MISC -- -- -- -- -- -- -- -- -- -- //
+self.isMAC = function(MAC)
+	{
+	return MAC.match(new RegExp(config.MAC_REGX, "i"));
+	}
+
+self.parseURLFromURLObject = function(urlObj, host, protocol, port)
+	{ // //[edge.spaceify.net:32827]/service/spaceify/bigscreen
+	urlObj.hostname = host + (port ? ":" + port : "");
+	urlObj.protocol = protocol;
+
+	return urlObj.format(urlObj);
+	}
+
 }
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = SpaceifyNetwork;

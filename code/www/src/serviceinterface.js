@@ -13,7 +13,7 @@ function ServiceInterface()
 {
 var self = this;
 
-var isNodeJs = (typeof window === "undefined" ? true : false);
+var isNodeJs = (typeof window == "undefined" ? true : false);
 
 var lib = null;
 var fibrous = null;
@@ -75,7 +75,8 @@ var caCrt = config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW;
 var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
 var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
 
-var errorObj = errorc.makeErrorObject("not_open", "Connection is not ready.", "ServiceInterface::connect");
+var typeError = errorc.makeErrorObject("1000", "Service type not supported.", "ServiceInterface::connect");
+var openError = errorc.makeErrorObject("1001", "Service connection already open.", "ServiceInterface::connect");
 
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
@@ -84,28 +85,13 @@ var errorObj = errorc.makeErrorObject("not_open", "Connection is not ready.", "S
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
-self.connect = function(serviceObj, isSecure, callback)
-	{ // serviceObj = object (service object) or string (service name)
-	if (typeof isSecure === "function")															// From web page or not defined
-		{
-		callback = isSecure;
-		isSecure = (isNodeJs ? false : network.isSecure());
-		}
-	else																						// Web page always checks the protocol
-		{
-		isSecure = (isNodeJs ? isSecure : network.isSecure());
-		}
 
-	open(serviceObj, isSecure, callback);
-	}
-
-var open = function(serviceObj, isSecure, callback)
+self.connect = function(service_name, unique_name, isSecure, callback)
 	{
 	var service;
-	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
 
 	if (service_name == config.HTTP)
-		return callback(errorObj, null);
+		return (typeof callback == "function" ? callback(typeError, null) : false);
 
 	if (!required[service_name])																// Every service has a selector
 		required[service_name] = new ServiceSelector();
@@ -114,7 +100,7 @@ var open = function(serviceObj, isSecure, callback)
 
 	if (!service)
 		{
-		service = new Service(service_name, false, new Connection());
+		service = new Service(service_name, unique_name, false, new Connection());
 
 		service.setConnectionListener(connectionListener);
 		service.setDisconnectionListener(disconnectionListener);
@@ -122,47 +108,31 @@ var open = function(serviceObj, isSecure, callback)
 		required[service_name].add(service, isSecure);
 		}
 
-	getService(serviceObj, function(err, serviceObj)
+	if (service.getIsOpen())																	// Don't reopen connections!
+		return (typeof callback == "function" ? callback(openError, null) : false);
+
+	core.getService(service_name, unique_name, function(err, serviceobj)						// Always get the up-to-date service object
 		{
-		if (!serviceObj || err)
+		if (!serviceobj || err)
 			{
-			disconnectionListener(-1, service_name, isSecure);									// Let the automaton get the connection up
+			disconnectionListener(-1, service_name, isSecure, unique_name);						// Let the automaton get the connection up
 
 			if (typeof callback == "function")
-				callback(errorObj, null);
+				callback(err, null);
 			}
 		else
 			{
-			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function()
+			service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: (!isSecure ? serviceobj.port : serviceobj.securePort), isSecure: isSecure, caCrt: caCrt }, function(err, data)
 				{
-				if (typeof callback === "function")
-					callback(null, service);
-				});
+				if (err)
+					disconnectionListener(-1, service_name, isSecure, unique_name);
+
+				if (typeof callback == "function")
+					callback(null, serviceobj);
+				})
+
 			}
 		});
-	}
-
-var getService = function(serviceObj,  callback)
-	{
-	if (typeof serviceObj === "object")															// Service is already fetched
-		{
-		callback(null, serviceObj);
-		}
-	else																						// Get service
-		{
-		core.getService(serviceObj, "", function(err, serviceObj)
-			{
-			callback(err, serviceObj);
-			});
-		}
-	}
-
-var connect = function(service, port, isSecure, callback)
-	{
-	if (service.getIsOpen())																	// Don't reopen connections!
-		return callback();
-
-	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
 	}
 
 self.disconnect = function(service_names, callback)
@@ -184,7 +154,7 @@ var connectionListener = function(id, service_name, isSecure)
 	{
 	}
 
-var disconnectionListener = function(id, service_name, isSecure)
+var disconnectionListener = function(id, service_name, isSecure, unique_name)
 	{
 	var timerIdName, service;
 
@@ -196,23 +166,15 @@ var disconnectionListener = function(id, service_name, isSecure)
 		return;
 
 	service = required[service_name].getService(isSecure);										// Make sure the service is not open
-	if (service.getIsOpen())
+	if (!service || service.getIsOpen())
 		return;
 
-	keepConnectionUpTimerIds[timerIdName] = setTimeout(waitConnectionAttempt, config.RECONNECT_WAIT, id, service_name, isSecure, timerIdName, service);
-	}
-
-var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, service)
-	{
-	getService(service_name, function(err, serviceObj)
+	keepConnectionUpTimerIds[timerIdName] = setTimeout(function()
 		{
-		delete keepConnectionUpTimerIds[timerIdName];											// Timer can now be retriggered
+		delete keepConnectionUpTimerIds[timerIdName];												// Timer can now be retriggered
 
-		if (serviceObj)
-			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
-		else
-			disconnectionListener(id, service_name, isSecure);
-		});
+		self.connect(service_name, unique_name, isSecure, null);
+		}, config.RECONNECT_WAIT, id, service_name, isSecure, unique_name, timerIdName);
 	}
 
 self.keepConnectionUp = function(val)
@@ -232,6 +194,7 @@ self.getRequiredService = function(service_name, isSecure)
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
+
 self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
 	{
 	var service;
@@ -240,10 +203,10 @@ self.listen = fibrous( function(service_name, unique_name, port, securePort, lis
 		{
 		provided[service_name] = new ServiceSelector();
 
-		service = new Service(service_name, true, new WebSocketRpcServer());
+		service = new Service(service_name, unique_name, true, new WebSocketRpcServer());
 		provided[service_name].add(service, false);
 
-		service = new Service(service_name, true, new WebSocketRpcServer());
+		service = new Service(service_name, unique_name, true, new WebSocketRpcServer());
 		provided[service_name].add(service, true);
 		}
 
@@ -274,7 +237,7 @@ var listen = fibrous( function(service_name, port, isSecure)
 	{
 	var service = provided[service_name].getService(isSecure);
 
-	if (service.getIsOpen())
+	if (!service || service.getIsOpen())
 		return;
 
 	service.getConnection().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
@@ -312,6 +275,7 @@ self.keepServerUp = function(val)
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
+
 self.getServiceById = function(connectionId)
 	{
 	var i, names, service;

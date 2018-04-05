@@ -8,7 +8,7 @@
 		exports["spe"] = factory(require("fs"), require("path"), require("websocket"), require("adm-zip"), require("child_process"), require("http"), require("https"), require("mkdirp"), require("net"), require("os"), require("request"), require("url"));
 	else
 		root["spe"] = factory(root["fs"], root["path"], root["websocket"], root["adm-zip"], root["child_process"], root["http"], root["https"], root["mkdirp"], root["net"], root["os"], root["request"], root["url"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_36__, __WEBPACK_EXTERNAL_MODULE_37__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__, __WEBPACK_EXTERNAL_MODULE_71__, __WEBPACK_EXTERNAL_MODULE_72__, __WEBPACK_EXTERNAL_MODULE_73__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_37__, __WEBPACK_EXTERNAL_MODULE_38__, __WEBPACK_EXTERNAL_MODULE_64__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__, __WEBPACK_EXTERNAL_MODULE_68__, __WEBPACK_EXTERNAL_MODULE_69__, __WEBPACK_EXTERNAL_MODULE_70__, __WEBPACK_EXTERNAL_MODULE_71__, __WEBPACK_EXTERNAL_MODULE_72__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -74,7 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 74);
+/******/ 	return __webpack_require__(__webpack_require__.s = 73);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -322,7 +322,7 @@ if (typeof globalObj.speBaseConfig_)
 
 if (typeof window === "undefined") //in node.js
 	{
-	path = __webpack_require__(36);
+	path = __webpack_require__(37);
 
 	if (!baseConfig)
 		{
@@ -1366,15 +1366,6 @@ logger:
 		warn: true
 		},
 
-	PubSub:
-		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
-		},
-
 	RpcCommunicator:
 		{
 		log: true,
@@ -1384,7 +1375,7 @@ logger:
 		warn: true
 		},
 
-	SecurityModel:
+	SecurityManager:
 		{
 		log: true,
 		dir: true,
@@ -1528,7 +1519,7 @@ logger:
 		warn: true
 		},
 
-	WebOperation:
+	REST:
 		{
 		log: true,
 		dir: true,
@@ -1650,7 +1641,7 @@ if(isNodeJs)
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
 	global.fs = __webpack_require__(0);
-	global.WebSocket = __webpack_require__(37).w3cwebsocket;
+	global.WebSocket = __webpack_require__(38).w3cwebsocket;
 	}
 else
 	{
@@ -2167,7 +2158,7 @@ webpackContext.id = 15;
  * @class Service
  */
 
-function Service(service_name, isServer, connection)
+function Service(service_name, unique_name, isServer, connection)
 {
 var self = this;
 
@@ -2184,25 +2175,25 @@ self.PROVIDED = 1;
 var listenConnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < connectionListeners.length; i++)
-		connectionListeners[i](connectionId, service_name, self.getIsSecure());
+		connectionListeners[i](connectionId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenDisconnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < disconnectionListeners.length; i++)
-		disconnectionListeners[i](connectionId, service_name, self.getIsSecure());
+		disconnectionListeners[i](connectionId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenServerUp = function(serverId)
 	{
 	if(serverUpListener)
-		serverUpListener(serverId, service_name, self.getIsSecure());
+		serverUpListener(serverId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenServerDown = function(serverId)
 	{
 	if(serverDownListener)
-		listenServerDown(serverId, service_name, self.getIsSecure());
+		listenServerDown(serverId, service_name, self.getIsSecure(), unique_name);
 	}
 
 	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
@@ -2243,6 +2234,11 @@ self.getServiceName = function()
 	return service_name;
 	}
 
+self.getUniqueName = function()
+	{
+	return unique_name;
+	}
+
 self.getType = function()
 	{
 	return isServer ? self.PROVIDED : self.REQUIRED;
@@ -2261,11 +2257,6 @@ self.getConnection = function()
 self.getIsSecure = function()
 	{
 	return connection.getIsSecure();
-	}
-
-self.getServiceName = function()
-	{
-	return service_name;
 	}
 
 self.connectionExists = function(connectionId)
@@ -2314,7 +2305,7 @@ function ServiceInterface()
 {
 var self = this;
 
-var isNodeJs = (typeof window === "undefined" ? true : false);
+var isNodeJs = (typeof window == "undefined" ? true : false);
 
 var lib = null;
 var fibrous = null;
@@ -2336,10 +2327,10 @@ if (isNodeJs)
 	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
 	SpaceifyError = __webpack_require__(12)(lib + "spaceifyerror");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyNetwork = __webpack_require__(57)(lib + "spaceifynetwork");
+	SpaceifyNetwork = __webpack_require__(33)(lib + "spaceifynetwork");
 	ServiceSelector = __webpack_require__(56)(lib + "serviceselector");
 	//SpaceifyLogger = require(lib + "spaceifylogger");
-	WebSocketRpcServer = __webpack_require__(59)(lib + "websocketrpcserver");
+	WebSocketRpcServer = __webpack_require__(58)(lib + "websocketrpcserver");
 	Connection = __webpack_require__(30)(lib + "connection");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -2376,7 +2367,8 @@ var caCrt = config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW;
 var key = config.VOLUME_TLS_PATH + config.SERVER_KEY;
 var crt = config.VOLUME_TLS_PATH + config.SERVER_CRT;
 
-var errorObj = errorc.makeErrorObject("not_open", "Connection is not ready.", "ServiceInterface::connect");
+var typeError = errorc.makeErrorObject("1000", "Service type not supported.", "ServiceInterface::connect");
+var openError = errorc.makeErrorObject("1001", "Service connection already open.", "ServiceInterface::connect");
 
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
@@ -2385,28 +2377,13 @@ var errorObj = errorc.makeErrorObject("not_open", "Connection is not ready.", "S
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
-self.connect = function(serviceObj, isSecure, callback)
-	{ // serviceObj = object (service object) or string (service name)
-	if (typeof isSecure === "function")															// From web page or not defined
-		{
-		callback = isSecure;
-		isSecure = (isNodeJs ? false : network.isSecure());
-		}
-	else																						// Web page always checks the protocol
-		{
-		isSecure = (isNodeJs ? isSecure : network.isSecure());
-		}
 
-	open(serviceObj, isSecure, callback);
-	}
-
-var open = function(serviceObj, isSecure, callback)
+self.connect = function(service_name, unique_name, isSecure, callback)
 	{
 	var service;
-	var service_name = (typeof serviceObj === "object" ? serviceObj.service_name : serviceObj);
 
 	if (service_name == config.HTTP)
-		return callback(errorObj, null);
+		return (typeof callback == "function" ? callback(typeError, null) : false);
 
 	if (!required[service_name])																// Every service has a selector
 		required[service_name] = new ServiceSelector();
@@ -2415,7 +2392,7 @@ var open = function(serviceObj, isSecure, callback)
 
 	if (!service)
 		{
-		service = new Service(service_name, false, new Connection());
+		service = new Service(service_name, unique_name, false, new Connection());
 
 		service.setConnectionListener(connectionListener);
 		service.setDisconnectionListener(disconnectionListener);
@@ -2423,47 +2400,31 @@ var open = function(serviceObj, isSecure, callback)
 		required[service_name].add(service, isSecure);
 		}
 
-	getService(serviceObj, function(err, serviceObj)
+	if (service.getIsOpen())																	// Don't reopen connections!
+		return (typeof callback == "function" ? callback(openError, null) : false);
+
+	core.getService(service_name, unique_name, function(err, serviceobj)						// Always get the up-to-date service object
 		{
-		if (!serviceObj || err)
+		if (!serviceobj || err)
 			{
-			disconnectionListener(-1, service_name, isSecure);									// Let the automaton get the connection up
+			disconnectionListener(-1, service_name, isSecure, unique_name);						// Let the automaton get the connection up
 
 			if (typeof callback == "function")
-				callback(errorObj, null);
+				callback(err, null);
 			}
 		else
 			{
-			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function()
+			service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: (!isSecure ? serviceobj.port : serviceobj.securePort), isSecure: isSecure, caCrt: caCrt }, function(err, data)
 				{
-				if (typeof callback === "function")
-					callback(null, service);
-				});
+				if (err)
+					disconnectionListener(-1, service_name, isSecure, unique_name);
+
+				if (typeof callback == "function")
+					callback(null, serviceobj);
+				})
+
 			}
 		});
-	}
-
-var getService = function(serviceObj,  callback)
-	{
-	if (typeof serviceObj === "object")															// Service is already fetched
-		{
-		callback(null, serviceObj);
-		}
-	else																						// Get service
-		{
-		core.getService(serviceObj, "", function(err, serviceObj)
-			{
-			callback(err, serviceObj);
-			});
-		}
-	}
-
-var connect = function(service, port, isSecure, callback)
-	{
-	if (service.getIsOpen())																	// Don't reopen connections!
-		return callback();
-
-	service.getConnection().connect({ hostname: config.EDGE_HOSTNAME, port: port, isSecure: isSecure, caCrt: caCrt }, callback);
 	}
 
 self.disconnect = function(service_names, callback)
@@ -2485,7 +2446,7 @@ var connectionListener = function(id, service_name, isSecure)
 	{
 	}
 
-var disconnectionListener = function(id, service_name, isSecure)
+var disconnectionListener = function(id, service_name, isSecure, unique_name)
 	{
 	var timerIdName, service;
 
@@ -2497,23 +2458,15 @@ var disconnectionListener = function(id, service_name, isSecure)
 		return;
 
 	service = required[service_name].getService(isSecure);										// Make sure the service is not open
-	if (service.getIsOpen())
+	if (!service || service.getIsOpen())
 		return;
 
-	keepConnectionUpTimerIds[timerIdName] = setTimeout(waitConnectionAttempt, config.RECONNECT_WAIT, id, service_name, isSecure, timerIdName, service);
-	}
-
-var waitConnectionAttempt = function(id, service_name, isSecure, timerIdName, service)
-	{
-	getService(service_name, function(err, serviceObj)
+	keepConnectionUpTimerIds[timerIdName] = setTimeout(function()
 		{
-		delete keepConnectionUpTimerIds[timerIdName];											// Timer can now be retriggered
+		delete keepConnectionUpTimerIds[timerIdName];												// Timer can now be retriggered
 
-		if (serviceObj)
-			connect(service, (!isSecure ? serviceObj.port : serviceObj.securePort), isSecure, function() {});
-		else
-			disconnectionListener(id, service_name, isSecure);
-		});
+		self.connect(service_name, unique_name, isSecure, null);
+		}, config.RECONNECT_WAIT, id, service_name, isSecure, unique_name, timerIdName);
 	}
 
 self.keepConnectionUp = function(val)
@@ -2533,6 +2486,7 @@ self.getRequiredService = function(service_name, isSecure)
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
+
 self.listen = fibrous( function(service_name, unique_name, port, securePort, listenUnsecure, listenSecure)
 	{
 	var service;
@@ -2541,10 +2495,10 @@ self.listen = fibrous( function(service_name, unique_name, port, securePort, lis
 		{
 		provided[service_name] = new ServiceSelector();
 
-		service = new Service(service_name, true, new WebSocketRpcServer());
+		service = new Service(service_name, unique_name, true, new WebSocketRpcServer());
 		provided[service_name].add(service, false);
 
-		service = new Service(service_name, true, new WebSocketRpcServer());
+		service = new Service(service_name, unique_name, true, new WebSocketRpcServer());
 		provided[service_name].add(service, true);
 		}
 
@@ -2575,7 +2529,7 @@ var listen = fibrous( function(service_name, port, isSecure)
 	{
 	var service = provided[service_name].getService(isSecure);
 
-	if (service.getIsOpen())
+	if (!service || service.getIsOpen())
 		return;
 
 	service.getConnection().sync.listen({ hostname: null, port: port, isSecure: isSecure, key: key, crt: crt, caCrt: caCrt, keepUp: keepServerUp });
@@ -2613,6 +2567,7 @@ self.keepServerUp = function(val)
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
 	// -- -- -- -- -- -- -- -- -- -- //
+
 self.getServiceById = function(connectionId)
 	{
 	var i, names, service;
@@ -2808,19 +2763,7 @@ var callQueue = [];
 
 self.startSpacelet = function(unique_name, callback)
 	{
-	callRpc("startSpacelet", [unique_name], function(err, services, id, ms)
-		{
-		if(err)
-			callback(err, null);
-		else
-			{
-			var serviceNames = [];
-			for(var s = 0; s < services.length; s++)							// Make service names array for convenience
-				serviceNames.push(services[s].service_name);
-
-			callback(null, {services: services, serviceNames: serviceNames}, id, ms);
-			}
-		});
+	callRpc("startSpacelet", [unique_name], callback);
 	}
 
 self.registerService = function(service_name, ports, callback)
@@ -2850,23 +2793,12 @@ self.getOpenServices = function(unique_names, getHttp, callback)
 
 self.getManifest = function(unique_name, callback)
 	{
-	var manifest = (isCache() ? getCache().getManifest(unique_name) : null);
-
-	if(manifest)
-		callback(null, manifest, -1, 0);
-	else
-		callRpc("getManifest", [unique_name, true, false], function(err, data, id, ms)
-			{
-			if(!err && isCache())
-				getCache().setManifest(unique_name, data);
-
-			callback(err, data, id, ms);
-			});
+	callRpc("getManifest", [unique_name], callback);
 	}
 
 self.isAdminLoggedIn = function(callback)
 	{
-	network.doOperation({type: "isAdminLoggedIn"}, function(err, data, id, ms)
+	network.REST_POST(config.REST_API_DIR + config.REST_ISADMINLOGGEDIN, {}, function(err, data, id, ms)
 		{
 		callback((err ? err : null), (err ? false : data), id, ms);
 		});
@@ -2889,27 +2821,7 @@ self.getRuntimeServiceStates = function(sessionId, callback)
 
 self.getApplicationData = function(callback)
 	{
-	var i;
-
-	callRpc("getApplicationData", [], function(err, data, id, ms)
-		{
-		if(!err && isCache())
-			{
-			for(i = 0; i < data.spacelet.length; i++)
-				getCache().setApplication(data.spacelet[i]);
-
-			for(i = 0; i < data.sandboxed.length; i++)
-				getCache().setApplication(data.sandboxed[i]);
-
-			for(i = 0; i < data.sandboxed_debian.length; i++)
-				getCache().setApplication(data.sandboxed_debian[i]);
-
-			for(i = 0; i < data.native_debian.length; i++)
-				getCache().setApplication(data.native_debian[i]);
-			}
-
-		callback(err, data, id, ms);
-		});
+	callRpc("getApplicationData", [], callback);
 	}
 
 self.getApplicationURL = function(unique_name, callback)
@@ -2917,18 +2829,13 @@ self.getApplicationURL = function(unique_name, callback)
 	callRpc("getApplicationURL", [unique_name], callback);
 	}
 
-self.setSplashAccepted = function(callback)
-	{
-	callRpc("setSplashAccepted", [], callback);
-	}
-
 self.setEventListeners = function(events, listeners, context, sessionId, callback)
 	{
 	callRpc("setEventListeners", [events], function(err, data, id, ms)
 		{
-		if(!err)
+		if (!err)
 			{
-			for(var i = 0; i < events.length; i++)
+			for (var i = 0; i < events.length; i++)
 				connection.exposeRpcMethod(events[i], context, listeners[i]);
 			}
 
@@ -2936,28 +2843,21 @@ self.setEventListeners = function(events, listeners, context, sessionId, callbac
 		});
 	}
 
-/*self.saveOptions = function(unique_name, directory, filename, data, callback)
+self.getEdgeID = function(callback)
 	{
-	var post = {unique_name: unique_name, directory: directory, filename: filename, data: data};
-	network.doOperation(post, callback);
+	callRpc("getEdgeID", [], callback);
 	}
-
-self.loadOptions = function(unique_name, directory, filename, callback)
-	{
-	var post = {unique_name: unique_name, directory: directory, filename: filename};
-	network.doOperation(post, callback);
-	}*/
 
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
 var callRpc = function(method, params, callback)
 	{
 	var callObj, isSecure, port, hostname, caCrt;
 
-	if(connection.isConnecting())
+	if (connection.isConnecting())
 		{
 		callQueue.push({ method: method, params: params, callback: callback });
 		}
-	else if(!connection.isConnected())
+	else if (!connection.isConnected())
 		{
 		callQueue.push({ method: method, params: params, callback: callback });
 
@@ -2965,16 +2865,16 @@ var callRpc = function(method, params, callback)
 		port = (!isSecure ? config.CORE_PORT : config.CORE_PORT_SECURE);
 		caCrt = (isNodeJs ? config.SPACEIFY_CODE_PATH + config.SPACEIFY_CRT_WWW : "");
 
-		if(!isNodeJs)																		// Web page
+		if (!isNodeJs)																		// Web page
 			hostname = network.getEdgeURL({ protocol: "" });
-		else if(isRealSpaceify)																// Node.js
+		else if (isRealSpaceify)															// Node.js
 			hostname = config.EDGE_IP;
 		else																				// Develop mode
 			hostname = config.CONNECTION_HOSTNAME;
 
 		connection.connect({ hostname: hostname, port: port, isSecure: isSecure, caCrt: caCrt }, function(err, data)
 			{
-			if(err)
+			if (err)
 				{
 				while(typeof (callObj = callQueue.shift()) !== "undefined")					// Pass connection failure to all calls
 					callObj.callback(err, null, -1, 0);
@@ -2997,7 +2897,7 @@ var nextRpcCall = function()
 	{
 	var callObj = callQueue.shift();
 
-	if(typeof callObj !== "undefined")
+	if (typeof callObj !== "undefined")
 		{
 		connection.callRpc(callObj.method, callObj.params, self, function()
 			{
@@ -3013,21 +2913,9 @@ self.close = function()
 	connection.close();
 	}
 
-	// CACHE -- -- -- -- -- -- -- -- -- -- //
-var getCache = function()
-	{
-	return (!isNodeJs && window && window.spaceifyCache ? window.spaceifyCache : null);
-	}
-
-var isCache = function()
-	{
-	var type = getCache();
-	return (type == "undefined" || type == null ? false : true);
-	}
-
 }
 
-if(true)
+if (true)
 	module.exports = SpaceifyCore;
 
 
@@ -3182,7 +3070,7 @@ if (isNodeJs)
 
 	SpaceifyError = __webpack_require__(12)(lib + "spaceifyerror");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
-	SpaceifyUtility = __webpack_require__(33)(lib + "spaceifyutility");
+	SpaceifyUtility = __webpack_require__(34)(lib + "spaceifyutility");
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	}
 else
@@ -3213,7 +3101,7 @@ self.getEdgeURL = function(opts)
 
 	// Origin: local/remote edge webpage or webpage running spacelet (URL not ending with EDGE_DOMAIN); defaults to spacelet
 	var hostname = config.EDGE_HOSTNAME;
-	if(typeof window !== "undefined" && window.location.hostname.match(dregx) !== null)
+	if (typeof window !== "undefined" && window.location.hostname.match(dregx) !== null)
 		{
 		hostname = window.location.hostname;
 		}
@@ -3246,11 +3134,11 @@ self.getProtocol = function(withScheme, cProtocol)
 	{
 	var url, proto, protocol;
 
-	if(cProtocol === "")														// No protocol
+	if (cProtocol === "")														// No protocol
 		{
 		protocol = "";
 		}
-	else if(typeof window === "undefined")										// Node.js!!!
+	else if (typeof window === "undefined")										// Node.js!!!
 		{
 		protocol = (cProtocol === null ? "" : cProtocol);
 		}
@@ -3258,14 +3146,14 @@ self.getProtocol = function(withScheme, cProtocol)
 		{
 		protocol = (cProtocol !== null ? cProtocol : location.protocol);
 
-		if(protocol == "blob:")
+		if (protocol == "blob:")
 			{
-			if(window.parent)
+			if (window.parent)
 				{
 				url = "" + window.parent.location;
 				url = url.replace(/^blob:/, "");
 
-				if((proto = url.match(/^http.?:/)) !== null)
+				if ((proto = url.match(/^http.?:/)) !== null)
 					protocol = proto[0];
 				else
 					protocol = "http:";
@@ -3275,7 +3163,7 @@ self.getProtocol = function(withScheme, cProtocol)
 			}
 		}
 
-	if(protocol != "" && !protocol.match(/:$/))
+	if (protocol != "" && !protocol.match(/:$/))
 		protocol += ":";
 
 	return protocol + (protocol != "" && withScheme ? "//" : "")
@@ -3292,7 +3180,7 @@ self.parseQuery = function(url)
 
 	part = url.split("?");
 
-	if(part.length == 1 && url.charAt(0) != "?")
+	if (part.length == 1 && url.charAt(0) != "?")
 		return parameters;
 
 	part = (part.length < 2 ? part[0] : part[1]);
@@ -3315,18 +3203,18 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 	{ // Tip: exclude and include can be used in combination to replace values = first exclude old then include new.
 	var i, hash, str, search = "";
 
-	for(i = 0; i < exclude.length; i++)
+	for (i = 0; i < exclude.length; i++)
 		{
-		if(exclude[i] in query)
+		if (exclude[i] in query)
 			delete query[exclude[i]];
 		}
 
-	for(i in include)
+	for (i in include)
 		query[i] = include[i];
 
-	for(i in query)
+	for (i in query)
 		{
-		if(encode)
+		if (encode)
 			{
 			str = decodeURIComponent(query[i])
 			str = encodeURIComponent(str);
@@ -3337,11 +3225,11 @@ self.remakeQueryString = function(query, exclude, include, path, encode)
 		search += (search != "" ? "&" : "") + i + "=" + str;
 		}
 
-	if(path)
+	if (path)
 		{
 		path = decodeURIComponent(path);
 
-		if((hash = path.match(/(?:#.*)/, "")))									// hash part of the path
+		if ((hash = path.match(/(?:#.*)/, "")))									// hash part of the path
 			hash = hash[0];
 
 		path = path.replace(/\?.*$/, "");										// path without search and hash
@@ -3395,10 +3283,10 @@ self.parseURL = function(url)
 
 self.isPortInUse = function(port, callback)
 	{ // Adapted from https://gist.github.com/timoxley/1689041
-	if(!port)
+	if (!port)
 		return callback(null, false);
 
-	var net = __webpack_require__(70);
+	var net = __webpack_require__(69);
 	var server = net.createServer();
 
 	server.once("error", function(err)
@@ -3434,7 +3322,7 @@ self.GET = function(url, callback, responseType)
 
 self.POST_FORM = function(url, post, responseType, callback)
 	{
-	if(typeof spaceifyLoader !== "undefined")
+	if (typeof spaceifyLoader !== "undefined")
 		{
 		spaceifyLoader.postData(url, post, responseType, callback);
 		}
@@ -3443,7 +3331,7 @@ self.POST_FORM = function(url, post, responseType, callback)
 		var boundary = "---------------------------" + Date.now().toString(16);
 
 		var body = "";
-		for(var i = 0; i < post.length; i++)
+		for (var i = 0; i < post.length; i++)
 			{
 			body += "\r\n--" + boundary + "\r\n";
 
@@ -3461,24 +3349,22 @@ self.POST_FORM = function(url, post, responseType, callback)
 		}
 	}
 
-self.doOperation = function(jsonData, callback)
+self.REST_POST = function(url, jsonData, callback)
 	{
 	var data;
 	var result;
 	var content;
 	var error = null;
-	var operationUrl;
 
 	try {
-		content = "Content-Disposition: form-data; name=operation;\r\nContent-Type: application/json; charset=utf-8";
+		content = "Content-Disposition: form-data; name=parameters;\r\nContent-Type: application/json; charset=utf-8";
 
-		operationUrl = self.getEdgeURL({ withEndSlash: true }) + config.OPERATION_FILE;
-		//true, null, true
+		url = self.getEdgeURL({ withEndSlash: true }) + url;
 
-		self.POST_FORM(operationUrl, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
+		self.POST_FORM(url, [{content: content, data: JSON.stringify(jsonData)}], "json", function(err, response, id, ms)
 			{
 			try {
-				if(typeof response !== "string")
+				if (typeof response !== "string")
 					response = JSON.stringify(response);
 
 				response = response.replace(/&quot;/g, '"');
@@ -3488,20 +3374,20 @@ self.doOperation = function(jsonData, callback)
 				}
 			catch(err)
 				{
-				result = {err: errorc.makeErrorObject("doOperation1", "Invalid JSON received.", "SpaceifyNetwork::doOperation")};
+				result = { err: errorc.makeErrorObject("REST_POST_1", "Invalid JSON received.", "SpaceifyNetwork::REST_POST") };
 				}
 
-			if(!result)
+			if (!result)
 				{
 				data = null;
-				error = errorc.makeErrorObject("doOperation2", "Response is null.", "SpaceifyNetwork::doOperation");
+				error = errorc.makeErrorObject("REST_POST_2", "Response is null.", "SpaceifyNetwork::REST_POST");
 				}
-			else if(result.err)
+			else if (result.err)
 				{
 				data = result.data;
 				error = result.err;
 				}
-			else if(result.error)
+			else if (result.error)
 				{
 				data = result.data;
 				error = result.error;
@@ -3528,8 +3414,79 @@ var createXMLHttpRequest = function()
 
 var onReadyState = function(xhr, id, ms, callback)
 	{
-	if(xhr.readyState == 4)
+	if (xhr.readyState == 4)
 		callback( (xhr.status != 200 ? xhr.status : null), (xhr.status == 200 ? xhr.response : null), id, Date.now() - ms );
+	}
+
+	// HEADER -- -- -- -- -- -- -- -- -- -- //
+self.parseMultiPartData = function(contentType, body, throws)
+	{ // Parse "multipart MIME data streams". Return attributes of the data stream and the body as it is (no decoding done)
+	var boundary, partBoundary, endBoundary, dataLine, phase, contentTypeData = {}, bodyData, bodyParts = {};
+
+	try {
+		// content-type
+		self.parseMultipartLine(contentType, contentTypeData);
+
+		if (!(boundary = contentTypeData["boundary"]))
+			throw "";
+
+		partBoundary = "--" + boundary;
+		endBoundary =  "--" + boundary + "--";
+
+		// body
+		body = body.split("\r\n");
+
+		body.shift();
+		while (body.length > 0)
+			{
+			phase = 0;
+			bodyData = {body: ""};
+			dataLine = body.shift();
+			while (body.length > 0 && dataLine != partBoundary && dataLine != endBoundary)
+				{
+				if (dataLine == "")
+					phase++;
+				else if (phase == 0)
+					self.parseMultipartLine(dataLine, bodyData);
+				else
+					bodyData.body += dataLine;
+
+				dataLine = body.shift();
+				}
+
+			if (bodyData.name)
+				bodyParts[bodyData.name] = bodyData;
+			}
+		}
+	catch(err)
+		{
+		if (throws)
+			throw err;
+		}
+
+	return bodyParts;
+	}
+
+self.parseMultipartLine = function(line, keyvalues)
+	{ // parse multipart lines such as 'multipart/form-data; boundary=abcd' or 'Content-Disposition: form-data; name="data";' as key-value pairs
+	var parts = line.split(";");
+
+	for (var i = 0; i < parts.length; i++)
+		{
+		if (!parts[i])
+			continue;
+
+		var matched = parts[i].match(/[:=]/);
+
+		if (!matched)
+			keyvalues[parts[i].trim()] = "";
+		else
+			{
+			var key = parts[i].substr(0, matched.index);
+			var value = parts[i].substr(matched.index + 1);
+			keyvalues[key.trim().toLowerCase()] = value.trim();
+			}
+		}
 	}
 
 	// COOKIES -- -- -- -- -- -- -- -- -- -- //
@@ -3537,7 +3494,7 @@ self.setCookie = function(cname, cvalue, expiration_sec)
 	{
 	var expires = "";
 
-	if(expiration_sec)
+	if (expiration_sec)
 		{
 		var dn = Date.now() + (expiration_sec * 1000);
 		var dc = new Date(dn);
@@ -3551,13 +3508,13 @@ self.getCookie = function(cname)
 	{
 	var name = cname + "=";
 	var ca = document.cookie.split(";");
-	for(var i = 0; i < ca.length; i++)
+	for (var i = 0; i < ca.length; i++)
 		{
 		var c = ca[i];
-		while(c.charAt(0) == " ")
+		while (c.charAt(0) == " ")
 			c = c.substring(1);
 
-		if(c.indexOf(name) != -1)
+		if (c.indexOf(name) != -1)
 			return c.substring(name.length, c.length);
 		}
 
@@ -3569,9 +3526,23 @@ self.deleteCookie = function(cname)
 	document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	}
 
+	// MISC -- -- -- -- -- -- -- -- -- -- //
+self.isMAC = function(MAC)
+	{
+	return MAC.match(new RegExp(config.MAC_REGX, "i"));
+	}
+
+self.parseURLFromURLObject = function(urlObj, host, protocol, port)
+	{ // //[edge.spaceify.net:32827]/service/spaceify/bigscreen
+	urlObj.hostname = host + (port ? ":" + port : "");
+	urlObj.protocol = protocol;
+
+	return urlObj.format(urlObj);
+	}
+
 }
 
-if(true)
+if (true)
 	module.exports = SpaceifyNetwork;
 
 /***/ }),
@@ -3601,11 +3572,6 @@ self.getUniqueDirectory = function(unique_name, noEndSlash)
 		unique_name = unique_name.replace(/\/$/, "");
 
 	return unique_name;
-	}
-
-self.getSystemctlServiceName = function(unique_name)
-	{
-	return unique_name.replace(/_\//g, "") + ".service";
 	}
 
 self.getBasePath = function(type, unique_name, config)
@@ -3667,13 +3633,13 @@ if (isNodeJs)
 	SpaceifyLogger = __webpack_require__(32)(lib + "spaceifylogger");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 
-	global.os = __webpack_require__(71);
+	global.os = __webpack_require__(70);
 	global.fs = __webpack_require__(0);
-	global.path = __webpack_require__(36);
-	global.mkdirp = __webpack_require__(69);
-	global.AdmZip = __webpack_require__(65);
-	global.request = __webpack_require__(72);
-	global.spawn = __webpack_require__(66).spawn;
+	global.path = __webpack_require__(37);
+	global.mkdirp = __webpack_require__(68);
+	global.AdmZip = __webpack_require__(64);
+	global.request = __webpack_require__(71);
+	global.spawn = __webpack_require__(65).spawn;
 	}
 else
 	{
@@ -3702,7 +3668,7 @@ self.loadRemoteFile = fibrous( function(fileUrl)
 		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_INITIATE_HTTP_GET.pre("SpaceifyUtility::loadRemoteFile", err);
 		}
 
-	if(result.statusCode != 200)
+	if (result.statusCode != 200)
 		throw language.E_LOAD_REMOTE_FILE_FAILED_TO_LOAD_REMOTE_FILE.preFmt("SpaceifyUtility::loadRemoteFile", {"~file": fileUrl, "~code": result.statusCode});
 
 	return result;
@@ -3713,14 +3679,14 @@ self.loadRemoteFileToLocalFile = fibrous( function(fileUrl, targetDir, targetFil
 	try {
 		var result = self.sync.loadRemoteFile(fileUrl);
 
-		if(result.statusCode == 200)
+		if (result.statusCode == 200)
 			self.sync.writeFile(targetDir, targetFile, result.body);
 
 		return true;
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_LOAD_REMOTE_FILE_TO_LOCAL_FILE_FAILED.pre("SpaceifyUtility::loadRemoteFileToLocalFile", err);
 		}
 
@@ -3742,9 +3708,9 @@ self.isLocal = function(path, type, callback)
 	try {
 		var stats = fs.sync.stat(path);
 
-		if(stats && type == "file" && stats.isFile())
+		if (stats && type == "file" && stats.isFile())
 			callback(null, true);
-		else if(stats && type == "directory" && stats.isDirectory())
+		else if (stats && type == "directory" && stats.isDirectory())
 			callback(null, true);
 		else
 			callback(null, false);
@@ -3760,9 +3726,9 @@ self.getPathType = function(path, callback)
 	try {
 		var stats = fs.stat(path, function(err, data)
 			{
-			if(stats && stats.isFile())
+			if (stats && stats.isFile())
 				callback(null, "file");
-			else if(stats && stats.isDirectory())
+			else if (stats && stats.isDirectory())
 				callback(null, "directory");
 			else
 				callback(null, "undefined");
@@ -3778,12 +3744,12 @@ self.deleteDirectory = fibrous( function(source, throws)						// Recursively del
 	{
 	try {
 		var stats = fs.sync.stat(source);
-		if(typeof stats != "undefined" && stats.isDirectory())
+		if (typeof stats != "undefined" && stats.isDirectory())
 			{
 			fs.sync.readdir(source).forEach(function(file, index)
 				{
 				var curPath = source + "/" + file;
-				if(fs.sync.stat(curPath).isDirectory())
+				if (fs.sync.stat(curPath).isDirectory())
 					self.sync.deleteDirectory(curPath, throws);
 				else
 					fs.sync.unlink(curPath);
@@ -3794,7 +3760,7 @@ self.deleteDirectory = fibrous( function(source, throws)						// Recursively del
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_DELETE_DIRECTORY_FAILED.pre("SpaceifyUtility::deleteDirectory", err);
 		}
 	});
@@ -3806,7 +3772,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 		target += (target.search(/\/$/) != -1 ? "" : "/");
 
 		var stats = fs.sync.stat(source);
-		if(typeof stats == "undefined" || !stats.isDirectory() || excludeDirectory.indexOf(source) != -1)
+		if (typeof stats == "undefined" || !stats.isDirectory() || excludeDirectory.indexOf(source) != -1)
 			return;
 
 		var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
@@ -3819,7 +3785,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 			var targetPath = target + file;
 
 			stats = fs.sync.stat(sourcePath);
-			if(stats.isDirectory())
+			if (stats.isDirectory())
 				{
 				self.sync.copyDirectory(sourcePath + "/", targetPath + "/", throws, excludeDirectory);
 				}
@@ -3834,7 +3800,7 @@ self.copyDirectory = fibrous( function(source, target, throws, excludeDirectory)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_COPY_DIRECTORY_FAILED.pre("SpaceifyUtility::copyDirectory", err);
 		}
 	});
@@ -3847,7 +3813,7 @@ self.moveDirectory = fibrous( function(source, target, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_MOVE_DIRECTORY_FAILED.pre("SpaceifyUtility::moveDirectory", err);
 		}
 	});
@@ -3856,12 +3822,12 @@ self.deleteFile = fibrous( function(source, throws)
 	{
 	try {
 		var stats = fs.sync.stat(source);
-		if(typeof stats != "undefined" && !stats.isDirectory())
+		if (typeof stats != "undefined" && !stats.isDirectory())
 			fs.sync.unlink(source);
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_DELETE_FILE_FAILED.pre("SpaceifyUtility::deleteFile", err);
 		}
 	});
@@ -3870,33 +3836,33 @@ self.copyFile = fibrous( function(sourceFile, targetFile, throws)
 	{
 	try {
 		var stats = fs.sync.stat(sourceFile);
-		if(typeof stats != "undefined" && !stats.isDirectory())
+		if (typeof stats != "undefined" && !stats.isDirectory())
 			{
-			var mode = parseInt("0" + (stats.mode & 511/*0777*/).toString(8), 8);
-			var readStream = fs.createReadStream(sourceFile, {"autoClose": true});
-			var writeStream = fs.createWriteStream(targetFile, {"mode": mode});
+			mode = parseInt("0" + (stats.mode & 511/*=0777*/).toString(8), 8);
+			var readStream = fs.createReadStream(sourceFile, { "autoClose": true });
+			var writeStream = fs.createWriteStream(targetFile, { "mode": mode });
 			readStream.pipe(writeStream);
 			}
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_COPY_FILE_FAILED.pre("SpaceifyUtility::copyFile", err);
 		}
 	});
 
 self.moveFile = fibrous( function(sourceFile, targetFile, throws)
-{
+	{
 	try {
 		self.sync.copyFile(sourceFile, targetFile, true);
 		self.sync.deleteFile(sourceFile, true);
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_MOVE_FILE_FAILED.pre("SpaceifyUtility::moveFile", err);
 		}
-});
+	});
 
 self.zipDirectory = fibrous( function(source, zipfile)				// Craete a zip file from the contents of the source directory
 	{
@@ -3925,18 +3891,18 @@ self.getFileFromZip = function(zipFilename, filename, extractPath, deleteAfter)
 	var regex = new RegExp(filename + "$", "i");
 	var zip = new AdmZip(zipFilename);
 	var zipEntries = zip.getEntries();
-	for(var ze in zipEntries)
+	for (var ze in zipEntries)
 		{
-		if(zipEntries[ze].entryName.search(regex) != -1)
+		if (zipEntries[ze].entryName.search(regex) != -1)
 			{
-			if(extractPath)
+			if (extractPath)
 				zip.extractAllTo(extractPath, true);
 
 			return zip.readAsText(zipEntries[ze].entryName);
 			}
 		}
 
-	if(deleteAfter)
+	if (deleteAfter)
 		self.sync.deleteFile(zipFilename);
 
 	return null;
@@ -3947,7 +3913,7 @@ self.unZip = function(zipFilename, extractPath, deleteAfter)
 	var zip = new AdmZip(zipFilename);
 	zip.extractAllTo(extractPath, true);
 
-	if(deleteAfter)
+	if (deleteAfter)
 		self.sync.deleteFile(zipFilename);
 
 	return true;
@@ -4013,89 +3979,6 @@ self.postRegister = function(edge_id, edge_name, edge_password, callback)
 			});
 	}
 
-var isMAC = function(MAC)
-	{
-	return MAC.match(new RegExp(config.MAC_REGX, "i"));
-	}
-
-self.parseURLFromURLObject = function(urlObj, host, protocol, port)
-	{ // //[edge.spaceify.net:32827]/service/spaceify/bigscreen
-	urlObj.hostname = host + (port ? ":" + port : "");
-	urlObj.protocol = protocol;
-
-	return urlObj.format(urlObj);
-	}
-
-self.parseMultiPartData = function(contentType, body, throws)
-	{ // Parse "multipart MIME data streams". Return attributes of the data stream and the body as it is (no decoding done)
-	var boundary, partBoundary, endBoundary, dataLine, phase, contentTypeData = {}, bodyData, bodyParts = {};
-
-	try {
-		// content-type
-		self.parseMultipartLine(contentType, contentTypeData);
-
-		if(!(boundary = contentTypeData["boundary"]))
-			throw "";
-
-		partBoundary = "--" + boundary;
-		endBoundary =  "--" + boundary + "--";
-
-		// body
-		body = body.split("\r\n");
-
-		body.shift();
-		while(body.length > 0)
-			{
-			phase = 0;
-			bodyData = {body: ""};
-			dataLine = body.shift();
-			while(body.length > 0 && dataLine != partBoundary && dataLine != endBoundary)
-				{
-				if(dataLine == "")
-					phase++;
-				else if(phase == 0)
-					self.parseMultipartLine(dataLine, bodyData);
-				else
-					bodyData.body += dataLine;
-
-				dataLine = body.shift();
-				}
-
-			if(bodyData.name)
-				bodyParts[bodyData.name] = bodyData;
-			}
-		}
-	catch(err)
-		{
-		if(throws)
-			throw err;
-		}
-
-	return bodyParts;
-	}
-
-self.parseMultipartLine = function(line, keyvalues)
-	{ // parse multipart lines such as 'multipart/form-data; boundary=abcd' or 'Content-Disposition: form-data; name="data";' as key-value pairs
-	var parts = line.split(";");
-
-	for(var i = 0; i < parts.length; i++)
-		{
-		if(!parts[i])
-			continue;
-
-		var matched = parts[i].match(/[:=]/);
-
-		if(!matched)
-			keyvalues[parts[i].trim()] = "";
-		else
-			{
-			var key = parts[i].substr(0, matched.index);
-			var value = parts[i].substr(matched.index + 1);
-			keyvalues[key.trim().toLowerCase()] = value.trim();
-			}
-		}
-	}
-
 	// PARSE / FORMAT -- -- -- -- -- -- -- -- -- -- //
 self.loadJSON = fibrous( function(file, bParse, throws)
 	{
@@ -4104,14 +3987,14 @@ self.loadJSON = fibrous( function(file, bParse, throws)
 	try {
 		manifest = fs.sync.readFile(file, {encoding: "utf8"});
 
-		if(bParse)
+		if (bParse)
 			manifest = self.parseJSON(manifest, throws);
 		}
 	catch(err)
 		{
 		manifest = null;
 
-		if(throws)
+		if (throws)
 			throw language.E_LOAD_JSON_FAILED.pre("SpaceifyUtility::loadJSON", err);
 		}
 
@@ -4131,7 +4014,7 @@ self.saveJSON = fibrous( function(file, json, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw language.E_SAVE_JSON_FAILED.pre("SpaceifyUtility::saveJSON", err);
 		}
 
@@ -4147,7 +4030,7 @@ self.parseJSON = function(str, throws)
 		}
 	catch(err)
 		{
-		if(throws)
+		if (throws)
 			throw (isNodeJs ?	language.E_PARSE_JSON_FAILED.pre("SpaceifyUtility::parseJSON", err) :
 								self.makeErrorObject("JSON", "Failed to parse JSON.", "SpaceifyUtility::parseJSON"));
 		}
@@ -4157,7 +4040,7 @@ self.parseJSON = function(str, throws)
 
 self.replaces = function(str, strs)
 	{ // Replace all occurances of %0, %1, ..., %strs.length - 1 with strings in the strs array. Reverse order so that e.g. %11 gets replaced before %1.
-	for(var s = strs.length - 1; s >= 0; s--)
+	for (var s = strs.length - 1; s >= 0; s--)
 		{
 		var regx = new RegExp("%" + s, "g");
 		str = str.replace(regx, (typeof strs[s] == "undefined" ? "?" : strs[s]));
@@ -4168,14 +4051,21 @@ self.replaces = function(str, strs)
 
 self.replace = function(str, strs, replaceWith)
 	{ // Replace all occurances of named tilde (~) prefixed, alphanumerical parameters (e.g. ~name, ~Name1) supplied in the strs object in the str.
-	var r = (replaceWith ? replaceWith : ""), i;
+	var r = (replaceWith ? replaceWith : ""), i, value;
 
-	for(i in strs)
+	for (i in strs)
 		{
-		if(typeof strs[i] == "undefined")							// Don't replace parameters with undefined values
+		if (str.indexOf(i) == -1)									// Nothing to replace
 			continue;
 
-		str = str.replace(i, strs[i]);
+		if (strs[i] == "")
+			value = "";
+		else if (!strs[i])
+			value = "<" + strs[i] + ">";
+		else
+			value = strs[i];
+
+		str = str.replace(i, value);
 		}
 																	// Remove unused parameters to tidy up the string
 	str = str.replace(/\s~[a-zA-Z0-9]*\s/g, " " + r + " ");			// ' ~x ' -> ' ? '
@@ -4197,7 +4087,7 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.stdout.on("data", function(data)
 		{
-		if(messageCallback)
+		if (messageCallback)
 			messageCallback(false, data);
 
 		stdout += data;
@@ -4205,7 +4095,7 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.stderr.on("data", function(data)
 		{
-		if(messageCallback)
+		if (messageCallback)
 			messageCallback(true, data);
 
 		stderr += data;
@@ -4213,19 +4103,19 @@ self.execute = function(command, args, options, messageCallback, callback)
 
 	spawned.on("error", function(err)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(err, null); bExited = true; }
 		});
 
 	spawned.on("close", function(code)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(null, {code: code, signal: null, stdout: stdout, stderr: stderr}); bExited = true; }
 		});
 
 	spawned.on("exit", function(code, signal)
 		{
-		if(!bExited) {
+		if (!bExited) {
 			callback(null, {code: code, signal: signal, stdout: stdout, stderr: stderr}); bExited = true; }
 		});
 	}
@@ -4241,13 +4131,13 @@ self.randomString = function(length, useAlpha)
 	{ // http://stackoverflow.com/questions/10726909/random-alpha-numeric-string-in-javascript
 	var chars = "", i;
 
-	if(useAlpha)
+	if (useAlpha)
 		chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	else
 		chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!�$#%&/(){}[]<>|��=+?*,.;:-_";
 
 	var result = "";
-	for(i = length; i > 0; --i)
+	for (i = length; i > 0; --i)
 		result += chars[Math.round(Math.random() * (chars.length - 1))];
 
 	return result;
@@ -4257,7 +4147,7 @@ self.generateRandomConnectionId = function(connections)
 	{
 	var ret;
 
-	while(true)
+	while (true)
 		{
 		ret = Math.floor(Math.random() * 4294967296);	//2 to power 32
 		if (!connections.hasOwnProperty(ret))
@@ -4269,7 +4159,7 @@ self.generateRandomConnectionId = function(connections)
 
 self.bytesToHexString = function(bytes)
 	{
-	for(var hex = [], i = 0; i < bytes.length; i++)
+	for (var hex = [], i = 0; i < bytes.length; i++)
 		{
 		hex.push((bytes[i] >>> 4).toString(16));
 		hex.push((bytes[i] & 0xF).toString(16));
@@ -4308,11 +4198,11 @@ self.assoc = function(_array, _key, _value)
 
 self.toBuffer = function(data)
 	{ // Make sure data is an instance of Buffer
-	if(data instanceof Buffer)
+	if (data instanceof Buffer)
 		return data;
-	else if(data instanceof Array || data instanceof Object)
+	else if (data instanceof Array || data instanceof Object)
 		return new Buffer(JSON.stringify(data), "utf8");
-	else if(typeof data == "string")
+	else if (typeof data == "string")
 		return new Buffer(data, "utf8");
 	else
 		return new Buffer(data.toString(), "utf8");
@@ -4323,11 +4213,11 @@ self.getApplicationIcon = function(manifest, startWithSlash)
 	{
 	var icon = null;
 
-	if(manifest && manifest.images)
+	if (manifest && manifest.images)
 		{
-		for(var i = 0; i < manifest.images.length; i++)
+		for (var i = 0; i < manifest.images.length; i++)
 			{
-			if(manifest.images[i].file.search("/^(icon\.)/i" != -1))
+			if (manifest.images[i].file.search("/^(icon\.)/i" != -1))
 				{
 				icon =	(startWithSlash ? "/" : "") + "images/" +
 						("directory" in manifest.images[i] ? manifest.images[i].directory + "/" : "") + manifest.images[i].file;
@@ -4341,7 +4231,7 @@ self.getApplicationIcon = function(manifest, startWithSlash)
 
 }
 
-if(true)
+if (true)
 	module.exports = SpaceifyUtility;
 
 
@@ -4422,7 +4312,7 @@ if (isNodeJs)
 	LoaderUtil = null;
 	SpaceifyNetwork = function() {};
 	SpaceifyConfig = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	WebSocketRpcConnection = __webpack_require__(63)(lib + "websocketrpcconnection");
+	WebSocketRpcConnection = __webpack_require__(62)(lib + "websocketrpcconnection");
 	}
 else
 	{
@@ -4437,15 +4327,17 @@ else
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
 
-var _connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
-
 var tunnelId = null;
 var isConnected = false;
 var isConnecting = false;
+var _connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
 
 self.connect = function(options, callback)
 	{
 	isConnecting = true;
+
+	if (!_connection)
+		_connection = (isSpaceifyNetwork || isNodeJs || isSpaceletOrigin ? new WebSocketRpcConnection() : LoaderUtil.getPiperClient());
 
 	if(isSpaceifyNetwork || isNodeJs || isSpaceletOrigin)
 		{
@@ -4479,9 +4371,10 @@ self.connect = function(options, callback)
 			});
 		}
 	}
+
 self.close = function()
 	{
-	if(_connection.close)
+	if(_connection && _connection.close)
 		_connection.close();
 
 	_connection = null;
@@ -4602,7 +4495,7 @@ if (isNodeJs)
 
 	SpaceifyLogger = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	SpaceifyError = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
-	CallbackBuffer = __webpack_require__(60)(lib + "callbackbuffer");
+	CallbackBuffer = __webpack_require__(59)(lib + "callbackbuffer");
 	SpaceifyUtility = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -5658,7 +5551,7 @@ if (isNodeJs)
 	//SpaceifyLogger = require(lib + "spaceifylogger");
 	//SpaceifyConfig = require(lib + "spaceifyconfig");
 	RpcCommunicator = __webpack_require__(13)(lib + "rpccommunicator");
-	WebSocketServer = __webpack_require__(64)(lib + "websocketserver");
+	WebSocketServer = __webpack_require__(63)(lib + "websocketserver");
 	}
 else
 	{
@@ -5832,10 +5725,10 @@ if (isNodeJs)
 	WebSocketConnection = __webpack_require__(15)(lib + "websocketconnection");
 
 	global.fs = __webpack_require__(0);
-	global.URL = __webpack_require__(73);
-	global.http = __webpack_require__(67);
-	global.https = __webpack_require__(68);
-	global.WSServer = __webpack_require__(37).server;
+	global.URL = __webpack_require__(72);
+	global.http = __webpack_require__(66);
+	global.https = __webpack_require__(67);
+	global.WSServer = __webpack_require__(38).server;
 	}
 else
 	{
@@ -6157,7 +6050,7 @@ webpackContext.id = 32;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifyutility": 23
+	"./spaceifynetwork": 21
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -6178,15 +6071,26 @@ webpackContext.id = 33;
 
 /***/ }),
 /* 34 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 34;
+var map = {
+	"./spaceifyutility": 23
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 34;
 
 
 /***/ }),
@@ -6206,7 +6110,14 @@ webpackEmptyContext.id = 35;
 /* 36 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_36__;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 36;
+
 
 /***/ }),
 /* 37 */
@@ -6216,6 +6127,12 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_37__;
 
 /***/ }),
 /* 38 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_38__;
+
+/***/ }),
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6241,10 +6158,11 @@ var SpaceifyCore = null;
 var SpaceifyConfig = null;
 var SpaceifyLogger = null;
 var SpaceifyUtility = null;
+var SpaceifyNetwork = null;
 var ServiceInterface = null;
 var fibrous = null;
 
-if(isNodeJs)
+if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
@@ -6252,7 +6170,8 @@ if(isNodeJs)
 	SpaceifyCore = __webpack_require__(31)(lib + "spaceifycore");
 	SpaceifyConfig = __webpack_require__(1)(lib + "spaceifyconfig");
 	SpaceifyLogger = __webpack_require__(32)(lib + "spaceifylogger");
-	SpaceifyUtility = __webpack_require__(33)(lib + "spaceifyutility");
+	SpaceifyUtility = __webpack_require__(34)(lib + "spaceifyutility");
+	SpaceifyNetwork = __webpack_require__(33)(lib + "spaceifynetwork");
 	ServiceInterface = __webpack_require__(55)(lib + "serviceinterface");
 	fibrous = !(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND';; throw e; }());
 	}
@@ -6265,6 +6184,7 @@ else
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
+	SpaceifyNetwork = lib.SpaceifyNetwork;
 	ServiceInterface = lib.ServiceInterface;
 	fibrous = function(fn) { return fn; };
 	}
@@ -6273,10 +6193,11 @@ else
 
 var self = this;
 
+var core = new SpaceifyCore();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var utility = new SpaceifyUtility();
-var spaceifyCore = new SpaceifyCore();
+var network = new SpaceifyNetwork();
 var serviceInterface = new ServiceInterface();
 var config = SpaceifyConfig.getConfig("realpaths");
 var logger = new SpaceifyLogger("SpaceifyApplication");
@@ -6289,13 +6210,13 @@ var HTTPS_PORT = (isRealSpaceify ? 443 : null);
 
 self.start = function()
 	{
-	if(isNodeJs)
+	if (isNodeJs)
 		start.apply(self, arguments);
 	else
 		self.connect.apply(self, arguments);
 	}
 
-var start = function(application_, options)
+var start = function(_application, options)
 	{
 	fibrous.run( function()
 		{
@@ -6309,21 +6230,21 @@ var start = function(application_, options)
 		var listenSecure = true;
 		var listenUnsecure = true;
 
-		application = application_;
+		application = _application;
 
 			// OPTIONS -- -- -- -- -- -- -- -- -- -- //
 		options = options || {};
 
 		hasWebServers = (options.webservers || options.webServers ? true : false);
 
-		if(hasWebServers)
+		if (hasWebServers)
 			{
 			server = options.webservers || options.webServers;
 			listenHttp = ("http" in server ? server.http : false);
 			listenHttps = ("https" in server ? server.https : false);
 			}
 
-		if(options.websocketservers || options.webSocketServers)
+		if (options.websocketservers || options.webSocketServers)
 			{
 			server = options.websocketservers || options.webSocketServers;
 			listenSecure = ("secure" in server ? server.secure : false);
@@ -6335,13 +6256,13 @@ var start = function(application_, options)
 			manifest = utility.sync.loadJSON(config.VOLUME_APPLICATION_PATH + config.MANIFEST, true, true);
 
 				// SERVICES -- -- -- -- -- -- -- -- -- -- //
-			if(manifest.provides_services)														// <= SERVERS - PROVIDES SERVICES
+			if (manifest.provides_services)															// <= SERVERS - PROVIDES SERVICES
 				{
 				var services = manifest.provides_services;
 
-				for(var i = 0; i < services.length; i++)
+				for (var i = 0; i < services.length; i++)
 					{
-					if(services.service_type == config.ALIEN)
+					if (services.service_type == config.ALIEN)
 						continue;
 
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
@@ -6351,14 +6272,14 @@ var start = function(application_, options)
 					}
 				}
 
-			if(manifest.requires_services)														// <= CLIENTS - REQUIRES SERVICES
+			if (manifest.requires_services)															// <= CLIENTS - REQUIRES SERVICES
 				{
 				createRequiredServices.sync(manifest.requires_services, 0, false);
 				createRequiredServices.sync(manifest.requires_services, 0, true);
 				}
 
 				// START APPLICATIONS HTTP AND HTTPS WEB SERVERS -- -- -- -- -- -- -- -- -- -- //
-			if(hasWebServers)
+			if (hasWebServers)
 				{
 				var opts =	{
 							hostname: config.ALL_IPV4_LOCAL,
@@ -6372,40 +6293,46 @@ var start = function(application_, options)
 
 				registerHttp = false;
 
-				if(listenHttp && !httpServer.getIsOpen())
+				if (listenHttp && !httpServer.getIsOpen())
 					{
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_80"] : null);
-					httpServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
+
 					httpServer.listen.sync(opts);
 
-					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
-																								// do not have knowledge of port numbers beforehand
+					HTTP_PORT = httpServer.getPort();												// Get the port because native and develop mode applications
+																									// do not have knowledge of port numbers beforehand
 					registerHttp = true;
+
+					if(server.hasOwnProperty("requestListener"))
+						httpServer.setRequestListener(server.requestListener);
 					}
 
-				if(listenHttps && !httpsServer.getIsOpen())
+				if (listenHttps && !httpsServer.getIsOpen())
 					{
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_443"] : null);
-					httpsServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
+
 					httpsServer.listen.sync(opts);
 
 					HTTPS_PORT = httpsServer.getPort();
 
 					registerHttp = true;
+
+					if(server.hasOwnProperty("requestListener"))
+						httpsServer.setRequestListener(server.requestListener);
 					}
 
-				if(registerHttp && !isRealSpaceify)
+				if (registerHttp && !isRealSpaceify)
 					{
-					spaceifyCore.sync.registerService("http", {unique_name: manifest.unique_name, port: HTTP_PORT, securePort: HTTPS_PORT});
+					core.sync.registerService("http", {unique_name: manifest.unique_name, port: HTTP_PORT, securePort: HTTPS_PORT});
 					console.log("    LISTEN -----> " + config.HTTP + " - port: " + HTTP_PORT + ", secure port: " + HTTPS_PORT);
 					}
 				}
 
-			if(application && application.start && typeof application.start == "function")
+			if (application && application.start && typeof application.start == "function")
 				application.start();
 
 				// APPLICATION INITIALIALIZED SUCCESSFULLY -- -- -- -- -- -- -- -- -- -- //
@@ -6421,57 +6348,70 @@ var start = function(application_, options)
 			});
 	}
 
-self.connect = function(application_, unique_names, options)
-	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending from where this method is called
+self.connect = function(_application, unique_names)
+	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending where this method is called from.
 	try {
-		application = application_;
+		application = _application;
 
-		if(unique_names.constructor !== Array)													// getOpenServices takes an array of unique names
+		if (unique_names.constructor !== Array)														// getOpenServices takes an array of unique names
 			unique_names = [unique_names];
 
-		spaceifyCore.getOpenServices(unique_names, false, function(err, services)
+		core.getOpenServices(unique_names, false, function(err, services)
 			{
-			if(err)
+			if (err || !services)
 				throw err;
-			else
-				connectServices(application, services);
+
+			createRequiredServices(services, 0, (isNodeJs ? false : network.isSecure()), function()
+				{
+				createRequiredServices(services, (isNodeJs ? 0 : services.length), true, function()	// Web pages open only one type of connections
+					{
+					if (typeof application == "function")
+						application(null, true);
+					else if (application && application.start && typeof application.start == "function")
+						application.start();
+					});
+				});
 			});
 		}
 	catch(err)
 		{
-		if(typeof application == "function")
+		if (typeof application == "function")
 			application(err, false);
-		else if(application && application.fail && typeof application.fail == "function")
+		else if (application && application.fail && typeof application.fail == "function")
 			application.fail(err);
 		}
 	}
 
-var connectServices = function(application_, services)
-	{ // Connect to services in the array one at a time
-	var service = services.shift();
+var createRequiredServices = function(services, position, isSecure, callback)
+	{
+	var service_name, unique_name;
 
-	application = application_;
-
-	if(typeof service === "undefined")
+	if (position == services.length)
 		{
-		if(typeof application == "function")
-			application(null, true);
-		else if(application && application.start && typeof application.start == "function")
-			application.start();
-
-		return;
+		callback();
 		}
-
-	serviceInterface.connect(service.service_name, function(err, data)
+	else
 		{
-		connectServices(application, services);
-		});
+		service_name = services[position].service_name;
+
+		if (services[position].suggested_application)
+			unique_name = services[position].suggested_application + config.SUGGESTED_MARKER;
+		else
+			unique_name = services[position].unique_name;
+
+		position++;
+
+		serviceInterface.connect(service_name, unique_name, isSecure, function(err, data)
+			{
+			createRequiredServices(services, position, isSecure, callback);
+			});
+		}
 	}
 
 var initFail = fibrous( function(err)
 	{ // FAILED TO INITIALIALIZE THE APPLICATION. -- -- -- -- -- -- -- -- -- -- //
 	logger.error([";;", err, "::"], true, true, logger.ERROR);
-	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);						// console.log is used intentionally!!!
+	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);							// console.log is used intentionally!!!
 
 	stop.sync(err);
 	});
@@ -6481,34 +6421,19 @@ var stop = fibrous( function(err)
 	httpServer.close();
 	httpsServer.close();
 
-	serviceInterface.disconnect();																// Disconnect clients
-	serviceInterface.close();																	// Close servers
+	serviceInterface.disconnect();																	// Disconnect clients
+	serviceInterface.close();																		// Close servers
 
-	spaceifyCore.close();
+	core.close();
 
-	if(application && application.fail && typeof application.fail == "function")
+	if (application && application.fail && typeof application.fail == "function")
 		application.fail(err);
 	});
-
-var createRequiredServices = function(services, position, isSecure, callback)
-	{
-	if(position == services.length)
-		{
-		callback();
-		}
-	else
-		{
-		serviceInterface.connect(services[position++].service_name, isSecure, function(err, data)
-			{
-			createRequiredServices(services, position, isSecure, callback);
-			});
-		}
-	}
 
 	// METHODS -- -- -- -- -- -- -- -- -- -- //
 self.getOwnUrl = function(isSecure)
 	{
-	if(!isNodeJs)
+	if (!isNodeJs)
 		return null;
 
 	var ownUrl = (!isSecure ? "http://" : "https://") + config.EDGE_HOSTNAME + ":" + (!isSecure ? HTTP_PORT : HTTPS_PORT);
@@ -6594,12 +6519,12 @@ self.callRpcByConnectionId = function(connectionId, method, params, object, call
 
 }
 
-if(true)
+if (true)
 	module.exports = (typeof window === "undefined" ? new SpaceifyApplication() : SpaceifyApplication);
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6646,7 +6571,7 @@ var result = null;
  */
 self.installApplication = function(applicationPackage, username, password, force, origin, handler)
 	{
-	setup("installApplication", {package: applicationPackage, username: username, password: password, force: force, }, origin, handler, true);
+	setup(config.REST_INSTALLAPPLICATION, { package: applicationPackage, username: username, password: password, force: force }, origin, handler, true);
 	}
 
 /**
@@ -6657,67 +6582,67 @@ self.installApplication = function(applicationPackage, username, password, force
  */
 self.removeApplication = function(unique_name, origin, handler)
 	{
-	setup("removeApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_REMOVEAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.purgeApplication = function(unique_name, origin, handler)
 	{
-	setup("purgeApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_PURGEAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.startApplication = function(unique_name, origin, handler)
 	{
-	setup("startApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_STARTAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.stopApplication = function(unique_name, origin, handler)
 	{
-	setup("stopApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_STOPAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.restartApplication = function(unique_name, origin, handler)
 	{
-	setup("restartApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_RESTARTAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.logIn = function(password, origin, handler)
 	{
-	setup("logIn", {password: password}, origin, handler, false);
+	setup(config.REST_LOGIN, { password: password }, origin, handler, false);
 	}
 
 self.logOut = function(origin, handler)
 	{
-	setup("logOut", {}, origin, handler, false);
+	setup(config.REST_LOGOUT, {}, origin, handler, false);
 	}
 
 self.isAdminLoggedIn = function(origin, handler)
 	{
-	setup("isAdminLoggedIn", {}, origin, handler, true);
+	setup(config.REST_ISADMINLOGGEDIN, {}, origin, handler, true);
 	}
 
 self.getCoreSettings = function(origin, handler)
 	{
-	setup("getCoreSettings", {}, origin, handler, true);
+	setup(config.REST_GETCORESETTINGS, {}, origin, handler, true);
 	}
 
 self.saveCoreSettings = function(settings, origin, handler)
 	{
-	setup("saveCoreSettings", {settings: settings}, origin, handler, true);
+	setup(config.REST_SAVECORESETTINGS, { settings: settings }, origin, handler, true);
 	}
 
 self.getEdgeSettings = function(origin, handler)
 	{
-	setup("getEdgeSettings", {}, origin, handler, true);
+	setup(config.REST_GETEDGESETTINGS, {}, origin, handler, true);
 	}
 
 self.saveEdgeSettings = function(settings, origin, handler)
 	{
-	setup("saveEdgeSettings", {settings: settings}, origin, handler, true);
+	setup(config.REST_SAVEEDGESETTINGS, { settings: settings }, origin, handler, true);
 	}
 
 self.getRuntimeServiceStates = function(origin, handler)
 	{
-	setup("getRuntimeServiceStates", {}, origin, handler, true);
+	setup(config.REST_GETRUNTIMESERVICESTATES, {}, origin, handler, true);
 	}
 
 /**
@@ -6730,7 +6655,7 @@ self.getRuntimeServiceStates = function(origin, handler)
  */
 self.getApplications = function(types, origin, handler)
 	{
-	setup("getApplications", {types: types}, origin, handler, true);
+	setup(config.REST_GETAPPLICATIONS, { types: types }, origin, handler, true);
 	}
 
 /**
@@ -6773,9 +6698,9 @@ self.appStoreGetPackages = function(search, returnCallback)
 /**
  *
  */
-var setup = function(type, params, origin, handler, getMessages)
+var setup = function(url, params, origin, handler, getMessages)
 	{
-	var op = { type: type, params: params, origin: origin, handler: handler, getMessages: getMessages, ms: Date.now(), id: utility.randomString(16, true) };
+	var op = { url: url, params: params, origin: origin, handler: handler, getMessages: getMessages, ms: Date.now(), id: utility.randomString(16, true) };
 
  	if(operations.length == 0)
  		{
@@ -6799,11 +6724,7 @@ self.connected = function()
 	{ // Messaging is now set up (or bypassed), post the operation.
 	sequence = 1;
 
-	var post = { type: operation.type };								// One object with operation and custom parameters
-	for(var i in operation.params)
-		post[i] = operation.params[i];
-
-	network.doOperation(post, function(err, data)
+	network.REST_POST(config.REST_API_DIR + operation.url, operation.params, function(err, data)
 		{
 		error = err;
 		result = data;
@@ -6853,145 +6774,6 @@ self.answer = function(result_, answerCallBackId)
 
 if(true)
 	module.exports = SpaceifyApplicationManager;
-
-/***/ }),
-/* 40 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Spaceify Cache, 29.7.2015 Spaceify Oy
- *
- * Keep this class dependency free!!!
- *
- * A cache class to reduce unnecessary RPC calls by storing application data.
- * For Spaceify's internal use.
- *
- * @class SpaceifyCache
- */
-
-function SpaceifyCache()
-{
-var self = this;
-
-var ready_counter = 0;
-
-var applications = {};
-var EXPIRATION_TIME = 60 * 1000;
-
-var config = SpaceifyConfig.getConfig();
-
-self.setApplication = function(application)
-	{
-	if(!applications[application.unique_name])
-		applications[application.unique_name] = {};
-
-	applications[application.unique_name].manifest = application;
-	applications[application.unique_name].isRunning = application.isRunning;
-	}
-
-self.getApplication = function(unique_name)
-	{
-	return (unique_name in applications ? applications[unique_name] : null);
-	}
-
-	// SERVICES -- -- -- -- -- -- -- -- -- -- //
-self.setService = function(service, unique_name)
-	{
-	if(service.service_type != config.HTTP)
-		return;
-
-	if(!applications[unique_name])
-		applications[unique_name] = {};
-
-	if(!applications[unique_name].services)
-		applications[unique_name].services = [];
-
-	applications[unique_name].services.push(service);
-	}
-
-self.getService = function(service_name, unique_name)
-	{ // Get service either by service name (when unique_name is not set) or by service name and unique_name.
-	for(var UNIQUE_NAME in applications)														// Iterate all applications
-		{
-		var services = (applications[UNIQUE_NAME].services ? applications[UNIQUE_NAME].services : []);	// Find from the services they have
-		for(var s = 0; s < services.length; s++)
-			{
-			var SERVICE_NAME = services[s].service_name;
-
-			// 1:
-			// Multiple applications can have the same service name. Return the first matching service.
-			// Without checking the unique_name the HTTP service of the first application would always be returned.
-			// 2:
-			// The service belongs to the requested unique application
-			if( /*1*/ (!unique_name && service_name == SERVICE_NAME && service_name != config.HTTP) ||
-			    /*2*/ (unique_name && unique_name == UNIQUE_NAME && service_name == SERVICE_NAME) )
-				return services[s];
-			}
-		}
-
-	return null;
-	}
-
-	// MANIFEST -- -- -- -- -- -- -- -- -- -- //
-self.setManifest = function(unique_name, manifest)
-	{
-	if(!applications[unique_name])
-		applications[unique_name] = {};
-
-	applications[unique_name].manifest = manifest;
-	}
-
-self.getManifest = function(unique_name)
-	{
-	return (applications[unique_name] && applications[unique_name].manifest ? applications[unique_name].manifest : null);
-	}
-
-	// RUNNING STATUS -- -- -- -- -- -- -- -- -- -- //
-self.setRunning = function(unique_name, isRunning)
-	{
-	if(!applications[unique_name])
-		applications[unique_name] = {};
-
-	applications[unique_name].isRunning = isRunning;
-	applications[unique_name].isRunningStart = Date.now();
-	}
-
-self.isRunning = function(unique_name)
-	{
-	if(!applications[unique_name] || !applications[unique_name].hasOwnProperty("isRunning"))
-		return null;
-
-	var run_time = Date.now() - applications[unique_name].isRunningStart;			// Running status expires after the expiration time
-	return (run_time > EXPIRATION_TIME ? null : applications[unique_name].isRunning);
-	}
-
-	// APPLICATION URLS -- -- -- -- -- -- -- -- -- -- //
-self.setApplicationURL = function(unique_name, urls)
-	{
-	if(!applications[unique_name])
-		applications[unique_name] = {};
-
-	applications[unique_name].urls = urls;
-	applications[unique_name].urls_start = Date.now();
-	}
-
-self.getApplicationURL = function(unique_name)
-	{
-	if(!applications[unique_name] || !applications[unique_name].hasOwnProperty("urls"))
-		return null;
-
-	var urls_time = Date.now() - applications[unique_name].urls_start;				// URLs expire after the expiration time
-	return (urls_time > EXPIRATION_TIME ? null : applications[unique_name].urls);
-	}
-
-}
-
-if(true)
-	module.exports = SpaceifyCache;
-
 
 /***/ }),
 /* 41 */
@@ -7221,7 +7003,7 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
 	connection.exposeRpcMethod("end", self, end);
 
-	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
+	network.REST_POST(config.REST_API_DIR + config.REST_REQUESTMESSAGEID, {}, function(err, gotId)		// Request a messageId
 		{
 		if (err)
 			return fail(err);
@@ -7464,29 +7246,13 @@ self.isArray = function(obj)
 	return Object.prototype.toString.call(obj) === "[object Array]";
 	}
 
-	// SPLASH -- -- -- -- -- -- -- -- -- -- //
-self.setSplashAccepted = function()
-	{
-	try {
-		core.setSplashAccepted(function(err, data)
-			{
-			if (data && data == true)
-				window.location.reload(true);
-			});
-		}
-	catch(err)
-		{
-		//logger.error(err, true, true, 0, logger.ERROR);
-		}
-	}
-
 self.loadCertificate = function()
 	{
 	var src = network.getEdgeURL({ withEndSlash: true }) + "spaceify.crt";
 
 	document.getElementById("certIframe").setAttribute("sp_src", src);
 
-	spaceifyLoader.loadData(document.getElementById("certIframe"), {}, null);
+	spaceifyLoader.loadData(document.getElementById("certIframe"), null);
 
 	return true;
 	}
@@ -7500,7 +7266,7 @@ self.adminLogOut = function()
 
 	this.ok = function()
 		{
-		self.loadLaunchPage();
+		self.loadHomepage();
 		}
 
 	sam.logOut(self, this.ok);
@@ -7509,19 +7275,22 @@ self.adminLogOut = function()
 	// PAGE BROWSER -- -- -- -- -- -- -- -- -- -- //
 self.loadAppstorePage = function(mode)
 	{
-	var sp_page;
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
+	window.history.pushState("", "", url);
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_path*/, port/*sp_port*/, url + config.APPSTORE/*sp_host*/, url/*spe_host*/);
 	}
 
-self.loadLaunchPage = function()
+self.loadHomepage = function()
 	{
 	var url = network.getEdgeURL({ /*protocol: "https", */withEndSlash: true });
 	var port = (!network.isSecure() ? WWW_PORT : WWW_PORT_SECURE);
 
-	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_page*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
+	window.history.pushState("", "", url);
+
+	spaceifyLoader.loadPage(config.INDEX_FILE/*sp_path*/, port/*sp_port*/, url/*sp_host*/, url/*spe_host*/);
 	}
 
 self.loadSecurePage = function()
@@ -7568,46 +7337,22 @@ self.renderTile = function(manifest, callback)
 	var element, query;
 	var sp_port, host, sp_host, spe_host, sp_path, icon, apptile_id, icon_id, tile, element;
 
+	addApplication(manifest);
+
 	if (manifest.hasTile)																			// Application supplies its own tile when its running
 		{
-		core.getApplicationURL(manifest.unique_name, function(err, appURL)
-			{
-			sp_port = (!network.isSecure() ? appURL.port : appURL.securePort);
+		apptile_id = makeAppTileId(manifest.unique_name);
 
-			spe_host = network.getEdgeURL({ withEndSlash: true });
+		element = document.createElement("iframe");
+		element.id = apptile_id;
+		element.frameborder = "0";
+		element.className = "edgeTile";
+		spdom.append(manifest.type, element);
 
-			if (appURL.implementsWebServer && sp_port)
-				{
-				host = spe_host;
-				sp_host = spe_host;
-				}
-			else
-				{
-				host = spe_host;
-				sp_host = network.externalResourceURL(manifest.unique_name, { withEndSlash: true });
-				}
+		element = document.getElementById(apptile_id);
+		element.src = network.getEdgeURL({ withEndSlash: true }) + config.REST_TILE_DIR + manifest.unique_name;
 
-			sp_path = config.TILEFILE;
-
-			apptile_id = makeAppTileId(manifest.unique_name);
-
-			element = document.createElement("iframe");
-			element.id = apptile_id;
-			element.frameborder = "0";
-			element.className = "edgeTile";
-			spdom.append(manifest.type, element);
-
-			query = {};
-			query.sp_port = sp_port;
-			query.sp_host = encodeURIComponent(sp_host);
-			query.sp_path = encodeURIComponent(sp_path);
-			query.spe_host = encodeURIComponent(spe_host);
-
-			element = document.getElementById(apptile_id);
-			element.src = host + "remote.html" + network.remakeQueryString(query, [], {}, "", true);
-
-			callback();
-			});
+		callback();
 		}
 	else																							// Spaceify renders default tile
 		{
@@ -7636,10 +7381,8 @@ self.renderTile = function(manifest, callback)
 		element.className = "edgeTile";
 		element.innerHTML = tile;
 		spdom.append(manifest.type, element);
-		spaceifyLoader.loadData(document.getElementById(icon_id), {}, callback);
+		spaceifyLoader.loadData(document.getElementById(icon_id), callback);
 		}
-
-	addApplication(manifest);
 	}
 
 self.removeTile = function(type, manifest)
@@ -7856,7 +7599,7 @@ var spaceifyNetwork = new lib.SpaceifyNetwork();
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
 	try {
-		core.startSpacelet(unique_name, function(err, serviceobj)
+		core.startSpacelet(unique_name, function(err, services)
 			{
 			if(err)
 				{
@@ -7867,9 +7610,9 @@ self.start = function(application, unique_name, callback)
 				}
 			else
 				{
-				for(var i = 0; i < serviceobj.serviceNames.length; i++)
+				for(var i = 0; i < services.length; i++)
 					{
-					serviceInterface.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
+					serviceInterface.connect(service[i].service_name, service[i].unique_name, spaceifyNetwork.isSecure(), (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
 						{
 						if(typeof application == "function")
 							application(null, true);
@@ -8412,10 +8155,23 @@ webpackContext.id = 56;
 
 /***/ }),
 /* 57 */
+/***/ (function(module, exports) {
+
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 57;
+
+
+/***/ }),
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./spaceifynetwork": 21
+	"./webjsonrpc/websocketrpcserver": 28
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8431,20 +8187,7 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 57;
-
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports) {
-
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 58;
+webpackContext.id = 58;
 
 
 /***/ }),
@@ -8452,7 +8195,7 @@ webpackEmptyContext.id = 58;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./webjsonrpc/websocketrpcserver": 28
+	"./callbackbuffer": 24
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8473,26 +8216,15 @@ webpackContext.id = 59;
 
 /***/ }),
 /* 60 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./callbackbuffer": 24
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 60;
+function webpackEmptyContext(req) {
+	throw new Error("Cannot find module '" + req + "'.");
+}
+webpackEmptyContext.keys = function() { return []; };
+webpackEmptyContext.resolve = webpackEmptyContext;
+module.exports = webpackEmptyContext;
+webpackEmptyContext.id = 60;
 
 
 /***/ }),
@@ -8510,15 +8242,26 @@ webpackEmptyContext.id = 61;
 
 /***/ }),
 /* 62 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function webpackEmptyContext(req) {
-	throw new Error("Cannot find module '" + req + "'.");
-}
-webpackEmptyContext.keys = function() { return []; };
-webpackEmptyContext.resolve = webpackEmptyContext;
-module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 62;
+var map = {
+	"./websocketrpcconnection": 10
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 62;
 
 
 /***/ }),
@@ -8526,7 +8269,7 @@ webpackEmptyContext.id = 62;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./websocketrpcconnection": 10
+	"./websocketserver": 29
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -8547,39 +8290,21 @@ webpackContext.id = 63;
 
 /***/ }),
 /* 64 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var map = {
-	"./websocketserver": 29
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 64;
-
+module.exports = __WEBPACK_EXTERNAL_MODULE_64__;
 
 /***/ }),
 /* 65 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_65__;
+module.exports = require("child_process");
 
 /***/ }),
 /* 66 */
 /***/ (function(module, exports) {
 
-module.exports = require("child_process");
+module.exports = __WEBPACK_EXTERNAL_MODULE_66__;
 
 /***/ }),
 /* 67 */
@@ -8619,12 +8344,6 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_72__;
 
 /***/ }),
 /* 73 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_73__;
-
-/***/ }),
-/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports =
@@ -8638,9 +8357,9 @@ SpaceifyLogger: __webpack_require__(7),
 SpaceifyDOM: __webpack_require__(41),
 SpaceifyLanguage: __webpack_require__(20),
 Service: __webpack_require__(16),
-SpaceifyApplication: __webpack_require__(38),
-SpaceifyApplicationManager: __webpack_require__(39),
-SpaceifyCache: __webpack_require__(40),
+SpaceifyApplication: __webpack_require__(39),
+SpaceifyApplicationManager: __webpack_require__(40),
+//SpaceifyCache: require("./spaceifycache.js"),
 SpaceifyConfig: __webpack_require__(3),
 SpaceifyCore: __webpack_require__(19),
 SpaceifyMessages: __webpack_require__(42),
@@ -8668,8 +8387,8 @@ Connection: __webpack_require__(25)
 /***/ })
 /******/ ]);
 });
-(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","SPACEIFY_INJECT":"/var/lib/spaceify/code/www/lib/inject/spaceify.csv","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/ipt-data","IPTABLES_PIPER":"/var/lib/spaceify/data/dev/iptpiper","IPTABLES_PIPEW":"/var/lib/spaceify/data/dev/iptpipew","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","APLICATION_PORT_HTTP":"80","APLICATION_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"https://spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","JAVASCRIPT":"javascript","CSS":"css","FILE":"file","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","APPSTORE":"appstore/","INDEX_FILE":"index.html","LOGIN_FILE":"login.html","SECURITY_FILE":"security.html","OPERATION_FILE":"operation.xop","LOCATION_FILE":"location.conf","SERVER_NAME":"Spaceify Web Server","TILEFILE":"tile.html","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized","APPLICATION_UNINITIALIZED":"*** application uninitialized","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SESSION_COOKIE_PUBSUB_PATH":"/var/lib/spaceify/data/db/session_cookies.pub","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","SESSION_TOKEN_NAME_COOKIE":"xedgesession","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20"};})();
-(function spaceifyLocales(){window.spelocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","edge":"Spaceify Edge","loading":"Loading...","copyright":"Copyright © 2014 - 2018 Spaceify Oy","btn_login":"Log In","btn_install":"Install","btn_reload":"Reload","btn_cancel":"Cancel","certificate_error":"It seems that your browser does not have the Spaceify edge node certificate installed. The certificate is required for loading web pages over secure connection. Install the certificate by pushing the 'Install' button. A pop-up window should appear requesting to accept 'Spaceify CA' as a trusted Certificate Authority (CA). Depending of your browser, there might be options for selecting the trust level. Select to trust the CA for identifying web pages. After you have installed the certificate, push the 'Reload' button to switch using encrypted connection.","certificate_error_cancel":"Pushing the 'Cancel' button hides this message.","delete_certificate":"Installed certificate can be deleted only from browsers settings. Open the security settings and select 'Manage' or 'View' certificates. From there find 'Authorities' or 'Trusted Authorities' and search for Spaceify Inc. / Spaceify CA. Select the certificate and delete it.","security_warning":"Unsecure connection detected! Without encryption anyone can see and exploit your password, session, and all other data. Push the 'Reload' button to switch using encrypted connection.","open_appstore":"AppStore","back_to_launchpage":"Back to Launchpage","launchpage":"Launchpage","show_menu":"Show menu"},"index":{"title":"Welcome to Spaceify","version":"v","splash_welcome":"Welcome to Spaceify powered wireless network.","splash_info":"1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.","splash_accept_action":"Accept","splash_certificate_action":"Install","spacelets":"Spacelets","sandboxed":"Applications","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate","logout":"Log Out","greeting":"Install applications and spacelets to get started"},"login":{"title":"Spaceify - Log In","password":"Password"},"security":{"title":"Spaceify - Security"},"appstore/index":{"title":"Spaceify - AppStore"}}};})();
+(function spaceifyConfig(){window.speconfig={"SPACEIFY_PATH":"/var/lib/spaceify/","SPACEIFY_CODE_PATH":"/var/lib/spaceify/code/","SPACEIFY_DATA_PATH":"/var/lib/spaceify/data/","SPACEIFY_WWW_PATH":"/var/lib/spaceify/code/www/","SPACEIFY_NODE_MODULES_PATH":"/var/lib/spaceify/code/node_modules/","SPACEIFY_WWW_ERRORS_PATH":"/var/lib/spaceify/code/www/errors/","SPACEIFY_TLS_PATH":"/var/lib/spaceify/data/tls/","SPACEIFY_DATABASE_FILE":"/var/lib/spaceify/data/db/spaceify.db","SPACEIFY_TEMP_SESSIONID":"/var/lib/spaceify/data/db/session.id","SPACEIFY_REGISTRATION_FILE":"/var/lib/spaceify/data/db/edge.id","SPACEIFY_REGISTRATION_FILE_TMP":"/tmp/edge.id","SPACEIFY_MANIFEST_RULES_FILE":"/var/lib/spaceify/data/manifest/manifest.rules","SPACELETS_PATH":"/var/lib/spaceify/data/spacelets/","SANDBOXED_PATH":"/var/lib/spaceify/data/sandboxed/","SANDBOXED_DEBIAN_PATH":"/var/lib/spaceify/data/sandboxed_debian/","NATIVE_DEBIAN_PATH":"/var/lib/spaceify/data/native_debian/","INSTALLED_PATH":"/var/lib/spaceify/data/installed/","DOCS_PATH":"/var/lib/spaceify/data/docs/","VERSION_FILE":"/var/lib/spaceify/versions","WWW_DIRECTORY":"www/","API_PATH":"/api/","API_WWW_PATH":"/var/lib/spaceify/code/www/","API_NODE_MODULES_DIRECTORY":"/var/lib/spaceify/code/node_modules/","APPLICATION_ROOT":"application","APPLICATION_PATH":"/application/","APPLICATION_DIRECTORY":"application/","VOLUME_PATH":"/volume/","VOLUME_DIRECTORY":"volume/","VOLUME_APPLICATION_PATH":"/volume/application/","VOLUME_APPLICATION_WWW_PATH":"/volume/application/www/","VOLUME_TLS_PATH":"/volume/tls/","SYSTEMD_PATH":"/lib/systemd/system/","START_SH_FILE":"application/start.sh","WORK_PATH":"/tmp/package/","PACKAGE_PATH":"package/","SOURCES_DIRECTORY":"sources/","LOCALES_PATH":"/var/lib/spaceify/code/www/locales/","DEFAULT_LOCALE":"en_US","LEASES_PATH":"/var/lib/spaceify/data/dhcp-data","IPTABLES_PATH":"/var/lib/spaceify/data/iptables-data/rules.json","TLS_DIRECTORY":"tls/","TLS_SCRIPTS_PATH":"/var/lib/spaceify/data/scripts/","UBUNTU_DISTRO_NAME":"ubuntu","RASPBIAN_DISTRO_NAME":"raspbian","UBUNTU_DOCKER_IMAGE":"spaceifyubuntu","RASPBIAN_DOCKER_IMAGE":"spaceifyraspbian","CUSTOM_DOCKER_IMAGE":"custom_","EDGE_IP":"10.0.0.1","EDGE_HOSTNAME":"edge.spaceify.net","EDGE_DOMAIN":"spaceify.net","EDGE_SHORT_HOSTNAME":"e.n","EDGE_SUBNET":"10.0.0.0/16","ALL_IPV4_LOCAL":"0.0.0.0","CONNECTION_HOSTNAME":"localhost","APPLICATION_SUBNET":"172.17.0.0/16","EDGE_PORT_HTTP":"80","EDGE_PORT_HTTPS":"443","APLICATION_PORT_HTTP":"80","APLICATION_PORT_HTTPS":"443","CORE_PORT":"2947","CORE_PORT_SECURE":"4947","APPMAN_PORT":"2948","APPMAN_PORT_SECURE":"4948","APPMAN_MESSAGE_PORT":"2950","APPMAN_MESSAGE_PORT_SECURE":"4950","REGISTRY_HOSTNAME":"spaceify.org","REGISTRY_URL":"https://spaceify.org","REGISTRY_PUBLISH_URL":"https://spaceify.org/ajax/upload.php?type=package&fileid=package","REGISTRY_INSTALL_URL":"https://spaceify.org/install.php","EDGE_APPSTORE_GET_PACKAGES_URL":"https://spaceify.org/appstore/getpackages.php","EDGE_REGISTER_URL":"https://spaceify.net/edge/register.php","EDGE_LOGIN_URL":"https://spaceify.net/edge/login.php","EDGE_GET_RESOURCE_URL":"https://spaceify.org/appstore/getresource.php?resource=","GITHUB_HOSTNAME":"github.com","MAC_REGX":"^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$","IP_REGX":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$","UTF8":"utf","ASCII":"ascii","BASE64":"base64","ANY":"any","ALL":"all","SPACELET":"spacelet","SANDBOXED":"sandboxed","SANDBOXED_DEBIAN":"sandboxed_debian","NATIVE_DEBIAN":"native_debian","OPEN":"open","OPEN_LOCAL":"open_local","STANDARD":"standard","ALIEN":"alien","HTTP":"http","SUGGESTED_MARKER":"@suggested","EXT_COMPRESSED":".zip","PACKAGE_DELIMITER":"@","PX":"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7","MANIFEST":"spaceify.manifest","README_MD":"readme.md","PACKAGE_ZIP":"package.zip","PUBLISH_ZIP":"publish.zip","SPM_ERRORS_JSON":"spm_errors.json","SPM_HELP":"spm.help","DOCKERFILE":"Dockerfile","MANIFEST_RULES":"manifest.rules","VERSIONS":"versions","APPSTORE":"appstore/","TILE_FILE":"tile.html","INDEX_FILE":"index.html","HOME_FILE":"home.html","LOGIN_FILE":"login.html","SECURITY_FILE":"security.html","LOCATION_FILE":"location.conf","LOADER_FILE":"loader.html","SERVER_NAME":"Spaceify Web Server","WEB_SERVER":"WEB_SERVER","APPLICATION_INITIALIZED":"*** application initialized ***","APPLICATION_UNINITIALIZED":"*** application uninitialized ***","IMAGE_DIRECTORY":"www/images/","FIRST_SERVICE_PORT":"2777","FIRST_SERVICE_PORT_SECURE":"3777","SERVER_CRT":"server.crt","SERVER_KEY":"server.key","SPACEIFY_CRT":"spaceify.crt","SPACEIFY_CRT_WWW":"www/spaceify.crt","RECONNECT_WAIT":"10000","SPACEIFY_REPOSITORY":"deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main","SPACEIFY_APPLICATION_REPOSITORY_LIST":"/etc/apt/sources.list.d/spaceifyapplication.list","EVENT_SPACELET_INSTALLED":"spaceletInstalled","EVENT_SPACELET_REMOVED":"spaceletRemoved","EVENT_SPACELET_STARTED":"spaceletStarted","EVENT_SPACELET_STOPPED":"spaceletStopped","EVENT_SANDBOXED_INSTALLED":"sandboxedInstalled","EVENT_SANDBOXED_REMOVED":"sandboxedRemoved","EVENT_SANDBOXED_STARTED":"sandboxedStarted","EVENT_SANDBOXED_STOPPED":"sandboxedStopped","EVENT_SANDBOXED_DEBIAN_INSTALLED":"sandboxedDebianInstalled","EVENT_SANDBOXED_DEBIAN_REMOVED":"sandboxedDebianRemoved","EVENT_SANDBOXED_DEBIAN_STARTED":"sandboxedDebianStarted","EVENT_SANDBOXED_DEBIAN_STOPPED":"sandboxedDebianStopped","EVENT_NATIVE_DEBIAN_INSTALLED":"nativeDebianInstalled","EVENT_NATIVE_DEBIAN_REMOVED":"nativeDebianRemoved","EVENT_NATIVE_DEBIAN_STARTED":"nativeDebianStarted","EVENT_NATIVE_DEBIAN_STOPPED":"nativeDebianStopped","EVENT_EDGE_SETTINGS_CHANGED":"EdgeSettingsChanged","EVENT_CORE_SETTINGS_CHANGED":"CoreSettingsChanged","SESSION_TOKEN_NAME":"x-edge-session","WWW_CACHE_MAX_ITEMS":"40","WWW_CACHE_EXPIRE_TIME":"20","REST_API":"api","REST_TILE":"tile","REST_OPEN":"open","REST_RESOURCE":"resource","REST_API_DIR":"api/","REST_TILE_DIR":"tile/","REST_OPEN_DIR":"open/","REST_RESOURCE_DIR":"resource/","REST_GETAPPLICATIONS":"getapplications","REST_ISADMINLOGGEDIN":"isadminloggedin","REST_INSTALLAPPLICATION":"installapplication","REST_REMOVEAPPLICATION":"removeapplication","REST_PURGEAPPLICATION":"purgeapplication","REST_STARTAPPLICATION":"startapplication","REST_STOPAPPLICATION":"stopapplication","REST_RESTARTAPPLICATION":"restartapplication","REST_REQUESTMESSAGEID":"requestmessageid","REST_GETCORESETTINGS":"getcoresettings","REST_SAVECORESETTINGS":"savecoresettings","REST_GETEDGESETTINGS":"getedgesettings","REST_SAVEEDGESETTINGS":"saveedgesettings","REST_GETOPENSERVICES":"getopenservices","REST_GETEDGEID":"getedgeid","REST_GETRUNTIMESERVICESTATES":"getruntimeservicestates","REST_LOGIN":"login","REST_LOGOUT":"logout","REST_GETSERVICE":"getservice","REST_GETSERVICES":"getservices","REST_GETMANIFEST":"getmanifest","REST_REGISTERSERVICE":"registerservice","REST_UNREGISTERSERVICE":"unregisterservice","REST_ISAPPLICATIONRUNNING":"isapplicationrunning","REST_GETAPPLICATIONURL":"getapplicationurl","REST_SETEVENTLISTENERS":"seteventlisteners","REST_STARTSPACELET":"startspacelet","REST_SERVICES_LEGACY":"services"};})();
+(function spaceifyLocales(){window.spelocales={"en_US":{"404":{"title":"Spaceify - 404","body":"Web server returned response code 404 - Not Found."},"500":{"title":"Spaceify - 500","body":"Web server returned response code 500 - Internal Server Error."},"global":{"locale":"en_US","encoding":"UTF-8","description":"American English","edge":"Spaceify Edge","loading":"Loading...","copyright":"Copyright © 2014 - 2018 Spaceify Oy","btn_login":"Log In","btn_install":"Install","btn_reload":"Reload","btn_cancel":"Cancel","certificate_error":"It seems that your browser does not have the Spaceify edge node certificate installed. The certificate is required for loading web pages over secure connection. Install the certificate by pushing the 'Install' button. A pop-up window should appear requesting to accept 'Spaceify CA' as a trusted Certificate Authority (CA). Depending of your browser, there might be options for selecting the trust level. Select to trust the CA for identifying web pages. After you have installed the certificate, push the 'Reload' button to switch using encrypted connection.","certificate_error_cancel":"Pushing the 'Cancel' button hides this message.","delete_certificate":"Installed certificate can be deleted only from browsers settings. Open the security settings and select 'Manage' or 'View' certificates. From there find 'Authorities' or 'Trusted Authorities' and search for Spaceify Inc. / Spaceify CA. Select the certificate and delete it.","security_warning":"Unsecure connection detected! Without encryption anyone can see and exploit your password, session, and all other data. Push the 'Reload' button to switch using encrypted connection.","open_appstore":"AppStore","back_to_homepage":"Back to Homepage","homepage":"Homepage","show_menu":"Show menu"},"index":{"title":"Welcome to Spaceify","version":"v","spacelets":"Spacelets","sandboxed":"Applications","sandboxed debian":"Native Sandboxed","native_debian":"Native","user_utilities":"Utilities","admin_utilities":"Administration","admin_tile_title":"Spaceify Store","install_certificate_title":"Install Spaceify's certificate","logout":"Log Out","greeting":"Install applications and spacelets to get started"},"login":{"title":"Spaceify - Log In","password":"Password"},"security":{"title":"Spaceify - Security"},"appstore/index":{"title":"Spaceify - AppStore"}}};})();
 (function spaceifyTiles(){window.spetiles={"tile":"<img id=\"::icon_id\" sp_src=\"::sp_src\" width=\"64\" height=\"64\"><div class=\"edgeText\">::manifest.name</div><div class=\"edgeText edgeSubText\">::manifest.developer.name</div>"};})();
 
 (function spaceifyClasses(){
@@ -8679,7 +8398,7 @@ window.SpaceifyDOM = spe.SpaceifyDOM;
 window.Service = spe.Service;
 window.SpaceifyApplication = spe.SpaceifyApplication;
 window.SpaceifyApplicationManager = spe.SpaceifyApplicationManager;
-window.SpaceifyCache = spe.SpaceifyCache;
+//window.SpaceifyCache = spe.SpaceifyCache;
 window.SpaceifyConfig = spe.SpaceifyConfig;
 window.SpaceifyCore = spe.SpaceifyCore;
 window.SpaceifyError = spe.SpaceifyError;

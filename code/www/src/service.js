@@ -8,7 +8,7 @@
  * @class Service
  */
 
-function Service(service_name, isServer, connection)
+function Service(service_name, unique_name, isServer, connection)
 {
 var self = this;
 
@@ -25,25 +25,25 @@ self.PROVIDED = 1;
 var listenConnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < connectionListeners.length; i++)
-		connectionListeners[i](connectionId, service_name, self.getIsSecure());
+		connectionListeners[i](connectionId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenDisconnection = function(connectionId, serverId, isSecure)
 	{
 	for(var i = 0; i < disconnectionListeners.length; i++)
-		disconnectionListeners[i](connectionId, service_name, self.getIsSecure());
+		disconnectionListeners[i](connectionId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenServerUp = function(serverId)
 	{
 	if(serverUpListener)
-		serverUpListener(serverId, service_name, self.getIsSecure());
+		serverUpListener(serverId, service_name, self.getIsSecure(), unique_name);
 	}
 
 var listenServerDown = function(serverId)
 	{
 	if(serverDownListener)
-		listenServerDown(serverId, service_name, self.getIsSecure());
+		listenServerDown(serverId, service_name, self.getIsSecure(), unique_name);
 	}
 
 	// PUBLIC METHODS -- -- -- -- -- -- -- -- -- -- //
@@ -84,6 +84,11 @@ self.getServiceName = function()
 	return service_name;
 	}
 
+self.getUniqueName = function()
+	{
+	return unique_name;
+	}
+
 self.getType = function()
 	{
 	return isServer ? self.PROVIDED : self.REQUIRED;
@@ -102,11 +107,6 @@ self.getConnection = function()
 self.getIsSecure = function()
 	{
 	return connection.getIsSecure();
-	}
-
-self.getServiceName = function()
-	{
-	return service_name;
 	}
 
 self.connectionExists = function(connectionId)

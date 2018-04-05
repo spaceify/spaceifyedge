@@ -18,7 +18,7 @@ var Database = require("./database");
 var language = require("./language");
 var Messaging = require("./messaging");
 var SpaceifyError = require("./spaceifyerror");
-var SecurityModel = require("./securitymodel");
+var SecurityManager = require("./securitymanager");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyLogger = require("./spaceifylogger");
@@ -42,7 +42,7 @@ var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
 var config = SpaceifyConfig.getConfig();
-var securityModel = new SecurityModel();
+var securityManager = new SecurityManager();
 var registerEdge = new RegisterEdge();
 
 var exitCode = 0;
@@ -155,33 +155,45 @@ self.start = fibrous( function()
 		if (length < 4)
 			process.argv.push(EMPTY);
 
-		if (process.argv[3].search(operRegex) == -1 && process.argv[3] != EMPTY)
-			throw language.E_SPM_UNKNOWN_COMMAND.preFmt("spm::start", {"~command": process.argv[3]});
-
 		for (var i = 4; i < length; i++)														// options are always after the command
 			{
 			arg = process.argv[i];
 
 			if (arg == AUTH || arg == AUTH_)
+				{
 				authenticate = true;
+				}
 			else if (arg == DEVE || arg == DEVE_)
+				{
 				develop = true;
+				}
 			else if (arg == FORC || arg == FORC_)
+				{
 				force = true;
+				}
 			else if (arg == NATI ||  arg == NATI_ || arg == SAND || arg == SAND_ || arg == SANDD || arg == SANDD_ || arg == SPAC || arg == SPAC_ )
 				{
 				if (type.indexOf(arg) == -1)
 					type.push(arg);
 				}
 			else if (arg == VERB || arg == VERB_)
+				{
 				verbose = true;
+				}
 			}
 
 		cwd = process.argv[2];
 		command = process.argv[3];
 		last = process.argv[length - 1];
 		applicationPackage = (command != HELP && command != LIST && command != STATES && command != STATUS && command != VERSION ? last : "");	// application package is the last argument
-																				// Check argument count for commands
+
+		// PRINT TITLE
+		logger.force("Spaceify Package Manager v" + versions[3] + " - " + (command != EMPTY ? command : HELP) + "\n");
+
+		if (process.argv[3].search(operRegex) == -1 && process.argv[3] != EMPTY)
+			throw language.E_SPM_UNKNOWN_COMMAND.preFmt("spm::start", {"~command": process.argv[3]});
+
+																								// Check argument count for commands
 		if ( (/*command == INSTALL || */command == PUBLISH || command == PUBLISH) && (length < (5 + (authenticate ? 1 : 0))) )
 			throw language.E_SPM_ARGUMENTS_TWO.preFmt("ApplicationManager::start", {"~command": command});
 
@@ -190,9 +202,6 @@ self.start = fibrous( function()
 
 		if ( (command == PURGE || command == REMOVE || command == RESTART || command == START || command == STOP) && length < 5 )
 			throw language.E_SPM_ARGUMENTS_ONE.preFmt("ApplicationManager::start", {"~command": command});
-
-		// PRINT TITLE
-		logger.force("Spaceify Package Manager v" + versions[3] + " - " + (command != EMPTY ? command : HELP) + "\n");
 
 		// OPTIONS
 		if ((authenticate && (command == INSTALL || command == SOURCE)) || command == PUBLISH)	// Authenticate to Spaceify registry
@@ -221,47 +230,72 @@ self.start = fibrous( function()
 
 		// DO THE REQUESTED COMMAND
 		if (command == HELP || command == EMPTY)
+			{
 			help.sync(command == HELP ? true : false, (length > 4 ? last : ""));
+			}
 		else if (command == INSTALL)
+			{
 			install.sync(applicationPackage, username, password, cwd, force, develop);
+			}
 		else if (command == LIST)
 			{
 			manualDisconnection = true;
 			list.sync(type, verbose);
 			}
 		else if (command == PUBLISH)
+			{
 			publish.sync(applicationPackage, username, password, githubUsername, githubPassword, cwd);
+			}
 		else if (command == PURGE)
+			{
 			purge.sync(applicationPackage);
+			}
 		else if (command == REGISTER)
+			{
 			register.sync(type, verbose);
+			}
 		else if (command == REMOVE)
+			{
 			remove.sync(applicationPackage);
+			}
 		else if (command == RESTART)
+			{
 			restart.sync(applicationPackage);
+			}
 		else if (command == SOURCE)
+			{
 			source.sync(applicationPackage, username, password, cwd);
+			}
 		else if (command == START)
+			{
 			start.sync(applicationPackage);
+			}
 		else if (command == STATES)
 			{
 			manualDisconnection = true;
 			getRuntimeServiceStates.sync();
 			}
 		else if (command == STATUS)
+			{
 			systemStatus.sync();
+			}
 		else if (command == STOP)
+			{
 			stop.sync(applicationPackage);
+			}
 		else if (command == VERSION)
+			{
 			version.sync();
+			}
 		}
 	catch(err)
 		{
-		logger.error(err, false, false, logger.FORCE);
+//console.log(err);
+		logger.force(err.message || ".");
 		}
 	finally
 		{
-		disconnect();
+		disconnect(true);
 		}
 	});
 
@@ -269,7 +303,7 @@ var connect = fibrous( function(openMessaging)
 	{
 	try {
 		// Create temporary log in session
-		sessionId = securityModel.sync.createTemporaryAdminSession("127.0.0.1");											// Remember to destory the id
+		sessionId = securityManager.sync.createTemporaryAdminSession("127.0.0.1");											// Remember to destory the id
 
 		// ApplicationManager
 		appManConnection = new WebSocketRpcConnection();
@@ -302,7 +336,7 @@ var connect = fibrous( function(openMessaging)
 		}
 	});
 
-var disconnect = function()
+var disconnect = function(printSpace)
 	{
 	if (appManConnection)
 		appManConnection.close();
@@ -310,12 +344,13 @@ var disconnect = function()
 	if (appManMessageConnection)
 		appManMessageConnection.close();
 
-	securityModel.sync.destroyTemporaryAdminSession();
+	securityManager.sync.destroyTemporaryAdminSession();
 
 	appManConnection = null;
 	appManMessageConnection = null;
 
-	logger.force();
+	if (printSpace)
+		logger.force();
 
 	process.exit(exitCode);
 	}
@@ -327,7 +362,7 @@ var fail = fibrous( function(err, connObj)
 	logger.force(err.message);
 
 	if (!manualDisconnection)
-		disconnect();
+		disconnect(true);
 	});
 
 var error = fibrous( function(err, connObj)
@@ -372,7 +407,7 @@ var questionTimedOut = fibrous( function(message_, origin, answerCallBackId, con
 var end = fibrous( function(message_, connObj)
 	{
 	if (!manualDisconnection)
-		disconnect();
+		disconnect(true);
 	});
 
 var question_ = function(message_, choices, origin, answerCallBackId)
@@ -522,7 +557,9 @@ var list = fibrous( function(type, bVerbose)
 	var dbApps = appManConnection.sync.callRpc("getApplications", [type], self);
 
 	if (dbApps.length == 0)
-		logger.force(language.NO_APPLICATIONS);
+		{
+		logger.force(language.NO_APPLICATIONS, "\n");
+		}
 	else
 		{
 		for (i = 0; i < dbApps.length; i++)
@@ -564,26 +601,6 @@ var list = fibrous( function(type, bVerbose)
 					t[type].push((bLast ? ssmlt : psmlt) + language.M_ORIGINS);
 					for (j = 0; j < manifest.origins.length; j++)
 						t[type].push((bLast ? ss : ps) + ps + (j < manifest.origins.length - 1 ? alt : all) + s(manifest.origins[j]));
-
-					/*
-					DEPRECATED
-					t[type].push((bLast ? ssmlt : psmlt) + language.M_INJECT);
-
-					t[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_ENABLED + (dbApps[i].inject_enabled ? language.M_YES : language.M_NO));
-
-					t[type].push((bLast ? sspsmll : pspsmll) + language.M_INJECT_IDENTIFIER + manifest.inject_identifier);
-
-					t[type].push((bLast ? sspsmlt : pspsmlt) + language.M_INJECT_HOSTNAMES);
-					for (j = 0; j < manifest.inject_hostnames.length; j++)
-						t[type].push((bLast ? ss : ps) + (j < manifest.inject_hostnames.length - 1 ? pspsmll : pspsall) + s(manifest.inject_hostnames[j]));
-
-					t[type].push((bLast ? sspsalt : pspsalt) + language.M_INJECT_FILES);
-					for (j = 0; j < manifest.inject_files.length; j++)
-						{
-						tmp = (manifest.inject_files[j].directory ? manifest.inject_files[j].directory + "/" : "") + manifest.inject_files[j].file + ", " + manifest.inject_files[j].type;
-						t[type].push((bLast ? ss :  ps) + (j < manifest.inject_files.length - 1 ? psssmll : psssall) + s(tmp));
-						}
-					*/
 					}
 
 				if (manifest.start_command)
@@ -677,21 +694,21 @@ var list = fibrous( function(type, bVerbose)
 		}
 
 	keys = Object.keys(t);
+
 	for (var k = 0; k < keys.length; k++)
 		{
 		if (t[keys[k]].length == 1)
 			continue;
 
-		if (k > 0)
-			logger.force("");
-
 		for (i = 0; i < t[keys[k]].length; i++)
 			{
 			logger.force(t[keys[k]][i]);
 			}
+
+		logger.force("");
 		}
 
-	disconnect();
+	disconnect(false);
 	});
 
 var getRuntimeServiceStates = fibrous( function()
@@ -762,7 +779,7 @@ var getRuntimeServiceStates = fibrous( function()
 
 	if (applicationCount == 0)
 		{
-		logger.force(language.NO_RUNNING_APPLICATIONS);
+		logger.force(language.NO_RUNNING_APPLICATIONS, "\n");
 		}
 	else
 		{
@@ -772,24 +789,23 @@ var getRuntimeServiceStates = fibrous( function()
 			if (t[keys[k]].length == 1)
 				continue;
 
-			if (k > 0)
-				logger.force("");
-
 			for (var i = 0; i < t[keys[k]].length; i++)
 				{
 				logger.force(t[keys[k]][i]);
 				}
+
+			logger.force("");
 			}
 		}
 
-	disconnect();
+	disconnect(false);
 	});
 
 var publish = fibrous( function(applicationPackage, username, password, githubUsername, githubPassword, cwd)
 	{
 	applicationManager.sync.publishPackage(applicationPackage, username, password, githubUsername, githubPassword, cwd);
 
-	disconnect();
+	disconnect(true);
 	});
 
 var register = fibrous( function()
@@ -819,7 +835,7 @@ var register = fibrous( function()
 	finally
 		{
 		database.close();
-		disconnect();
+		disconnect(true);
 		}
 	});
 

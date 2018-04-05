@@ -41,6 +41,7 @@
   "VOLUME_APPLICATION_PATH": "/volume/application/",
   "VOLUME_APPLICATION_WWW_PATH": "/volume/application/www/",
   "VOLUME_TLS_PATH": "/volume/tls/",
+  "SYSTEMD_PATH": "/lib/systemd/system/",
 
   "SYSTEMD_PATH": "/lib/systemd/system/",
   "START_SH_FILE": "application/start.sh",
@@ -52,12 +53,8 @@
   "LOCALES_PATH": "/var/lib/spaceify/code/www/locales/",
   "DEFAULT_LOCALE": "en_US",
 
-  "SPACEIFY_INJECT": "/var/lib/spaceify/code/www/lib/inject/spaceify.csv",
-
   "LEASES_PATH": "/var/lib/spaceify/data/dhcp-data",
-  "IPTABLES_PATH": "/var/lib/spaceify/data/ipt-data",
-  "IPTABLES_PIPER": "/var/lib/spaceify/data/dev/iptpiper",
-  "IPTABLES_PIPEW": "/var/lib/spaceify/data/dev/iptpipew",
+  "IPTABLES_PATH": "/var/lib/spaceify/data/iptables-data/rules.json",
 
   "TLS_DIRECTORY": "tls/",
   "TLS_SCRIPTS_PATH": "/var/lib/spaceify/data/scripts/",
@@ -115,11 +112,6 @@
   "MAC_REGX": "^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$",
   "IP_REGX": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
 
-  "JAVASCRIPT": "javascript",
-  "CSS": "css",
-  "FILE": "file",
-  "INJECT_TYPES": ["javascript", "css", "file"],
-
   "UTF8": "utf",
   "ASCII": "ascii",
   "BASE64": "base64",
@@ -139,6 +131,8 @@
   "HTTP": "http",
   "SERVICE_TYPES": ["standard", "open_local", "open", "alien", "http"],
 
+  "SUGGESTED_MARKER": "@suggested",
+
   "EXT_COMPRESSED": ".zip",
   "PACKAGE_DELIMITER": "@",
 
@@ -155,19 +149,20 @@
   "VERSIONS": "versions",
 
   "APPSTORE": "appstore/",
+  "TILE_FILE": "tile.html",
   "INDEX_FILE": "index.html",
+  "HOME_FILE": "home.html",
   "LOGIN_FILE": "login.html",
   "SECURITY_FILE": "security.html",
-  "OPERATION_FILE": "operation.xop",
   "LOCATION_FILE": "location.conf",
+  "LOADER_FILE": "loader.html",
 
   "SERVER_NAME": "Spaceify Web Server",
 
-  "TILEFILE": "tile.html",
   "WEB_SERVER": "WEB_SERVER",
 
-  "APPLICATION_INITIALIZED": "*** application initialized",
-  "APPLICATION_UNINITIALIZED": "*** application uninitialized",
+  "APPLICATION_INITIALIZED": "*** application initialized ***",
+  "APPLICATION_UNINITIALIZED": "*** application uninitialized ***",
 
   "IMAGE_DIRECTORY": "www/images/",
   "IMAGE_TYPES": ["image/jpg", "image/gif", "image/png"],
@@ -186,8 +181,6 @@
 		"entertainment","fysics","lifestyle","games","genealogy","government","graphics","health","home","industrial","knowledge_representation","language","legal","library_and_information_science",
 		"magazines","mathematics","meteorology","multimedia","music","navigation","news","personal_information_managers","productivity","religious","science","simulation","social","sport","theatre",
 		"transport","video","weather","word_processors","workflow"],
-
-  "SESSION_COOKIE_PUBSUB_PATH": "/var/lib/spaceify/data/db/session_cookies.pub",
 
   "SPACEIFY_REPOSITORY": "deb [ arch=all,amd64,i386 ] http://spaceify.net/repo stable/spaceify main",
   "SPACEIFY_APPLICATION_REPOSITORY_LIST": "/etc/apt/sources.list.d/spaceifyapplication.list",
@@ -212,8 +205,44 @@
   "EVENT_CORE_SETTINGS_CHANGED": "CoreSettingsChanged",
 
   "SESSION_TOKEN_NAME": "x-edge-session",
-  "SESSION_TOKEN_NAME_COOKIE": "xedgesession",
 
   "WWW_CACHE_MAX_ITEMS": 40,
-  "WWW_CACHE_EXPIRE_TIME": 20
+  "WWW_CACHE_EXPIRE_TIME": 20,
+
+  "REST_API": "api",
+  "REST_TILE": "tile",
+  "REST_OPEN": "open",
+  "REST_RESOURCE": "resource",
+  "REST_API_DIR": "api/",
+  "REST_TILE_DIR": "tile/",
+  "REST_OPEN_DIR": "open/",
+  "REST_RESOURCE_DIR": "resource/",
+  "REST_GETAPPLICATIONS": "getapplications",
+  "REST_ISADMINLOGGEDIN": "isadminloggedin",
+  "REST_INSTALLAPPLICATION": "installapplication",
+  "REST_REMOVEAPPLICATION": "removeapplication",
+  "REST_PURGEAPPLICATION": "purgeapplication",
+  "REST_STARTAPPLICATION": "startapplication",
+  "REST_STOPAPPLICATION": "stopapplication",
+  "REST_RESTARTAPPLICATION": "restartapplication",
+  "REST_REQUESTMESSAGEID": "requestmessageid",
+  "REST_GETCORESETTINGS": "getcoresettings",
+  "REST_SAVECORESETTINGS": "savecoresettings",
+  "REST_GETEDGESETTINGS": "getedgesettings",
+  "REST_SAVEEDGESETTINGS": "saveedgesettings",
+  "REST_GETOPENSERVICES": "getopenservices",
+  "REST_GETEDGEID": "getedgeid",
+  "REST_GETRUNTIMESERVICESTATES": "getruntimeservicestates",
+  "REST_LOGIN": "login",
+  "REST_LOGOUT": "logout",
+  "REST_GETSERVICE": "getservice",
+  "REST_GETSERVICES": "getservices",
+  "REST_GETMANIFEST": "getmanifest",
+  "REST_REGISTERSERVICE": "registerservice",
+  "REST_UNREGISTERSERVICE": "unregisterservice",
+  "REST_ISAPPLICATIONRUNNING": "isapplicationrunning",
+  "REST_GETAPPLICATIONURL": "getapplicationurl",
+  "REST_SETEVENTLISTENERS": "seteventlisteners",
+  "REST_STARTSPACELET": "startspacelet",
+  "REST_SERVICES_LEGACY": "services"
 }

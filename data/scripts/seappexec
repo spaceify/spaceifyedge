@@ -1,0 +1,28 @@
+#!/bin/bash
+
+imageId=$(docker inspect --format='{{.Id}}' ${1})
+
+ps=$(docker ps -a -q)
+containerIds=(${ps//$'\n'/ })
+
+for containerId in "${containerIds[@]}"
+do
+	containerImageId=$(docker inspect --format='{{.Image}}' ${containerId})
+
+	if [[ "$imageId" = "$containerImageId" ]]; then
+
+		i=0
+		args=""
+		for var in "$@"
+		do
+			if (( $i > 0 )); then
+				args="$args $var"
+			fi
+			((i++))
+		done
+
+		docker exec -it $containerId $args
+
+		exit 0
+	fi
+done

@@ -2,24 +2,23 @@
 
 /**
  * Spaceify core, 2.9.2013 Spaceify Oy
- * 
+ *
  * @class Core
  */
 
 var fs = require("fs");
-var mkdirp = require("mkdirp");
+var crypto = require("crypto");
 var fibrous = require("./fibrous");
-var RuntimeManager = require("./runtimemanager");
-var DHCPDLog = require("./dhcpdlog");
 var Iptables = require("./iptables");
 var language = require("./language");
 var Database = require("./database");
 var httpStatus = require("./httpstatus");
-var SecurityModel = require("./securitymodel");
 var SpaceifyError = require("./spaceifyerror");
 var SpaceifyLogger = require("./spaceifylogger");
 var SpaceifyConfig = require("./spaceifyconfig");
 var SpaceifyUnique = require("./spaceifyunique");
+var RuntimeManager = require("./runtimemanager");
+var SecurityManager = require("./securitymanager");
 var SpaceifyUtility = require("./spaceifyutility");
 var SpaceifyNetwork = require("./spaceifynetwork");
 var ServiceRegistry = require("./serviceregistry");
@@ -29,14 +28,13 @@ function Core()
 {
 var self = this;
 
-var dhcpdlog = new DHCPDLog();
-var database = new Database();
 var iptables = new Iptables();
+var database = new Database();
 var errorc = new SpaceifyError();
 var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var network = new SpaceifyNetwork();
-var securityModel = new SecurityModel();
+var securityManager = new SecurityManager();
 //var logger = new SpaceifyLogger("Core");
 var config = SpaceifyConfig.getConfig();
 var serviceRegistry = new ServiceRegistry();
@@ -54,10 +52,12 @@ var crt = config.SPACEIFY_TLS_PATH + config.SERVER_CRT;
 var caCrt = config.SPACEIFY_WWW_PATH + config.SPACEIFY_CRT;
 
 	// CONNECTION -- -- -- -- -- -- -- -- -- -- //
-self.connect = fibrous( function()
+self.start = fibrous( function()
 	{
 	var webSocketRpcServer;
-	var i, types = [{port: config.CORE_PORT, isSecure: false}, {port: config.CORE_PORT_SECURE, isSecure: true}];
+	var i, types = [{ port: config.CORE_PORT, isSecure: false }, { port: config.CORE_PORT_SECURE, isSecure: true }];
+
+	iptables.sync.initialize();																	// Clean iptables from old entries
 
 	for (i = 0; i < types.length; i++)															// Setup/open the servers
 		{
@@ -78,8 +78,8 @@ self.connect = fibrous( function()
 		webSocketRpcServer.exposeRpcMethodSync("getApplicationData", self, getApplicationData);
 		webSocketRpcServer.exposeRpcMethodSync("getApplicationURL", self, getApplicationURL);
 		webSocketRpcServer.exposeRpcMethodSync("getManifest", self, getManifest);
-		webSocketRpcServer.exposeRpcMethodSync("setSplashAccepted", self, setSplashAccepted);
 		webSocketRpcServer.exposeRpcMethodSync("setEventListeners", self, setEventListeners);
+		webSocketRpcServer.exposeRpcMethodSync("getEdgeID", self, getEdgeID);
 
 		// THESE ARE EXPOSED ONLY OVER A SECURE CONNECTION!!!
 		if (types[i].isSecure)
@@ -96,8 +96,7 @@ self.connect = fibrous( function()
 			webSocketRpcServer.exposeRpcMethodSync("getEdgeSettings", self, getEdgeSettings);
 			webSocketRpcServer.exposeRpcMethodSync("saveEdgeSettings", self, saveEdgeSettings);
 			webSocketRpcServer.exposeRpcMethodSync("getRuntimeServiceStates", self, getRuntimeServiceStates);
-			//webSocketRpcServer.exposeRpcMethodSync("saveOptions", self, saveOptions);
-			//webSocketRpcServer.exposeRpcMethodSync("loadOptions", self, loadOptions);
+			webSocketRpcServer.exposeRpcMethodSync("isServiceAvailable", self, isServiceAvailable);
 			}
 
 		webSocketRpcServer.sync.listen({
@@ -113,7 +112,7 @@ self.connect = fibrous( function()
 		{
 		// Get core settings from the database
 		coreSettings = database.sync.getCoreSettings();
-		securityModel.setCoreSettings(coreSettings);
+		securityManager.setCoreSettings(coreSettings);
 
 		// Install (insert) applications to cores lists
 		preInstallApplications.sync(config.SPACELET, spaceletManager, false);
@@ -192,7 +191,7 @@ var registerService = fibrous( function(service_name, ports, connObj)
 	var service = null;
 
 	// APPLICATION - REGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
-	if (securityModel.isApplicationIP(connObj.remoteAddress))
+	if (securityManager.isApplicationIP(connObj.remoteAddress))
 		{
 		application = get("getApplicationByIp", connObj.remoteAddress);
 
@@ -202,7 +201,7 @@ var registerService = fibrous( function(service_name, ports, connObj)
 		ports = null;	// Applications running in docker containers can not register services with custom ports
 		}
 	// EDGE - REGISTRATION ATTEMPT FROM A NATIVE DEBIAN OR DEVELOP MODE APPLICATION
-	else if (securityModel.isLocalIP(connObj.remoteAddress))
+	else if (securityManager.isLocalIP(connObj.remoteAddress))
 		{
 		isObj = ports instanceof Object;
 
@@ -234,7 +233,7 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 	var service = null;
 
 	// APPLICATION - UNREGISTRATION ATTEMPT FROM AN APPLICATION RUNNING IN A DOCKER CONTAINER
-	if (securityModel.isApplicationIP(connObj.remoteAddress))
+	if (securityManager.isApplicationIP(connObj.remoteAddress))
 		{
 		application = get("getApplicationByIp", connObj.remoteAddress);
 
@@ -242,7 +241,7 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 			throw language.E_UNREGISTER_SERVICE_ACCESS_DENIED.pre("Core::unregisterService", {address: connObj.remoteAddress});
 		}
 	// EDGE - UNREGISTRATION ATTEMPT FROM A NATIVE DEBIAN OR DEVELOP MODE APPLICATION
-	else if (securityModel.isLocalIP(connObj.remoteAddress))
+	else if (securityManager.isLocalIP(connObj.remoteAddress))
 		{
 		application = get("getApplication", unique_name);
 
@@ -261,29 +260,43 @@ var unregisterService = fibrous( function(service_name, unique_name, connObj)
 	return service;
 	});
 
+var isServiceAvailable = fibrous( function(service_name, unique_name, isSuggested, sessionId, connObj)
+	{
+	var service = null;
+	var isAdminSession = securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, false/*!throws*/);
+
+	if (isAdminSession)
+		{
+		service = serviceRegistry.getService(service_name, unique_name, false, isSuggested);
+		}
+
+	return service;
+	});
+
 var getService = fibrous( function(service_name, unique_name, connObj)
 	{ // Get single service either by service name or service name and unique_name. Returns only registered services!!!
 	var application;
 	var runtimeService;
 	var requiresServices;
+	var isSuggested = false;
 
-	if (unique_name)
-		{
-		application = get("getApplication", unique_name);
-		}
-	else
-		{
-		application = get("getApplicationByIp", connObj.remoteAddress);
-		}
-
+	// This is here for verifying access to STANDARD and ALIEN services
+	application = get("getApplicationByIp", connObj.remoteAddress);
 	requiresServices = (!application ? null : application.manifest.getRequiresServices());
 
-	runtimeService = serviceRegistry.getService(service_name, unique_name, true);
+	// Application is only suggested. Returns first matching service of any application if service belonging to it is not found.
+	if (unique_name.indexOf(config.SUGGESTED_MARKER) != -1)
+		{
+		isSuggested = true;
+		unique_name = unique_name.replace(config.SUGGESTED_MARKER, "");
+		}
+
+	runtimeService = serviceRegistry.getService(service_name, unique_name, true, isSuggested);
 
 	if (!runtimeService)
 		throw language.E_GET_SERVICE_UNKNOWN_SERVICE.preFmt("Core::getService", {"~name": service_name});
 
-	return securityModel.checkServicePermissions(runtimeService, requiresServices, connObj.remoteAddress);
+	return securityManager.checkServicePermissions(runtimeService, requiresServices, connObj.remoteAddress);
 	});
 
 var getServices = fibrous( function(service_name, connObj)
@@ -307,7 +320,7 @@ var getServices = fibrous( function(service_name, connObj)
 	for (s = 0; s < runtimeServices.length; s++)
 		{
 		try {
-			service = securityModel.checkServicePermissions(runtimeServices[s], requiresServices, connObj.remoteAddress);
+			service = securityManager.checkServicePermissions(runtimeServices[s], requiresServices, connObj.remoteAddress);
 
 			preparedRuntimeServices[runtimeServices[s].unique_name] = service;
 			}
@@ -342,7 +355,7 @@ var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 		providesServices = serviceRegistry.getApplicationServices(unique_names[i], true);
 
 		runtimeServices = runtimeServices.concat(
-			securityModel.getOpenServices(providesServices, getHttp, connObj.remoteAddress)
+			securityManager.getOpenServices(providesServices, getHttp, connObj.remoteAddress)
 			);
 		}
 
@@ -351,54 +364,23 @@ var getOpenServices = fibrous( function(unique_names, getHttp, connObj)
 
 var adminLogIn = fibrous( function(password, connObj)
 	{
-	return securityModel.sync.adminLogIn(password, connObj.remoteAddress);
+	return securityManager.sync.adminLogIn(password, connObj.remoteAddress);
 	});
 
 var adminLogOut = fibrous( function(sessionId, connObj)
 	{
-	securityModel.sync.adminLogOut(sessionId, connObj.remoteAddress);
+	securityManager.sync.adminLogOut(sessionId, connObj.remoteAddress);
 
 	return true;
 	});
 
 var isAdminLoggedIn = fibrous( function(sessionId, connObj)
 	{
-	securityModel.sync.isAdminSession(connObj.remoteAddress, null, true/*throws*/);
+	securityManager.sync.isAdminSession(connObj.remoteAddress, null, true/*throws*/);
 
-	var session = securityModel.sync.findAdminSession(sessionId);
+	var session = securityManager.sync.findAdminSession(sessionId);
 
 	return (session ? true : false);
-	});
-
-var setSplashAccepted = fibrous( function(connObj)
-	{
-	try {
-		var lease = dhcpdlog.getDHCPLeaseByIP(connObj.remoteAddress);							// Lease must exist for the device
-
-		if (!lease)
-			throw language.E_UNKNOWN_MAC.pre("Core::setSplashAccepted");
-
-		if (!iptables.sync.splashAddRule(lease.macOrDuid))										// Add MAC to the iptables rules
-			throw language.E_SET_SPLASH_ACCEPTED_FAILED.pre("Core::setSplashAccepted");
-
-		/*	The following line removes connection tracking for the PC. This clears any previous (incorrect) route info for the redirection
-			exec("sudo rmtrack ".$_SERVER['REMOTE_ADDR']);
-			Create the file /usr/bin/rmtrack and make it executable with the following contents:
-				/usr/sbin/conntrack -L \
-				|grep $1 \
-				|grep ESTAB \
-				|grep 'dport=80' \
-				|awk \
-				"{ system(\"conntrack -D --orig-src $1 --orig-dst \" \
-				substr(\$6,5) \" -p tcp --orig-port-src \" substr(\$7,7) \" \
-				--orig-port-dst 80\"); }"	*/
-		}
-	catch(err)
-		{
-		throw errorc.make(err);
-		}
-
-	return true;
 	});
 
 var startSpacelet = fibrous( function(unique_name, connObj)
@@ -410,7 +392,7 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 	var openRuntimeServices = [];
 
 	try {
-		if (securityModel.isApplicationIP(connObj.remoteAddress))
+		if (securityManager.isApplicationIP(connObj.remoteAddress))
 			throw language.E_START_SPACELET_APPLICATIONS_CAN_NOT_START_SPACELETS.pre("Core::startSpacelet");
 
 		application = get("getApplication", unique_name)
@@ -421,14 +403,14 @@ var startSpacelet = fibrous( function(unique_name, connObj)
 		if (application.type != config.SPACELET)
 			throw language.E_START_SPACELET_IS_NOT_SPACELET.preFmt("Core::startSpacelet", {"~unique_name": unique_name});
 
-		if (!securityModel.checkSameOriginPolicy(application.manifest.getOrigins(), connObj.origin))
+		if (!securityManager.checkSameOriginPolicy(application.manifest.getOrigins(), connObj.origin))
 			throw language.E_START_SPACELET_FORBIDDEN_ORIGIN.pre("Core::startSpacelet");
 
 		spaceletManager.sync.start(unique_name, true);
 
 		providesServices = serviceRegistry.getApplicationServices(unique_name, true);
 
-		openRuntimeServices = securityModel.getOpenServices(providesServices, false, null);
+		openRuntimeServices = securityManager.getOpenServices(providesServices, false, null);
 
 		// Events
 		startObject.manifest = extendManifest(application);
@@ -452,9 +434,9 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws,
 	var isInstalled = true;
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		application = getManager(type).sync.install(unique_name, true);
 
@@ -472,7 +454,7 @@ var installApplication = fibrous( function(unique_name, type, sessionId, throws,
 		else if (type == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_INSTALLED;
 
-		callEvent(event, { manifest: getManifest.sync(unique_name, true, false, connObj) });
+		callEvent(event, { manifest: getManifest.sync(unique_name, null) });
 		}
 	catch(err)
 		{
@@ -493,9 +475,9 @@ var removeApplication = fibrous( function(unique_name, sessionId, throws, connOb
 	var isRemoved = false;
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		// REMOVE APPLICATION
 		application = get("getApplication", unique_name)
@@ -543,9 +525,9 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 	var applicationStatus;
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		// START APPLICATION
 		if (!(application = get("getApplication", unique_name)))
@@ -573,8 +555,8 @@ var startApplication = fibrous( function(unique_name, sessionId, throws, connObj
 		else if (type == config.NATIVE_DEBIAN)
 			event = config.EVENT_NATIVE_DEBIAN_STARTED;
 
-		startObject.manifest = getManifest.sync(unique_name, true, false, connObj);
-		startObject.openRuntimeServices = securityModel.getOpenServices(providesServices, false, connObj.remoteAddress);
+		startObject.manifest = getManifest.sync(unique_name, null);
+		startObject.openRuntimeServices = securityManager.getOpenServices(providesServices, false, connObj.remoteAddress);
 
 		callEvent(event, startObject);
 		}
@@ -598,9 +580,9 @@ var stopApplication = fibrous( function(unique_name, sessionId, throws, connObj)
 	var applicationStatus;
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		// STOP APPLICATION
 		if (!(application = get("getApplication", unique_name)))
@@ -675,25 +657,25 @@ var getApplicationData = fibrous( function(connObj)
 
 	for (i = 0; i < dbSpacelet.length; i++)
 		{
-		if ((manifest = getManifest.sync(dbSpacelet[i].unique_name, true, false, connObj)))
+		if ((manifest = getManifest.sync(dbSpacelet[i].unique_name, null)))
 			appData.spacelet.push(manifest);
 		}
 
 	for (i = 0; i < dbSandboxed.length; i++)
 		{
-		if ((manifest = getManifest.sync(dbSandboxed[i].unique_name, true, false, connObj)))
+		if ((manifest = getManifest.sync(dbSandboxed[i].unique_name, null)))
 			appData.sandboxed.push(manifest);
 		}
 
 	for (i = 0; i < dbSandboxedDebian.length; i++)
 		{
-		if ((manifest = getManifest.sync(dbSandboxedDebian[i].unique_name, true, false, connObj)))
+		if ((manifest = getManifest.sync(dbSandboxedDebian[i].unique_name, null)))
 			appData.sandboxed_debian.push(manifest);
 		}
 
 	for (i = 0; i < dbNativeDebian.length; i++)
 		{
-		if ((manifest = getManifest.sync(dbNativeDebian[i].unique_name, true, false, connObj)))
+		if ((manifest = getManifest.sync(dbNativeDebian[i].unique_name, null)))
 			appData.native_debian.push(manifest);
 		}
 
@@ -711,7 +693,7 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 
 		var type = application.manifest.getType();
 		var implementsWebServer = application.manifest.implementsWebServer();
-		var httpService = serviceRegistry.getService(config.HTTP, unique_name, true);
+		var httpService = serviceRegistry.getService(config.HTTP, unique_name, true, false);
 
 		if (implementsWebServer && httpService)											// Use applications internal server
 			{
@@ -739,28 +721,26 @@ var getApplicationURL = fibrous( function(unique_name, connObj)
 			};
 	});
 
-var getManifest = fibrous( function(unique_name, extend, throws, connObj)
-	{ // Get application or spacelet manifest, get extended information if it is requested
+var getManifest = fibrous( function(unique_name, connObj)
+	{ // Get application or spacelet manifest
 	var application;
-	var manifest = null;
 
 	application = get("getApplication", unique_name);
 
-	if (!application.manifest && throws)
+	if (application == null && connObj != null)
 		throw language.E_GET_MANIFEST_FAILED.preFmt("Core::getManifest", {"~name": unique_name});
 
-	if (application.manifest && extend)
-		manifest = extendManifest(application);
-	else
-		manifest = application.manifest.getManifest();
-
-	return manifest;
+	return extendManifest(application);
 	});
 var extendManifest = function(application)
 	{
-	var manifest = application.manifest.getManifest();
-	manifest.hasTile = application.manifest.hasTile();
-	manifest.isRunning = getManager(application.type).sync.isRunning(application.unique_name);
+	var manifest = {};
+
+	if (application != null)
+		{
+	 	manifest = application.manifest.getManifest();
+		manifest.hasTile = application.manifest.hasTile();
+		}
 
 	return manifest;
 	}
@@ -770,9 +750,9 @@ var getRuntimeServiceStates = fibrous( function(sessionId, connObj)
 	var status = {spacelet: {}, sandboxed: {}, sandboxed_debian: {}, native_debian: {}};
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		// GET SERVICE RUNTIME STATES
 		status.spacelet = serviceRegistry.getRuntimeServiceStates(config.SPACELET);
@@ -796,9 +776,9 @@ var getCoreSettings = fibrous( function(sessionId, connObj)
 	var settings = {};
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		settings = database.sync.getCoreSettings();
 		}
@@ -817,12 +797,12 @@ var getCoreSettings = fibrous( function(sessionId, connObj)
 var saveCoreSettings = fibrous( function(settings, sessionId, connObj)
 	{
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
-		database.sync.saveCoreSettings(settings);								// Save to database and update to security model
-		securityModel.setCoreSettings(settings);
+		database.sync.saveCoreSettings(settings);								// Save to database and update to security manager
+		securityManager.setCoreSettings(settings);
 
 		callEvent(config.EVENT_CORE_SETTINGS_CHANGED, settings);
 		}
@@ -843,9 +823,9 @@ var getEdgeSettings = fibrous( function(sessionId, connObj)
 	var settings = {};
 
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		settings = database.sync.getEdgeSettings();
 		}
@@ -861,16 +841,16 @@ var getEdgeSettings = fibrous( function(sessionId, connObj)
 	return	{
 			edge_id: settings.edge_id, edge_name: settings.edge_name, edge_enable_remote: settings.edge_enable_remote,
 			edge_require_password: settings.edge_require_password, admin_login_count: settings.admin_login_count,
-			admin_last_login: securityModel.getAdminLastLogin()
+			admin_last_login: securityManager.getAdminLastLogin()
 			};
 	});
 
 var saveEdgeSettings = fibrous( function(settings, sessionId, connObj)
 	{
 	try {
-		securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
+		securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, true/*throws*/);
 
-		securityModel.refreshAdminLogInSession(sessionId);
+		securityManager.refreshAdminLogInSession(sessionId);
 
 		delete settings.edge_password;
 		delete settings.edge_salt;
@@ -888,8 +868,8 @@ var saveEdgeSettings = fibrous( function(settings, sessionId, connObj)
 		if (edge_require_password != 0 && edge_require_password != 1)
 			settings.edge_require_password = 0;
 
-		database.sync.saveEdgeSettings(settings);								// Save to database and update to security model
-		//securityModel.setEdgeSettings(settings);
+		database.sync.saveEdgeSettings(settings);								// Save to database and update to security manager
+		//securityManager.setEdgeSettings(settings);
 
 		callEvent(config.EVENT_EDGE_SETTINGS_CHANGED, settings);
 		}
@@ -903,6 +883,31 @@ var saveEdgeSettings = fibrous( function(settings, sessionId, connObj)
 		}
 
 	return true;
+	});
+
+var getEdgeID = fibrous( function(connObj)
+	{
+	var shasum;
+	var settings;
+	var edgeId = null;
+
+	try {
+		settings = database.sync.getEdgeSettings();
+
+		shasum = crypto.createHash("sha512");
+		shasum.update(settings.edge_id + settings.edge_name + settings.edge_salt);
+		edgeId = shasum.digest("hex").toString();
+		}
+	catch(err)
+		{
+		throw err;
+		}
+	finally
+		{
+		database.close();
+		}
+
+	return edgeId;
 	});
 
 self.registerEdge = fibrous( function()
@@ -940,7 +945,7 @@ self.registerEdge = fibrous( function()
  */
 var setEventListeners = fibrous( function(events, sessionId, connObj)
 	{
-	var isAdminSession = securityModel.sync.isAdminSession(connObj.remoteAddress, sessionId, false/*!throws*/);
+	var isAdminSession = securityManager.sync.isAdminSession(connObj.remoteAddress, sessionId, false/*!throws*/);
 
 	for (var i = 0; i < events.length; i++)										// Set the event listeners for the connection
 		{
@@ -969,80 +974,6 @@ var setEventListeners = fibrous( function(events, sessionId, connObj)
 
 	return true;
 	});
-
-/*var saveOptions = fibrous( function(sessionId, unique_name, directory, file, data, connObj)
-	{
-	var dbApp;
-	var volumePath;
-	var optionsOk = false;
-	var session = securityModel.findAdminSession(sessionId);
-
-	try {
-		if (!session || session.ip != connObj.remoteAddress)							// Accept only from the same ip (= logged in device)
-			throw language.E_INVALID_SESSION.pre("Core::saveOptions");
-
-		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume, create directory and save
-		if (!dbApp)
-			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::saveOptions", {"~name": unique_name});
-
-		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
-
-		if (directory != "")
-			{
-			directory += (directory.search(/\/$/) != -1 ? "" : "/");
-			mkdirp.sync(volumePath + directory, parseInt("0755", 8));
-			}
-
-		fs.sync.writeFile(volumePath + directory + file, data);
-
-		optionsOk = true;
-		}
-	catch(err)
-		{
-		throw errorc.make(err);
-		}
-	finally
-		{
-		database.close();
-		}
-
-	return optionsOk;
-	});
-
-var loadOptions = fibrous( function(sessionId, unique_name, directory, file, connObj)
-	{
-	var data;
-	var dbApp;
-	var volumePath;
-	var data = null;
-	var session = securityModel.findAdminSession(sessionId);
-
-	try {
-		if (!session || session.ip != connObj.remoteAddress)							// Accept only from the same ip (= logged in device)
-			throw language.E_INVALID_SESSION.pre("Core::loadOptions");
-
-		dbApp = database.sync.getApplication(unique_name) || null;						// Get application, path to volume and load
-		if (!dbApp)
-			throw language.E_APPLICATION_IS_NOT_INSTALLED.preFmt("Core::loadOptions", {"~name": unique_name});
-
-		volumePath = unique.getVolPath(dbApp.type, unique_name, config);
-
-		if (directory != "")
-			directory += (directory.search(/\/$/) != -1 ? "" : "/");
-
-		data = fs.sync.readFile(volumePath + directory + file, {encoding: "utf8"});
-		}
-	catch(err)
-		{
-		throw errorc.make(err);
-		}
-	finally
-		{
-		database.close();
-		}
-
-	return data;
-	});*/
 
 	// PRIVATE -- -- -- -- -- -- -- -- -- -- //
 var get = function(method, search)
@@ -1095,11 +1026,16 @@ var callEvent = function(event)
 	}
 
 /**
- * Bridge ServiceRegistry and RuntimeManager
+ * Bridge between RuntimeManager and the ServiceRegistry and Iptables services
  */
 self.preContainerRun = function(unique_name, provided, IP)
 	{
 	serviceRegistry.setRuntimeServices(unique_name, provided, IP);
+	}
+
+self.getIptables = function()
+	{
+	return iptables;
 	}
 
 }

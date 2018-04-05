@@ -26,9 +26,11 @@ printf "\n\e[4mRestoring system configuration files and removing configuration f
 
 sed -i -e "s/${comm_out_spaceify}//g" -e "/${start_spaceify}/,/${end_spaceify}/d" /etc/network/interfaces > /dev/null 2>&1 || true
 
-	# - /etc/default/docker - #
+	# - /etc/default/docker, /etc/systemd/system/docker.service.d/noiptables.conf - #
 
 sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/default/docker > /dev/null 2>&1 || true
+
+rm -r /etc/systemd/system/docker.service.d/ > /dev/null 2>&1 || true
 
 	# - /etc/rc.local - #
 
@@ -81,8 +83,13 @@ printf "\n\e[4mStopping services.\e[0m\n"
 service spaceifyhttp stop > /dev/null 2>&1 || true
 service spaceifyappman stop > /dev/null 2>&1 || true
 service spaceify stop > /dev/null 2>&1 || true
-service spaceifyipt stop > /dev/null 2>&1 || true
-service spaceifydns stop > /dev/null 2>&1 || true
+
+# rm /lib/systemd/system/spaceify.service > /dev/null 2>&1 || true
+# rm /lib/systemd/system/spaceifyhttp.service > /dev/null 2>&1 || true
+# rm /lib/systemd/system/spaceifyappman.service > /dev/null 2>&1 || true
+# rm /etc/systemd/system/multi-user.target.wants/spaceify.service > /dev/null 2>&1 || true
+# rm /etc/systemd/system/multi-user.target.wants/spaceifyhttp.service > /dev/null 2>&1 || true
+# rm /etc/systemd/system/multi-user.target.wants/spaceifyappman.service > /dev/null 2>&1 || true
 
 printf "\nOK\n"
 
@@ -103,6 +110,7 @@ elif [[ -n $(service network-manager status |& grep running) ]]; then
 	service network-manager restart > /dev/null 2>&1 || true
 
 	resolvconf -u
+
 fi
 
 . /var/lib/spaceify/data/scripts/wait_network.sh 0 300 50 "Please wait, restarting the network."
@@ -122,13 +130,15 @@ printf "\nOK\n"
 # ----------
 # ----------
 # ----------
-# ---------- Remove spaceify's chains from iptables ---------- #
+# ---------- Remove Spaceify's chains from iptables ---------- #
 
-printf "\n\e[4mRemoving iptables chains\e[0m\n"
+printf "\n\e[4mRemoving Spaceify's iptables rules\e[0m\n"
 
 sed -i "/${start_spaceify}/,/${end_spaceify}/d" /etc/rc.local
 
 . /var/lib/spaceify/data/scripts/iptables.sh "delete"
+
+node /var/lib/spaceify/code/removeiptablesrules.js > /dev/null 2>&1 || true
 
 printf "\nOK\n\n"
 
@@ -138,3 +148,5 @@ printf "\nOK\n\n"
 # ----------
 # ---------- Remove files on purge ---------- #
 # See: debian/postrm
+
+printf "\n\e[42mSpaceify's installation is now removed. Please reboot the computer to finalize the removal.\e[0m\n\n"

@@ -2,162 +2,360 @@
 
 /**
  * Spaceify iptables writer, 12.11.2014 Spaceify Oy
- * 
+ *
  * @class Iptables
  */
 
 var fs = require("fs");
-var PubSub = require("./pubsub");
 var fibrous = require("./fibrous");
+var language = require("./language");
 var SpaceifyConfig = require("./spaceifyconfig");
 //var SpaceifyLogger = require("./spaceifylogger");
+var SpaceifyUnique = require("./spaceifyunique");
 var SpaceifyUtility = require("./spaceifyutility");
 
 function Iptables()
 {
 var self = this;
 
-var pubSub = new PubSub();
+var unique = new SpaceifyUnique();
 var utility = new SpaceifyUtility();
 var config = SpaceifyConfig.getConfig();
 //var logger = new SpaceifyLogger("Iptables");
 
-var SPLASH_ADD_MAC = "-t mangle -I Spaceify-mangle 1 -m mac --mac-source :mac -j RETURN";		// NOTICE! Add to the top of the rules.
-var SPLASH_DEL_MAC = "-t mangle -D Spaceify-mangle -m mac --mac-source :mac -j RETURN";
-var SPLASH_CHK_MAC = "-t mangle -C Spaceify-mangle -m mac --mac-source :mac -j RETURN";
+var rules = {};
+var access = {};
+
+var chainOrdinal = 1;
+var CHAIN = "Spaceify-App-";
+var DEFAULT_REJECT_OPEN_LOCAL = "-t filter -A ~chain -p tcp ! -s 172.17.0.0/16 --destination-port ~dstPort -j REJECT";
+//var DEFAULT_REJECT_STANDARD_ALIEN = "-t filter -A ~chain -p tcp -d ~dstIP --destination-port ~dstPort -j REJECT";
+var DEFAULT_REJECT_STANDARD_ALIEN = "-t filter -A ~chain -p tcp --destination-port ~dstPort -j REJECT";
+//var ADD_ACCEPT_STANDARD_ALIEN = "-t filter -I ~chain 1 -p tcp -s ~srcIP -d ~dstIP --destination-port ~dstPort -j ACCEPT";
+//var REM_ACCEPT_STANDARD_ALIEN = "-t filter -D ~chain -p tcp -s ~srcIP -d ~dstIP --destination-port ~dstPort -j ACCEPT";
+var ADD_ACCEPT_STANDARD_ALIEN = "-t filter -I ~chain 1 -p tcp -s ~srcIP --destination-port ~dstPort -j ACCEPT";
+var REM_ACCEPT_STANDARD_ALIEN = "-t filter -D ~chain -p tcp -s ~srcIP --destination-port ~dstPort -j ACCEPT";
 
 	// I/O -- -- -- -- -- -- -- -- -- -- //
-var write = function(rule, callback)
-	{ // Wait for the streams to close to prevent EMFILE error (= maximum open streams exceeded)!!!
+var execute = function(rule, callback)
+	{
 	try {
-		var buf = "";
-		var called = 0;
-		var ws = fs.createWriteStream(config.IPTABLES_PIPEW);
-		var rs = fs.createReadStream(config.IPTABLES_PIPER, { autoClose: false });
+		utility.execute.sync("iptables", rule.split(" "), {}, null);
 
-		var ready = function(err)
-			{
-			if(++called == 2)
-				callback((err ? err : null), (err ? null : (buf.length > 1 ? false : true)));
-			}
-
-		rs.on("data", function(data) { buf += data.toString(); });
-		rs.on("end", function() { rs.destroy(); ready(null); });
-		rs.on("close", function() { rs.destroy(); ready(null); });
-		rs.on("error", function(err) { rs.destroy(); ready(err); });
-
-		ws.write(rule + "\n");
-		ws.end();
-		ws.destroy();
-		ws.on("finish", function() { ready(null); });
-		ws.on("error", function(err) { ready(err); });
+		callback(null, true);
 		}
 	catch(err)
 		{
-		callback(err, null);
+		callback(null, false);
 		}
 	}
 
-	// SPLASH -- -- -- -- -- -- -- -- -- -- //
-self.splashAddRule = fibrous( function(MAC)
+	// INITIALIZE IPTABLES = REMOVES RULES -- -- -- -- -- -- -- -- -- -- //
+self.initialize = fibrous( function()
 	{
-	var splash = pubSub.value("splash", config.IPTABLES_PATH) || {};
+	try {
+		readRulesFromFile.sync();
 
-	if(!utility.isMAC(MAC))
-		return false;
-
-	try {																				// Add to the iptables rules and splash object
-		if(!self.sync.splashHasRule(MAC))
-			write.sync(utility.replace(SPLASH_ADD_MAC, {"~mac": MAC}));
-
-		if(!splash[MAC])
+		for (var unique_name in rules)
 			{
-			splash[MAC] = {"timestamp": Date.now()};
-			pubSub.publish("splash", splash, config.IPTABLES_PATH);
+			removeChain.sync(rules[unique_name].chain);
 			}
+
+		rules = {};
+
+		writeRulesToFile.sync();
 		}
 	catch(err)
 		{
-		return false;
 		}
-
-	return true;
 	});
 
-self.splashDeleteRule = fibrous( function(MAC)
+	// RULES -- -- -- -- -- -- -- -- -- -- //
+self.setRules = fibrous( function(unique_name, provided, required, ip, managerType)
 	{
-	var splash = pubSub.value("splash", config.IPTABLES_PATH) || {};
-
-	if(!utility.isMAC(MAC))
-		return false;
-
-	try {																				// Remove from the iptables rules and splash object
-		if(self.sync.splashHasRule(MAC))
-			write.sync(utility.replace(SPLASH_DEL_MAC, {"~mac": MAC}));
-
-		delete splash[MAC];
-		pubSub.publish("splash", splash, config.IPTABLES_PATH);
-		}
-	catch(err)
-		{
-		return false;
-		}
-
-	return true;
-	});
-
-self.splashDeleteRules = fibrous( function()
-	{
-	var splash = pubSub.value("splash", config.IPTABLES_PATH);
-
-	for(var mac in splash)
-		self.sync.splashDeleteRule(mac);
-	});
-
-self.splashRestoreRules = fibrous( function()
-	{ // Restores rules not existing in the iptables
-	var splash = pubSub.value("splash", config.IPTABLES_PATH);
-
-	for(var mac in splash)
-		self.sync.splashAddRule(mac);
-	});
-
-self.splashHasRule = function(MAC)
-	{
-	try { return write.sync(utility.replace(SPLASH_CHK_MAC, {"~mac": MAC})); }
-	catch(err) { return false; }
-	}
-
-	// CONTAINER CONNECTIONS -- -- -- -- -- -- -- -- -- -- //
-self.removeRules = fibrous( function()
-	{
-	var connections = pubSub.value("connections", config.IPTABLES_PATH) || {};
 /*
-	{
-	"service_name": {sourceIp: , destinationIp, destinationPort}
-	}
+iptables -A FORWARD -i docker0 -o ${eth} -j ACCEPT
+iptables -A FORWARD -i ${eth} -o docker0 -j ACCEPT
+iptables -A FORWARD -i ${eth} -o docker0 --state RELATED,ESTABLISHED -j ACCEPT
 */
+	try {
+		var chain = CHAIN + getChainOrdinal();
+
+		self.removeRules.sync(unique_name);												// Make sure there are no existing rules
+
+		rules[unique_name] = { chain: chain, provided: {}, required: {} };				// Add the chain in any case
+
+		execute.sync("-t filter -N " + chain);
+		execute.sync("-t filter -A INPUT -p tcp -j " + chain);	// raw ... PREROUTING?
+
+		for (var i in provided)
+			{
+				// ---> REJECT packet 'if to destination ip and port of application' = block all
+			if (provided[i].service_type == config.STANDARD || provided[i].service_type == config.ALIEN)
+				{
+				executeRule.sync(DEFAULT_REJECT_STANDARD_ALIEN, chain, null, null/*ip*/, provided[i].port, provided[i].securePort);
+				}
+				// ---> REJECT packet 'if not from internal source ip to applications port' = block from clients
+			else if (provided[i].service_type == config.OPEN_LOCAL)
+				{
+				executeRule.sync(DEFAULT_REJECT_OPEN_LOCAL, chain, null, null, provided[i].port, provided[i].securePort);
+				}
+
+	        rules[unique_name]["provided"][provided[i].service_name] =	{
+																		port: provided[i].port,
+																		securePort: provided[i].securePort,
+																		ip: ip,
+																		service_type: provided[i].service_type
+																		};
+			}
+
+		execute.sync("-t filter -D " + chain + " -j RETURN");							// Keep this last
+		execute.sync("-t filter -A " + chain + " -j RETURN");
+
+		for (var j = 0; j < required.length; j++)
+			rules[unique_name]["required"][required[j].service_name] = { ip: ip };
+
+		grantAccess.sync(unique_name, ip);
+
+		writeRulesToFile.sync();
+		}
+	catch(err)
+		{
+		self.removeRules.sync(unique_name);
+
+		throw language.E_IPTABLES_SET_FAILED.preFmt("Iptables::setRules", { "~unique_name": unique_name, "~type": language.APP_DISPLAY_NAMES[managerType] });
+		}
 	});
 
-self.allowConnection = fibrous( function(sourceIp, destinationIp, destinationPort)
+self.removeRules = fibrous( function(unique_name)
+	{ // REMOVE RULES ASSOCIATED TO THIS APPLICATION
+	try {
+		if (typeof rules[unique_name] == "undefined")
+			return;
+
+		removeChain.sync(rules[unique_name].chain);
+
+		delete rules[unique_name];
+
+		writeRulesToFile.sync();
+		}
+	catch(err)
+		{
+		}
+	});
+
+var removeChain = fibrous( function(chain)
 	{
-	//iptables -D INPUT -m mac --mac-source aa:BB:cc:aD:Ff:ac -j RETURN
-
-	//write.sync("-A INPUT -m mac --mac-source aa:BB:cc:aD:Ff:ac -j RETURN");
-// ip -> ip+port
+	execute.sync("-t filter -D " + chain + " -j RETURN");
+	execute.sync("-t filter -D INPUT -p tcp -j " + chain);
+	execute.sync("-t filter -F " + chain);
+	execute.sync("-t filter -X " + chain);
 	});
 
-self.disallowConnection = fibrous( function(sourceIp, destinationIp, destinationPort)
+	// ACCESS -- -- -- -- -- -- -- -- -- -- //
+var grantAccess = fibrous( function(unique_name, srcIP)
 	{
-	write.sync("-D INPUT -m mac --mac-source aa:BB:cc:aD:Ff:ac -j RETURN");
+	var service;
+	var provided;
+	var required;
+	var service_name;
+	var _unique_name_;
+
+	try {
+		// 1 / 2
+		// Grant access to provided services of other applications required by this application (unique_name)
+		for (service_name in rules[unique_name].required)
+			{
+			removeAccess.sync(service_name, unique_name);									// Remove applications old rules first
+
+			for (_unique_name_ in rules)
+				{
+				if (_unique_name_ == unique_name || typeof rules[_unique_name_]["provided"][service_name] == "undefined")	// Is self || no provided services
+					continue;
+
+				service = rules[_unique_name_]["provided"][service_name];
+
+				if (service.service_type != config.STANDARD && service.service_type != config.ALIEN)
+					continue;
+
+				executeRule.sync(ADD_ACCEPT_STANDARD_ALIEN, rules[_unique_name_].chain, srcIP, service.ip, service.port, service.securePort);
+
+				if (typeof access[service_name] == "undefined")								// Add to access list
+					access[service_name] = [];
+
+				access[service_name].push(	{
+											"srcIP": srcIP,
+											"dstIP": service.ip,
+											"dstPort": service.port,
+											"dstSecurePort": service.securePort,
+											"unique_name": unique_name,
+											"chain": rules[_unique_name_].chain
+											});
+				}
+			}
+
+		// 2 / 2
+		// Grant access to this applications (unique_name) provided services other applications require
+		provided = rules[unique_name].provided;
+		for (_unique_name_ in rules)
+			{
+			if (_unique_name_ == unique_name)
+				continue;
+
+			required = rules[unique_name].required;
+
+			for (service_name in required)
+				{
+				if (typeof provided[service_name] != "undefined" && (provided[service_name].service_type == config.STANDARD || provided[service_name].service_type == config.ALIEN))
+					{
+					removeAccess.sync(service_name, _unique_name_);
+
+					executeRule.sync(ADD_ACCEPT_STANDARD_ALIEN, provided[service_name].chain, required[service_name].ip, provided[service_name].ip, provided[service_name].port, provided[service_name].securePort);
+
+					if (typeof access[service_name] == "undefined")
+						access[service_name] = [];
+
+					access[service_name].push(	{
+												"srcIP": required[service_name].ip,
+												"dstIP": provided[service_name].ip,
+												"dstPort": provided[service_name].port,
+												"dstSecurePort": provided[service_name].securePort,
+												"unique_name": _unique_name_,
+												"chain": rules[unique_name].chain
+												});
+					}
+				}
+			}
+		}
+	catch(err)
+		{
+		}
 	});
 
-self.hasConnectionRule = fibrous( function(sourceIp, destinationIp, destinationPort)
-	{
-	try { return write.sync(utility.replace("-C INPUT -m mac --mac-source aa:BB:cc:aD:Ff:ac -j RETURN")); }
-	catch(err) { return false; }
+var removeAccess = fibrous( function(service_name, unique_name)
+	{ // Remove rules set for the application (unique_name) requiring the service (service_name)
+	var i = 0;
+
+	if (typeof access[service_name] == "undefined")
+		return;
+
+	while (i < access[service_name].length)
+		{
+		if (access[service_name][i].unique_name == unique_name)
+			{
+			executeRule.sync(REM_ACCEPT_STANDARD_ALIEN, access[service_name][i].chain, access[service_name][i].srcIP, access[service_name][i].dstIP, access[service_name][i].dstPort, access[service_name][i].dstSecurePort);
+
+			access[service_name].splice(i, 1);
+
+			//break;? There can not be more but lets go through the array to be sure!
+			}
+		else
+			{
+			i++;
+			}
+		}
+
+	if (access[service_name].length == 0)
+		delete access[service_name];
 	});
+
+var executeRule = fibrous( function(rule, chain, srcIP, dstIP, dstPort, dstSecurePort)
+	{
+	execute.sync(utility.replace(rule, { "~chain": chain, "~srcIP": srcIP, "~dstIP": dstIP, "~dstPort": dstPort }));
+
+	execute.sync(utility.replace(rule, { "~chain": chain, "~srcIP": srcIP, "~dstIP": dstIP, "~dstPort": dstSecurePort }));
+	});
+
+	// FILE -- -- -- -- -- -- -- -- -- -- //
+var writeRulesToFile = fibrous( function()
+	{
+	var success;
+
+	try {
+		fs.sync.writeFile(config.IPTABLES_PATH, JSON.stringify(rules, null, 1), { encoding: "utf8" });
+
+		success = true;
+		}
+	catch(err)
+		{
+		success = false;
+		}
+
+	return success;
+	});
+
+var readRulesFromFile = fibrous( function()
+	{
+	var _rules = null;
+
+	try {
+		_rules = fs.sync.readFile(config.IPTABLES_PATH, { encoding: "utf8" });
+
+		rules = JSON.parse(_rules);
+		}
+	catch(err)
+		{
+		rules = {};
+		}
+	});
+
+	// MISC -- -- -- -- -- -- -- -- -- -- //
+var getChainOrdinal = function()
+	{
+	return chainOrdinal++;
+	}
 
 }
 
 module.exports = Iptables;
+
+/*
+rules:
+{
+  "<unique_name>":
+    {
+    "chain": "???",
+    "provided":
+      {
+      "<service_name>":
+        {
+          "port": "???",
+          "securePort": "???",
+          "ip": "???",
+          "service_type": "[open_local, standard, alien]"
+        },
+      "<service_name>":
+        ...
+      },
+    "required":
+      {
+      "<service_name>":
+        {
+	    "ip": "???"
+	    },
+      ...
+      }
+    },
+  "<unique_name>":
+    ...
+}
+
+access:
+{
+  "<service_name>":
+    [
+  	  {
+      "srcIP": "???",
+      "dstIP": "???",
+      "dstPort": "???",
+      "dstSecurePort": "???",
+      "service_type": "[standard, alien]",
+      "unique_name": "zyx",
+      chain: "???"
+  	  },
+  	  ...
+    ],
+  "<service_name>":
+    ...
+}
+*/

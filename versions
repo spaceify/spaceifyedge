@@ -1,4 +1,4 @@
-edge:0.8.2,Alpha Centauri:spm:0.5.4:database:9:
+edge:0.9.0,Alpha Centauri:spm:0.5.5:database:10:
 edge = current release version, release name (tag)
 spm = current release version
 database = current release version

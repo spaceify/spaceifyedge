@@ -43,6 +43,6 @@ done
 progressbar $((max / bin_size)) $size
 printf "\n"
 
-if [[ $pos == $max ]]; then										
+if [[ $pos == $max ]]; then
 	exit 1
 fi

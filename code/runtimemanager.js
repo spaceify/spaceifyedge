@@ -2,9 +2,9 @@
 
 /**
  * RuntimeManager, 22.10.2015 Spaceify Oy
- * 
+ *
  * Spacelet, sandboxed, sandboxed debian and native debian application runtime manager class.
- * 
+ *
  * @class RuntimeManager
  */
 
@@ -51,7 +51,8 @@ self.install = fibrous( function(unique_name, throws)
 		if (manifest == null)
 			throw language.E_INSTALL_READ_MANIFEST_FAILED.preFmt("RuntimeManager::install", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": unique_name});
 
-		application = { manifest: manifest,
+		application =	{
+						manifest: manifest,
 						type: managerType,
 						unique_name: unique_name,
 						isDevelop: dbApplication.develop,
@@ -156,18 +157,20 @@ var run = fibrous( function(application)
 
 				self.sync.stop(application.unique_name, true);						// Stop container
 
-				throw language.E_START_INIT_FAILED.preFmt("RuntimeManager::run", {	"~err": matches,
-																			"~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
+				throw language.E_START_INIT_FAILED.preFmt("RuntimeManager::run", { "~err": matches, "~type": language.APP_UPPER_CASE_DISPLAY_NAMES[managerType]});
 				}
 			}
 		else //if (managerType == config.NATIVE_DEBIAN)
 			{
-			utility.execute.sync("systemctl", ["start", application.manifest.getUniqueNameAsSystemctlServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["start", application.manifest.getSystemdUnitFile()], {}, null);
 			}
+
+		_parent.getIptables().sync.setRules(application.manifest.getUniqueName(), provided, application.manifest.getRequiresServices(), dockerContainer.getIpAddress(), managerType);
 		}
 	catch(err)
 		{
 		ferr = language.E_RUN_FAILED_TO_RUN.preFmt("RuntimeManager::run", {"~type": language.APP_DISPLAY_NAMES[managerType], "~unique_name": application.unique_name});
+
 		throw errorc.make(ferr, err);
 		}
 	});
@@ -186,10 +189,12 @@ self.stop = fibrous( function(unique_name, throws)
 			}
 		else //if (managerType == config.NATIVE_DEBIAN)
 			{
-			utility.execute.sync("systemctl", ["stop", application.manifest.getUniqueNameAsSystemctlServiceName()], {}, null);
+			utility.execute.sync("systemctl", ["stop", application.manifest.getSystemdUnitFile()], {}, null);
 			}
 
 		application.dockerContainer = null;
+
+		_parent.getIptables().sync.removeRules(unique_name);
 		}
 	});
 
@@ -242,7 +247,7 @@ self.getApplication = function(unique_name)
 	}
 
 self.getApplicationByIp = function(ip)
-	{ // Only sandboxed applications can return a unique IP 
+	{ // Only sandboxed applications can return a unique IP
 	var dc;
 
 	for (var unique_name in applications)
@@ -293,7 +298,7 @@ self.isRunning = fibrous( function(unique_name)
 	else if (managerType == config.NATIVE_DEBIAN)
 		{ // Use systemctl to find out is service running = active
 		try {
-			status = utility.execute.sync("systemctl", ["is-active", application.manifest.getUniqueNameAsSystemctlServiceName()], {}, null);
+			status = utility.execute.sync("systemctl", ["is-active", application.manifest.getSystemdUnitFile()], {}, null);
 
 			if (status.stdout)
 				{

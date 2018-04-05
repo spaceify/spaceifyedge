@@ -33,7 +33,7 @@ done <<< "$dops"
 
 if [[ $psline != "" ]]; then
 	IFS=' ' read -ra array <<< "$psline"
-	printf "\nSTDOUT and STDERR of '$1'\n\n"
+	printf "\nstdout and stderr of '$1'\n\n"
 	docker logs "${array[0]}"
-	printf "\n\n"
+	printf "\n"
 fi

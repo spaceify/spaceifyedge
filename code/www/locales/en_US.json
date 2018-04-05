@@ -21,8 +21,8 @@
     "security_warning": "Unsecure connection detected! Without encryption anyone can see and exploit your password, session, and all other data. Push the 'Reload' button to switch using encrypted connection.",
 
     "open_appstore": "AppStore",
-    "back_to_launchpage": "Back to Launchpage",
-    "launchpage": "Launchpage",
+    "back_to_homepage": "Back to Homepage",
+    "homepage": "Homepage",
 
     "show_menu": "Show menu"
   },
@@ -32,12 +32,6 @@
     "title": "Welcome to Spaceify",
 
     "version": "v",
-
-    "splash_welcome": "Welcome to Spaceify powered wireless network.",
-    "splash_info": "1. Insert Terms of use, privacy policy or anything here for your splash page. See index.html for details of how this page is generated and how to customize it for your purposes. 2. Add 'Accept' button for your site. Users can continue only if they agree with the rules of your edge node. 3. Add 'Install' button. Allow user to load and install the Spaceify CA root certificate to their list of trusted certificates. Encrypted pages can be loaded only if the certificate is installed.",
-
-    "splash_accept_action": "Accept",
-    "splash_certificate_action": "Install",
 
     "spacelets": "Spacelets",
     "sandboxed": "Applications",

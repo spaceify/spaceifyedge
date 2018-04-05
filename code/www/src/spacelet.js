@@ -22,7 +22,7 @@ var spaceifyNetwork = new lib.SpaceifyNetwork();
 self.start = function(application, unique_name, callback)
 	{ // callback takes preference over application context
 	try {
-		core.startSpacelet(unique_name, function(err, serviceobj)
+		core.startSpacelet(unique_name, function(err, services)
 			{
 			if(err)
 				{
@@ -33,9 +33,9 @@ self.start = function(application, unique_name, callback)
 				}
 			else
 				{
-				for(var i = 0; i < serviceobj.serviceNames.length; i++)
+				for(var i = 0; i < services.length; i++)
 					{
-					serviceInterface.connect(serviceobj.serviceNames[i], (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
+					serviceInterface.connect(service[i].service_name, service[i].unique_name, spaceifyNetwork.isSecure(), (i + 1 != serviceobj.serviceNames.length ? null : function(err, data)
 						{
 						if(typeof application == "function")
 							application(null, true);

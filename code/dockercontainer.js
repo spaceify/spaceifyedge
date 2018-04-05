@@ -2,7 +2,7 @@
 
 /**
  * DockerContainer, 2013 Spaceify Oy
- * 
+ *
  * @class DockerContainer
  */
 
@@ -42,7 +42,7 @@ var login = "root";
 var password ="docker123";
 var docker = new Docker({socketPath: "/var/run/docker.sock"});
 
-// Start a Docker container in daemon mode. The OS image must have sshd installed.
+// Start a Docker container in daemon mode. The OS image must not have sshd installed.
 self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds)
 	{
 	var p, p2;
@@ -82,7 +82,6 @@ self.startContainer = fibrous( function(portCount, imageNameOrId, volumes, binds
 			"StdinOnce": false,
 			"Env": null,
 			//"WorkingDir": config.VOLUME_APPLICATION_PATH,
-			//"Cmd": ["/usr/sbin/sshd", "-D"],
 			"Cmd": ["/bin/bash"],
 			"Image": imageNameOrId,
 			"Volumes": (volumes ? volumes : {}),
@@ -181,8 +180,6 @@ self.installApplication = fibrous( function(appobj)
 
 self.runApplication = fibrous( function(appobj)
 	{
-	dockerHelper.sync.executeCommand("/usr/sbin/sshd -D & echo spaceifyend", ["spaceifyend"], false);
-
 	var type = appobj.getType();
 	var startCommand = appobj.getStartCommand();
 

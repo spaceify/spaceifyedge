@@ -241,15 +241,6 @@ logger:
 		warn: true
 		},
 
-	PubSub:
-		{
-		log: true,
-		dir: true,
-		info: true,
-		error: true,
-		warn: true
-		},
-
 	RpcCommunicator:
 		{
 		log: true,
@@ -259,7 +250,7 @@ logger:
 		warn: true
 		},
 
-	SecurityModel:
+	SecurityManager:
 		{
 		log: true,
 		dir: true,
@@ -403,7 +394,7 @@ logger:
 		warn: true
 		},
 
-	WebOperation:
+	REST:
 		{
 		log: true,
 		dir: true,

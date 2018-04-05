@@ -47,7 +47,7 @@ self.connect = function(managerOrigin_, callerOrigin_)
 	connection.exposeRpcMethod("questionTimedOut", self, questionTimedOut);
 	connection.exposeRpcMethod("end", self, end);
 
-	network.doOperation({ type: "requestMessageId" }, function(err, gotId)						// Request a messageId
+	network.REST_POST(config.REST_API_DIR + config.REST_REQUESTMESSAGEID, {}, function(err, gotId)		// Request a messageId
 		{
 		if (err)
 			return fail(err);

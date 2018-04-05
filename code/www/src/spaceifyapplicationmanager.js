@@ -41,7 +41,7 @@ var result = null;
  */
 self.installApplication = function(applicationPackage, username, password, force, origin, handler)
 	{
-	setup("installApplication", {package: applicationPackage, username: username, password: password, force: force, }, origin, handler, true);
+	setup(config.REST_INSTALLAPPLICATION, { package: applicationPackage, username: username, password: password, force: force }, origin, handler, true);
 	}
 
 /**
@@ -52,67 +52,67 @@ self.installApplication = function(applicationPackage, username, password, force
  */
 self.removeApplication = function(unique_name, origin, handler)
 	{
-	setup("removeApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_REMOVEAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.purgeApplication = function(unique_name, origin, handler)
 	{
-	setup("purgeApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_PURGEAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.startApplication = function(unique_name, origin, handler)
 	{
-	setup("startApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_STARTAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.stopApplication = function(unique_name, origin, handler)
 	{
-	setup("stopApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_STOPAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.restartApplication = function(unique_name, origin, handler)
 	{
-	setup("restartApplication", {unique_name: unique_name}, origin, handler, true);
+	setup(config.REST_RESTARTAPPLICATION, { unique_name: unique_name }, origin, handler, true);
 	}
 
 self.logIn = function(password, origin, handler)
 	{
-	setup("logIn", {password: password}, origin, handler, false);
+	setup(config.REST_LOGIN, { password: password }, origin, handler, false);
 	}
 
 self.logOut = function(origin, handler)
 	{
-	setup("logOut", {}, origin, handler, false);
+	setup(config.REST_LOGOUT, {}, origin, handler, false);
 	}
 
 self.isAdminLoggedIn = function(origin, handler)
 	{
-	setup("isAdminLoggedIn", {}, origin, handler, true);
+	setup(config.REST_ISADMINLOGGEDIN, {}, origin, handler, true);
 	}
 
 self.getCoreSettings = function(origin, handler)
 	{
-	setup("getCoreSettings", {}, origin, handler, true);
+	setup(config.REST_GETCORESETTINGS, {}, origin, handler, true);
 	}
 
 self.saveCoreSettings = function(settings, origin, handler)
 	{
-	setup("saveCoreSettings", {settings: settings}, origin, handler, true);
+	setup(config.REST_SAVECORESETTINGS, { settings: settings }, origin, handler, true);
 	}
 
 self.getEdgeSettings = function(origin, handler)
 	{
-	setup("getEdgeSettings", {}, origin, handler, true);
+	setup(config.REST_GETEDGESETTINGS, {}, origin, handler, true);
 	}
 
 self.saveEdgeSettings = function(settings, origin, handler)
 	{
-	setup("saveEdgeSettings", {settings: settings}, origin, handler, true);
+	setup(config.REST_SAVEEDGESETTINGS, { settings: settings }, origin, handler, true);
 	}
 
 self.getRuntimeServiceStates = function(origin, handler)
 	{
-	setup("getRuntimeServiceStates", {}, origin, handler, true);
+	setup(config.REST_GETRUNTIMESERVICESTATES, {}, origin, handler, true);
 	}
 
 /**
@@ -125,7 +125,7 @@ self.getRuntimeServiceStates = function(origin, handler)
  */
 self.getApplications = function(types, origin, handler)
 	{
-	setup("getApplications", {types: types}, origin, handler, true);
+	setup(config.REST_GETAPPLICATIONS, { types: types }, origin, handler, true);
 	}
 
 /**
@@ -168,9 +168,9 @@ self.appStoreGetPackages = function(search, returnCallback)
 /**
  *
  */
-var setup = function(type, params, origin, handler, getMessages)
+var setup = function(url, params, origin, handler, getMessages)
 	{
-	var op = { type: type, params: params, origin: origin, handler: handler, getMessages: getMessages, ms: Date.now(), id: utility.randomString(16, true) };
+	var op = { url: url, params: params, origin: origin, handler: handler, getMessages: getMessages, ms: Date.now(), id: utility.randomString(16, true) };
 
  	if(operations.length == 0)
  		{
@@ -194,11 +194,7 @@ self.connected = function()
 	{ // Messaging is now set up (or bypassed), post the operation.
 	sequence = 1;
 
-	var post = { type: operation.type };								// One object with operation and custom parameters
-	for(var i in operation.params)
-		post[i] = operation.params[i];
-
-	network.doOperation(post, function(err, data)
+	network.REST_POST(config.REST_API_DIR + operation.url, operation.params, function(err, data)
 		{
 		error = err;
 		result = data;

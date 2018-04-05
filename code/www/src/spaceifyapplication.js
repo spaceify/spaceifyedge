@@ -20,10 +20,11 @@ var SpaceifyCore = null;
 var SpaceifyConfig = null;
 var SpaceifyLogger = null;
 var SpaceifyUtility = null;
+var SpaceifyNetwork = null;
 var ServiceInterface = null;
 var fibrous = null;
 
-if(isNodeJs)
+if (isNodeJs)
 	{
 	lib = "/var/lib/spaceify/code/";
 
@@ -32,6 +33,7 @@ if(isNodeJs)
 	SpaceifyConfig = require(lib + "spaceifyconfig");
 	SpaceifyLogger = require(lib + "spaceifylogger");
 	SpaceifyUtility = require(lib + "spaceifyutility");
+	SpaceifyNetwork = require(lib + "spaceifynetwork");
 	ServiceInterface = require(lib + "serviceinterface");
 	fibrous = require(lib + "fibrous");
 	}
@@ -44,6 +46,7 @@ else
 	SpaceifyConfig = lib.SpaceifyConfig;
 	SpaceifyLogger = lib.SpaceifyLogger;
 	SpaceifyUtility = lib.SpaceifyUtility;
+	SpaceifyNetwork = lib.SpaceifyNetwork;
 	ServiceInterface = lib.ServiceInterface;
 	fibrous = function(fn) { return fn; };
 	}
@@ -52,10 +55,11 @@ else
 
 var self = this;
 
+var core = new SpaceifyCore();
 var httpServer = new WebServer();
 var httpsServer = new WebServer();
 var utility = new SpaceifyUtility();
-var spaceifyCore = new SpaceifyCore();
+var network = new SpaceifyNetwork();
 var serviceInterface = new ServiceInterface();
 var config = SpaceifyConfig.getConfig("realpaths");
 var logger = new SpaceifyLogger("SpaceifyApplication");
@@ -68,13 +72,13 @@ var HTTPS_PORT = (isRealSpaceify ? 443 : null);
 
 self.start = function()
 	{
-	if(isNodeJs)
+	if (isNodeJs)
 		start.apply(self, arguments);
 	else
 		self.connect.apply(self, arguments);
 	}
 
-var start = function(application_, options)
+var start = function(_application, options)
 	{
 	fibrous.run( function()
 		{
@@ -88,21 +92,21 @@ var start = function(application_, options)
 		var listenSecure = true;
 		var listenUnsecure = true;
 
-		application = application_;
+		application = _application;
 
 			// OPTIONS -- -- -- -- -- -- -- -- -- -- //
 		options = options || {};
 
 		hasWebServers = (options.webservers || options.webServers ? true : false);
 
-		if(hasWebServers)
+		if (hasWebServers)
 			{
 			server = options.webservers || options.webServers;
 			listenHttp = ("http" in server ? server.http : false);
 			listenHttps = ("https" in server ? server.https : false);
 			}
 
-		if(options.websocketservers || options.webSocketServers)
+		if (options.websocketservers || options.webSocketServers)
 			{
 			server = options.websocketservers || options.webSocketServers;
 			listenSecure = ("secure" in server ? server.secure : false);
@@ -114,13 +118,13 @@ var start = function(application_, options)
 			manifest = utility.sync.loadJSON(config.VOLUME_APPLICATION_PATH + config.MANIFEST, true, true);
 
 				// SERVICES -- -- -- -- -- -- -- -- -- -- //
-			if(manifest.provides_services)														// <= SERVERS - PROVIDES SERVICES
+			if (manifest.provides_services)															// <= SERVERS - PROVIDES SERVICES
 				{
 				var services = manifest.provides_services;
 
-				for(var i = 0; i < services.length; i++)
+				for (var i = 0; i < services.length; i++)
 					{
-					if(services.service_type == config.ALIEN)
+					if (services.service_type == config.ALIEN)
 						continue;
 
 					port = (isRealSpaceify ? config.FIRST_SERVICE_PORT + i : null);
@@ -130,14 +134,14 @@ var start = function(application_, options)
 					}
 				}
 
-			if(manifest.requires_services)														// <= CLIENTS - REQUIRES SERVICES
+			if (manifest.requires_services)															// <= CLIENTS - REQUIRES SERVICES
 				{
 				createRequiredServices.sync(manifest.requires_services, 0, false);
 				createRequiredServices.sync(manifest.requires_services, 0, true);
 				}
 
 				// START APPLICATIONS HTTP AND HTTPS WEB SERVERS -- -- -- -- -- -- -- -- -- -- //
-			if(hasWebServers)
+			if (hasWebServers)
 				{
 				var opts =	{
 							hostname: config.ALL_IPV4_LOCAL,
@@ -151,40 +155,46 @@ var start = function(application_, options)
 
 				registerHttp = false;
 
-				if(listenHttp && !httpServer.getIsOpen())
+				if (listenHttp && !httpServer.getIsOpen())
 					{
 					opts.isSecure = false;
 					opts.port = HTTP_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_80"] : null);
-					httpServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
+
 					httpServer.listen.sync(opts);
 
-					HTTP_PORT = httpServer.getPort();											// Get the port because native and develop mode applications
-																								// do not have knowledge of port numbers beforehand
+					HTTP_PORT = httpServer.getPort();												// Get the port because native and develop mode applications
+																									// do not have knowledge of port numbers beforehand
 					registerHttp = true;
+
+					if(server.hasOwnProperty("requestListener"))
+						httpServer.setRequestListener(server.requestListener);
 					}
 
-				if(listenHttps && !httpsServer.getIsOpen())
+				if (listenHttps && !httpsServer.getIsOpen())
 					{
 					opts.isSecure = true;
 					opts.port = HTTPS_PORT;
 					opts.mappedPort = (isRealSpaceify ? process.env["PORT_443"] : null);
-					httpsServer.setSessionListener(null, config.SESSION_TOKEN_NAME);
+
 					httpsServer.listen.sync(opts);
 
 					HTTPS_PORT = httpsServer.getPort();
 
 					registerHttp = true;
+
+					if(server.hasOwnProperty("requestListener"))
+						httpsServer.setRequestListener(server.requestListener);
 					}
 
-				if(registerHttp && !isRealSpaceify)
+				if (registerHttp && !isRealSpaceify)
 					{
-					spaceifyCore.sync.registerService("http", {unique_name: manifest.unique_name, port: HTTP_PORT, securePort: HTTPS_PORT});
+					core.sync.registerService("http", {unique_name: manifest.unique_name, port: HTTP_PORT, securePort: HTTPS_PORT});
 					console.log("    LISTEN -----> " + config.HTTP + " - port: " + HTTP_PORT + ", secure port: " + HTTPS_PORT);
 					}
 				}
 
-			if(application && application.start && typeof application.start == "function")
+			if (application && application.start && typeof application.start == "function")
 				application.start();
 
 				// APPLICATION INITIALIALIZED SUCCESSFULLY -- -- -- -- -- -- -- -- -- -- //
@@ -200,57 +210,70 @@ var start = function(application_, options)
 			});
 	}
 
-self.connect = function(application_, unique_names, options)
-	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending from where this method is called
+self.connect = function(_application, unique_names)
+	{ // Setup connections to open services of applications and spacelets; open, open_local or both depending where this method is called from.
 	try {
-		application = application_;
+		application = _application;
 
-		if(unique_names.constructor !== Array)													// getOpenServices takes an array of unique names
+		if (unique_names.constructor !== Array)														// getOpenServices takes an array of unique names
 			unique_names = [unique_names];
 
-		spaceifyCore.getOpenServices(unique_names, false, function(err, services)
+		core.getOpenServices(unique_names, false, function(err, services)
 			{
-			if(err)
+			if (err || !services)
 				throw err;
-			else
-				connectServices(application, services);
+
+			createRequiredServices(services, 0, (isNodeJs ? false : network.isSecure()), function()
+				{
+				createRequiredServices(services, (isNodeJs ? 0 : services.length), true, function()	// Web pages open only one type of connections
+					{
+					if (typeof application == "function")
+						application(null, true);
+					else if (application && application.start && typeof application.start == "function")
+						application.start();
+					});
+				});
 			});
 		}
 	catch(err)
 		{
-		if(typeof application == "function")
+		if (typeof application == "function")
 			application(err, false);
-		else if(application && application.fail && typeof application.fail == "function")
+		else if (application && application.fail && typeof application.fail == "function")
 			application.fail(err);
 		}
 	}
 
-var connectServices = function(application_, services)
-	{ // Connect to services in the array one at a time
-	var service = services.shift();
+var createRequiredServices = function(services, position, isSecure, callback)
+	{
+	var service_name, unique_name;
 
-	application = application_;
-
-	if(typeof service === "undefined")
+	if (position == services.length)
 		{
-		if(typeof application == "function")
-			application(null, true);
-		else if(application && application.start && typeof application.start == "function")
-			application.start();
-
-		return;
+		callback();
 		}
-
-	serviceInterface.connect(service.service_name, function(err, data)
+	else
 		{
-		connectServices(application, services);
-		});
+		service_name = services[position].service_name;
+
+		if (services[position].suggested_application)
+			unique_name = services[position].suggested_application + config.SUGGESTED_MARKER;
+		else
+			unique_name = services[position].unique_name;
+
+		position++;
+
+		serviceInterface.connect(service_name, unique_name, isSecure, function(err, data)
+			{
+			createRequiredServices(services, position, isSecure, callback);
+			});
+		}
 	}
 
 var initFail = fibrous( function(err)
 	{ // FAILED TO INITIALIALIZE THE APPLICATION. -- -- -- -- -- -- -- -- -- -- //
 	logger.error([";;", err, "::"], true, true, logger.ERROR);
-	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);						// console.log is used intentionally!!!
+	console.log(manifest.unique_name + config.APPLICATION_UNINITIALIZED);							// console.log is used intentionally!!!
 
 	stop.sync(err);
 	});
@@ -260,34 +283,19 @@ var stop = fibrous( function(err)
 	httpServer.close();
 	httpsServer.close();
 
-	serviceInterface.disconnect();																// Disconnect clients
-	serviceInterface.close();																	// Close servers
+	serviceInterface.disconnect();																	// Disconnect clients
+	serviceInterface.close();																		// Close servers
 
-	spaceifyCore.close();
+	core.close();
 
-	if(application && application.fail && typeof application.fail == "function")
+	if (application && application.fail && typeof application.fail == "function")
 		application.fail(err);
 	});
-
-var createRequiredServices = function(services, position, isSecure, callback)
-	{
-	if(position == services.length)
-		{
-		callback();
-		}
-	else
-		{
-		serviceInterface.connect(services[position++].service_name, isSecure, function(err, data)
-			{
-			createRequiredServices(services, position, isSecure, callback);
-			});
-		}
-	}
 
 	// METHODS -- -- -- -- -- -- -- -- -- -- //
 self.getOwnUrl = function(isSecure)
 	{
-	if(!isNodeJs)
+	if (!isNodeJs)
 		return null;
 
 	var ownUrl = (!isSecure ? "http://" : "https://") + config.EDGE_HOSTNAME + ":" + (!isSecure ? HTTP_PORT : HTTPS_PORT);
@@ -373,5 +381,5 @@ self.callRpcByConnectionId = function(connectionId, method, params, object, call
 
 }
 
-if(typeof exports !== "undefined")
+if (typeof exports !== "undefined")
 	module.exports = (typeof window === "undefined" ? new SpaceifyApplication() : SpaceifyApplication);

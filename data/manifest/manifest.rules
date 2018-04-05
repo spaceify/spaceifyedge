@@ -33,7 +33,7 @@
       "type": "objects",
       "required": ["none"],
       "unique": [{"compare": "service_name", "compare_type": "equal", "fields": ["service_name"], "store": true, "error": "E_SERVICE_NAME_DUPLICATE_R"},
-                 {"compare": "unique_name", "compare_type": "equal", "fields": ["suggested_application"], "store": true, "error": "E_SERVICE_SUGGESTED_SELF"}],
+                 {"compare": "unique_name", "compare_type": "equal", "fields": ["suggested_application"], "store": false, "error": "E_SERVICE_SUGGESTED_SELF"}],
       "sub_rules":
       {
         "service_name": {"required": true, "type": "string", "validator": {"type": "function", "name": "serviceName", "params": ""}, "errors": {"field": "E_SERVICE_NAME_REQUIRED_R", "type": "E_SERVICE_NAME_TYPE_R", "error": "E_SERVICE_NAME_FORMAT_R"}},
@@ -278,6 +278,13 @@
         "description": {"required": true, "type": "string", "validator": {"type": "regx", "match": "not_empty_trimmed"}, "errors": {"field": "E_DEB_PACKAGES_DESCRIPTION_REQUIRED", "type": "E_DEB_PACKAGES_DESCRIPTION_TYPE", "error": "E_DEB_PACKAGES_DESCRIPTION_FORMAT"}}
       },
       "errors": {"field": "E_DEB_PACKAGES_REQUIRED", "type": "E_DEB_PACKAGES_TYPE", "empty": "E_DEB_PACKAGES_EMPTY"}
+    },
+    "systemd_unit_file":
+    {
+      "type": "string",
+      "required": ["native_debian"],
+      "validator": {"type": "nregx", "match": "systemd_unit_file"},
+      "errors": {"field": "E_SYSTEMD_UNIT_FILE_REQUIRED", "type": "E_SYSTEMD_UNIT_FILE_TYPE", "error": "E_SYSTEMD_UNIT_FILE_FORMAT"}
     }
   },
 
@@ -297,7 +304,8 @@
     "version": "/^(\\d|[1-9]\\d{0,4})(\\.\\d|\\.[1-9]\\d{0,4})?(\\.\\d|\\.[1-9]\\d{0,4})?$/",
     "date": "/^(((\\d{4})(-)(0[13578]|10|12)(-)(0[1-9]|[12][0-9]|3[01]))|((\\d{4})(-)(0[469]|1?1)(-)([0][1-9]|[12][0-9]|30))|((\\d{4})(-)(02)(-)(0[1-9]|1[0-9]|2[0-8]))|(([02468]?[048]00)(-)(02)(-)(29))|(([13579][26]00)(-)(02)(-)(29))|(([0-9][0-9][0][48])(-)(0?2)(-)(29))|(([0-9][0-9][2468][048])(-)(02)(-)(29))|(([0-9][0-9][13579][26])(-)(02?)(-)(29)))(\\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9]))$/",
     "keywords": "/[^0-9a-zA-Z]|\\s|^$/",
-    "public_key": "/^url:(.+)|^file:(.+)|^$/"
+    "public_key": "/^url:(.+)|^file:(.+)|^$/",
+    "systemd_unit_file": "/^[a-z]{3,}\\.service$/"
   },
 
   "lists":
@@ -340,7 +348,7 @@
     "E_SERVICE_SUGGESTED_TYPE_R": "spaceify.manifest : requires_services.suggested_application - Field type must be string.",
     "E_SERVICE_SUGGESTED_FORMAT_R": "spaceify.manifest : requires_services.suggested_application - Value can contain only characters 0-9a-z/. Name can not be empty, have leading or trailing whitespace, start or end with a / or have consecutive /. Name can be optionally followed by @version, where version is one to three dot separated sequences of valid integers between 0 - 99999.",
 
-    "E_SERVICE_SUGGESTED_SELF": "The suggested_name in provides_service.requires_services can not be same as the applications own unique_name is (suggests self).",
+    "E_SERVICE_SUGGESTED_SELF": "The suggested_name in requires_services can not be same as the applications own unique_name is (suggests self).",
 
     "E_VERSION_REQUIRED": "spaceify.manifest : version - Field is required.",
     "E_VERSION_TYPE": "spaceify.manifest : version - Field type must be string.",
@@ -509,7 +517,9 @@
     "E_DEB_PACKAGES_NAME_FORMAT": "spaceify.manifest : deb_packages.name - Value can not be empty or have leading or trailing whitespace.",
     "E_DEB_PACKAGES_DESCRIPTION_REQUIRED": "spaceify.manifest : deb_packages.description - Field is required.",
     "E_DEB_PACKAGES_DESCRIPTION_TYPE": "spaceify.manifest : deb_packages.description - Field type must be string.",
-    "E_DEB_PACKAGES_DESCRIPTION_FORMAT": "spaceify.manifest : deb_packages.description - Value can not be empty or have leading or trailing whitespace."
-    
+    "E_DEB_PACKAGES_DESCRIPTION_FORMAT": "spaceify.manifest : deb_packages.description - Value can not be empty or have leading or trailing whitespace.",
+    "E_SYSTEMD_UNIT_FILE_REQUIRED": "spaceify.manifest : systemd_unit_file - Field is required.",
+    "E_SYSTEMD_UNIT_FILE_TYPE": "spaceify.manifest : systemd_unit_file - Field type must be string.",
+    "E_SYSTEMD_UNIT_FILE_FORMAT": "spaceify.manifest : systemd_unit_file - Value must contain three or more a-z characters and must be appended with .service. The value can not contain leading or trailing whitespace."
   }
 }
