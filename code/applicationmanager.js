@@ -11,7 +11,6 @@ var http = require("http");
 var crypto = require("crypto");
 var mkdirp = require("mkdirp");
 var Github = require("@octokit/rest");
-var AdmZip = require("adm-zip");
 var fibrous = require("./fibrous");
 var language = require("./language");
 var Database = require("./database");

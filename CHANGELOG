@@ -1,3 +1,5 @@
+0.9.1  Alpha Centauri (developer-pre-alpha)
+    * Vulnerable dependency updated
 0.9.0  Alpha Centauri (developer-pre-alpha)
     * Core and containers migrated to use Node.js 8.10.0.
     * HTTP service improved.

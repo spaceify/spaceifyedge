@@ -1,6 +1,6 @@
 {
   "name": "spaceifyedge",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "The New Generation (lightweight) Spaceify Edge Platform.",
   "author": {
     "name": "Spaceify Oy",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@octokit/rest": "14.0.0",
-    "adm-zip": "0.4.7",
+    "adm-zip": "0.4.13",
     "async": "2.6.0",
     "dockerode": "2.5.4",
     "fibers": "2.0.0",
